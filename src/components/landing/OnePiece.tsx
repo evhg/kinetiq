@@ -35,6 +35,7 @@ export function OnePiece() {
           .fromTo(`.${styles.tubular}`, { autoAlpha: 1 }, { autoAlpha: 0, duration: 0.1 }, 0.78)
           // Beat C: the words and drawings leave the shell before the proofs arrive (no overlapping fades).
           .to(`.${styles.beatB} .${styles.copy}, .${styles.compare}`, { autoAlpha: 0, duration: 0.08 }, 1.0)
+          .to(`.${styles.beatB} .${styles.media}`, { yPercent: 0, y: 0, scale: 1, duration: 0.12, ease: "power2.inOut" }, 1.0)
           .fromTo(`.${styles.beatC}`, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.02 }, 1.08)
           .from(`.${styles.proof}`, { autoAlpha: 0, y: 12, stagger: 0.03, duration: 0.08 }, 1.1)
           .to({}, { duration: 0.1 });
