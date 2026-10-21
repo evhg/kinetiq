@@ -272,10 +272,17 @@ export function createFlowBuilder(opts: FlowOptions) {
         y -= e * out[0];
       }
     }
-    const nPts = xs.length / 2;
-    const pts = new Float32Array(xs);
+    // Drop points that add nothing (straight runs in the free stream): within 0.12 px of the chord.
+    const keep = simplifyIndices(xs, 0.12);
+    const nPts = keep.length;
+    const pts = new Float32Array(nPts * 2);
+    const speed = new Float32Array(nPts);
+    keep.forEach((k, j) => {
+      pts[2 * j] = xs[2 * k];
+      pts[2 * j + 1] = xs[2 * k + 1];
+      speed[j] = sp2[k];
+    });
     const len = new Float32Array(nPts);
-    const speed = new Float32Array(sp2);
     for (let p = 1; p < nPts; p++) {
       len[p] = len[p - 1] + Math.hypot(pts[2 * p] - pts[2 * p - 2], pts[2 * p + 1] - pts[2 * p - 1]);
     }
@@ -321,10 +328,10 @@ export function buildFlowField(opts: FlowOptions): FlowField {
   return b.field;
 }
 
-/** Douglas-Peucker simplification of an interleaved polyline, for compact SVG output. */
-export function simplify(pts: Float32Array, tol: number): number[] {
+/** Douglas-Peucker on an interleaved polyline: the indices of the points to keep. */
+export function simplifyIndices(pts: ArrayLike<number>, tol: number): number[] {
   const n = pts.length / 2;
-  if (n < 3) return Array.from(pts);
+  if (n < 3) return Array.from({ length: n }, (_, k) => k);
   const keep = new Uint8Array(n);
   keep[0] = 1;
   keep[n - 1] = 1;
@@ -356,9 +363,16 @@ export function simplify(pts: Float32Array, tol: number): number[] {
       stack.push([a, worst], [worst, b]);
     }
   }
-  const outPts: number[] = [];
-  for (let p = 0; p < n; p++) if (keep[p]) outPts.push(pts[2 * p], pts[2 * p + 1]);
-  return outPts;
+  const idx: number[] = [];
+  for (let p = 0; p < n; p++) if (keep[p]) idx.push(p);
+  return idx;
+}
+
+/** Douglas-Peucker simplification of an interleaved polyline, for compact SVG output. */
+export function simplify(pts: Float32Array, tol: number): number[] {
+  const out: number[] = [];
+  for (const p of simplifyIndices(pts, tol)) out.push(pts[2 * p], pts[2 * p + 1]);
+  return out;
 }
 
 /** SVG path data for a set of lines (simplified, rounded to 0.1 px). */

@@ -1,0 +1,289 @@
+/* G07 section comparison. One shared viewBox in millimetres (graphics-section.ts) keeps both drawings
+   at matching scale. Strokes are non-scaling and sized in CSS px; labels are HTML sized from the
+   container width (never below 15 px). Narrow containers crop to one edge (the .half layout). */
+.root {
+  --w-part: clamp(1px, 0.32cqw + 0.2px, 1.75px);
+  --w-hair: clamp(0.75px, 0.16cqw + 0.2px, 1.25px);
+  --w-shell: clamp(1.5px, 0.42cqw + 0.35px, 3px);
+  --w-glow: calc(var(--w-shell) * 2.6);
+  --w-halo: calc(var(--w-shell) * 5);
+  --w-bond: clamp(1.1px, 0.3cqw + 0.2px, 2.25px);
+  --bond-dash: clamp(3px, 1cqw, 7px);
+  --bond-gap: clamp(2.5px, 0.7cqw, 5px);
+  --dot: clamp(3.5px, 0.9cqw + 0.5px, 7px);
+  --lab-fs: clamp(15px, 2.6cqw + 8px, 22px);
+  --title-fs: clamp(16px, 3cqw + 8px, 26px);
+
+  --c-part: color-mix(in srgb, var(--steel) 78%, transparent);
+  --c-fill: color-mix(in srgb, var(--steel) 13%, transparent);
+  --c-hatch: color-mix(in srgb, var(--steel) 32%, transparent);
+  --c-hatch-quiet: color-mix(in srgb, var(--steel) 22%, transparent);
+  --c-rim: color-mix(in srgb, var(--steel) 34%, transparent);
+  --c-bore: color-mix(in srgb, var(--steel) 16%, transparent);
+  --c-break: color-mix(in srgb, var(--steel) 42%, transparent);
+  --c-centre: color-mix(in srgb, var(--edge) 60%, transparent);
+  --cl-long: clamp(8px, 2.4cqw, 18px);
+  --cl-gap: clamp(2.5px, 0.6cqw, 4.5px);
+  --cl-dot: clamp(1.5px, 0.3cqw, 2.5px);
+  --c-leader: color-mix(in srgb, var(--steel) 48%, transparent);
+  --c-leader-shell: color-mix(in srgb, var(--amber) 80%, transparent);
+
+  container: g07 / inline-size;
+  margin: 0;
+  min-width: 0;
+  color: var(--steel);
+}
+
+/* ---------- title row ---------- */
+.head {
+  display: flex;
+  padding-bottom: clamp(10px, 2.2cqw, 18px);
+  margin-bottom: clamp(4px, 1.2cqw, 12px);
+  border-bottom: 1px solid var(--hairline);
+}
+.root[data-variant="kinetiq"] .head {
+  justify-content: flex-end;
+}
+.title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  font-family: var(--font-data);
+  font-size: var(--title-fs);
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+  color: var(--text);
+}
+.root[data-variant="kinetiq"] .title {
+  flex-direction: row-reverse;
+}
+/* legend swatch: steel part line with an ember bond dash, or the amber shell line */
+.swatch {
+  position: relative;
+  flex: none;
+  width: 1.6em;
+  height: 2px;
+  background: linear-gradient(90deg, var(--c-part) 0 45%, transparent 45% 58%, var(--ember) 58% 78%, transparent 78%);
+}
+.root[data-variant="kinetiq"] .swatch {
+  background: var(--amber);
+}
+.root[data-variant="kinetiq"] .swatch::after {
+  content: "";
+  position: absolute;
+  inset: -3px -2px;
+  background: var(--amber);
+  filter: blur(4px);
+  opacity: 0.55;
+}
+
+/* ---------- frame: a window onto the full canvas ---------- */
+.frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: var(--ar-full);
+  overflow: hidden;
+}
+.canvas {
+  position: absolute;
+  width: var(--cw-full);
+  height: var(--ch-full);
+  left: var(--cl-full);
+  top: var(--ct-full);
+}
+.layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.half {
+  display: none;
+}
+
+@container g07 (min-width: 640px) {
+  .frame {
+    aspect-ratio: var(--ar-wide);
+  }
+  .canvas {
+    width: var(--cw-wide);
+    height: var(--ch-wide);
+    left: var(--cl-wide);
+    top: var(--ct-wide);
+  }
+}
+
+@container g07 (max-width: 339.98px) {
+  .frame {
+    aspect-ratio: var(--ar-half);
+  }
+  .canvas {
+    width: var(--cw-half);
+    height: var(--ch-half);
+    left: var(--cl-half);
+    top: var(--ct-half);
+  }
+  .full {
+    display: none;
+  }
+  .half {
+    display: inline;
+  }
+  g.half {
+    display: inline;
+  }
+  /* the cropped side fades out toward the middle of the racket */
+  .root[data-variant="tubular"] .drawing {
+    mask-image: linear-gradient(90deg, #000 43.5%, transparent 51%);
+  }
+  .root[data-variant="kinetiq"] .drawing {
+    mask-image: linear-gradient(270deg, #000 43.5%, transparent 51%);
+  }
+}
+
+/* ---------- strokes ---------- */
+.drawing path,
+.layer path {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.part {
+  stroke: var(--c-part);
+  stroke-width: var(--w-part);
+}
+.drawing .solid {
+  fill: var(--c-fill);
+}
+.hatch {
+  stroke: var(--c-hatch);
+  stroke-width: var(--w-hair);
+  stroke-linecap: butt;
+}
+.hatchQuiet {
+  stroke: var(--c-hatch-quiet);
+}
+.rim {
+  stroke: var(--c-rim);
+  stroke-width: var(--w-hair);
+}
+.bore {
+  stroke: var(--c-bore);
+  stroke-width: var(--w-hair);
+}
+.breakLine {
+  stroke: var(--c-break);
+  stroke-width: var(--w-hair);
+}
+.centre {
+  stroke: var(--c-centre);
+  stroke-width: var(--w-hair);
+  stroke-dasharray: var(--cl-long) var(--cl-gap) var(--cl-dot) var(--cl-gap);
+  stroke-linecap: butt;
+}
+
+.bond path {
+  stroke: var(--ember);
+  stroke-width: var(--w-bond);
+  stroke-dasharray: var(--bond-dash) var(--bond-gap);
+  stroke-linecap: butt;
+}
+.bondGlow {
+  opacity: 0.35;
+}
+.bondGlow path {
+  stroke: var(--ember);
+  stroke-width: calc(var(--w-bond) * 3);
+}
+
+.shell {
+  stroke: var(--amber);
+  stroke-width: var(--w-shell);
+  stroke-linejoin: miter;
+  stroke-linecap: square;
+}
+.shellGlow {
+  stroke: var(--amber);
+  stroke-width: var(--w-glow);
+  opacity: 0.7;
+}
+.shellHalo {
+  stroke: var(--amber);
+  stroke-width: var(--w-halo);
+  opacity: 0.22;
+}
+
+/* ---------- leaders and labels ---------- */
+.leaderPart path,
+.leaderBond path {
+  stroke: var(--c-leader);
+  stroke-width: var(--w-hair);
+}
+.leaderShell path {
+  stroke: var(--c-leader-shell);
+  stroke-width: var(--w-hair);
+}
+.layer .dot {
+  stroke-width: var(--dot);
+  stroke-linecap: round;
+}
+.leaderShell .dot {
+  stroke: var(--amber);
+}
+.leaderPart .dot,
+.leaderBond .dot {
+  stroke: var(--steel);
+}
+
+.labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.label {
+  position: absolute;
+  width: max-content;
+  font-family: var(--font-data);
+  font-size: var(--lab-fs);
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: 0.01em;
+  line-height: 1.12;
+  white-space: nowrap;
+  color: var(--steel);
+}
+.label[data-wrap] {
+  white-space: normal;
+  text-wrap: balance;
+}
+.label[data-tone="shell"] {
+  color: var(--text);
+}
+.label[data-tone="bond"] {
+  color: var(--muted);
+}
+.label[data-band="top"] {
+  transform: translateY(-100%);
+  padding-bottom: 0.22em;
+  border-bottom: 1px solid var(--c-leader);
+}
+.label[data-band="bottom"] {
+  padding-top: 0.16em;
+  border-top: 1px solid var(--c-leader);
+}
+.label[data-tone="shell"][data-band] {
+  border-color: var(--c-leader-shell);
+}
+.label[data-side="right"] {
+  text-align: right;
+  translate: -100% 0;
+}
+
+/* ---------- pair (lab and simple placements) ---------- */
+.pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(16px, 4vw, 160px);
+  align-items: start;
+}

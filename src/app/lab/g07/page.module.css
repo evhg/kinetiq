@@ -1,0 +1,28 @@
+/* Lab only: beat B of the One piece chapter, the two sections in the thirds around the K03 photo. */
+.thirds {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px var(--gutter);
+  align-items: center;
+}
+.photo {
+  grid-column: 1 / -1;
+  order: -1;
+  min-height: clamp(160px, 16vw, 420px);
+  display: grid;
+  place-items: center;
+  border: 1px dashed var(--hairline);
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: var(--fs-fine);
+}
+@media (min-width: 900px) {
+  .thirds {
+    grid-template-columns: minmax(0, 30%) minmax(0, 1fr) minmax(0, 30%);
+  }
+  .photo {
+    grid-column: auto;
+    order: 0;
+    align-self: stretch;
+  }
+}

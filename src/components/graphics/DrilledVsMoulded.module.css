@@ -1,0 +1,231 @@
+/* G06 drilled vs moulded. Each plate is one 1100 x 700 viewBox (slice-fitted, non-scaling hairlines);
+   callouts are HTML placed in plate units through container query units, so text never shrinks. */
+.root {
+  --hair: clamp(1px, 0.045vw + 0.35px, 1.5px);
+  --hair-strong: calc(var(--hair) * 1.35);
+  --glow-blur: clamp(4px, 0.3vw + 1.5px, 10px);
+  width: 100%;
+  margin: 0;
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: clamp(24px, 6.4vw - 60px, 104px);
+}
+
+.panel {
+  min-width: 0;
+}
+
+.plate {
+  position: relative;
+  aspect-ratio: 11 / 7;
+  container-type: inline-size;
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+  border-radius: 2px;
+  background:
+    radial-gradient(ellipse 60% 70% at 50% 50%, rgb(255 255 255 / 0.03), transparent 75%),
+    rgb(6 6 7 / 0.42);
+}
+
+.svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.svg path,
+.svg circle,
+.svg line,
+.svg polyline {
+  vector-effect: non-scaling-stroke;
+  fill: none;
+}
+
+/* ---------- drilled ---------- */
+/* Tows and streamlines take their stroke paint (a radial vignette gradient) from the markup. */
+.tow {
+  stroke-width: var(--hair);
+}
+
+.tick {
+  stroke: var(--text);
+  stroke-opacity: 0.92;
+  stroke-width: var(--hair);
+}
+
+.loose {
+  stroke: var(--steel);
+  stroke-opacity: 0.55;
+  stroke-width: var(--hair);
+  stroke-linecap: round;
+}
+
+.dRim {
+  stroke: var(--steel);
+  stroke-opacity: 0.8;
+  stroke-width: var(--hair-strong);
+  stroke-linejoin: round;
+}
+
+.stubs {
+  stroke: var(--steel);
+  stroke-opacity: 0.32;
+  stroke-width: var(--hair);
+}
+
+.dWall {
+  stroke: var(--steel);
+  stroke-opacity: 0.2;
+  stroke-width: var(--hair);
+}
+
+.svg .boreFill {
+  fill: var(--void);
+  fill-opacity: 0.78;
+  stroke: none;
+}
+
+/* ---------- moulded ---------- */
+.flow {
+  stroke-width: var(--hair);
+  stroke-linejoin: round;
+}
+
+.mRim {
+  stroke: var(--amber-hot);
+  stroke-width: var(--hair-strong);
+}
+
+.mWall {
+  stroke: var(--amber);
+  stroke-width: var(--hair);
+}
+
+/* Pre-blurred duplicate of the inner streamlines and the rim */
+.glow {
+  filter: blur(var(--glow-blur));
+  opacity: 0.55;
+  /* Its opacity is tweened on entry; measured: without a layer the blur re-renders every frame. */
+  will-change: opacity;
+}
+
+.glowLine {
+  stroke-width: calc(var(--hair) * 2.5);
+}
+
+.svg .glowRim {
+  stroke: var(--amber);
+  stroke-width: calc(var(--hair) * 4);
+}
+
+/* ---------- shared ---------- */
+.centre line {
+  stroke: var(--edge);
+  stroke-opacity: 0.55;
+  stroke-width: 1px;
+  stroke-dasharray: 18 5 3 5;
+}
+
+.leader {
+  stroke: var(--edge);
+  stroke-width: 1px;
+  stroke-linejoin: round;
+}
+
+.svg .dot {
+  fill: var(--text);
+  stroke: none;
+}
+
+/* Callout: right-aligned on the elbow and underlined to it (the leader continues in the SVG). */
+.note {
+  /* px per plate unit: the plate is width-fitted on wide screens */
+  --u: calc(100cqw / 1100);
+  position: absolute;
+  left: calc(50% + var(--x) * var(--u));
+  top: calc(50% + var(--y) * var(--u));
+  padding: 0 0 0.3em 0.15em;
+  border-bottom: 1px solid var(--edge);
+  font-family: var(--font-data);
+  font-size: clamp(16px, 0.357vw + 14.86px, 24px);
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  color: var(--steel);
+  white-space: nowrap;
+  transform: translate(-100%, -100%);
+}
+
+/* A soft dark field behind the callout, so fibres never run through the letters. */
+.note::before {
+  content: "";
+  position: absolute;
+  inset: -70% -12% -40% -22%;
+  z-index: -1;
+  background: radial-gradient(closest-side, rgb(10 10 12 / 0.92) 55%, rgb(10 10 12 / 0));
+}
+
+.caption {
+  margin-top: clamp(16px, 1vw + 6px, 32px);
+  font-family: var(--font-data);
+  font-size: clamp(16px, 0.357vw + 14.86px, 24px);
+  line-height: 1.35;
+  color: var(--steel);
+  text-wrap: pretty;
+}
+
+.term {
+  color: var(--text);
+}
+
+.rule {
+  display: block;
+  position: relative;
+  height: 1px;
+  margin-bottom: clamp(14px, 0.8vw + 6px, 26px);
+  background: var(--hairline);
+}
+
+.rule::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: clamp(40px, 2.5vw + 16px, 96px);
+  height: 1px;
+  background: var(--steel);
+}
+
+.ruleAmber::before {
+  background: linear-gradient(90deg, var(--amber-hot), var(--amber) 60%, rgb(227 164 103 / 0));
+}
+
+.ruleAmber::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: -3px;
+  width: clamp(40px, 2.5vw + 16px, 96px);
+  height: 7px;
+  background: linear-gradient(90deg, var(--amber), rgb(227 164 103 / 0));
+  filter: blur(4px);
+  opacity: 0.45;
+}
+
+@media (max-width: 699px) {
+  .pair {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 48px;
+  }
+  .plate {
+    aspect-ratio: 4 / 3;
+  }
+  .note {
+    /* the plate is height-fitted at 4:3: px per unit = height / 700 */
+    --u: calc(75cqw / 700);
+  }
+}

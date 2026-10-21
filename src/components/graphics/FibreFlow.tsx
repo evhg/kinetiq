@@ -171,10 +171,67 @@ export function FibreFlow({
       return LIGHT[LIGHT.length - 1][1];
     };
 
-    function drawBase(f: FlowField) {
-      const ctx = bctx!;
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.clearRect(0, 0, baseCv!.width, baseCv!.height);
+    // Fades are baked into the drawing (a CSS mask would re-composite the whole band every frame):
+    // the edges of the band, and the side under a text block.
+    const EDGE = mode === "strip" ? 0.14 : 0.09;
+    const SIDE: [number, number][] = [
+      [0, 0.04],
+      [0.2, 0.1],
+      [0.38, 0.42],
+      [0.58, 1],
+    ];
+    const ramp = (stops: [number, number][], t: number) => {
+      if (t <= stops[0][0]) return stops[0][1];
+      for (let k = 1; k < stops.length; k++) {
+        if (t <= stops[k][0]) {
+          const [t0, v0] = stops[k - 1];
+          const [t1, v1] = stops[k];
+          return v0 + ((v1 - v0) * (t - t0)) / (t1 - t0);
+        }
+      }
+      return stops[stops.length - 1][1];
+    };
+    const fadeAt = (x: number, y: number, w: number, h: number) => {
+      const ty = y / h;
+      const edge = Math.min(1, Math.max(0, Math.min(ty, 1 - ty) / EDGE));
+      if (fadeSide === "none") return edge;
+      const tx = fadeSide === "left" ? x / w : 1 - x / w;
+      return edge * ramp(SIDE, tx);
+    };
+    function applyFades(ctx: CanvasRenderingContext2D, w: number, h: number) {
+      ctx.save();
+      ctx.globalCompositeOperation = "destination-in";
+      const ge = ctx.createLinearGradient(0, 0, 0, h);
+      ge.addColorStop(0, "rgba(0,0,0,0)");
+      ge.addColorStop(EDGE, "#000");
+      ge.addColorStop(1 - EDGE, "#000");
+      ge.addColorStop(1, "rgba(0,0,0,0)");
+      // destination-in only needs to touch the pixels it changes: the two edge strips, the faded side.
+      ctx.fillStyle = ge;
+      ctx.fillRect(0, 0, w, h * EDGE + 1);
+      ctx.fillRect(0, h * (1 - EDGE) - 1, w, h * EDGE + 1);
+      if (fadeSide !== "none") {
+        const gs = fadeSide === "left" ? ctx.createLinearGradient(0, 0, w, 0) : ctx.createLinearGradient(w, 0, 0, 0);
+        for (const [t, v] of SIDE) gs.addColorStop(t, `rgba(0,0,0,${v})`);
+        ctx.fillStyle = gs;
+        const sw = w * SIDE[SIDE.length - 1][0] + 1;
+        ctx.fillRect(fadeSide === "left" ? 0 : w - sw, 0, sw, h);
+      }
+      ctx.restore();
+    }
+
+    /**
+     * Draws the static field into `ctx` (an offscreen canvas), yielding between stages so each
+     * frame only rasterises part of it; the result is blitted to the visible canvas in one go.
+     */
+    const glowK = Math.max(1, Math.min(1.6, el.clientWidth / 1440));
+    const GLOW: [number, number][] = [
+      [9 * glowK, 0.035],
+      [5.5 * glowK, 0.06],
+      [3 * glowK, 0.1],
+    ];
+
+    function* drawBase(f: FlowField, ctx: CanvasRenderingContext2D) {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.lineJoin = "round";
       ctx.lineCap = "round";
@@ -197,27 +254,28 @@ export function FibreFlow({
       };
       ctx.lineWidth = lineW;
       const [aLo, aHi] = mode === "strip" ? [0.12, 0.8] : [0.08, 0.78];
-      groups.forEach((ls, b) => {
-        if (!ls.length) return;
-        trace(ls);
+      for (let b = 0; b < buckets; b++) {
+        if (!groups[b].length) continue;
+        trace(groups[b]);
         ctx.strokeStyle = rgba(amber, aLo + (aHi - aLo) * ((b + 0.5) / buckets));
         ctx.stroke();
-      });
-      // Hot filaments: a pre-blurred glow underneath (the shadow of a wide stroke), then the core.
+        if (b % 3 === 2) yield;
+      }
+      // Hot filaments: a pre-blurred glow underneath, built from stacked wide, faint strokes
+      // (a canvas shadow or filter blur over the whole band costs ~100 ms to rasterise), then the core.
       if (hotLines.length) {
         trace(hotLines);
-        ctx.save();
-        ctx.shadowColor = rgba(amber, 0.9);
-        ctx.shadowBlur = 10 * dpr;
-        ctx.strokeStyle = rgba(amber, 0.4);
-        ctx.lineWidth = lineW * 2.5;
-        ctx.stroke();
-        ctx.restore();
-        ctx.strokeStyle = rgba(hot, 0.78);
+        for (const [wd, a] of GLOW) {
+          ctx.strokeStyle = rgba(amber, a);
+          ctx.lineWidth = wd;
+          ctx.stroke();
+        }
+        ctx.strokeStyle = rgba(hot, 0.8);
         ctx.lineWidth = lineW + 0.2;
         ctx.stroke();
       }
 
+      yield;
       // Light falloff, applied to the lines only (the rings stay crisp everywhere).
       const L = lightGeo(f);
       ctx.save();
@@ -232,6 +290,7 @@ export function FibreFlow({
       ctx.fillRect(-big, -big, big * 2, big * 2);
       ctx.restore();
 
+      yield;
       // Bores: clear the inside, a faint warm glow through the hole, an amber rim light, hairline rings.
       const r = f.holeR;
       const h = f.holes;
@@ -257,14 +316,13 @@ export function FibreFlow({
         ctx.arc(h[k], h[k + 1], r, 0, Math.PI * 2);
         ctx.fill();
       }
-      ctx.save();
-      circles(r * 1.04);
-      ctx.shadowColor = rgba(amber, 0.7);
-      ctx.shadowBlur = Math.max(4, r * 0.35) * dpr;
-      ctx.strokeStyle = rgba(amber, 0.22);
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-      ctx.restore();
+      // Amber rim light: the same stacked-stroke glow, hugging the outside of each bore.
+      for (const [wd, a] of GLOW) {
+        circles(r * 1.02 + wd / 2);
+        ctx.strokeStyle = rgba(amber, a * 0.8);
+        ctx.lineWidth = wd;
+        ctx.stroke();
+      }
       circles(r);
       ctx.strokeStyle = rgba(steel, 0.7);
       ctx.lineWidth = 1;
@@ -273,6 +331,7 @@ export function FibreFlow({
       ctx.strokeStyle = rgba(steel, 0.16);
       ctx.lineWidth = 0.75;
       ctx.stroke();
+      applyFades(ctx, f.width, f.height);
     }
 
     // Light pulses ride the lines: a soft rise and fall in PULSE_STEPS pieces, batched by level.
@@ -344,7 +403,7 @@ export function FibreFlow({
         const t = Math.hypot((hx - Lg.cx) / Lg.rx, (hy - Lg.cy) / Lg.ry);
         // Pulses fade faster than the lines away from the light, so the edges never look scratched.
         const lt = lightAt(t);
-        const peak = c.peak * lt * lt;
+        const peak = c.peak * lt * lt * fadeAt(hx, hy, engine.field.width, engine.field.height);
         const col = c.group === 3 ? 1 : 0;
         for (let k = 0; k < PULSE_STEPS; k++) {
           const w = Math.pow(Math.sin((Math.PI * (k + 0.5)) / PULSE_STEPS), 1.6);
@@ -450,6 +509,7 @@ export function FibreFlow({
       const b = createFlowBuilder(layout(mode, w, h, frameRect, fadeSide, focus, density, angle));
       let cancelled = false;
       let handle = 0;
+      let frame = 0;
       // Safari has no requestIdleCallback: fall back to short timeouts.
       const idle = typeof window.requestIdleCallback === "function";
       const schedule = (fn: () => void) =>
@@ -463,21 +523,52 @@ export function FibreFlow({
           schedule(slice);
           return;
         }
-        building = null;
-        for (const cv of [baseCv!, liveCv!]) {
-          cv.width = Math.round(w * dpr);
-          cv.height = Math.round(h * dpr);
+        // Draw the static field over a few frames, so no single frame rasterises all of it. The
+        // first time, straight into the (still hidden) canvas; on a rebuild, offscreen and then one
+        // blit, so the old field stays up until the new one is complete.
+        const first = !engine;
+        const pw = Math.round(w * dpr);
+        const ph = Math.round(h * dpr);
+        let off: HTMLCanvasElement | null = null;
+        if (first) {
+          for (const cv of [baseCv!, liveCv!]) {
+            cv.width = pw;
+            cv.height = ph;
+          }
+        } else {
+          off = document.createElement("canvas");
+          off.width = pw;
+          off.height = ph;
         }
-        engine = { field: b.field, comets: makeComets(b.field) };
-        drawBase(b.field);
-        drawLive();
-        el!.dataset.ready = "true";
-        sync();
+        const tctx = off ? off.getContext("2d") : bctx;
+        if (!tctx) return;
+        const stages = drawBase(b.field, tctx);
+        const stage = () => {
+          if (cancelled) return;
+          if (!stages.next().done) {
+            frame = requestAnimationFrame(stage);
+            return;
+          }
+          building = null;
+          if (off) {
+            for (const cv of [baseCv!, liveCv!]) {
+              cv.width = pw;
+              cv.height = ph;
+            }
+            bctx!.drawImage(off, 0, 0);
+          }
+          engine = { field: b.field, comets: makeComets(b.field) };
+          drawLive();
+          el!.dataset.ready = "true";
+          sync();
+        };
+        frame = requestAnimationFrame(stage);
       };
       schedule(slice);
       building = {
         cancel: () => {
           cancelled = true;
+          cancelAnimationFrame(frame);
           if (idle) window.cancelIdleCallback(handle);
           else window.clearTimeout(handle);
         },

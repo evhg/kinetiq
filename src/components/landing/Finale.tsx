@@ -10,7 +10,7 @@ export function Finale() {
   return (
     <section id="finale" className={styles.section} aria-labelledby="finale-title">
       <div className={styles.media} aria-hidden="true">
-        <Still id="K01-full" phoneCrop="portrait" alt="" className={styles.still} />
+        <Still id="K01-finale" phoneCrop="portrait" alt="" className={styles.still} />
       </div>
       <Reveal className={styles.copy}>
         <h2 id="finale-title" className="t-h2">

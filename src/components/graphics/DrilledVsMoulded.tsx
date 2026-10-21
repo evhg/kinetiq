@@ -10,7 +10,7 @@ import styles from "./DrilledVsMoulded.module.css";
 /** Strings this graphic adds on top of holes.pair (copy.ts). */
 export const LABELS = {
   drilledCallout: "Cut fibre ends",
-  mouldedCallout: "Fibre wraps the wall",
+  mouldedCallout: "Unbroken fibre",
   summary:
     "Two magnified holes at the same scale. Left, a drilled hole: straight fibres stop dead at the bore, cut, with a frayed edge. Right, a moulded hole: every fibre bends around the bore and carries on, and the wall is lined with continuous fibre.",
 };
@@ -28,11 +28,13 @@ const VIEW = `0 0 ${W} ${H}`;
 const D = drilled();
 const M = moulded();
 
-/** Leader geometry in plate units: from the label shoulder to the target. */
-const LEAD = {
-  drilled: { x0: 120, x1: 330, y: 126, target: D.target },
-  moulded: { x0: 980, x1: 770, y: 126, target: [CX + R * Math.cos(-Math.PI / 4) + 6, CY + R * Math.sin(-Math.PI / 4) - 6] as [number, number] },
-};
+/**
+ * Callouts sit in the same place on both plates (upper left, 125 degrees round the bore), so the
+ * pair reads as one comparison. The label is right-aligned on the elbow, underlined to it, and a
+ * leader drops from the elbow to the target. Plate units.
+ */
+const ELBOW: [number, number] = [420, 116];
+const LEAD = { drilled: D.target, moulded: M.target };
 
 const pos = (x: number, y: number) => ({ "--x": String(x - CX), "--y": String(y - CY) }) as CSSProperties;
 
@@ -61,7 +63,9 @@ export function DrilledVsMoulded({ className, callouts = true }: Props) {
         const notes = q("[data-note]");
         const STEP = 0.03;
         const wallCount = walls.length;
-        gsap.set([...walls, ...lines, ...glow, ...ticks, ...loose, ...notes], { opacity: 0 });
+        // Per-line weights live in stroke-opacity, so element opacity can run 0 -> 1 and land on the
+        // server-rendered state. The glow layer keeps its CSS opacity (a from-tween).
+        gsap.set([...walls, ...lines, ...ticks, ...loose, ...notes], { opacity: 0 });
         const tl = gsap.timeline({ scrollTrigger: { trigger: el, start: "top 75%", once: true } });
         // Inside out: down the wall first (innermost ring), then the streamlines from the bore outward.
         tl.to(walls, {
@@ -80,7 +84,7 @@ export function DrilledVsMoulded({ className, callouts = true }: Props) {
             },
             wallCount * STEP,
           )
-          .to(glow, { opacity: 1, duration: 0.9, ease: "power2.out" }, wallCount * STEP + 0.1)
+          .from(glow, { opacity: 0, duration: 0.9, ease: "power2.out" }, wallCount * STEP + 0.1)
           // Then the drilled side's cut ticks snap in, in no particular order.
           .to(ticks, { opacity: 1, duration: 0.2, ease: "power2.out", stagger: { each: 0.018, from: "random" } }, ">-0.35")
           .to(loose, { opacity: 1, duration: 0.3, ease: "power2.out" }, "<0.2")
@@ -91,7 +95,7 @@ export function DrilledVsMoulded({ className, callouts = true }: Props) {
     { scope: root, dependencies: [motionOn], revertOnUpdate: true },
   );
 
-  const [dl, ml] = [LEAD.drilled, LEAD.moulded];
+  const { drilled: dl, moulded: ml } = LEAD;
   const [term1, rest1] = split(holes.pair.drilled);
   const [term2, rest2] = split(holes.pair.moulded);
 
@@ -103,41 +107,24 @@ export function DrilledVsMoulded({ className, callouts = true }: Props) {
           <div className={styles.plate}>
             <svg className={styles.svg} viewBox={VIEW} preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
               <defs>
-                <radialGradient id={`${uid}-v`} gradientUnits="userSpaceOnUse" cx={CX} cy={CY} r={W * 0.56}>
-                  <stop offset="0.35" stopColor="#fff" />
-                  <stop offset="0.8" stopColor="#fff" stopOpacity="0.35" />
-                  <stop offset="1" stopColor="#fff" stopOpacity="0.12" />
-                </radialGradient>
-                <filter id={`${uid}-soft`} x="-20%" y="-60%" width="140%" height="220%">
-                  <feGaussianBlur stdDeviation="10" />
-                </filter>
-                <mask id={`${uid}-md`} maskUnits="userSpaceOnUse" x="0" y="0" width={W} height={H}>
-                  <rect width={W} height={H} fill={`url(#${uid}-v)`} />
-                  {callouts ? <rect x={dl.x0 - 24} y={dl.y - 74} width={300} height={66} fill="#000" filter={`url(#${uid}-soft)`} /> : null}
-                </mask>
+                <Vignette id={`${uid}-ds`} color="var(--steel)" />
               </defs>
-              <g mask={`url(#${uid}-md)`}>
-                {D.lines.map((l, i) => (
-                  <path key={i} d={l.d} className={l.cut ? styles.towCut : styles.tow} style={{ opacity: l.o }} />
-                ))}
-              </g>
+              {D.lines.map((l, i) => (
+                <path key={i} d={l.d} className={styles.tow} stroke={`url(#${uid}-ds)`} style={{ strokeOpacity: l.o }} />
+              ))}
               <circle cx={CX} cy={CY} r={R} className={styles.boreFill} />
               <path d={D.wall} className={styles.dWall} />
+              <path d={D.stubs} className={styles.stubs} />
               <path d={D.rim} className={styles.dRim} />
               <path d={D.loose} className={styles.loose} data-loose />
               {D.ticks.map((t, i) => (
                 <path key={i} d={t} className={styles.tick} data-tick />
               ))}
               <Crosshair />
-              {callouts ? (
-                <g data-note>
-                  <polyline className={styles.leader} points={`${dl.x0},${dl.y} ${dl.x1},${dl.y} ${dl.target[0] - 6},${dl.target[1] - 6}`} />
-                  <circle className={styles.dot} cx={dl.target[0] - 3} cy={dl.target[1] - 3} r="3.5" />
-                </g>
-              ) : null}
+              {callouts ? <Leader to={dl} /> : null}
             </svg>
             {callouts ? (
-              <span className={`${styles.note} ${styles.noteLeft}`} style={pos(dl.x0, dl.y)} data-note>
+              <span className={styles.note} style={pos(ELBOW[0], ELBOW[1])} data-note>
                 {LABELS.drilledCallout}
               </span>
             ) : null}
@@ -149,60 +136,53 @@ export function DrilledVsMoulded({ className, callouts = true }: Props) {
         </div>
 
         {/* ---------------- Moulded ---------------- */}
-        <div className={`${styles.panel} ${styles.mouldedPanel}`}>
+        <div className={styles.panel}>
           <div className={styles.plate}>
             <svg className={`${styles.svg} ${styles.glow}`} viewBox={VIEW} preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false" data-glow>
+              <defs>
+                <radialGradient id={`${uid}-gv`} gradientUnits="userSpaceOnUse" cx={CX} cy={CY} r={R * 2.1}>
+                  <stop offset="0.45" stopColor="var(--amber)" />
+                  <stop offset="1" stopColor="var(--amber)" stopOpacity="0" />
+                </radialGradient>
+              </defs>
               {M.lines
-                .filter((l) => l.rank < 0.2)
+                .filter((l) => l.rank < 0.14)
                 .map((l, i) => (
-                  <path key={i} d={l.d} className={styles.glowLine} />
+                  <path key={i} d={l.d} className={styles.glowLine} stroke={`url(#${uid}-gv)`} />
                 ))}
               <circle cx={CX} cy={CY} r={R} className={styles.glowRim} />
             </svg>
             <svg className={styles.svg} viewBox={VIEW} preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
               <defs>
-                <radialGradient id={`${uid}-v2`} gradientUnits="userSpaceOnUse" cx={CX} cy={CY} r={W * 0.56}>
-                  <stop offset="0.35" stopColor="#fff" />
-                  <stop offset="0.8" stopColor="#fff" stopOpacity="0.35" />
-                  <stop offset="1" stopColor="#fff" stopOpacity="0.12" />
-                </radialGradient>
-                <mask id={`${uid}-mm`} maskUnits="userSpaceOnUse" x="0" y="0" width={W} height={H}>
-                  <rect width={W} height={H} fill={`url(#${uid}-v2)`} />
-                  {callouts ? <rect x={ml.x0 - 276} y={ml.y - 74} width={300} height={66} fill="#000" filter={`url(#${uid}-soft)`} /> : null}
-                </mask>
+                <Vignette id={`${uid}-ma`} color="var(--amber)" />
+                <Vignette id={`${uid}-mh`} color="var(--amber-hot)" />
                 <radialGradient id={`${uid}-bore`} gradientUnits="userSpaceOnUse" cx={CX} cy={CY} r={R}>
                   <stop offset="0" stopColor="var(--amber)" stopOpacity="0.2" />
                   <stop offset="0.55" stopColor="var(--amber)" stopOpacity="0.06" />
                   <stop offset="1" stopColor="var(--amber)" stopOpacity="0" />
                 </radialGradient>
               </defs>
-              <g mask={`url(#${uid}-mm)`}>
-                {M.lines.map((l, i) => (
-                  <path
-                    key={i}
-                    d={l.d}
-                    className={l.rank < 0.12 ? styles.flowHot : styles.flow}
-                    style={{ opacity: Math.max(0.3, 0.95 - 0.7 * l.rank) }}
-                    data-flow
-                    data-order={l.order}
-                  />
-                ))}
-              </g>
+              {M.lines.map((l, i) => (
+                <path
+                  key={i}
+                  d={l.d}
+                  className={styles.flow}
+                  stroke={`url(#${uid}-${l.rank < 0.12 ? "mh" : "ma"})`}
+                  style={{ strokeOpacity: Math.max(0.3, 0.95 - 0.7 * l.rank) }}
+                  data-flow
+                  data-order={l.order}
+                />
+              ))}
               <circle cx={CX} cy={CY} r={R} className={styles.boreFill} />
               <circle cx={CX} cy={CY} r={R} fill={`url(#${uid}-bore)`} />
               {M.walls.map((wl, i) => (
-                <circle key={i} cx={CX} cy={CY} r={wl.r} className={i === 0 ? styles.mRim : styles.mWall} style={i === 0 ? undefined : { opacity: wl.o }} data-wall />
+                <circle key={i} cx={CX} cy={CY} r={wl.r} className={i === 0 ? styles.mRim : styles.mWall} style={i === 0 ? undefined : { strokeOpacity: wl.o }} data-wall />
               ))}
               <Crosshair />
-              {callouts ? (
-                <g data-note>
-                  <polyline className={styles.leader} points={`${ml.x0},${ml.y} ${ml.x1},${ml.y} ${ml.target[0] + 4},${ml.target[1] - 4}`} />
-                  <circle className={styles.dot} cx={ml.target[0] + 1} cy={ml.target[1] - 1} r="3.5" />
-                </g>
-              ) : null}
+              {callouts ? <Leader to={ml} /> : null}
             </svg>
             {callouts ? (
-              <span className={`${styles.note} ${styles.noteRight}`} style={pos(ml.x0, ml.y)} data-note>
+              <span className={styles.note} style={pos(ELBOW[0], ELBOW[1])} data-note>
                 {LABELS.mouldedCallout}
               </span>
             ) : null}
@@ -222,6 +202,35 @@ export function DrilledVsMoulded({ className, callouts = true }: Props) {
 function split(s: string): [string, string] {
   const i = s.indexOf(":");
   return i < 0 ? ["", s] : [s.slice(0, i + 1), s.slice(i + 1).trim()];
+}
+
+/** Leader from the label elbow to its target, with a small dot on the target. */
+function Leader({ to }: { to: [number, number] }) {
+  const [ex, ey] = ELBOW;
+  const [tx, ty] = to;
+  // stop just short of the dot
+  const d = Math.hypot(tx - ex, ty - ey);
+  const k = (d - 7) / d;
+  return (
+    <g data-note>
+      <line className={styles.leader} x1={ex} y1={ey} x2={ex + (tx - ex) * k} y2={ey + (ty - ey) * k} />
+      <circle className={styles.dot} cx={tx} cy={ty} r="3.5" />
+    </g>
+  );
+}
+
+/**
+ * Stroke paint that fades the fibres towards the plate corners (a radial vignette). A gradient paint
+ * costs nothing to repaint; an SVG mask is re-rasterised on every animation frame.
+ */
+function Vignette({ id, color }: { id: string; color: string }) {
+  return (
+    <radialGradient id={id} gradientUnits="userSpaceOnUse" cx={CX} cy={CY} r={W * 0.56}>
+      <stop offset="0.35" stopColor={color} />
+      <stop offset="0.8" stopColor={color} stopOpacity="0.35" />
+      <stop offset="1" stopColor={color} stopOpacity="0.12" />
+    </radialGradient>
+  );
 }
 
 /** Dash-dot centrelines through the bore (ISO 128), a little past the rim. */

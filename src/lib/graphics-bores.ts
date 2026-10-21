@@ -44,6 +44,8 @@ export type Drilled = {
   wall: string;
   /** Loose filaments lifted at the edge. */
   loose: string;
+  /** Cut fibre ends seen on the bore wall: short radial stubs just inside the rim. */
+  stubs: string;
   /** One cut end used as the callout target. */
   target: [number, number];
 };
@@ -54,13 +56,19 @@ export function drilled(seed = 11): Drilled {
   const lines: DrilledLine[] = [];
   const ticks: string[] = [];
   let loose = "";
+  let stubs = "";
+  const stub = (ang: number, len: number) => {
+    const r0 = r - 3;
+    const r1 = r0 - len;
+    stubs += `M${f1(cx + Math.cos(ang) * r0)} ${f1(cy + Math.sin(ang) * r0)}L${f1(cx + Math.cos(ang) * r1)} ${f1(cy + Math.sin(ang) * r1)}`;
+  };
   let target: [number, number] = [cx - r, cy];
   let bestT = Infinity;
   const tick = 5.5;
   for (const dy of OFFSETS) {
     const y = cy + dy;
     const o = 0.34 + 0.22 * rnd();
-    if (Math.abs(dy) >= r + 2) {
+    if (Math.abs(dy) >= r - 1) {
       lines.push({ d: `M0 ${f1(y)}H${w}`, cut: false, o });
       continue;
     }
@@ -71,9 +79,13 @@ export function drilled(seed = 11): Drilled {
     const xr = cx + half + fray();
     lines.push({ d: `M0 ${f1(y)}H${f1(xl)}M${f1(xr)} ${f1(y)}H${w}`, cut: true, o: Math.min(0.85, o + 0.2) });
     ticks.push(`M${f1(xl)} ${f1(y - tick)}V${f1(y + tick)}M${f1(xr)} ${f1(y - tick)}V${f1(y + tick)}`);
-    // callout target: the cut end nearest 140 degrees on the upper left
+    // the same tow, cut, shows its ends on the wall
+    const a = Math.atan2(dy, -half);
+    stub(a, 7 + rnd() * 14);
+    stub(Math.PI - a, 7 + rnd() * 14);
+    // callout target: the cut end nearest 125 degrees on the upper left
     const ang = Math.atan2(-(y - cy), xl - cx);
-    const dist = Math.abs(ang - (140 * Math.PI) / 180);
+    const dist = Math.abs(ang - (125 * Math.PI) / 180);
     if (dist < bestT) {
       bestT = dist;
       target = [xl, y];
@@ -102,7 +114,7 @@ export function drilled(seed = 11): Drilled {
     }
     return d + "Z";
   };
-  return { lines, ticks, rim: ragged(r, 2.6, seed + 1), wall: ragged(r * 0.86, 2.2, seed + 2), loose, target };
+  return { lines, ticks, rim: ragged(r, 2.6, seed + 1), wall: ragged(r * 0.86, 2.2, seed + 2), loose, stubs, target };
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -163,8 +175,8 @@ export function moulded(): Moulded {
     rr -= gap;
     gap *= 0.84;
   }
-  // Callout target: the innermost upper streamline at the top of the bore.
-  const cTop = -sorted[0];
-  const target: [number, number] = [cx, cy + streamY(cTop, 0, r)];
+  // Callout target: the innermost upper streamline, 125 degrees round the bore (upper left).
+  const tx = r * Math.cos((125 * Math.PI) / 180);
+  const target: [number, number] = [cx + tx, cy + streamY(-sorted[0], tx, r)];
   return { lines, walls, target };
 }

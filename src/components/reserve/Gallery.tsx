@@ -41,7 +41,7 @@ function slidesFor(tier: TierId, feel: FeelId): Slide[] {
         { kind: "still", id: "K09", phoneCrop: "card", alt: "Three KINETIQ rackets in a machined, felt-lined case" },
         { kind: "court", alt: "A plan of a padel court marking the one-on-one session" },
         { kind: "still", id: "K07", alt: "Five identical KINETIQ rackets, each in its own shaft of light" },
-        { kind: "still", id: "K01-full", phoneCrop: "card", alt: "A KINETIQ racket standing in a single beam of light" },
+        { kind: "still", id: "K01-finale", phoneCrop: "card", alt: "A KINETIQ racket in its beam, above a lit horizon" },
       ];
   }
 }
