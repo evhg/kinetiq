@@ -23,7 +23,8 @@ Lenis · three.js via `@react-three/fiber` and `@react-three/drei` · Playwright
 - `npm run build` / `npm start`: production build and server.
 - `npm run lint`, `npm run typecheck`.
 - `npm run check`: the check harness (see Definition of done). `--skip-build`, `--url=<url>`,
-  `--study` (reference mode). Output goes to `.checks/<label>/` (git-ignored).
+  `--study` (reference mode), `--only=phone|desktop`, `--mode=motion|reduced`, `--verbose`.
+  Output goes to `.checks/<label>/` (git-ignored). Uses a free port per run.
 - Vercel installs with `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm ci` (`vercel.json`), so builds never
   download browsers. Locally: `npx playwright install chromium` once.
 
@@ -32,6 +33,10 @@ Lenis · three.js via `@react-three/fiber` and `@react-three/drei` · Playwright
 - `src/components/motion/`: `MotionProvider` (motion state), `MotionToggle`, `SmoothScroll` (Lenis).
 - `src/components/three/`: lazy R3F scenes. `LazyScene` owns the fallback and loading rules.
 - `src/lib/gsap.ts`: the only place GSAP plugins are registered. Import gsap from here.
+- `src/content/`: all copy that carries a claim (`claims.ts`) or a commercial fact (`site.ts`: price,
+  ship date, refund, models). Change words there, not in components.
+- `src/app/checkout/`, `src/app/api/checkout/route.ts` (Stripe via REST, preview mode without keys),
+  `src/app/reserved/` (success page).
 - `public/`: static assets and `CREDITS.md`. `scripts/`: harness. `docs/`: research notes.
 - `.claude/skills/`: saved reference skills (GSAP, Emil Kowalski, our frontend-design notes).
 
@@ -89,8 +94,12 @@ Lenis · three.js via `@react-three/fiber` and `@react-three/drei` · Playwright
 - No scroll traps: pins always end, Skip links work, no hijacked keys.
 - Decorative canvases get `aria-hidden`; fallbacks get real `alt` text.
 
-## Content
-- No placeholder text in a finished build (the current page is a pipeline smoke test).
+## Content and claims
+- No placeholder text in a finished build. The preview banner is deliberate, not a placeholder.
+- Every claim is listed in `CLAIMS.md`. A new claim gets a row there in the same commit.
+- Launch gate: `NEXT_PUBLIC_LAUNCHED=true` (removes banner and noindex) only when CLAIMS.md is cleared.
+- Stripe: `STRIPE_SECRET_KEY`, `STRIPE_PRICE_COMMAND`, `STRIPE_PRICE_PACE`, `NEXT_PUBLIC_SITE_URL`
+  (see `.env.example`). One CTA label everywhere: "Reserve yours" (`site.ctaLabel`).
 - Fonts must cover every language listed in `DESIGN.md`.
 
 ## Definition of done
@@ -104,5 +113,12 @@ Lenis · three.js via `@react-three/fiber` and `@react-three/drei` · Playwright
 ## Notes
 - Headless WebGL needs swiftshader flags (the harness sets them). Long-frame counts from headless runs
   are a smoke signal, not a device measurement.
+- The harness launches Chromium with `--disable-gpu-compositing`: with GPU compositing, swiftshader
+  stalls screenshots after a WebGL frame (captures hang for minutes). Don't remove it.
+- The harness scrolls natively (`window.scrollTo`); Lenis follows native scroll events.
+- drei `<Environment>` is the expensive part of the hero in software rendering; keep its
+  `resolution` at 64 unless reflections need to be sharper.
+- Stale servers: never `pkill -f "next start"` (it matches your own shell and kills it). Kill by
+  process name: `for d in /proc/[0-9]*; do [ "$(cat $d/comm)" = "next-server (v1" ] && kill ${d#/proc/}; done`.
 - Production URL: https://kinetiq-seven-neon.vercel.app (Vercel team EVHG, project `kinetiq`).
 - `docs/reference-notes.md`: study of lighthouse.storage/token (techniques only, nothing copied).

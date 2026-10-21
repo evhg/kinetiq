@@ -14,6 +14,7 @@
 // Exit code 1 when a budget or check fails (not in --study mode).
 
 import { spawn, spawnSync } from "node:child_process";
+import { createServer } from "node:net";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { chromium } from "@playwright/test";
@@ -25,9 +26,21 @@ const args = Object.fromEntries(
   }),
 );
 
-const PORT = Number(args.port ?? 3100);
+// A free port per run, so a stale server from an earlier build can never be tested by mistake.
+const PORT = Number(args.port ?? (await freePort()));
 const remote = typeof args.url === "string";
 const baseUrl = remote ? args.url : `http://127.0.0.1:${PORT}/`;
+
+function freePort() {
+  return new Promise((resolve, reject) => {
+    const srv = createServer();
+    srv.once("error", reject);
+    srv.listen(0, "127.0.0.1", () => {
+      const { port } = srv.address();
+      srv.close(() => resolve(port));
+    });
+  });
+}
 const study = Boolean(args.study);
 const label = args.label ?? (remote ? new URL(baseUrl).hostname : "local");
 const outDir = join(process.cwd(), ".checks", label);
@@ -86,6 +99,7 @@ async function launchBrowser() {
     "--use-angle=swiftshader",
     "--ignore-gpu-blocklist",
     "--enable-webgl",
+    "--disable-gpu-compositing",
   ];
   const proxy = remote && process.env.HTTPS_PROXY ? { server: process.env.HTTPS_PROXY } : undefined;
   const executablePath = process.env.PLAYWRIGHT_CHROMIUM_PATH || undefined;
@@ -150,11 +164,26 @@ async function imageStats(statsPage, png) {
   }, png.toString("base64"));
 }
 
+// Viewport screenshot straight from the DevTools Protocol, with a hard timeout.
+// Software WebGL can take seconds per frame; a slow frame is not a failure.
+async function capture(page, path) {
+  const cdp = await page.context().newCDPSession(page);
+  try {
+    const shot = cdp.send("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
+    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("capture timed out after 90 s")), 90_000));
+    const { data } = await Promise.race([shot, timeout]);
+    const buf = Buffer.from(data, "base64");
+    writeFileSync(path, buf);
+    return buf;
+  } finally {
+    await cdp.detach().catch(() => {});
+  }
+}
+
 async function scrollTo(page, y) {
-  await page.evaluate((target) => {
-    if (window.__lenis) window.__lenis.scrollTo(target, { immediate: true, force: true });
-    else window.scrollTo({ top: target, behavior: "instant" });
-  }, y);
+  // Native scroll, like a scrollbar drag or keyboard: Lenis follows native scroll
+  // events. (Instant lenis.scrollTo jumps into a pin can stall headless capture.)
+  await page.evaluate((target) => window.scrollTo({ top: target, behavior: "instant" }), y);
 }
 
 async function studySnapshot(page) {
@@ -273,7 +302,7 @@ async function runCase(browser, statsPage, vp, mode) {
   if ((await scene.count()) > 0) {
     const box = await scene.boundingBox();
     if (box && box.width > 10 && box.height > 10) {
-      const png = await page.screenshot({ clip: box });
+      const png = await page.screenshot({ clip: box, timeout: 120_000 });
       sceneStd = (await imageStats(statsPage, png)).std;
     }
   }
@@ -285,7 +314,9 @@ async function runCase(browser, statsPage, vp, mode) {
     await scrollTo(page, Math.round((max * i) / 10));
     await page.waitForTimeout(vp.name === "phone" ? 1200 : 800);
     const file = `${id}-${String(i * 10).padStart(3, "0")}.png`;
-    const png = await page.screenshot({ path: join(outDir, file) });
+    const shotStart = Date.now();
+    const png = await capture(page, join(outDir, file));
+    if (args.verbose) log(`${id} ${i * 10}%: screenshot ${Date.now() - shotStart} ms`);
     const stats = await imageStats(statsPage, png);
     const step = { pct: i * 10, file, std: Number(stats.std.toFixed(1)), blank: stats.std < 2 };
     if (study) step.study = await studySnapshot(page);
@@ -407,15 +438,26 @@ async function main() {
     log("server ready on", baseUrl);
   }
 
-  const browser = await launchBrowser();
-  const statsCtx = await browser.newContext();
-  const statsPage = await statsCtx.newPage();
+  // A fresh browser per case: software WebGL state from one case must not slow the next.
   const results = [];
   try {
-    for (const vp of VIEWPORTS) for (const mode of MODES) results.push(await runCase(browser, statsPage, vp, mode));
+    for (const vp of VIEWPORTS.filter((v) => !args.only || v.name === args.only)) {
+      for (const mode of MODES.filter((m) => !args.mode || m.name === args.mode)) {
+        const browser = await launchBrowser();
+        try {
+          const statsPage = await (await browser.newContext()).newPage();
+          results.push(await runCase(browser, statsPage, vp, mode));
+        } finally {
+          await browser.close();
+        }
+      }
+    }
   } finally {
-    await browser.close();
-    if (server) process.kill(-server.pid);
+    if (server) {
+      try {
+        process.kill(-server.pid);
+      } catch {}
+    }
   }
 
   const failures = study ? [] : evaluate(results);

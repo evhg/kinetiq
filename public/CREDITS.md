@@ -6,17 +6,20 @@ Nothing is added to the repo without an entry here.
 ## Fonts
 | Font | Source | Licence | Used for |
 | --- | --- | --- | --- |
-| None yet | System font stack (`ui-sans-serif, system-ui, …`) on the smoke-test page; no font files are shipped | n/a | All text |
+| Archivo (variable, weight and width axes) | Google Fonts, by Omnibus-Type; self-hosted at build time by `next/font` (no font files in the repo) | SIL Open Font License 1.1 | All text; display at width 125 |
 
 ## Images and graphics
 | File | Source | Licence | Notes |
 | --- | --- | --- | --- |
-| `public/images/smoke-fallback.svg` | Made for this repo | Same as the repo's own content (owned by KINETIQ) | Static fallback for the 3D smoke-test scene |
+| Racket still (`src/components/RacketSvg.tsx`, inline SVG) | Drawn in code for this repo from `src/lib/racket-shape.ts` | Owned by KINETIQ | Hero image before 3D loads, and with motion off |
+| Swiss flag (`src/components/sections/Swiss.tsx`, inline SVG) | Drawn in code (national emblem geometry) | Public symbol; use is governed by the Swiss Coat of Arms Protection Act, see CLAIMS.md #4 | Swiss section |
+| Layer stack, hole rings, vibration waves | CSS and inline SVG drawn for this repo | Owned by KINETIQ | Chapters |
 
 ## 3D models and textures
 | File | Source | Licence | Notes |
 | --- | --- | --- | --- |
-| None yet | The smoke-test knot is generated in code (`TorusKnotGeometry`) | n/a | |
+| Racket model | Generated in code (`src/components/three/RacketModel.tsx`) from `src/lib/racket-shape.ts`; carbon weave texture drawn on a canvas at runtime | Owned by KINETIQ | Hero |
+| Studio lighting | drei `Lightformer`s rendered locally; no HDR files downloaded | n/a | Hero |
 
 ## Not cleared
 - Assets from https://kinetiq-review.vercel.app (made by Erik): not imported. They need written
