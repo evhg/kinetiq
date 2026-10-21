@@ -17,7 +17,7 @@
   z-index: -1;
   display: grid;
   place-items: center;
-  opacity: 0.4;
+  opacity: 0.3;
 }
 .wide {
   width: 100%;

@@ -117,11 +117,11 @@ export function Gallery({ tierId, feel }: { tierId: TierId; feel: FeelId }) {
               />
             ) : s.kind === "card" ? (
               <div className={styles.slideGraphic} role="img" aria-label={s.alt}>
-                <MeasurementCard edition="Edition No. 017 / 500" />
+                <MeasurementCard edition="Edition No. 017 / 500" enter={false} />
               </div>
             ) : (
               <div className={styles.slideGraphic} role="img" aria-label={s.alt}>
-                <CourtPlan />
+                <CourtPlan active={i === index} field={false} />
               </div>
             )}
           </div>
