@@ -130,6 +130,36 @@ export type Moulded = {
   target: [number, number];
 };
 
+/** Douglas-Peucker on a polyline. */
+function simplify(pts: [number, number][], tol: number): [number, number][] {
+  const n = pts.length;
+  if (n < 3) return pts;
+  const keep = new Uint8Array(n);
+  keep[0] = keep[n - 1] = 1;
+  const stack: [number, number][] = [[0, n - 1]];
+  while (stack.length) {
+    const [a, b] = stack.pop()!;
+    const [ax, ay] = pts[a];
+    const dx = pts[b][0] - ax;
+    const dy = pts[b][1] - ay;
+    const L = Math.hypot(dx, dy) || 1e-9;
+    let worst = -1;
+    let wd = tol;
+    for (let k = a + 1; k < b; k++) {
+      const dist = Math.abs((pts[k][0] - ax) * dy - (pts[k][1] - ay) * dx) / L;
+      if (dist > wd) {
+        wd = dist;
+        worst = k;
+      }
+    }
+    if (worst > 0) {
+      keep[worst] = 1;
+      stack.push([a, worst], [worst, b]);
+    }
+  }
+  return pts.filter((_, k) => keep[k]);
+}
+
 /** y offset (from the axis, same sign as c) of the streamline psi = c at horizontal offset x. */
 function streamY(c: number, x: number, R: number) {
   const s = Math.sign(c) || 1;
@@ -151,18 +181,14 @@ export function moulded(): Moulded {
   const maxAbs = Math.max(...OFFSETS.map(Math.abs));
   const sorted = [...OFFSETS].map((c) => Math.abs(c)).sort((a, b) => a - b);
   const lines: MouldedLine[] = OFFSETS.map((c) => {
-    // Sample densely near the bore, coarsely towards the plate edges.
-    const xs: number[] = [];
-    for (let x = -cx; x <= w - cx; ) {
-      xs.push(x);
-      const near = Math.abs(x) < r * 2.4;
-      x += near ? 4 : 14;
-    }
-    if (xs[xs.length - 1] !== w - cx) xs.push(w - cx);
+    // Sample densely, then keep only the points the eye needs
+    // (within 0.35 units of the chord) so the 60 lines stay small in the markup.
+    const pts: [number, number][] = [];
+    for (let x = -cx; x < w - cx; x += 2) pts.push([cx + x, cy + streamY(c, x, r)]);
+    pts.push([w, cy + streamY(c, w - cx, r)]);
     let d = "";
-    xs.forEach((x, k) => {
-      const y = streamY(c, x, r);
-      d += `${k ? "L" : "M"}${f1(cx + x)} ${f1(cy + y)}`;
+    simplify(pts, 0.35).forEach(([x, y], k) => {
+      d += `${k ? "L" : "M"}${f1(x)} ${f1(y)}`;
     });
     return { d, rank: Math.abs(c) / maxAbs, order: sorted.indexOf(Math.abs(c)) >> 1 };
   });

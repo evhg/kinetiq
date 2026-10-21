@@ -55,7 +55,7 @@
 .fbLines {
   fill: none;
   stroke: var(--amber);
-  stroke-opacity: 0.32;
+  stroke-opacity: 0.5;
   stroke-width: 0.75px;
   vector-effect: non-scaling-stroke;
 }

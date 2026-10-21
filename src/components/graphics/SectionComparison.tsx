@@ -18,6 +18,7 @@ import {
   pctX,
   pctY,
   tubular,
+  twoLines,
   viewBox,
   type Callout,
 } from "@/lib/graphics-section";
@@ -56,26 +57,24 @@ const TUBULAR: Set = {
   ],
   half: [
     { key: "tube", text: partTube, at: [8, 1.1], anchor: [-3, ROW.top2], side: "left", band: "top" },
-    { key: "face-top", text: partFace, at: [50, -0.6], anchor: [57, ROW.top2], side: "right", band: "top" },
-    { key: "core", text: partCore, at: [24.5, 17], anchor: [17.5, ROW.top1], side: "right", band: "top" },
-    { key: "bond-top", text: left.glue, at: [46.5, 1.5], anchor: [43.5, ROW.top1], side: "right", band: "top", tone: "bond" },
+    { key: "face-top", text: partFace, at: [47, -0.6], anchor: [57, ROW.top1], side: "right", band: "top" },
     { key: "bond-left", text: left.glue, at: [19.1, 30], anchor: [9.5, ROW.bottom1], side: "right", band: "bottom", tone: "bond" },
-    { key: "face-bottom", text: partFace, at: [50.5, 38.6], anchor: [45, ROW.bottom1], side: "left", band: "bottom" },
-    { key: "bond-bottom", text: left.glue, at: [44, T - 1.5], anchor: [41.5, ROW.bottom2], side: "right", band: "bottom", tone: "bond" },
+    { key: "core", text: partCore, at: [25, 26], anchor: [21.5, ROW.bottom1], side: "left", band: "bottom" },
+    { key: "bond-bottom", text: left.glue, at: [44, T - 1.5], anchor: [45, ROW.bottom1], side: "left", band: "bottom", tone: "bond" },
   ],
 };
 
 const KINETIQ: Set = {
   full: [
     { key: "shell", text: lineShell, at: [66, 0], anchor: [58, ROW.top1], side: "right", band: "top", tone: "shell" },
-    { key: "edge", text: lineEdge, at: [108.78, 3.22], anchor: [115, ROW.top1], side: "right", band: "top", tone: "shell", wrap: 8.4 },
+    { key: "edge", text: lineEdge, at: [108.78, 3.22], anchor: [115, ROW.top1], side: "right", band: "top", tone: "shell", wrap: true },
     { key: "balance", text: lineBalance, at: [2.2, 24], anchor: [-1.5, ROW.bottom1], side: "left", band: "bottom", tone: "shell" },
     { key: "core", text: partCore, at: [95, 22], anchor: [80, ROW.bottom1], side: "left", band: "bottom" },
   ],
   half: [
-    { key: "shell", text: lineShell, at: [89, 0], anchor: [79.5, ROW.top1], side: "right", band: "top", tone: "shell", wrap: 7 },
-    { key: "balance", text: lineBalance, at: [109.8, 17], anchor: [114.5, ROW.top1], side: "right", band: "top", tone: "shell", wrap: 7 },
-    { key: "edge", text: lineEdge, at: [108.78, 34.78], anchor: [114.5, ROW.bottom1], side: "right", band: "bottom", tone: "shell", wrap: 7.9 },
+    { key: "shell", text: lineShell, at: [66, 0], anchor: [79.5, ROW.top2], side: "right", band: "top", tone: "shell", wrap: true },
+    { key: "balance", text: lineBalance, at: [109.8, 17], anchor: [114.5, ROW.top1], side: "right", band: "top", tone: "shell", wrap: true },
+    { key: "edge", text: lineEdge, at: [108.78, 34.78], anchor: [114.5, ROW.bottom1], side: "right", band: "bottom", tone: "shell", wrap: true },
   ],
 };
 
@@ -125,10 +124,15 @@ function Labels({ set }: { set: Set }) {
       data-side={c.side}
       data-band={c.band}
       data-tone={c.tone ?? "part"}
-      data-wrap={c.wrap ? "" : undefined}
-      style={{ left: pctX(c.anchor[0]), top: pctY(c.anchor[1]), maxWidth: c.wrap ? `${c.wrap}em` : undefined }}
+      style={{ left: pctX(c.anchor[0]), top: pctY(c.anchor[1]) }}
     >
-      {c.text}
+      {c.wrap
+        ? twoLines(c.text).map((line) => (
+            <span key={line} className={styles.line}>
+              {line}
+            </span>
+          ))
+        : c.text}
     </span>
   );
   return (

@@ -198,24 +198,29 @@ export function FibreFlow({
       const tx = fadeSide === "left" ? x / w : 1 - x / w;
       return edge * ramp(SIDE, tx);
     };
+    // destination-out is a bounded operation (unlike destination-in, which clears everything outside
+    // the shape), so each fade only touches its own strip: alpha is cut by (1 - fade).
     function applyFades(ctx: CanvasRenderingContext2D, w: number, h: number) {
       ctx.save();
-      ctx.globalCompositeOperation = "destination-in";
-      const ge = ctx.createLinearGradient(0, 0, 0, h);
-      ge.addColorStop(0, "rgba(0,0,0,0)");
-      ge.addColorStop(EDGE, "#000");
-      ge.addColorStop(1 - EDGE, "#000");
-      ge.addColorStop(1, "rgba(0,0,0,0)");
-      // destination-in only needs to touch the pixels it changes: the two edge strips, the faded side.
-      ctx.fillStyle = ge;
-      ctx.fillRect(0, 0, w, h * EDGE + 1);
-      ctx.fillRect(0, h * (1 - EDGE) - 1, w, h * EDGE + 1);
+      ctx.globalCompositeOperation = "destination-out";
+      const eh = h * EDGE;
+      const top = ctx.createLinearGradient(0, 0, 0, eh);
+      top.addColorStop(0, "#000");
+      top.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = top;
+      ctx.fillRect(0, 0, w, eh);
+      const bottom = ctx.createLinearGradient(0, h, 0, h - eh);
+      bottom.addColorStop(0, "#000");
+      bottom.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = bottom;
+      ctx.fillRect(0, h - eh, w, eh);
       if (fadeSide !== "none") {
-        const gs = fadeSide === "left" ? ctx.createLinearGradient(0, 0, w, 0) : ctx.createLinearGradient(w, 0, 0, 0);
-        for (const [t, v] of SIDE) gs.addColorStop(t, `rgba(0,0,0,${v})`);
+        const sw = w * SIDE[SIDE.length - 1][0];
+        const left = fadeSide === "left";
+        const gs = left ? ctx.createLinearGradient(0, 0, sw, 0) : ctx.createLinearGradient(w, 0, w - sw, 0);
+        for (const [t, v] of SIDE) gs.addColorStop(t / SIDE[SIDE.length - 1][0], `rgba(0,0,0,${1 - v})`);
         ctx.fillStyle = gs;
-        const sw = w * SIDE[SIDE.length - 1][0] + 1;
-        ctx.fillRect(fadeSide === "left" ? 0 : w - sw, 0, sw, h);
+        ctx.fillRect(left ? 0 : w - sw, 0, sw, h);
       }
       ctx.restore();
     }
@@ -279,12 +284,12 @@ export function FibreFlow({
       // Light falloff, applied to the lines only (the rings stay crisp everywhere).
       const L = lightGeo(f);
       ctx.save();
-      ctx.globalCompositeOperation = "destination-in";
+      ctx.globalCompositeOperation = "destination-out";
       ctx.translate(L.cx, L.cy);
       ctx.scale(L.rx, L.ry);
       const reach = LIGHT[LIGHT.length - 1][0];
       const g = ctx.createRadialGradient(0, 0, 0, 0, 0, reach);
-      for (const [t, v] of LIGHT) g.addColorStop(t / reach, `rgba(0,0,0,${v})`);
+      for (const [t, v] of LIGHT) g.addColorStop(t / reach, `rgba(0,0,0,${1 - v})`);
       ctx.fillStyle = g;
       const big = (Math.max(f.width, f.height) * 4) / Math.min(L.rx, L.ry);
       ctx.fillRect(-big, -big, big * 2, big * 2);
@@ -368,6 +373,7 @@ export function FibreFlow({
       ctx.lineTo(x1, y1);
     }
 
+    /** The point at arc length sv, interpolated (straight runs keep only their end points). */
     function pointAt(l: FlowLine, sv: number): [number, number] {
       const L = l.len;
       const n = L.length;
@@ -378,12 +384,16 @@ export function FibreFlow({
         if (L[mid] < sv) lo = mid + 1;
         else hi = mid;
       }
-      return [l.pts[2 * lo], l.pts[2 * lo + 1]];
+      const i0 = Math.max(0, lo - 1);
+      const span = L[lo] - L[i0] || 1;
+      const t = Math.min(1, Math.max(0, (sv - L[i0]) / span));
+      const p = l.pts;
+      return [p[2 * i0] + (p[2 * lo] - p[2 * i0]) * t, p[2 * i0 + 1] + (p[2 * lo + 1] - p[2 * i0 + 1]) * t];
     }
 
     // Reused per frame: pieces bucketed by [colour][level].
-    const buckets: Comet[][][] = [0, 1].map(() => Array.from({ length: LEVELS }, () => []));
-    const pieceOf: number[][][] = [0, 1].map(() => Array.from({ length: LEVELS }, () => []));
+    const buckets: Comet[][][] = [0, 1].map(() => Array.from({ length: LEVELS + 1 }, () => []));
+    const pieceOf: number[][][] = [0, 1].map(() => Array.from({ length: LEVELS + 1 }, () => []));
 
     function drawLive() {
       const ctx = lctx!;
@@ -394,7 +404,7 @@ export function FibreFlow({
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
       const Lg = lightGeo(engine.field);
-      for (const col of [0, 1]) for (let v = 0; v < LEVELS; v++) {
+      for (const col of [0, 1]) for (let v = 0; v <= LEVELS; v++) {
         buckets[col][v].length = 0;
         pieceOf[col][v].length = 0;
       }
@@ -407,7 +417,7 @@ export function FibreFlow({
         const col = c.group === 3 ? 1 : 0;
         for (let k = 0; k < PULSE_STEPS; k++) {
           const w = Math.pow(Math.sin((Math.PI * (k + 0.5)) / PULSE_STEPS), 1.6);
-          const lv = Math.min(LEVELS - 1, Math.floor(peak * w * LEVELS));
+          const lv = Math.min(LEVELS, Math.round(peak * w * LEVELS));
           if (lv <= 0) continue;
           buckets[col][lv].push(c);
           pieceOf[col][lv].push(k);
@@ -415,7 +425,7 @@ export function FibreFlow({
       }
       for (const col of [0, 1]) {
         ctx.lineWidth = col ? lineW + 0.35 : lineW + 0.2;
-        for (let v = 1; v < LEVELS; v++) {
+        for (let v = 1; v <= LEVELS; v++) {
           const list = buckets[col][v];
           if (!list.length) continue;
           ctx.beginPath();
@@ -425,7 +435,7 @@ export function FibreFlow({
             const a = c.s - c.len + (c.len * ks[j]) / PULSE_STEPS;
             seg(ctx, c.line, a, a + c.len / PULSE_STEPS + 0.4);
           }
-          ctx.strokeStyle = rgba(col ? hot : amber, (v + 0.5) / LEVELS);
+          ctx.strokeStyle = rgba(col ? hot : amber, v / LEVELS);
           ctx.stroke();
         }
       }
@@ -633,8 +643,8 @@ export function FibreFlow({
 /** Server-only SVG of the same field (fewer lines), shown when JavaScript is off. */
 function Fallback({ mode, angle, frame, fadeSide, focus }: Pick<Props, "angle" | "frame" | "fadeSide" | "focus"> & { mode: Mode }) {
   const [w, h] = mode === "strip" ? [390, 260] : [1600, 900];
-  const f = buildFlowField({ ...layout(mode, w, h, frame, fadeSide, focus, 1, angle ?? 0), spacing: mode === "strip" ? 7 : 11, tow: 1, maxStep: 10 });
-  const d = linesToPath(f.lines, 0.7);
+  const f = buildFlowField({ ...layout(mode, w, h, frame, fadeSide, focus, 1, angle ?? 0), spacing: mode === "strip" ? 9 : 13, tow: 1, maxStep: 10 });
+  const d = linesToPath(f.lines, 1);
   const r = f.holeR.toFixed(1);
   return (
     <svg className={styles.fallback} viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true">

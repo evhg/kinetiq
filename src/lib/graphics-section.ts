@@ -21,7 +21,7 @@ export const SIDE_WALL = 4.5; // KINETIQ: the shell is thicker at the sides (wei
 export const DRIFT = 1.8;
 
 /** The viewBox: drawing plus label bands, the union of both layouts' windows. */
-export const VB = { x: -4, y: -19, w: 120, h: 76 };
+export const VB = { x: -4, y: -27.5, w: 120, h: 85 };
 export const viewBox = `${VB.x} ${VB.y} ${VB.w} ${VB.h}`;
 /**
  * Visible windows. Wide containers show the whole section (one label row below); narrow ones
@@ -32,8 +32,8 @@ export const WINDOW = {
   full: { x0: -4, x1: 116, y0: -19, y1: 51 },
   /** 640 px and wider: the labels take fewer millimetres, so the bands close up. */
   wide: { x0: -4, x1: 116, y0: -15.5, y1: 48.5 },
-  tubular: { x0: -4, x1: 58, y0: -19, y1: 57 },
-  kinetiq: { x0: 54, x1: 116, y0: -19, y1: 57 },
+  tubular: { x0: -4, x1: 58, y0: -27.5, y1: 57.5 },
+  kinetiq: { x0: 54, x1: 116, y0: -27.5, y1: 57.5 },
 } as const;
 
 const r1 = (v: number) => (Math.round(v * 100) / 100).toString();
@@ -267,10 +267,27 @@ export type Callout = {
   /** Which end of the label the anchor is: the text runs away from it. */
   side: Side;
   band: Band;
-  /** Wrap onto balanced lines no wider than this many em. */
-  wrap?: number;
+  /** Break onto two balanced lines. */
+  wrap?: boolean;
   tone?: "bond" | "part" | "shell";
 };
 
 /** Shelf heights for the two rows of each band (top: text above the shelf; bottom: below). */
-export const ROW = { top1: -5.2, top2: -11.9, bottom1: T + 5.2, bottom2: T + 12.2 } as const;
+export const ROW = { top1: -5.2, top2: -13, bottom1: T + 5.2 } as const;
+
+/** Split a callout into two lines of similar length, at a word boundary. */
+export function twoLines(text: string): [string, string] {
+  const words = text.split(" ");
+  let best: [string, string] = [text, ""];
+  let score = Infinity;
+  for (let i = 1; i < words.length; i++) {
+    const a = words.slice(0, i).join(" ");
+    const b = words.slice(i).join(" ");
+    const d = Math.abs(a.length - b.length);
+    if (d < score) {
+      score = d;
+      best = [a, b];
+    }
+  }
+  return best;
+}

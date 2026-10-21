@@ -253,9 +253,8 @@
   white-space: nowrap;
   color: var(--steel);
 }
-.label[data-wrap] {
-  white-space: normal;
-  text-wrap: balance;
+.line {
+  display: block;
 }
 .label[data-tone="shell"] {
   color: var(--text);

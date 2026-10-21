@@ -1,0 +1,54 @@
+/* Lab only: G08 as it sits in the Identical chapter (columns 9 to 12) and in the reserve gallery. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: clamp(40px, 4vw, 96px) var(--gutter);
+  align-items: center;
+}
+.stats {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: clamp(24px, 2vw, 48px);
+}
+.stat {
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid var(--hairline);
+  padding-top: 16px;
+}
+.card {
+  grid-column: 1 / -1;
+}
+.pair {
+  display: grid;
+  gap: clamp(40px, 4vw, 96px) var(--gutter);
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  align-items: end;
+}
+.slide {
+  grid-column: 1 / -1;
+}
+.thumbs {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: var(--gutter);
+  align-items: end;
+}
+.thumb {
+  width: clamp(72px, 6vw, 140px);
+}
+@media (min-width: 900px) {
+  .stats {
+    grid-column: 1 / 8;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .card {
+    grid-column: 9 / 13;
+  }
+  .slide {
+    grid-column: 1 / 7;
+  }
+  .thumbs {
+    grid-column: 8 / 13;
+  }
+}

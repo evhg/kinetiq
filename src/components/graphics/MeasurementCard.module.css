@@ -1,0 +1,343 @@
+/* G08 certificate of measurement: an A6 card on paper stock. Everything scales with the card's own
+   width (container units) and no text drops below 15 px. Hover and rotation are CSS transforms. */
+.root {
+  --ink-strong: var(--ink);
+  --ink-body: color-mix(in srgb, var(--ink) 66%, var(--paper));
+  --ink-soft: color-mix(in srgb, var(--ink) 58%, var(--paper));
+  --rule: color-mix(in srgb, var(--ink) 14%, transparent);
+  --rule-strong: color-mix(in srgb, var(--ink) 78%, transparent);
+  --fs: clamp(15px, 4.15cqw, 26px);
+  --fs-small: max(15px, 0.8em);
+  --pad: 7.4cqw;
+  --plate: 2.4cqw;
+
+  container-type: inline-size;
+  margin: 0;
+  width: 100%;
+}
+
+.mover {
+  position: relative;
+  padding: 0 var(--plate) var(--plate) 0;
+}
+
+/* graphite mount plate: the card rests on it, offset down and right */
+.plate {
+  position: absolute;
+  top: var(--plate);
+  left: var(--plate);
+  right: 0;
+  bottom: 0;
+  background: var(--graphite);
+  border: 1px solid var(--hairline);
+  border-radius: 3px;
+}
+
+.card {
+  position: relative;
+  aspect-ratio: 105 / 148;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: var(--pad);
+  border-radius: 3px;
+  background:
+    radial-gradient(130% 90% at 18% 0%, #faf9f6 0%, var(--paper) 55%, #e8e6df 100%);
+  color: var(--ink-strong);
+  font-family: var(--font-data);
+  font-size: var(--fs);
+  line-height: 1.25;
+  font-variant-numeric: tabular-nums lining-nums;
+  transform-origin: 50% 60%;
+  transition: transform 300ms var(--ease-out);
+}
+/* double-rule certificate frame */
+.card::before,
+.card::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  border-radius: 1px;
+}
+.card::before {
+  inset: 2.6cqw;
+  border: 1px solid color-mix(in srgb, var(--ink) 22%, transparent);
+}
+.card::after {
+  inset: 3.4cqw;
+  border: 1px solid color-mix(in srgb, var(--ink) 9%, transparent);
+}
+
+@media (min-width: 900px) {
+  .root[data-rotate] .card {
+    transform: rotate(-3deg);
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  .mover:hover .card {
+    transform: translateY(-6px) rotate(0deg);
+  }
+}
+
+/* engraved rosette, bleeding off the top-right corner */
+.rosette {
+  position: absolute;
+  top: -19cqw;
+  right: -19cqw;
+  width: 62cqw;
+  height: 62cqw;
+  pointer-events: none;
+}
+.rosette path,
+.rosette circle {
+  fill: none;
+  stroke: color-mix(in srgb, var(--ink) 9%, transparent);
+  stroke-width: 0.7px;
+}
+
+/* ---------- header ---------- */
+.top {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+}
+.wordmark {
+  font-family: var(--font-display);
+  font-variation-settings: "wdth" 125;
+  font-weight: 600;
+  font-size: 1.02em;
+  letter-spacing: 0.32em;
+  margin-right: -0.32em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+.tag {
+  font-size: var(--fs-small);
+  line-height: 1;
+  padding: 0.32em 0.6em 0.36em;
+  border: 1px solid color-mix(in srgb, var(--ink) 40%, transparent);
+  border-radius: 2px;
+  color: var(--ink-body);
+  white-space: nowrap;
+  background: color-mix(in srgb, var(--paper) 70%, transparent);
+}
+.title {
+  position: relative;
+  margin-top: 1.05em;
+  font-family: var(--font-display);
+  font-variation-settings: "wdth" 112;
+  font-weight: 560;
+  font-size: 1.56em;
+  line-height: 1.04;
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+  max-width: 13em;
+}
+.meta {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.2em 1em;
+  margin-top: 0.7em;
+  font-size: var(--fs-small);
+}
+.metaKey {
+  color: var(--ink-soft);
+}
+.metaValue,
+.edition {
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+/* ---------- measured rows ---------- */
+.rows {
+  position: relative;
+  margin-top: 1.15em;
+  border-top: 1.5px solid var(--rule-strong);
+}
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 0.75em;
+  padding: 0.42em 0 0.4em;
+  border-bottom: 1px solid var(--rule);
+}
+.row dt {
+  color: var(--ink-body);
+}
+.row dd {
+  font-weight: 500;
+  text-align: right;
+  white-space: nowrap;
+}
+.limit {
+  display: block;
+  margin-top: 0.1em;
+  font-size: var(--fs-small);
+  font-weight: 400;
+  color: var(--ink-soft);
+}
+
+/* ---------- foot: flatness map, Swiss cross, signature ---------- */
+.foot {
+  position: relative;
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1fr);
+  gap: 1.1em;
+  align-items: end;
+  margin-top: 1.1em;
+}
+.mapBlock {
+  display: grid;
+  gap: 0.35em;
+  align-self: end;
+}
+.map {
+  width: 62%;
+  aspect-ratio: 272 / 322;
+}
+.mapSvg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.contour {
+  fill: none;
+  stroke: color-mix(in srgb, var(--ink) 30%, transparent);
+  stroke-width: 0.8px;
+}
+.contour[data-level="2"] {
+  stroke: color-mix(in srgb, var(--ink) 18%, transparent);
+}
+.contour[data-level="4"] {
+  stroke: color-mix(in srgb, var(--ink) 24%, transparent);
+}
+.contour[data-level="8"] {
+  stroke: color-mix(in srgb, var(--ink) 38%, transparent);
+}
+.contour[data-level="10"] {
+  stroke: color-mix(in srgb, var(--ink) 50%, transparent);
+}
+.headLine {
+  fill: none;
+  stroke: color-mix(in srgb, var(--ink) 62%, transparent);
+  stroke-width: 1px;
+  fill-rule: evenodd;
+}
+.hole {
+  fill: var(--paper);
+  stroke: color-mix(in srgb, var(--ink) 52%, transparent);
+  stroke-width: 0.8px;
+}
+.legend {
+  display: grid;
+  gap: 0.15em;
+  font-size: var(--fs-small);
+  color: var(--ink-soft);
+  line-height: 1.15;
+}
+.legendTitle {
+  color: var(--ink-body);
+}
+.legendScale {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  white-space: nowrap;
+}
+.legendBar {
+  flex: none;
+  width: 2.4em;
+  height: 0.42em;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--ink) 10%, transparent), color-mix(in srgb, var(--ink) 55%, transparent));
+}
+
+.side {
+  display: grid;
+  align-content: space-between;
+  justify-items: end;
+  height: 100%;
+  gap: 1.2em;
+}
+.swiss {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.cross {
+  display: block;
+  flex: none;
+  width: 1.2em;
+  height: 1.2em;
+}
+.sign {
+  display: grid;
+  gap: 0.3em;
+  width: 100%;
+  justify-items: start;
+}
+.signLine {
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: color-mix(in srgb, var(--ink) 55%, transparent);
+}
+.signLabel {
+  font-size: var(--fs-small);
+  color: var(--ink-soft);
+}
+
+/* ---------- thumb: no text, structure only ---------- */
+.root[data-variant="thumb"] .card {
+  padding: 9cqw;
+}
+.thumbBody {
+  position: relative;
+  display: grid;
+  gap: 4.2cqw;
+  height: 100%;
+  align-content: start;
+}
+.thumbBar,
+.thumbBarWide {
+  display: block;
+  height: 4cqw;
+  background: var(--ink);
+  border-radius: 1px;
+}
+.thumbBar {
+  width: 38%;
+  height: 3cqw;
+}
+.thumbBarWide {
+  width: 78%;
+  margin-bottom: 3cqw;
+}
+.thumbRow {
+  display: block;
+  height: 1px;
+  background: var(--rule-strong);
+  opacity: 0.4;
+}
+.thumbFoot {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  margin-top: 4cqw;
+}
+.root[data-variant="thumb"] .map {
+  width: 34%;
+}
+.root[data-variant="thumb"] .cross {
+  width: 11cqw;
+  height: 11cqw;
+}
