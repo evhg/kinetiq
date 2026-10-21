@@ -6,7 +6,7 @@
   justify-content: space-between;
   align-items: center;
   text-align: center;
-  padding: calc(var(--header-h) + clamp(48px, 3.2vw, 96px)) var(--margin) clamp(40px, 4vh, 96px);
+  padding: calc(var(--header-h) + clamp(48px, 3.2vw, 96px)) var(--margin) clamp(20px, 3vh, 96px);
   overflow: hidden;
   isolation: isolate;
   background:
@@ -66,7 +66,7 @@
 .bottom {
   display: grid;
   justify-items: center;
-  gap: clamp(14px, 0.6vw + 8px, 24px);
+  gap: clamp(10px, 0.6vw + 4px, 24px);
   margin-top: 36vh;
 }
 .note {
