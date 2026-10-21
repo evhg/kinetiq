@@ -113,7 +113,9 @@ async function launchBrowser() {
     "--enable-webgl",
     "--disable-gpu-compositing",
   ];
-  const proxy = remote && process.env.HTTPS_PROXY ? { server: process.env.HTTPS_PROXY } : undefined;
+  // Remote sites go through the sandbox's HTTPS proxy; a local server (--url=http://localhost:…) never does.
+  const local = ["localhost", "127.0.0.1", "[::1]"].includes(new URL(baseUrl).hostname);
+  const proxy = remote && !local && process.env.HTTPS_PROXY ? { server: process.env.HTTPS_PROXY, bypass: "localhost,127.0.0.1" } : undefined;
   const executablePath = process.env.PLAYWRIGHT_CHROMIUM_PATH || undefined;
   try {
     return await chromium.launch({ args: base, proxy, executablePath });
