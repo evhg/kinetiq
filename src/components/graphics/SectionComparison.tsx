@@ -47,7 +47,7 @@ type Set = { full: Callout[]; half: Callout[] };
 const TUBULAR: Set = {
   full: [
     { key: "tube", text: partTube, at: [8, 1.1], anchor: [0, ROW.top1], side: "left", band: "top" },
-    { key: "bond-top", text: left.glue, at: [24.5, 1.5], anchor: [36, ROW.top1], side: "left", band: "top", tone: "bond" },
+    { key: "bond-top", text: left.glue, at: [25, 1.5], anchor: [37.5, ROW.top1], side: "left", band: "top", tone: "bond" },
     { key: "face-top", text: partFace, at: [66, -0.6], anchor: [62, ROW.top1], side: "left", band: "top" },
     { key: "bond-right", text: left.glue, at: [92.9, 10], anchor: [99, ROW.top1], side: "left", band: "top", tone: "bond" },
     { key: "bond-left", text: left.glue, at: [19.1, 28], anchor: [13.5, ROW.bottom1], side: "right", band: "bottom", tone: "bond" },
@@ -348,7 +348,7 @@ function Section({ variant, className, title = true, play = false }: SectionProp
             {isK ? right.title : left.title}
           </span>
         ) : null}
-        <span className="visually-hidden">{isK ? `${right.title}. ${LABELS.kinetiqSummary} ${right.lines.join(". ")}.` : `${left.title}. ${LABELS.tubularSummary}`}</span>
+        <span className="visually-hidden">{isK ? `${right.title}. ${LABELS.kinetiqSummary} ${right.lines.map((l) => (/[.!?]$/.test(l) ? l : `${l}.`)).join(" ")}` : `${left.title}. ${LABELS.tubularSummary}`}</span>
       </figcaption>
       <div className={styles.frame} style={frameVars(variant)}>
         <div className={styles.canvas}>

@@ -9,10 +9,16 @@
   --head: clamp(26px, 1.8vw + 4px, 56px);
   --plot-h: calc(25vw + 240px);
   --gap: clamp(10px, 0.8vw + 2px, 26px);
-  --rise: calc(var(--fs-label) * 1.2 + clamp(12px, 0.6vw + 4px, 24px));
+  /* Line labels and the Settled marker: one step above the axis labels (16 / 19 / 26 px). */
+  --fs-line: clamp(1rem, 0.625vw + 0.625rem, 1.625rem);
+  --rise: calc(var(--fs-line) * 1.2 + clamp(12px, 0.6vw + 4px, 24px));
+  /* Width of the y-title column, so the caption can align with the plot's left edge. */
+  --y-col: calc(var(--fs-label) * 1.2 + var(--gap));
   width: 100%;
   margin: 0;
   color: var(--muted);
+  /* Hinting opens gaps after Saira's "t" at 15px; unhinted outlines keep the spacing true. */
+  text-rendering: geometricPrecision;
 }
 
 .chart {
@@ -39,6 +45,8 @@
 .yTitle {
   grid-area: 1 / 1;
   align-self: center;
+  /* Centre on the plot (and its zero line), not on the plot plus the marker's rise above it. */
+  margin-top: var(--rise);
   writing-mode: vertical-rl;
   transform: rotate(180deg);
   color: var(--muted);
@@ -148,7 +156,7 @@
 
 /* Settled marker: spans the plot, its hairline rises above it to carry the label */
 .marker {
-  --ring: clamp(9px, 0.35vw + 5px, 16px);
+  --ring: clamp(14px, 0.55vw + 8px, 24px);
   position: absolute;
   top: 0;
   bottom: 0;
@@ -169,24 +177,26 @@
   position: absolute;
   top: calc(-1 * var(--rise));
   left: clamp(10px, 0.5vw + 4px, 18px);
+  font-size: var(--fs-line);
   color: var(--text);
 }
 
+/* An open ring: the line stays visible through it, like a reticle on an instrument. */
 .markerRing {
   position: absolute;
   left: 0.5px;
   width: var(--ring);
   height: var(--ring);
   margin: calc(var(--ring) / -2) 0 0 calc(var(--ring) / -2);
-  border: 1.5px solid var(--amber-hot);
+  border: clamp(1.5px, 0.04vw + 1px, 2px) solid var(--amber-hot);
   border-radius: 50%;
-  background: var(--stage);
 }
 
 /* Line-end labels, right-aligned, sitting just clear of the converging lines */
 .label {
   position: absolute;
   right: 0;
+  font-size: var(--fs-line);
 }
 
 .labelGlued {
@@ -250,11 +260,12 @@
 
 .caption {
   margin-top: clamp(20px, 1.4vw + 8px, 48px);
+  padding-left: var(--y-col);
 }
 
 .captionText {
   display: block;
-  font-size: var(--fs-fine);
+  font-size: var(--fs-label);
   color: var(--muted);
   white-space: normal;
 }
@@ -266,6 +277,10 @@
   }
   .extra {
     display: none;
+  }
+  /* The first oscillations are only about 25 px apart here: a full halo floods them into haze. */
+  .halo {
+    opacity: 0.18;
   }
   .labelGlued {
     bottom: calc(57% + 2px);

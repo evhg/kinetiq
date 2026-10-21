@@ -44,6 +44,9 @@ export function ConsistencySpikes({ className, layout = "row", caption = true }:
       const el = root.current;
       const mm = gsap.matchMedia();
       mm.add("(prefers-reduced-motion: no-preference)", () => {
+        // Already past the trigger when motion switches on (above the fold, or a reload mid-page):
+        // keep the finished graph instead of hiding it and drawing it again.
+        if (el.getBoundingClientRect().top < window.innerHeight * 0.75) return;
         const spikes = el.querySelectorAll("[data-spike]");
         gsap.fromTo(
           spikes,
@@ -89,7 +92,11 @@ export function ConsistencySpikes({ className, layout = "row", caption = true }:
                     {g.rules.map((y) => (
                       <line key={y} className={styles.rule} x1="0" x2={VB} y1={y} y2={y} />
                     ))}
+                    {g.minor.map((x) => (
+                      <line key={x} className={styles.vrule} x1={x} x2={x} y1="0" y2={VB} />
+                    ))}
                     <rect className={styles.window} x={g.windowLo} width={g.windowHi - g.windowLo} y="0" height={VB} />
+                    <line className={styles.refLine} x1={g.centre} x2={g.centre} y1="0" y2={VB} />
                     <line className={styles.axis} x1="0" x2={VB} y1={VB} y2={VB} />
                   </svg>
 
@@ -118,7 +125,7 @@ export function ConsistencySpikes({ className, layout = "row", caption = true }:
                       <path className={styles.area} d={g.area} fill={`url(#${id}-fill)`} />
                       <path className={styles.core} d={g.line} stroke={`url(#${id}-core)`} />
                       {g.rug.map((x, k) => (
-                        <line key={k} className={styles.rug} x1={x} x2={x} y1={VB} y2={VB - 30} />
+                        <line key={k} className={styles.rug} x1={x} x2={x} y1={VB} y2={VB - 55} />
                       ))}
                     </svg>
                   </div>

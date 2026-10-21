@@ -46,6 +46,9 @@ export function ToleranceGraph({ className, caption = true }: Props) {
       const el = root.current;
       const mm = gsap.matchMedia();
       mm.add("(prefers-reduced-motion: no-preference)", () => {
+        // Already past the trigger when motion switches on (above the fold, or a reload mid-page):
+        // keep the finished graph instead of hiding it and drawing it again.
+        if (el.getBoundingClientRect().top < window.innerHeight * 0.75) return;
         const q = gsap.utils.selector(el);
         const [wipe] = q("[data-wipe]");
         const [inner] = q("[data-wipe-inner]");
@@ -133,10 +136,15 @@ export function ToleranceGraph({ className, caption = true }: Props) {
             <line className={styles.axis} x1="0" x2={VB} y1={VB} y2={VB} />
           </svg>
 
+          {/* Scale references, mirrored: a hair's (or a sheet's) thickness away from the design
+              surface in either direction. Labelled once, on the upper line. */}
           {refs.map((r) => (
             <div key={r.label} className={styles.ref} style={{ top: pct(Y(r.um)) }} data-ref>
               <span className={styles.refLabel}>{`${r.label}, ${r.um} µm`}</span>
             </div>
+          ))}
+          {refs.map((r) => (
+            <div key={`${r.label}-low`} className={styles.ref} style={{ top: pct(Y(-r.um)) }} data-ref />
           ))}
 
           <div

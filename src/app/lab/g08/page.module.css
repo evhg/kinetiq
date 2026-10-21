@@ -27,6 +27,15 @@
 }
 .slide {
   grid-column: 1 / -1;
+  aspect-ratio: 3 / 4;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--hairline);
+  background: radial-gradient(ellipse 70% 70% at 50% 45%, var(--lift), var(--stage) 75%);
+}
+.slideCard {
+  /* phones: a portrait slide, the card wide enough to stay readable */
+  width: 84%;
 }
 .thumbs {
   grid-column: 1 / -1;
@@ -46,9 +55,14 @@
     grid-column: 9 / 13;
   }
   .slide {
-    grid-column: 1 / 7;
+    grid-column: 1 / 9;
+    aspect-ratio: 16 / 10;
+  }
+  .slideCard {
+    /* 80% of the slide height, in A6 proportions, plus the plate */
+    width: 37%;
   }
   .thumbs {
-    grid-column: 8 / 13;
+    grid-column: 9 / 13;
   }
 }

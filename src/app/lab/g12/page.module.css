@@ -1,0 +1,32 @@
+/* Lab only: G12 in reserve gallery slides (16:10 and 4:5) and as the small extras thumbnail. */
+.grid {
+  display: grid;
+  gap: clamp(32px, 3vw, 72px) var(--gutter);
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  align-items: start;
+}
+.wide,
+.tall,
+.thumbs {
+  grid-column: 1 / -1;
+}
+.slide {
+  border: 1px solid var(--hairline);
+}
+.thumbs {
+  display: flex;
+  gap: var(--gutter);
+  align-items: end;
+}
+.thumb {
+  width: clamp(120px, 10vw, 240px);
+  border: 1px solid var(--hairline);
+}
+@media (min-width: 900px) {
+  .wide {
+    grid-column: 1 / 9;
+  }
+  .tall {
+    grid-column: 9 / 13;
+  }
+}

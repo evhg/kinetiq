@@ -8,9 +8,15 @@
   --head: clamp(26px, 1.8vw + 4px, 56px);
   --plot-h: calc(22.3vw + 169px);
   --gap: clamp(10px, 0.7vw + 4px, 24px);
+  /* Limit and reference labels: one step above the axis labels (16 / 19 / 26 px). */
+  --fs-line: clamp(1rem, 0.625vw + 0.625rem, 1.625rem);
+  /* y-title column + y-tick column, so the caption aligns with the plot's left edge. */
+  --y-col: calc(var(--fs-label) * 4.3 + var(--gap) * 2);
   width: 100%;
   margin: 0;
   color: var(--muted);
+  /* Hinting opens gaps after Saira's "t" at 15px; unhinted outlines keep the spacing true. */
+  text-rendering: geometricPrecision;
 }
 
 .chart {
@@ -141,6 +147,7 @@
   position: absolute;
   left: clamp(10px, 0.6vw + 4px, 24px);
   bottom: clamp(6px, 0.3vw + 3px, 12px);
+  font-size: var(--fs-line);
   color: var(--steel);
 }
 
@@ -160,6 +167,7 @@
 .limitLabel {
   position: absolute;
   right: 0;
+  font-size: var(--fs-line);
   color: var(--text);
 }
 
@@ -263,11 +271,12 @@
 
 .caption {
   margin-top: clamp(20px, 1.4vw + 8px, 48px);
+  padding-left: var(--y-col);
 }
 
 .captionText {
   display: block;
-  font-size: var(--fs-fine);
+  font-size: var(--fs-label);
   color: var(--muted);
   white-space: normal;
 }
@@ -278,8 +287,14 @@
 
 @media (max-width: 639px) {
   .root {
-    --plot-h: calc(40vw + 104px);
+    --plot-h: calc(40vw + 144px);
     --gap: 8px;
+  }
+  /* Phones: 20 µm above the paper line is about 25 px, so the label sits tighter to its line
+     (labels below their lines would collide with the ±60 rules and misread as "+60"). */
+  .refLabel {
+    bottom: 3px;
+    line-height: 1.1;
   }
   .deskOnly {
     display: none;

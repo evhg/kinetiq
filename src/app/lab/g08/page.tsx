@@ -40,7 +40,9 @@ export default function LabG08() {
             <p className="t-eyebrow">G08 Tier 2 edition card and trust-list thumbnail</p>
           </div>
           <div className={styles.pair}>
-            <MeasurementCard edition="Edition No. 017 / 500" className={styles.slide} />
+            <div className={styles.slide}>
+              <MeasurementCard edition="Edition No. 017 / 500" className={styles.slideCard} />
+            </div>
             <div className={styles.thumbs}>
               <MeasurementCard variant="thumb" className={styles.thumb} />
               <MeasurementCard variant="thumb" rotate className={styles.thumb} />

@@ -1,11 +1,16 @@
 /* G04 consistency spikes: two small multiples under large stat numerals. */
 .root {
-  --core: clamp(1.75px, 0.08vw + 1.1px, 3.2px);
-  --limit: 1px;
+  --core: clamp(2px, 0.1vw + 1.1px, 3.6px);
+  --limit: clamp(1px, 0.04vw + 0.6px, 1.5px);
   --glow-blur: clamp(4px, 0.3vw + 2.8px, 11px);
-  --plot-h: clamp(130px, 6.4vw + 128px, 300px);
+  /* Tall enough that the spike reads as a spike beside the stat numeral: 230 / 370 px. */
+  --plot-h: clamp(150px, 12.5vw + 50px, 400px);
+  /* Window labels: one step above the axis labels (16 / 19 / 26 px). */
+  --fs-line: clamp(1rem, 0.625vw + 0.625rem, 1.625rem);
   width: 100%;
   margin: 0;
+  /* Hinting opens gaps after Saira's "t" at 15px; unhinted outlines keep the spacing true. */
+  text-rendering: geometricPrecision;
 }
 
 .pair {
@@ -122,7 +127,7 @@
 
 .rug {
   stroke: var(--amber-hot);
-  stroke-opacity: 0.4;
+  stroke-opacity: 0.55;
   stroke-width: 1px;
 }
 
@@ -133,8 +138,17 @@
   color: var(--muted);
 }
 
-.rule {
+.rule,
+.vrule {
   stroke: var(--grid);
+  stroke-width: 1px;
+  shape-rendering: crispEdges;
+}
+
+/* The reference value, a hairline through the peak */
+.refLine {
+  stroke: var(--steel);
+  stroke-opacity: 0.28;
   stroke-width: 1px;
   shape-rendering: crispEdges;
 }
@@ -142,6 +156,7 @@
 .limitLabel {
   position: absolute;
   top: 0;
+  font-size: var(--fs-line);
   color: var(--text);
 }
 
@@ -193,14 +208,14 @@
 
 .captionText {
   display: block;
-  font-size: var(--fs-fine);
+  font-size: var(--fs-label);
   color: var(--muted);
   white-space: normal;
 }
 
 @media (max-width: 639px) {
   .root {
-    --plot-h: 132px;
+    --plot-h: 150px;
   }
   .pair {
     grid-template-columns: minmax(0, 1fr);

@@ -6,7 +6,7 @@
   --ink-soft: color-mix(in srgb, var(--ink) 58%, var(--paper));
   --rule: color-mix(in srgb, var(--ink) 14%, transparent);
   --rule-strong: color-mix(in srgb, var(--ink) 78%, transparent);
-  --fs: clamp(15px, 4.15cqw, 26px);
+  --fs: clamp(15px, 4.1cqw, 64px);
   --fs-small: max(15px, 0.8em);
   --pad: 7.4cqw;
   --plate: 2.4cqw;
@@ -35,8 +35,8 @@
 
 .card {
   position: relative;
+  /* A6; it may grow taller only if the content ever needs it (aspect-ratio acts as a minimum) */
   aspect-ratio: 105 / 148;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
   padding: var(--pad);
@@ -80,6 +80,13 @@
 }
 
 /* engraved rosette, bleeding off the top-right corner */
+.rosetteClip {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
 .rosette {
   position: absolute;
   top: -19cqw;
@@ -125,15 +132,14 @@
 }
 .title {
   position: relative;
-  margin-top: 1.05em;
+  margin-top: 0.62em;
   font-family: var(--font-display);
   font-variation-settings: "wdth" 112;
   font-weight: 560;
-  font-size: 1.56em;
+  font-size: 1.44em;
   line-height: 1.04;
   letter-spacing: -0.012em;
-  text-wrap: balance;
-  max-width: 13em;
+  max-width: 9.5em;
 }
 .meta {
   position: relative;
@@ -141,7 +147,7 @@
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 0.2em 1em;
-  margin-top: 0.7em;
+  margin-top: 0.5em;
   font-size: var(--fs-small);
 }
 .metaKey {
@@ -156,7 +162,7 @@
 /* ---------- measured rows ---------- */
 .rows {
   position: relative;
-  margin-top: 1.15em;
+  margin-top: 0.85em;
   border-top: 1.5px solid var(--rule-strong);
 }
 .row {
@@ -164,7 +170,7 @@
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: baseline;
   gap: 0.75em;
-  padding: 0.42em 0 0.4em;
+  padding: 0.3em 0 0.28em;
   border-bottom: 1px solid var(--rule);
 }
 .row dt {
@@ -177,29 +183,23 @@
 }
 .limit {
   display: block;
-  margin-top: 0.1em;
+  margin-top: 0.02em;
   font-size: var(--fs-small);
   font-weight: 400;
   color: var(--ink-soft);
 }
 
-/* ---------- foot: flatness map, Swiss cross, signature ---------- */
+/* ---------- foot: flatness map, then legend, Swiss cross and signature ---------- */
 .foot {
   position: relative;
-  flex: 1;
   display: grid;
-  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1fr);
-  gap: 1.1em;
-  align-items: end;
-  margin-top: 1.1em;
-}
-.mapBlock {
-  display: grid;
-  gap: 0.35em;
-  align-self: end;
+  grid-template-columns: 26cqw minmax(0, 1fr);
+  gap: 4.4cqw;
+  margin-top: auto;
+  padding-top: 0.9em;
 }
 .map {
-  width: 62%;
+  width: 26cqw;
   aspect-ratio: 272 / 322;
 }
 .mapSvg {
@@ -236,6 +236,13 @@
   stroke: color-mix(in srgb, var(--ink) 52%, transparent);
   stroke-width: 0.8px;
 }
+
+.side {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 0.6em;
+  min-width: 0;
+}
 .legend {
   display: grid;
   gap: 0.15em;
@@ -258,15 +265,9 @@
   height: 0.42em;
   background: linear-gradient(90deg, color-mix(in srgb, var(--ink) 10%, transparent), color-mix(in srgb, var(--ink) 55%, transparent));
 }
-
-.side {
-  display: grid;
-  align-content: space-between;
-  justify-items: end;
-  height: 100%;
-  gap: 1.2em;
-}
 .swiss {
+  align-self: center;
+  justify-self: end;
   display: inline-flex;
   align-items: center;
   gap: 0.5em;
@@ -276,14 +277,12 @@
 .cross {
   display: block;
   flex: none;
-  width: 1.2em;
-  height: 1.2em;
+  width: 1.15em;
+  height: 1.15em;
 }
 .sign {
   display: grid;
-  gap: 0.3em;
-  width: 100%;
-  justify-items: start;
+  gap: 0.28em;
 }
 .signLine {
   display: block;
@@ -294,15 +293,37 @@
 .signLabel {
   font-size: var(--fs-small);
   color: var(--ink-soft);
+  line-height: 1.1;
 }
 
-/* ---------- thumb: no text, structure only ---------- */
+/* ---------- thumb: no text, structure only ----------
+   Used by variant="thumb", and automatically when a full card is placed narrower than 300 px,
+   where its text could not stay at 15 px. */
+.fullBody {
+  display: contents;
+}
+.thumbBody {
+  display: none;
+}
 .root[data-variant="thumb"] .card {
   padding: 9cqw;
 }
+.root[data-variant="thumb"] .thumbBody {
+  display: grid;
+}
+@container (max-width: 299.98px) {
+  .fullBody {
+    display: none;
+  }
+  .card {
+    padding: 9cqw;
+  }
+  .thumbBody {
+    display: grid;
+  }
+}
 .thumbBody {
   position: relative;
-  display: grid;
   gap: 4.2cqw;
   height: 100%;
   align-content: start;
@@ -334,10 +355,10 @@
   align-items: end;
   margin-top: 4cqw;
 }
-.root[data-variant="thumb"] .map {
+.thumbFoot .map {
   width: 34%;
 }
-.root[data-variant="thumb"] .cross {
+.thumbFoot .cross {
   width: 11cqw;
   height: 11cqw;
 }

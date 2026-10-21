@@ -132,24 +132,25 @@ export function MeasurementCard({ className, edition, rotate = false, variant = 
       <div className={styles.mover} data-g08-mover="">
         <div className={styles.plate} aria-hidden="true" />
         <div className={styles.card}>
-          <Rosette className={styles.rosette} />
+          <div className={styles.rosetteClip} aria-hidden="true">
+            <Rosette className={styles.rosette} />
+          </div>
 
-          {thumb ? (
-            <div className={styles.thumbBody} aria-hidden="true">
-              <span className={styles.thumbBar} />
-              <span className={styles.thumbBarWide} />
-              {rows.map(([k]) => (
-                <span key={k} className={styles.thumbRow} />
-              ))}
-              <div className={styles.thumbFoot}>
-                <div className={styles.map}>
-                  <FlatnessMap uid={uid} />
-                </div>
-                <SwissCross className={styles.cross} />
+          <div className={styles.thumbBody} aria-hidden="true">
+            <span className={styles.thumbBar} />
+            <span className={styles.thumbBarWide} />
+            {rows.map(([k]) => (
+              <span key={k} className={styles.thumbRow} />
+            ))}
+            <div className={styles.thumbFoot}>
+              <div className={styles.map}>
+                <FlatnessMap uid={`${uid}t`} />
               </div>
+              <SwissCross className={styles.cross} />
             </div>
-          ) : (
-            <>
+          </div>
+          {thumb ? null : (
+            <div className={styles.fullBody}>
               <header className={styles.top}>
                 <span className={styles.wordmark}>{LABELS.wordmark}</span>
                 <span className={styles.tag}>{card.tag}</span>
@@ -175,10 +176,10 @@ export function MeasurementCard({ className, edition, rotate = false, variant = 
               </dl>
 
               <div className={styles.foot}>
-                <div className={styles.mapBlock}>
-                  <div className={styles.map}>
-                    <FlatnessMap uid={uid} />
-                  </div>
+                <div className={styles.map}>
+                  <FlatnessMap uid={uid} />
+                </div>
+                <div className={styles.side}>
                   <div className={styles.legend} aria-hidden="true">
                     <span className={styles.legendTitle}>{LABELS.mapTitle}</span>
                     <span className={styles.legendScale}>
@@ -187,8 +188,6 @@ export function MeasurementCard({ className, edition, rotate = false, variant = 
                       <span>{LABELS.mapScaleTo}</span>
                     </span>
                   </div>
-                </div>
-                <div className={styles.side}>
                   <p className={styles.swiss}>
                     <SwissCross className={styles.cross} />
                     <span>{card.swiss}</span>
@@ -199,7 +198,7 @@ export function MeasurementCard({ className, edition, rotate = false, variant = 
                   </p>
                 </div>
               </div>
-            </>
+            </div>
           )}
         </div>
       </div>

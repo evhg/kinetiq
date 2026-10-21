@@ -50,6 +50,9 @@ export function VibrationGraph({ className, scrub = false, timelineRef, caption 
       const el = root.current;
       const mm = gsap.matchMedia();
       mm.add("(prefers-reduced-motion: no-preference)", () => {
+        // Already past the trigger when motion switches on (above the fold, or a reload mid-page):
+        // keep the finished graph instead of hiding it and drawing it again.
+        if (!scrub && el.getBoundingClientRect().top < window.innerHeight * 0.75) return;
         const q = gsap.utils.selector(el);
         const [wipe] = q("[data-wipe]");
         const [inner] = q("[data-wipe-inner]");

@@ -1,0 +1,126 @@
+/* G12 court plan. The SVG's viewBox has the slide's exact aspect, so HTML text placed in percent
+   lands where the drawing expects it. Strokes are non-scaling hairlines; text never drops below 15 px.
+   Below 300 px wide (thumbnails) the plan shows without text. */
+.root {
+  --w-wall: clamp(1px, 0.12cqw + 0.6px, 1.75px);
+  --w-hair: clamp(0.75px, 0.07cqw + 0.5px, 1.25px);
+  --c-wall: color-mix(in srgb, var(--steel) 50%, transparent);
+  --c-line: color-mix(in srgb, var(--steel) 40%, transparent);
+  --c-net: color-mix(in srgb, var(--steel) 72%, transparent);
+  --c-dim: color-mix(in srgb, var(--amber) 70%, transparent);
+
+  container: court / inline-size;
+  position: relative;
+  margin: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+.plan {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.plan path,
+.plan circle {
+  fill: none;
+}
+.surface {
+  fill: color-mix(in srgb, var(--steel) 4%, transparent) !important;
+}
+.line {
+  stroke: var(--c-line);
+  stroke-width: var(--w-hair);
+}
+.wall {
+  stroke: var(--c-wall);
+  stroke-width: var(--w-wall);
+  stroke-linecap: square;
+}
+.mesh {
+  stroke: var(--c-wall);
+  stroke-width: var(--w-wall);
+  stroke-dasharray: 0.01px clamp(3px, 0.35cqw + 1.5px, 6px);
+  stroke-linecap: round;
+}
+.post {
+  fill: color-mix(in srgb, var(--steel) 46%, transparent) !important;
+}
+.net {
+  stroke: var(--c-net);
+  stroke-width: calc(var(--w-wall) * 1.2);
+}
+.dims path {
+  stroke: var(--c-dim);
+  stroke-width: var(--w-hair);
+}
+.leader {
+  stroke: color-mix(in srgb, var(--amber) 75%, transparent);
+  stroke-width: var(--w-hair);
+}
+
+.halo {
+  fill: var(--amber) !important;
+  opacity: 0.28;
+}
+.glow {
+  fill: var(--amber) !important;
+  opacity: 0.95;
+}
+.ring {
+  stroke: var(--amber);
+  stroke-width: var(--w-hair);
+}
+.ticks {
+  stroke: color-mix(in srgb, var(--amber) 80%, transparent);
+  stroke-width: var(--w-hair);
+}
+.core {
+  fill: var(--amber-hot) !important;
+}
+
+.dim {
+  position: absolute;
+  translate: -50% -50%;
+  font-family: var(--font-data);
+  font-size: clamp(15px, 1.1cqw + 10px, 26px);
+  font-variant-numeric: tabular-nums lining-nums;
+  line-height: 1;
+  color: var(--amber);
+  white-space: nowrap;
+}
+.dim[data-vertical] {
+  writing-mode: vertical-rl;
+  rotate: 180deg;
+  translate: 50% 50%;
+}
+
+.caption {
+  position: absolute;
+  display: grid;
+  gap: 0.22em;
+  padding-top: clamp(6px, 0.7cqw + 3px, 16px);
+  font-family: var(--font-data);
+  line-height: 1.18;
+}
+.who {
+  font-size: clamp(15px, 1.5cqw + 9.5px, 34px);
+  font-weight: 500;
+  color: var(--text);
+  text-wrap: balance;
+}
+.where {
+  font-size: clamp(15px, 1.05cqw + 10.5px, 26px);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+@container court (max-width: 299.98px) {
+  .dim,
+  .caption > :not(:global(.visually-hidden)),
+  .dims,
+  .leader {
+    display: none;
+  }
+}
