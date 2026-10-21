@@ -16,12 +16,13 @@
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
 }
-.icon .soft {
-  stroke-opacity: 0.6;
-  stroke-width: 1px;
-}
 .icon .digit {
   stroke-width: 1.1px;
+}
+/* the 42 holes: round-capped pen dots at the true hole diameter, scaling with the glyph */
+.icon .holes {
+  vector-effect: none;
+  stroke-opacity: 0.72;
 }
 
 /* the only filled icon: Swiss red field, white cross */
@@ -43,8 +44,4 @@
 }
 .glyph[data-selected="true"] {
   color: var(--amber);
-}
-.icon .dots {
-  stroke-width: 0.9px;
-  stroke-opacity: 0.75;
 }

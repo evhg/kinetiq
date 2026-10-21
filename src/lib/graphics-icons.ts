@@ -1,7 +1,7 @@
 // Pure geometry for the G11 icons and tier glyphs, drawn from racket-shape.ts.
 // Screen px, y down. Self-contained so the icons can render in server or client components.
 
-import { HANDLE, HEAD_CURVES, HEAD_START, HOLES, THROAT_CURVES, THROAT_START, type Pt } from "@/lib/racket-shape";
+import { HANDLE, HEAD_CURVES, HEAD_START, HOLES, HOLE_RADIUS, THROAT_CURVES, THROAT_START, type Pt } from "@/lib/racket-shape";
 
 export type V = [number, number];
 
@@ -24,13 +24,17 @@ const cubicSample = (p0: Pt, c: [Pt, Pt, Pt], steps: number): Pt[] => {
 /**
  * The racket silhouette as a closed polygon for small icons: the real head outline from
  * racket-shape.ts flowing straight into a handle widened to `handleHalf` px so it survives a
- * 1.25px stroke. Top centre at (0, 0), length `len` px, y down.
+ * 1.25px stroke, ending in a flat, slightly flared butt cap (a round end reads as a balloon string).
+ * Top centre at (0, 0), length `len` px, y down.
  */
-export function iconRacket(len: number, handleHalf: number): V[] {
+export function iconRacket(len: number, handleHalf: number, o: { flare?: number; cap?: number; corner?: number } = {}): V[] {
   const top = HEAD_START[1];
   const butt = HANDLE.top - HANDLE.length;
   const k = len / (top - butt);
   const hw = handleHalf / k;
+  const fr = (o.flare ?? handleHalf * 0.28) / k;
+  const cl = (o.cap ?? len * 0.075) / k;
+  const cr = (o.corner ?? Math.min(0.55, handleHalf * 0.3)) / k;
   const [c0, c1, , c3, c4] = HEAD_CURVES;
   const neck = -1.66;
   const c1b: [Pt, Pt, Pt] = [c1[0], [0.62, -1.2], [hw, neck]];
@@ -38,13 +42,22 @@ export function iconRacket(len: number, handleHalf: number): V[] {
   const pts: Pt[] = [HEAD_START];
   pts.push(...cubicSample(HEAD_START, c0, 40));
   pts.push(...cubicSample(c0[2], c1b, 40));
-  const endY = butt + hw;
-  for (let i = 1; i <= 16; i++) pts.push([hw, neck + ((endY - neck) * i) / 16]);
-  for (let i = 1; i <= 12; i++) {
-    const a = (i / 12) * Math.PI;
-    pts.push([hw * Math.cos(a), endY - hw * Math.sin(a)]);
+  const y1 = butt + cl;
+  const y2 = butt + cl * 0.45;
+  const W = hw + fr;
+  for (let i = 1; i <= 16; i++) pts.push([hw, neck + ((y1 - neck) * i) / 16]);
+  pts.push([W, y2], [W, butt + cr]);
+  for (let i = 1; i <= 6; i++) {
+    const a = ((i / 6) * Math.PI) / 2;
+    pts.push([W - cr + cr * Math.cos(a), butt + cr - cr * Math.sin(a)]);
   }
-  for (let i = 1; i <= 16; i++) pts.push([-hw, endY + ((neck - endY) * i) / 16]);
+  pts.push([-W + cr, butt]);
+  for (let i = 1; i <= 6; i++) {
+    const a = Math.PI / 2 + ((i / 6) * Math.PI) / 2;
+    pts.push([-W + cr + cr * Math.cos(a), butt + cr - cr * Math.sin(a)]);
+  }
+  pts.push([-W, y2], [-hw, y1]);
+  for (let i = 1; i <= 16; i++) pts.push([-hw, y1 + ((neck - y1) * i) / 16]);
   pts.push(...cubicSample([-hw, neck], c3b, 40));
   pts.push(...cubicSample(c3[2], c4, 40).slice(0, -1));
   return pts.map(([x, y]) => [x * k, (top - y) * k]);
@@ -136,39 +149,11 @@ export function occluded(back: V[], fronts: V[][], gap: number): string {
     .join("");
 }
 
-/** A sparse, staggered hole pattern for glyphs (same transform as iconRacket), centred on the face. */
-export function iconHoles(len: number, step = 0.48): V[] {
-  const top = HEAD_START[1];
-  const k = len / (top - (HANDLE.top - HANDLE.length));
-  const cy = 0.32;
-  const out: V[] = [];
-  for (let row = -3; row <= 3; row++) {
-    const y = cy + row * step * 0.87;
-    const off = row % 2 === 0 ? 0 : step / 2;
-    for (let col = -3; col <= 3; col++) {
-      const x = col * step + off;
-      if ((x * x) / (0.86 * 0.86) + ((y - cy) * (y - cy)) / (1.02 * 1.02) < 1 && y > -0.45) out.push([x * k, (top - y) * k]);
-    }
-  }
-  return out;
-}
-
-/** Points that sit clear of every front polygon by at least `margin` px. */
-export function clearOf(points: V[], fronts: V[][], margin: number): V[] {
-  return points.filter((p) => !fronts.some((f) => inside(p, f) || near(p, f, margin)));
-}
-
 /** The 42 real hole centres (same transform as iconRacket): a regular grid, not a scatter. */
 export function iconHoleCentres(len: number): V[] {
   const top = HEAD_START[1];
   const k = len / (top - (HANDLE.top - HANDLE.length));
   return HOLES.map(([x, y]) => [x * k, (top - y) * k]);
-}
-
-/** Filled dots as one path (two half-arcs each), for fills rather than strokes. */
-export function dotsPath(centres: V[], r: number): string {
-  const f = (v: number) => String(Number(v.toFixed(2)));
-  return centres.map(([x, y]) => `M${f(x - r)} ${f(y)}a${f(r)} ${f(r)} 0 1 0 ${f(2 * r)} 0a${f(r)} ${f(r)} 0 1 0 ${f(-2 * r)} 0Z`).join("");
 }
 
 /** Axis-aligned bounds of point sets. */
@@ -185,4 +170,17 @@ export function bounds(...sets: V[][]): { x0: number; y0: number; x1: number; y1
       y1 = Math.max(y1, y);
     }
   return { x0, y0, x1, y1 };
+}
+
+/**
+ * Holes as pen dots: a zero-length segment per centre, drawn with a round-capped stroke whose
+ * width is the hole diameter. Still a stroke, so the set keeps its no-fills rule.
+ */
+export function penDots(centres: V[]): string {
+  return centres.map(([x, y]) => `M${fmt(x)} ${fmt(y)}h0`).join("");
+}
+
+/** The real hole diameter at an icon racket's scale. */
+export function iconHoleDia(len: number): number {
+  return (HOLE_RADIUS * 2 * len) / (HEAD_START[1] - (HANDLE.top - HANDLE.length));
 }

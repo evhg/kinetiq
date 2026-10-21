@@ -4,7 +4,7 @@
 
 import type { ReactNode } from "react";
 import type { TierId } from "@/content/lineup";
-import { clearOf, iconHoles, iconRacket, iconThroat, movePts, occluded, ptsPath, type V } from "@/lib/graphics-icons";
+import { bounds, iconHoleCentres, iconHoleDia, iconRacket, iconThroat, movePts, occluded, penDots, ptsPath, type V } from "@/lib/graphics-icons";
 import styles from "./Icons.module.css";
 
 /** Accessible names for the icons (used only when a title is not given and the icon is not decorative). */
@@ -25,52 +25,82 @@ export const LABELS = {
 
 /* ---------- geometry (computed once, at module load) ---------- */
 
-const r24 = (len: number, hh: number, dx: number, dy: number, rot = 0, px = 0, py = 0) =>
-  movePts(movePts(iconRacket(len, hh), { dx, dy }), { rot, px, py });
+type Stack = { outlines: string[]; throat: string; holes: string; holeDia: number };
 
-const ringPath = (c: V[], r: number) =>
-  c.map(([x, y]) => `M${(x - r).toFixed(2)} ${y.toFixed(2)}a${r} ${r} 0 1 0 ${2 * r} 0a${r} ${r} 0 1 0 ${-2 * r} 0Z`).join("");
-
-// three rackets in a cascade, the centre one in front: each side racket leans out from its own butt
-const fan = (len: number, hh: number, cx: number, top: number, spread: number, drop: number, deg: number, gap: number, step: number, hr: number) => {
-  const place = (dx: number, dy: number, rot: number) => (pts: V[]) =>
-    movePts(movePts(pts, { dx: cx + dx, dy: top + dy }), { rot, px: cx + dx, py: top + len + dy });
-  const centre = place(0, 0, 0)(iconRacket(len, hh));
-  const sides = [place(-spread, drop, -deg), place(spread, drop, deg)];
-  const holeSet = iconHoles(len, step);
-  const sideHoles = sides.flatMap((f) => clearOf(f(holeSet), [centre], gap + hr));
+/**
+ * `n` identical rackets in a diagonal stack, back to front, centred in a `box` grid. Each racket
+ * hides the ones behind it with a `gap` knockout. The front racket carries the throat and, when
+ * asked, the real 42-hole map.
+ */
+function stack(n: number, len: number, hh: number, box: number, dx: number, dy: number, gap: number, holes: boolean): Stack {
+  const raw = Array.from({ length: n }, (_, i) => movePts(iconRacket(len, hh), { dx: i * dx, dy: i * dy }));
+  const b = bounds(...raw);
+  const ox = box / 2 - (b.x0 + b.x1) / 2;
+  const oy = box / 2 - (b.y0 + b.y1) / 2;
+  const rk = raw.map((r) => movePts(r, { dx: ox, dy: oy }));
+  const front = { dx: ox + (n - 1) * dx, dy: oy + (n - 1) * dy };
   return {
-    centre,
-    back: sides.map((f) => occluded(f(iconRacket(len, hh)), [centre], gap)).join(""),
-    holes: ringPath([...place(0, 0, 0)(holeSet), ...sideHoles], hr),
+    outlines: rk.map((r, i) => (i === n - 1 ? ptsPath(r) : occluded(r, rk.slice(i + 1), gap))),
+    throat: ptsPath(movePts(iconThroat(len), front)),
+    holes: holes ? penDots(movePts(iconHoleCentres(len), front)) : "",
+    holeDia: iconHoleDia(len),
   };
+}
+
+function StackArt({ s }: { s: Stack }) {
+  return (
+    <>
+      {s.outlines.map((d, i) => (
+        <path key={i} d={d} />
+      ))}
+      <path d={s.throat} />
+      {s.holes ? <path className={styles.holes} d={s.holes} style={{ strokeWidth: s.holeDia }} /> : null}
+    </>
+  );
+}
+
+// 24 px icons: no holes (they would be sub-pixel noise), the throat only on the front racket
+const RACKETS24 = stack(3, 17.6, 1.0, 24, 4.7, 1.2, 1.1, false);
+
+/** A racket lying on its side (head to the left), centred on (cx, cy). */
+const lying = (len: number, hh: number, cx: number, cy: number) => {
+  const r = iconRacket(len, hh);
+  const t = iconThroat(len);
+  const place = (p: V[]) => movePts(movePts(p, { dx: cx, dy: cy - len / 2 }), { rot: -90, px: cx, py: cy });
+  return { outline: place(r), throat: place(t) };
 };
+const CASE_RACKET = lying(15.4, 0.95, 12, 12.6);
+// the mould: a square-cornered tool block with four clamp bolts, the parting line running in from
+// both sides to the racket-shaped cavity
+const MOULD_RACKET = lying(12.8, 0.85, 12, 12);
+const MOULD_PARTING = (() => {
+  const b = bounds(MOULD_RACKET.outline);
+  return `M2.75 12H${(b.x0 - 1.1).toFixed(2)}M${(b.x1 + 1.1).toFixed(2)} 12H21.25`;
+})();
 
-const FAN24 = fan(17, 0.95, 12, 2.5, 5.2, 1.5, 9, 1.1, 0.62, 0.5);
-const CASE_RACKET = movePts(r24(14.6, 0.95, 12, 4.7), { rot: -90, px: 12, py: 12 });
-const MOULD_RACKET = movePts(movePts(iconRacket(14, 0.9), { dx: 12, dy: 5 }), { rot: -90, px: 12, py: 12 });
-const MOULD_HOLES = ringPath(movePts(movePts(iconHoles(14, 0.62), { dx: 12, dy: 5 }), { rot: -90, px: 12, py: 12 }), 0.5);
-const CASE_HOLES = ringPath(movePts(movePts(iconHoles(14.6, 0.62), { dx: 12, dy: 4.7 }), { rot: -90, px: 12, py: 12, dy: 0.5 }), 0.5);
-
-const GLYPH_LEN = 40;
-const glyphRacket = (cx: number, top: number, len = GLYPH_LEN) => ({
-  outline: ptsPath(movePts(iconRacket(len, 1.9), { dx: cx, dy: top })),
-  holes: ringPath(movePts(iconHoles(len), { dx: cx, dy: top }), 0.95),
-  throat: ptsPath(movePts(iconThroat(len), { dx: cx, dy: top })),
-});
-const G_RESERVE = glyphRacket(24, 4);
-const G_LIMITED = glyphRacket(19, 3.5);
-const FAN48 = (() => {
-  const len = 38;
-  const centreTop = 4;
-  const f = fan(len, 1.7, 24, centreTop, 11.5, 3, 9, 1.8, 0.52, 0.9);
+const GLYPH_LEN = 42;
+const G_RESERVE = stack(1, GLYPH_LEN, 2.05, 48, 0, 0, 1.8, true);
+const G_INVITE = stack(3, 34.5, 1.8, 48, 8.4, 2.4, 1.9, true);
+// Limited: one racket with its numbered tag, the pair centred as a whole
+const LIM = (() => {
+  const len = 40;
+  const cx = 15;
+  const top = 4;
+  const outline = movePts(iconRacket(len, 2), { dx: cx, dy: top });
   return {
-    centre: ptsPath(f.centre),
-    holes: f.holes,
-    throat: ptsPath(movePts(iconThroat(len), { dx: 24, dy: centreTop })),
-    back: f.back,
+    outline: ptsPath(outline),
+    throat: ptsPath(movePts(iconThroat(len), { dx: cx, dy: top })),
+    holes: penDots(movePts(iconHoleCentres(len), { dx: cx, dy: top })),
+    holeDia: iconHoleDia(len),
   };
 })();
+// "001" in squarish strokes that echo Saira's numerals; 6.4 units tall
+const DIGIT_H = 6.4;
+const DIGIT_W = 3.1;
+const DIGIT_Y = 36 - DIGIT_H / 2;
+const zero = (x: number) => `M${x + 1.35} ${DIGIT_Y}h${DIGIT_W - 2.7}a1.35 1.35 0 0 1 1.35 1.35v${DIGIT_H - 2.7}a1.35 1.35 0 0 1 -1.35 1.35h${-(DIGIT_W - 2.7)}a1.35 1.35 0 0 1 -1.35 -1.35v${-(DIGIT_H - 2.7)}a1.35 1.35 0 0 1 1.35 -1.35Z`;
+const one = (x: number) => `M${x + 0.6} ${DIGIT_Y + 1.5}L${x + 2.15} ${DIGIT_Y}V${DIGIT_Y + DIGIT_H}`;
+const TAG_DIGITS = zero(30.6) + zero(35.05) + one(39.5);
 
 /* ---------- icons (24 x 24 grid) ---------- */
 
@@ -102,13 +132,7 @@ export const ICON_NAMES: IconName[] = [
 ];
 
 const ICONS: Record<IconName, ReactNode> = {
-  rackets3: (
-    <>
-      <path d={FAN24.back} />
-      <path d={ptsPath(FAN24.centre)} />
-      <path className={styles.dots} d={FAN24.holes} />
-    </>
-  ),
+  rackets3: <StackArt s={RACKETS24} />,
   penNib: (
     <>
       <g transform="rotate(45 12 12)">
@@ -136,8 +160,8 @@ const ICONS: Record<IconName, ReactNode> = {
     <>
       <rect x="2.25" y="5.75" width="19.5" height="13.5" rx="2.25" />
       <path d="M9.5 5.75 V4.5 C9.5 3.95 9.95 3.5 10.5 3.5 H13.5 C14.05 3.5 14.5 3.95 14.5 4.5 V5.75" />
-      <path d={ptsPath(movePts(CASE_RACKET, { dy: 0.5 }))} />
-      <path className={styles.dots} d={CASE_HOLES} />
+      <path d={ptsPath(CASE_RACKET.outline)} />
+      <path d={ptsPath(CASE_RACKET.throat)} />
     </>
   ),
   measurementCard: (
@@ -173,10 +197,14 @@ const ICONS: Record<IconName, ReactNode> = {
   ),
   mould: (
     <>
-      <path d="M2.75 11.25 V6.5 C2.75 5.67 3.42 5 4.25 5 H19.75 C20.58 5 21.25 5.67 21.25 6.5 V11.25 Z" />
-      <path d="M2.75 12.75 V17.5 C2.75 18.33 3.42 19 4.25 19 H19.75 C20.58 19 21.25 18.33 21.25 17.5 V12.75 Z" />
-      <path d={ptsPath(MOULD_RACKET)} />
-      <path className={styles.dots} d={MOULD_HOLES} />
+      <rect x="2.75" y="4.75" width="18.5" height="14.5" rx="0.75" />
+      <path d={MOULD_PARTING} />
+      <circle cx="5.1" cy="7.1" r="0.8" />
+      <circle cx="18.9" cy="7.1" r="0.8" />
+      <circle cx="5.1" cy="16.9" r="0.8" />
+      <circle cx="18.9" cy="16.9" r="0.8" />
+      <path d={ptsPath(MOULD_RACKET.outline)} />
+      <path d={ptsPath(MOULD_RACKET.throat)} />
     </>
   ),
 };
@@ -217,44 +245,25 @@ export type TierGlyphProps = {
   title?: string;
 };
 
-function Digit0({ x }: { x: number }) {
-  return <ellipse className={styles.digit} cx={x} cy={37} rx={1.55} ry={2.9} />;
-}
-
 export function TierGlyph({ tier, selected = false, className, title }: TierGlyphProps) {
   let art: ReactNode;
   if (tier === "reserve") {
-    art = (
-      <>
-        <path d={G_RESERVE.outline} />
-        <path className={styles.soft} d={G_RESERVE.holes} />
-        <path d={G_RESERVE.throat} />
-      </>
-    );
+    art = <StackArt s={G_RESERVE} />;
   } else if (tier === "limited") {
     art = (
       <>
-        <path d={G_LIMITED.outline} />
-        <path className={styles.soft} d={G_LIMITED.holes} />
-        <path d={G_LIMITED.throat} />
-        {/* the numbered tag, tied to the butt */}
-        <path d="M19 43.5 C21.6 46.2 26.6 43.6 28.2 38.2" />
-        <path d="M24.6 37 L28.4 32 H44.4 C45 32 45.5 32.5 45.5 33.1 V40.9 C45.5 41.5 45 42 44.4 42 H28.4 Z" />
-        <circle cx="28.6" cy="37" r="1.1" />
-        <Digit0 x={33.4} />
-        <Digit0 x={37.8} />
-        <path className={styles.digit} d="M41.2 35.2 L42.6 34.1 V39.9" />
+        <path d={LIM.outline} />
+        <path d={LIM.throat} />
+        <path className={styles.holes} d={LIM.holes} style={{ strokeWidth: LIM.holeDia }} />
+        {/* the numbered tag, tied to the grip */}
+        <path d="M26.5 36.9 C24.2 40.6 20.6 42.4 17.3 41.2" />
+        <path d="M26.2 30.5 H43.8 Q45 30.5 45 31.7 V40.3 Q45 41.5 43.8 41.5 H26.2 L23 36 Z" />
+        <circle cx="27.5" cy="36" r="1" />
+        <path className={styles.digit} d={TAG_DIGITS} />
       </>
     );
   } else {
-    art = (
-      <>
-        <path d={FAN48.back} />
-        <path d={FAN48.centre} />
-        <path className={styles.soft} d={FAN48.holes} />
-        <path d={FAN48.throat} />
-      </>
-    );
+    art = <StackArt s={G_INVITE} />;
   }
   return (
     <svg

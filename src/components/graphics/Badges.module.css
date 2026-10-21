@@ -1,4 +1,5 @@
-/* G13: hairline badges. 1px --hairline border, 4px radius, Saira 16 / 18 / 20px (390 / 1440 / 2560), --steel. */
+/* G13: hairline badges. 1px --hairline border, 4px radius, Saira 16 / 18 / 20px (390 / 1440 / 2560), --steel.
+   Built like a hallmark plate: the mark sits in its own cell behind a hairline rule, then the text. */
 .badges {
   display: flex;
   flex-wrap: wrap;
@@ -6,20 +7,24 @@
   margin: 0;
   padding: 0;
   list-style: none;
+  /* Linux and Windows Chromium round hinted Saira advances at these sizes; keep subpixel spacing */
+  text-rendering: geometricPrecision;
 }
 .badges[data-align="center"] {
   justify-content: center;
 }
 .badges[data-layout="stack"] {
   flex-direction: column;
-  align-items: stretch;
+  align-items: flex-start;
+}
+.badges[data-layout="stack"][data-align="center"] {
+  align-items: center;
 }
 .badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.7em;
-  min-height: clamp(48px, 0.55vw + 42px, 60px);
-  padding: 0.5em 1.05em 0.5em 0.85em;
+  display: inline-grid;
+  grid-template-columns: auto auto;
+  align-items: stretch;
+  min-height: clamp(48px, 0.7vw + 44px, 64px);
   border: 1px solid var(--hairline);
   border-radius: 4px;
   font-family: var(--font-data);
@@ -30,8 +35,20 @@
   color: var(--steel);
   white-space: nowrap;
 }
+.mark {
+  display: grid;
+  place-items: center;
+  padding-inline: 0.72em;
+  border-right: 1px solid var(--hairline);
+}
+.text {
+  display: flex;
+  align-items: center;
+  padding: 0.5em 1.1em 0.5em 0.95em;
+}
 .badges[data-layout="stack"] .badge {
   white-space: normal;
+  max-width: 100%;
 }
 .icon {
   width: 1.4em;
