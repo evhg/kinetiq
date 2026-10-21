@@ -39,7 +39,7 @@
   display: grid;
   justify-items: center;
   gap: clamp(20px, 1.4vw + 6px, 40px);
-  padding: 32px var(--margin) 72px;
+  padding: 32px var(--margin) 28px;
   text-align: center;
 }
 .swiss {
@@ -67,12 +67,19 @@
   height: 0.62em;
 }
 
-/* Wide: the full 16:9 frame, the lockup over the plate's dark front face. */
+.badges {
+  padding: 0 var(--margin) clamp(56px, 5vw, 120px);
+}
+
+/* Wide: the full 16:9 frame (max one screen tall, min 520 px), the lockup set into the plate's front face.
+   The still covers the stage centred, so its height is max(stage, 56.25vw); the plate's lit top edge sits
+   at 78.5% of it and the face fades to dark by 88%. The lockup starts 2.5% of the still plus 16 px below
+   the edge, clear of the highlight at every width and through the scrubbed 6% push-in. */
 @media (min-width: 700px) {
   .stage {
-    aspect-ratio: 16 / 9;
-    max-height: 100svh;
-    min-height: 520px;
+    --stage-h: max(520px, min(56.25vw, 100svh));
+    --img-h: max(var(--stage-h), 56.25vw);
+    height: var(--stage-h);
   }
   .media {
     position: absolute;
@@ -83,14 +90,19 @@
     position: absolute;
     left: 0;
     right: 0;
-    bottom: 0;
-    gap: clamp(12px, 1vw, 32px);
-    padding: 0 var(--margin) clamp(20px, 3.4%, 72px);
+    top: calc(var(--stage-h) / 2 + 0.31 * var(--img-h) + 16px);
+    padding: 0 var(--margin);
+  }
+  .swiss {
+    text-shadow: 0 2px 24px rgb(6 6 7 / 0.55);
   }
   .pct {
-    font-size: clamp(3.5rem, 5.6vw, 10rem);
+    font-size: clamp(3.25rem, 4.6vw, 8.5rem);
   }
   .made {
-    font-size: clamp(1.75rem, 2vw + 0.5rem, 3.75rem);
+    font-size: clamp(1.625rem, 1.7vw + 0.5rem, 3.25rem);
+  }
+  .badges {
+    padding-top: clamp(28px, 2.4vw, 64px);
   }
 }

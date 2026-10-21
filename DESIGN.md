@@ -35,7 +35,7 @@ No real-time 3D anywhere: the owner rejected it as toy-like.
 | `--hairline`, `--edge`, `--grid` | #2c2c31, #6b6e76, #26262a | Rules, input borders, drawing grids |
 | `--text`, `--steel`, `--muted` | #f5f5f3, #c9ccd1, #9b9ea6 | Headlines and primary CTA fill, leads and labels, fine print (7:1+ on --void) |
 | `--amber`, `--amber-hot` | #e3a467, #ffe2bf | Data glow, light lines (G09), selected edges. Never body text. |
-| `--ember` | #ff3a1e | One red line per image (scan line). Never UI text or a fill. |
+| `--ember` | #ff3a1e | One red line per image (the K05 laser). Never UI text or a fill. |
 | `--swiss` | #da291c | The Swiss cross only |
 | `--paper`, `--ink` | #f3f2ee, #0a0a0a | The measurement card |
 
@@ -47,17 +47,17 @@ Fluid scale up to 2560 in `globals.css` (`--fs-record` … `--fs-fine`); classes
 ## Page
 | # | Section | Media | Motion (reduced motion: final state, no pin) |
 | --- | --- | --- | --- |
-| 1 | Hero | K01 base → beam crossfade | Load reveal; scroll drift and veil |
-| 2 | Spec strip | G01 technical drawing | Numbers rise on entry |
+| 1 | Hero | K01 base → beam crossfade. ≥ 1000 px: words, Reserve Now and price line in the left 7 columns, the still moved right 21vw (racket about 54% of the screen tall); phones: words, racket, Reserve Now on the floor | Load reveal; scroll drift and veil (the button stays opaque) |
+| 2 | Spec strip | Four numbers, then G01 whole in its own band (full sheet ≥ 1240 px, front view below) | Numbers rise on entry; drawing draws on |
 | 3 | One piece (pinned ≥ 900 px) | K02 edge-on → K03 cut-through + G07 sections | Light line sweep, beat crossfade |
 | 4 | Born whole | K06 mould, Swiss lockup, G13 badges | Scrubbed push-in, cavity glow |
-| 5 | Precision (pinned ≥ 900 px) | K05 scan, record counter; G03 tolerance graph | Counter 500 → 15 µm with an ember scan line |
+| 5 | Precision (pinned ≥ 900 px) | K05 scan, record counter; G03 tolerance graph | Counter 500 → 15 µm while the K05 frame settles (scale 1.08 → 1); caption under the numeral |
 | 6 | Holes | K04 macro + G05 fibre flow; G06 drilled vs moulded | Ring glow, flow advection |
 | 7 | Feel | G02 vibration graph | Graph reveal on entry |
 | 8 | Identical | K07 five rackets; G04 spikes, G08 card; CTA 2 | Rise on entry |
 | 9 | Choose your feel | K08 pair (Command 3K, Pace 12K) | Rise on entry |
-| 10 | Editions | Three cards (K01 / K06 / K09) linking to /reserve?tier= | Rise on entry |
-| 11 | Finale | K01 in its beam; CTA 3 | Rise on entry |
+| 10 | Editions | Three cards (K08 left / K06 / K09), every card with its includes and a price-and-arrow foot, linking to /reserve?tier= | Rise on entry |
+| 11 | Finale | K01 in its beam over the horizon, one screen with the footer: ≥ 1000 px the hero mirrored (racket left, words right); phones: racket, then words | Rise on entry |
 | /reserve | Sticky gallery (per-edition slides, G14 controls) + options column | Tier cards (G11 glyphs), feel swatches, trust list, Due Today, Pay with Card → form in place | Crossfades, fields rise 8 px |
 
 Stills are exported by `scripts/stills.mjs` from 16-bit Blender masters (not committed) to AVIF + WebP with

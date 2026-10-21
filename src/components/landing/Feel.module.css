@@ -1,11 +1,17 @@
 .section {
   display: grid;
   gap: clamp(48px, 4vw, 120px);
-  padding: clamp(96px, 8vw, 220px) var(--margin);
+  padding: clamp(80px, 5vw, 140px) var(--margin) clamp(96px, 8vw, 220px);
 }
 .head {
   display: grid;
   gap: 24px;
+}
+/* G10: a graphite lift behind the graph, so its thin lines sit on light rather than in a dark band. */
+.graph {
+  margin-inline: calc(var(--margin) * -1);
+  padding-inline: var(--margin);
+  background: radial-gradient(ellipse 62% 60% at 50% 50%, rgb(56 56 63), rgb(40 40 46 / 0.75) 45%, transparent 78%);
 }
 .points {
   display: grid;

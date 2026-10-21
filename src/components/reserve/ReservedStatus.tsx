@@ -43,6 +43,7 @@ export function ReservedStatus({ pending = false, redirect, hasSecret = false, t
   const initial: Status = pending ? "checking" : !redirect ? "unknown" : PK ? (hasSecret ? "checking" : "unknown") : fromRedirect(redirect);
   const [status, setStatus] = useState<Status>(initial);
   const [paidTier, setPaidTier] = useState<Tier | undefined>(undefined);
+  const [paymentId, setPaymentId] = useState<string | null>(null);
 
   useEffect(() => {
     if (pending || !redirect || !PK || !hasSecret) return;
@@ -57,6 +58,7 @@ export function ReservedStatus({ pending = false, redirect, hasSecret = false, t
         // rejects (edited or foreign link) confirms nothing.
         if (!pi) return setStatus(r?.error && r.error.type !== "api_connection_error" ? "unknown" : fromRedirect(redirect));
         setPaidTier(tiers.find((t) => t.priceEur * 100 === pi.amount));
+        setPaymentId(pi.id);
         setStatus(fromIntent(pi.status));
       })
       .catch(() => {
@@ -69,6 +71,8 @@ export function ReservedStatus({ pending = false, redirect, hasSecret = false, t
 
   const t = paidTier ?? tierById(tier);
   const reserved = status === "succeeded" || status === "processing";
+  // Try again returns to the same edition and feel.
+  const retry = t ? `/reserve?tier=${t.id}${isFeelId(feel) ? `&feel=${feel}` : ""}` : "/reserve";
 
   return (
     <div className={styles.box} aria-live="polite">
@@ -85,6 +89,7 @@ export function ReservedStatus({ pending = false, redirect, hasSecret = false, t
             </p>
           ) : null}
           <p className="t-lead">{reserveCopy.confirmationBody}</p>
+          {paymentId ? <p className={`t-num ${styles.ref}`}>{reserveCopy.reference(paymentId)}</p> : null}
           <Link href="/" className="btn btn-secondary">
             {R.back}
           </Link>
@@ -93,7 +98,7 @@ export function ReservedStatus({ pending = false, redirect, hasSecret = false, t
         <>
           <h1 className="t-h2">{R.failedHeadline}</h1>
           <p className="t-lead">{R.failedBody}</p>
-          <Link href="/reserve" className="btn btn-secondary">
+          <Link href={retry} className="btn btn-secondary">
             {R.retry}
           </Link>
         </>

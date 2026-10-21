@@ -10,13 +10,14 @@ export const reserveCopy = {
   previousImage: "Previous image",
   nextImage: "Next image",
   chooseLegend: "Choose your edition",
-  editionsHeading: "Editions",
   soldOut: "Sold out",
+  /** InviQtus while invitations are closed (no codes yet, or the ambassador is not signed). */
+  invitesClosedStatus: "Opens soon",
+  invitesClosedNote: "Invitations open soon. Nothing can be reserved yet.",
   feelLegend: "Your feel",
   feelHint: "Chosen before your racket is moulded.",
   feelAll: (rackets: number) => `Applies to all ${COUNT_WORDS[rackets] ?? rackets} rackets.`,
   dueTodayLabel: "Due Today",
-  refundLine: `${site.refundLabel}.`,
   trustLines: [
     site.refundLabel,
     "Free delivery in Europe, duties included",
@@ -39,9 +40,11 @@ export const reserveCopy = {
   feelRequired: "Choose Command or Pace.",
   processing: "Placing reservation…",
   cardPreview: "Card payments open at launch. Nothing can be charged yet.",
-  /** The total, stated directly above Place Reservation. */
-  placeDue: (price: string) => `Due today ${price}, charged when you place your reservation.`,
-  fineprint: "Your card is charged the full amount today. Cancel any time before your racket ships for a full refund to the same card. Payments are processed securely by Stripe.",
+  /** The order and its total, stated directly above Place Reservation. */
+  placeDue: (edition: string, feel: string, price: string) => `${edition}, ${feel}. Due today ${price}.`,
+  fineprint: "Charged in full today. Payments by Stripe.",
+  /** Shown instead of the fine print while card payments are off (no Stripe key: the preview). */
+  previewLine: "Reservations open at launch. Nothing is charged in this preview.",
   errors: {
     checkCard: "Please check your card details.",
     generic: "Something went wrong. Nothing was charged.",
@@ -52,6 +55,8 @@ export const reserveCopy = {
   confirmationHeadline: "Reserved. Now we make it.",
   confirmationBody: `Your receipt is on its way to your inbox. Your KINETIQ ships in ${site.shipMonth} with its serial number and measurement card. Fully refundable until then.`,
   receiptSent: (email: string) => `Receipt sent to ${email}.`,
+  /** A short reference the buyer can quote: KQ- and the last 8 characters of the payment's id. */
+  reference: (paymentId: string) => `Reservation KQ-${paymentId.slice(-8).toUpperCase()}`,
   reserved: {
     pageTitle: "Reserved",
     checking: "Checking your reservation.",

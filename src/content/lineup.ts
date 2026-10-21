@@ -2,6 +2,8 @@
 // Names, prices, limits and extras are owner decisions tracked in CLAIMS.md.
 // Tier ids are stable keys; names and copy can change freely.
 
+import type { IconName } from "@/components/graphics/Icons";
+
 export type TierId = "reserve" | "limited" | "invite";
 
 export type Tier = {
@@ -57,7 +59,7 @@ export const tiers: Tier[] = [
     cardLine: "Numbered 001 to 500 and laser-marked on the throat. First out of the mould. Never made again.",
     includes: [
       "Your number, 001 to 500, laser-marked on the throat",
-      "From the first rackets out of the mould",
+      "One of the first 500 out of the mould",
       "Measurement card numbered to match",
       "First to ship, January 2027",
     ],
@@ -70,18 +72,33 @@ export const tiers: Tier[] = [
     name: "InviQtus",
     availability: "Invite Only",
     priceEur: 2900,
-    cardLine: `Fifty sets of three, by invitation. Each racket autographed by ${amb}, then a session with ${ambShort} at ${ambassador.event}.`,
+    cardLine: "Fifty sets of three. By invitation.",
     includes: [
-      `Three KINETIQ rackets, each autographed by ${amb}`,
-      `A one-on-one session with ${ambShort} at ${ambassador.event}`,
+      `Three KINETIQ rackets, each signed by ${amb}`,
+      `A one-on-one coaching session with ${ambShort} at ${ambassador.event}`,
       "Laser-marked 01 to 50, in a fitted case",
-      "From the first rackets out of the mould",
     ],
     limit: 50,
     rackets: 3,
     available: true,
   },
 ];
+
+/** One icon per line of `includes`, in order (edition cards and the reserve options). */
+export const includeIcons: Record<TierId, IconName[]> = {
+  reserve: ["mould", "measurementCard"],
+  limited: ["numberedTag", "mould", "measurementCard", "deliveryBox"],
+  invite: ["penNib", "court", "fittedCase"],
+};
+
+/**
+ * Whether InviQtus can be paid for: invitation codes exist (INVITE_CODES, server only). Until then it
+ * shows, but cannot be reserved. The ambassador stays unnamed until signed (ambassador.confirmed), which
+ * changes only the wording, not whether invitations open.
+ */
+export function invitesOpen(codes: string | undefined): boolean {
+  return Boolean(codes?.split(",").some((c) => c.trim()));
+}
 
 /** Any tier above this price carries the ambassador extras (owner rule). */
 export const EXTRAS_THRESHOLD_EUR = 2000;
@@ -96,13 +113,13 @@ export function priceLabel(eur: number): string {
 
 /** Delivery countries offered in the address form (EU, EEA, Switzerland, UK and micro-states). */
 export const deliveryCountries: [code: string, name: string][] = [
-  ["AT", "Austria"], ["BE", "Belgium"], ["BG", "Bulgaria"], ["HR", "Croatia"], ["CY", "Cyprus"],
+  ["AD", "Andorra"], ["AT", "Austria"], ["BE", "Belgium"], ["BG", "Bulgaria"], ["HR", "Croatia"], ["CY", "Cyprus"],
   ["CZ", "Czechia"], ["DK", "Denmark"], ["EE", "Estonia"], ["FI", "Finland"], ["FR", "France"],
   ["DE", "Germany"], ["GR", "Greece"], ["HU", "Hungary"], ["IS", "Iceland"], ["IE", "Ireland"],
   ["IT", "Italy"], ["LV", "Latvia"], ["LI", "Liechtenstein"], ["LT", "Lithuania"], ["LU", "Luxembourg"],
   ["MT", "Malta"], ["MC", "Monaco"], ["NL", "Netherlands"], ["NO", "Norway"], ["PL", "Poland"],
   ["PT", "Portugal"], ["RO", "Romania"], ["SM", "San Marino"], ["SK", "Slovakia"], ["SI", "Slovenia"],
-  ["ES", "Spain"], ["SE", "Sweden"], ["CH", "Switzerland"], ["GB", "United Kingdom"], ["AD", "Andorra"],
+  ["ES", "Spain"], ["SE", "Sweden"], ["CH", "Switzerland"], ["GB", "United Kingdom"],
 ];
 
 export const deliveryCountryCodes = new Set(deliveryCountries.map(([c]) => c));

@@ -1,36 +1,42 @@
+/* /reserved: the words on plain floor, the racket in its beam beside them (wide) or below them (phones),
+   so nothing is ever set on the racket head. */
 .page {
   position: relative;
   isolation: isolate;
   overflow: hidden;
   min-height: 100svh;
   display: grid;
-  place-items: center;
-  padding: calc(var(--chrome-h) + 48px) var(--margin) 96px;
+  align-content: start;
+  gap: 32px;
+  padding: calc(var(--chrome-h) + 40px) var(--margin) 0;
   background: radial-gradient(ellipse 70% 60% at 50% 45%, var(--lift), transparent 78%), var(--stage);
 }
-/* The racket in its beam, under a veil so the words stay the brightest thing on the page. */
 .backdrop {
-  position: absolute;
-  inset: 0;
+  order: 2;
+  position: relative;
+  margin-inline: calc(var(--margin) * -1);
+  aspect-ratio: 4 / 5;
   z-index: -1;
+  -webkit-mask-image: linear-gradient(transparent, #000 18%);
+  mask-image: linear-gradient(transparent, #000 18%);
 }
-.backdrop::after {
-  content: "";
+.still,
+.still img {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse 60% 45% at 50% 42%, rgb(17 17 19 / 0.82), rgb(17 17 19 / 0.25) 100%);
-}
-.still img {
   width: 100%;
   height: 100%;
+}
+.still img {
   object-fit: cover;
-  object-position: 50% 60%;
+  object-position: 50% 70%;
 }
 .box {
   display: grid;
   justify-items: center;
   gap: clamp(18px, 1.2vw + 8px, 32px);
   max-width: 900px;
+  margin-inline: auto;
   text-align: center;
 }
 .eyebrow {
@@ -38,4 +44,37 @@
 }
 .tier {
   font-size: clamp(1.25rem, 0.5vw + 1.05rem, 1.75rem);
+}
+.ref {
+  font-size: clamp(1rem, 0.2vw + 0.95rem, 1.25rem);
+  color: var(--steel);
+  letter-spacing: 0.02em;
+}
+
+/* Wide: the words in the left half, vertically centred; the still moves right so the racket stands at 72%
+   across, its left part feathered into the floor. */
+@media (min-width: 1000px) {
+  .page {
+    --shift: 22vw;
+    align-content: center;
+    padding-bottom: 64px;
+  }
+  .backdrop {
+    order: 0;
+    position: absolute;
+    inset: 0 calc(-1 * var(--shift)) 0 var(--shift);
+    margin: 0;
+    aspect-ratio: auto;
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 34%);
+    mask-image: linear-gradient(to right, transparent, #000 34%);
+  }
+  .still img {
+    object-position: 50% 50%;
+  }
+  .box {
+    justify-items: start;
+    text-align: left;
+    margin-inline: 0;
+    width: calc((100vw - 2 * var(--margin) - 11 * var(--gutter)) * 6 / 12 + 5 * var(--gutter));
+  }
 }

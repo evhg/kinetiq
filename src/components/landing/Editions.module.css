@@ -1,10 +1,25 @@
+/* the G10 lift */
 .section {
+  isolation: isolate;
+  background:
+    radial-gradient(ellipse 85% 75% at 50% 50%, var(--lift), rgb(34 34 39 / 0.6) 40%, transparent 80%),
+    var(--stage);
   display: grid;
-  gap: clamp(48px, 4vw, 112px);
-  padding: clamp(96px, 8vw, 220px) var(--margin);
+  gap: clamp(40px, 4vw, 112px);
+  padding: clamp(56px, 5vw, 160px) var(--margin) clamp(96px, 8vw, 220px);
 }
+/* a soft light behind the title, fading out inside its own box, so the band above the cards is lit */
 .title {
+  position: relative;
   text-align: center;
+}
+.title::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -140% 0%;
+  background: radial-gradient(closest-side, rgb(60 60 66), rgb(48 48 54 / 0.9) 45%, rgb(34 34 39 / 0.4) 75%, transparent);
+  pointer-events: none;
 }
 .cards {
   display: grid;
@@ -38,9 +53,10 @@
   object-fit: cover;
   transition: transform 300ms var(--ease-out);
 }
+/* A column whose foot (price and arrow) sits on the card's bottom edge, level across the three cards. */
 .body {
-  display: grid;
-  align-content: start;
+  display: flex;
+  flex-direction: column;
   gap: clamp(12px, 0.8vw, 20px);
   padding: clamp(20px, 1.6vw, 40px);
 }
@@ -73,9 +89,33 @@
 .status[data-tier="invite"] {
   color: var(--muted);
 }
+.foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: auto;
+  padding-top: clamp(16px, 1vw, 28px);
+  border-top: 1px solid var(--hairline);
+}
 .price {
   font-size: clamp(1.5rem, 0.6vw + 1.2rem, 2rem);
   color: var(--text);
+}
+/* The card is a link: a quiet arrow says so on touch screens too; it moves on hover with a pointer. */
+.arrow {
+  flex: none;
+  width: clamp(40px, 0.8vw + 32px, 52px);
+  height: clamp(40px, 0.8vw + 32px, 52px);
+  padding: clamp(9px, 0.2vw + 8px, 13px);
+  border: 1px solid var(--edge);
+  border-radius: 50%;
+  fill: none;
+  stroke: var(--text);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 200ms var(--ease-out), border-color 200ms ease;
 }
 .line {
   color: var(--steel);
@@ -84,8 +124,6 @@
 .includes {
   display: grid;
   gap: 8px;
-  padding-top: 12px;
-  border-top: 1px solid var(--hairline);
   color: var(--steel);
   font-size: clamp(1rem, 0.25vw + 0.95rem, 1.25rem);
 }
@@ -105,6 +143,10 @@
   }
   .card:hover .still img {
     transform: scale(1.02);
+  }
+  .card:hover .arrow {
+    transform: translateX(3px);
+    border-color: var(--steel);
   }
 }
 @media (max-width: 899px) {

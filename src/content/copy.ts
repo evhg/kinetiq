@@ -6,9 +6,9 @@
 
 export const hero = {
   eyebrow: "100% Swiss Made",
-  headline: "The most precise racket ever made.",
+  headline: "The most precise padel racket ever made.",
   lead: "One piece of space-grade carbon. No tube, no joints. Held to 15 microns. Every racket plays exactly the same.",
-  ctaNote: "From €410. Fully refundable. Ships January 2027.",
+  ctaNote: "From €410. Refundable. Ships January 2027.",
 };
 
 export const specStrip = [
@@ -25,13 +25,13 @@ export const onePiece = {
     callouts: ["38.0 mm, one continuous wall", "No seam. No tube. No joint.", "One weave, face to edge"],
   },
   section: {
-    eyebrow: "No frame tube",
+    eyebrow: "Construction",
     headline: "No tube. The shell is the frame.",
-    body: "Most padel rackets are built around a carbon tube. KINETIQ has no frame tube. Its faces close around the edge into one shell, and the grams a tube spends on structure go to the sides, where they widen the sweet spot.",
+    body: "Most padel rackets are built around a carbon tube. In KINETIQ, the faces close around the edge into one shell, and the grams a tube spends on structure go to the sides, where they widen the sweet spot.",
     left: { title: "Tubular racket", parts: ["Frame tube", "Face", "Core", "Face"], glue: "joint" },
     right: { title: "KINETIQ", lines: ["One shell. No tube.", "Fibre continuous around the edge", "Balance set in the mould"] },
     proofs: [
-      { title: "No frame tube.", body: "One carbon shell, face to handle. The skin carries every load, so the whole racket works as one structure." },
+      { title: "One structure.", body: "One carbon shell, face to handle. The skin carries every load, from the rim to the grip." },
       { title: "A wider sweet spot.", body: "Weight moulded in at the sides, exactly where a tube would have spent it on holding the frame together." },
       { title: "Stiffer in twist.", body: "The bridge is part of the same shell. Off-centre shots twist the head less, so the ball leaves where you aimed." },
     ],
@@ -39,9 +39,9 @@ export const onePiece = {
 };
 
 export const bornWhole = {
-  eyebrow: "Patented one-mould process",
+  eyebrow: "Born whole",
   headline: "Swiss Made. Down to the core.",
-  body: "The two words found on the finest watch dials, now on the throat of your racket. One patented process, performed nowhere else on earth.",
+  body: "The two words found on the finest watch dials, now on the throat of your racket. One patented process. One mould. No exceptions.",
   lockup: { value: "100%", label: "Swiss Made" },
   badges: ["100% Swiss Made", "Patented one-mould process"],
 };

@@ -31,10 +31,14 @@
 .copy :global(.t-lead) {
   max-width: 64ch;
 }
+/* The G10 lift, centred on the proof and faded out before the foot, so the floor meets Choose your feel
+   (flat --stage) with no seam. */
 .proof {
   display: grid;
-  gap: clamp(64px, 6vw, 160px);
-  padding: clamp(96px, 8vw, 220px) var(--margin);
+  padding: clamp(96px, 8vw, 220px) var(--margin) clamp(48px, 4vw, 110px);
+  background:
+    radial-gradient(ellipse 85% 62% at 50% 44%, var(--lift), rgb(34 34 39 / 0.6) 40%, transparent 80%),
+    var(--stage);
 }
 .grid {
   display: grid;
@@ -44,12 +48,16 @@
 .card {
   display: grid;
   justify-items: center;
+  gap: clamp(40px, 3vw, 72px);
 }
 .cta {
   display: grid;
   justify-items: center;
   gap: 16px;
   text-align: center;
+}
+.cta :global(.t-label) {
+  max-width: 30ch;
 }
 @media (min-width: 900px) {
   /* A little taller than the screen: the covered still scales with it, so the rackets clear the copy. */
@@ -78,7 +86,8 @@
     order: 2;
     width: 100vw;
     margin-top: 24px;
-    aspect-ratio: 4 / 5;
+    /* the phone crop: three whole rackets of the five, with their light shafts */
+    aspect-ratio: 1331 / 1325;
   }
   .lineup {
     display: flex;

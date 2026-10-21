@@ -1,29 +1,12 @@
 .strip {
   position: relative;
-  overflow: hidden;
-  isolation: isolate;
-  min-height: clamp(560px, 22vw + 200px, 760px);
   display: grid;
-  align-items: center;
-  padding: clamp(72px, 5vw, 140px) var(--margin);
+  gap: clamp(56px, 4.4vw, 128px);
+  padding: clamp(72px, 5vw, 140px) var(--margin) clamp(80px, 6vw, 160px);
 }
 .line {
   position: absolute;
   inset: 0 0 auto;
-}
-.drawing {
-  position: absolute;
-  inset: 0 var(--margin);
-  z-index: -1;
-  display: grid;
-  place-items: center;
-  opacity: 0.3;
-}
-.wide {
-  width: 100%;
-}
-.narrow {
-  display: none;
 }
 .grid {
   display: grid;
@@ -52,6 +35,28 @@
   color: var(--steel);
   max-width: 20ch;
 }
+/* The drawing at full contrast, centred; on very wide screens it stops at 2000 px so the sheet stays
+   about one screen tall. */
+.drawing {
+  justify-self: center;
+  width: min(100%, 2000px);
+}
+.narrow {
+  display: none;
+}
+
+/* Below the width where the full sheet lays out as one wide sheet (its 1100 px container), the
+   dimensioned front view stands in for it. */
+@media (max-width: 1239px) {
+  .wide {
+    display: none;
+  }
+  .narrow {
+    display: block;
+    width: min(100%, 560px);
+    margin-inline: auto;
+  }
+}
 
 @media (max-width: 899px) {
   .grid {
@@ -70,13 +75,5 @@
   }
   .cell:nth-child(odd) {
     padding-left: 0;
-  }
-  .wide {
-    display: none;
-  }
-  .narrow {
-    display: block;
-    width: min(70vw, 420px);
-    opacity: 0.6;
   }
 }

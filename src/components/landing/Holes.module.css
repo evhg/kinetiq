@@ -6,7 +6,7 @@
   overflow: hidden;
   isolation: isolate;
   padding: clamp(96px, 10vh, 180px) var(--margin);
-  background: var(--void);
+  background: var(--stage);
 }
 .media {
   position: absolute;
@@ -59,8 +59,9 @@
 .statLabel {
   color: var(--steel);
 }
+/* The pair hands straight on to Feel: no dead band under the captions. */
 .pair {
-  padding: clamp(80px, 7vw, 200px) var(--margin);
+  padding: clamp(80px, 7vw, 200px) var(--margin) clamp(8px, 1vw, 32px);
 }
 
 @media (max-width: 699px) {

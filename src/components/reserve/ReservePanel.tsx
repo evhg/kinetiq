@@ -4,7 +4,7 @@ import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { Badges } from "@/components/graphics/Badges";
 import { Icon, TierGlyph, type IconName } from "@/components/graphics/Icons";
 import { useMotion } from "@/components/motion/MotionProvider";
-import { EXTRAS_THRESHOLD_EUR, deliveryCountries, priceLabel, tiers, tierById, type TierId } from "@/content/lineup";
+import { deliveryCountries, includeIcons, priceLabel, tiers, tierById, type TierId } from "@/content/lineup";
 import { reserveCopy } from "@/content/reserve";
 import { feels, site, type FeelId } from "@/content/site";
 import { isPaid, loadStripe, type Stripe, type StripeElement, type StripeElements } from "@/lib/stripe-client";
@@ -22,9 +22,8 @@ type Fields = {
   invite: string;
 };
 
-// Icons for the trust lines and the Invite Only extras, in the order of their strings.
+// Icons for the trust lines, in the order of their strings.
 const TRUST_ICONS: IconName[] = ["refundArrow", "deliveryBox", "measurementCard"];
-const EXTRA_ICONS: IconName[] = ["penNib", "court", "fittedCase", "numberedTag"];
 
 const EMPTY: Fields = { name: "", email: "", line1: "", line2: "", postal_code: "", city: "", country: "", invite: "" };
 const PK = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
@@ -69,13 +68,17 @@ type Props = {
   onTier: (id: TierId) => void;
   feel: FeelId | null;
   onFeel: (id: FeelId) => void;
+  /** InviQtus can be paid for (codes configured and the ambassador signed; decided on the server). */
+  invitesOpen: boolean;
+  /** The edition came from the link (?tier=): bring its card into view on wide screens. */
+  preselected?: boolean;
 };
 
 /**
  * The options column: edition, feel, Due Today and Pay with Card. Pay with Card opens the delivery
  * and card form in place, ending in one Place Reservation button that charges the card right here.
  */
-export function ReservePanel({ tierId, onTier, feel, onFeel }: Props) {
+export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, preselected = false }: Props) {
   const { motionOn } = useMotion();
   const [stage, setStage] = useState<Stage>("choose");
   const [fields, setFields] = useState<Fields>(EMPTY);
@@ -85,9 +88,10 @@ export function ReservePanel({ tierId, onTier, feel, onFeel }: Props) {
   const [cardReady, setCardReady] = useState(false);
   const [soldOut, setSoldOut] = useState<TierId[]>([]);
   const [instantForm, setInstantForm] = useState(false);
-  const [paid, setPaid] = useState<{ tier: TierId; feel: FeelId; email: string } | null>(null);
+  const [paid, setPaid] = useState<{ tier: TierId; feel: FeelId; email: string; secret: string } | null>(null);
   const [payVisible, setPayVisible] = useState(true);
   const formRef = useRef<HTMLFormElement>(null);
+  const tiersRef = useRef<HTMLFieldSetElement>(null);
   const payRef = useRef<HTMLButtonElement>(null);
   const feelRef = useRef<HTMLFieldSetElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -99,7 +103,9 @@ export function ReservePanel({ tierId, onTier, feel, onFeel }: Props) {
   const secretRef = useRef<{ secret: string; tier: TierId; feel: FeelId; email: string } | null>(null);
   const uid = useId();
   const tier = tierById(tierId)!;
-  const isAvailable = (id: TierId) => tierById(id)!.available && !soldOut.includes(id);
+  // Selectable: on sale and not sold out. Payable: also open (InviQtus waits for its invitations).
+  const isSelectable = (id: TierId) => tierById(id)!.available && !soldOut.includes(id);
+  const isAvailable = (id: TierId) => isSelectable(id) && (id !== "invite" || invitesOpen);
   const available = isAvailable(tier.id);
   const open = stage !== "choose";
   const formOpen = stage === "details" || stage === "processing";
@@ -108,6 +114,13 @@ export function ReservePanel({ tierId, onTier, feel, onFeel }: Props) {
   useEffect(() => {
     void loadStripe(PK);
   }, []);
+
+  // A buyer who clicked an edition on the landing page sees that edition's card, not the first one.
+  useEffect(() => {
+    if (!preselected || !window.matchMedia("(min-width: 1024px)").matches) return;
+    const card = tiersRef.current?.querySelector<HTMLElement>('[data-checked="true"]');
+    if (card && card.getBoundingClientRect().bottom > window.innerHeight - 120) scrollToY(topBelowHeader(card), false);
+  }, [preselected]);
 
   // Keep the card element's amount in step with the chosen edition.
   useEffect(() => {
@@ -246,7 +259,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel }: Props) {
     const paidEarlier = async () => {
       const last = secretRef.current;
       if (!last || !(await isPaid(stripe, last.secret))) return false;
-      setPaid({ tier: last.tier, feel: last.feel, email: last.email });
+      setPaid({ tier: last.tier, feel: last.feel, email: last.email, secret: last.secret });
       setStage("done");
       return true;
     };
@@ -293,7 +306,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel }: Props) {
       });
       const status = result.paymentIntent?.status;
       if (status === "succeeded" || status === "processing") {
-        setPaid({ tier: tier.id, feel, email: fields.email });
+        setPaid({ tier: tier.id, feel, email: fields.email, secret: data.clientSecret });
         setStage("done");
         return;
       }
@@ -308,25 +321,48 @@ export function ReservePanel({ tierId, onTier, feel, onFeel }: Props) {
 
   const bad = (k: string) => badFields.some((b) => b.startsWith(k));
 
+  // The invitation code is checked as soon as it is typed, before the buyer reaches the card field.
+  const checkInvite = async () => {
+    const code = fields.invite.trim();
+    if (!code) return;
+    try {
+      const res = await fetch("/api/invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      if (res.ok) {
+        setBadFields((b) => b.filter((x) => x !== "invite"));
+        setError(null);
+        return;
+      }
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      setBadFields((b) => (b.includes("invite") ? b : [...b, "invite"]));
+      setError(data.error ?? E.generic);
+    } catch {
+      // Offline or blocked: Place Reservation checks the code again.
+    }
+  };
+
   return (
     <div className={styles.options} data-open={open}>
       <div className={styles.columnHead}>
-        <h1 className={styles.logotype}>{site.name}</h1>
+        <h1 className={styles.columnTitle}>{tier.name}</h1>
         <p className={styles.ships}>{site.shipLabel}</p>
       </div>
 
       {stage === "done" && paid ? (
-        <Confirmation tier={paid.tier} feel={paid.feel} email={paid.email} />
+        <Confirmation tier={paid.tier} feel={paid.feel} email={paid.email} paymentId={paid.secret.split("_secret_")[0]} />
       ) : (
         <>
-          <fieldset className={styles.tiers} disabled={open}>
+          <fieldset ref={tiersRef} className={styles.tiers} disabled={open}>
             <legend className="visually-hidden">{reserveCopy.chooseLegend}</legend>
-            {tiers.map((t, i) => {
+            {tiers.map((t) => {
               const checked = tierId === t.id;
-              const can = isAvailable(t.id);
+              const can = isSelectable(t.id);
+              const status = !can ? reserveCopy.soldOut : isAvailable(t.id) ? t.availability : reserveCopy.invitesClosedStatus;
               return (
                 <div key={t.id} className={styles.tierWrap}>
-                  {i === 1 ? <p className={styles.group}>{reserveCopy.editionsHeading}</p> : null}
                   <label className={styles.tier} data-checked={checked} data-tier={t.id} data-disabled={!can}>
                     <input
                       type="radio"
@@ -341,17 +377,17 @@ export function ReservePanel({ tierId, onTier, feel, onFeel }: Props) {
                       <TierGlyph tier={t.id} selected={checked} className={styles.tierGlyph} />
                       <span className={styles.tierName}>{t.name}</span>
                       <span className={styles.tierStatus} data-tier={t.id}>
-                        {can ? t.availability : reserveCopy.soldOut}
+                        {status}
                       </span>
                     </span>
                     <span className={styles.tierLine}>{t.cardLine}</span>
                     <span className={`t-num ${styles.tierPrice}`}>{priceLabel(t.priceEur)}</span>
-                    {checked && t.priceEur > EXTRAS_THRESHOLD_EUR ? (
+                    {checked && t.includes.length ? (
                       <span className={styles.extras}>
                         <span className={styles.extrasHead}>{reserveCopy.includedWith(t.name)}</span>
                         {t.includes.map((x, n) => (
                           <span key={x} className={styles.extra}>
-                            <Icon name={EXTRA_ICONS[n] ?? "rackets3"} size={20} className={styles.extraIcon} />
+                            <Icon name={includeIcons[t.id][n] ?? "shieldCheck"} size={20} className={styles.extraIcon} />
                             {x}
                           </span>
                         ))}
@@ -411,9 +447,10 @@ export function ReservePanel({ tierId, onTier, feel, onFeel }: Props) {
               <span className={styles.dueLabel}>{reserveCopy.dueTodayLabel}</span>
               <span className={`t-num ${styles.dueAmount}`}>{priceLabel(tier.priceEur)}</span>
             </div>
-            <p className={styles.dueRefund}>{reserveCopy.refundLine}</p>
-            {tier.id === "invite" ? <p className={styles.dueNote}>{reserveCopy.inviteNote}</p> : null}
-            <p className={styles.fine}>{reserveCopy.fineprint}</p>
+            {tier.id === "invite" ? (
+              <p className={styles.dueNote}>{invitesOpen ? reserveCopy.inviteNote : reserveCopy.invitesClosedNote}</p>
+            ) : null}
+            <p className={styles.fine}>{PK ? reserveCopy.fineprint : reserveCopy.previewLine}</p>
           </div>
 
           <button
@@ -442,7 +479,15 @@ export function ReservePanel({ tierId, onTier, feel, onFeel }: Props) {
             >
               <h2 className="visually-hidden">{reserveCopy.formHeading}</h2>
               {tier.id === "invite" ? (
-                <Field label={F.invite} name="invite" value={fields.invite} onChange={set("invite")} autoComplete="off" invalid={bad("invite")} />
+                <Field
+                  label={F.invite}
+                  name="invite"
+                  value={fields.invite}
+                  onChange={set("invite")}
+                  onBlur={() => void checkInvite()}
+                  autoComplete="off"
+                  invalid={bad("invite")}
+                />
               ) : null}
               <Field label={F.name} name="name" value={fields.name} onChange={set("name")} autoComplete="name" invalid={bad("name")} />
               <Field label={F.email} name="email" type="email" value={fields.email} onChange={set("email")} autoComplete="email" invalid={bad("email")} />
@@ -477,7 +522,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel }: Props) {
                 {error}
               </p>
               <p id={`${uid}-due`} className={styles.placeDue}>
-                {reserveCopy.placeDue(priceLabel(tier.priceEur))}
+                {reserveCopy.placeDue(tier.name, feel ? feels[feel].name : "", priceLabel(tier.priceEur))}
               </p>
               <button
                 type="submit"
@@ -511,7 +556,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel }: Props) {
 }
 
 /** The confirmation, in place of the options. Focus moves to its heading so it is announced. */
-function Confirmation({ tier, feel, email }: { tier: TierId; feel: FeelId; email: string }) {
+function Confirmation({ tier, feel, email, paymentId }: { tier: TierId; feel: FeelId; email: string; paymentId: string }) {
   const t = tierById(tier)!;
   const box = useRef<HTMLDivElement>(null);
   const heading = useRef<HTMLHeadingElement>(null);
@@ -530,6 +575,7 @@ function Confirmation({ tier, feel, email }: { tier: TierId; feel: FeelId; email
         {t.name}, {feels[feel].name}. <span className="t-num">{priceLabel(t.priceEur)}</span>
       </p>
       <p className="t-body">{reserveCopy.confirmationBody}</p>
+      <p className={`t-num ${styles.doneRef}`}>{reserveCopy.reference(paymentId)}</p>
       {email ? <p className={styles.fine}>{reserveCopy.receiptSent(email)}</p> : null}
     </div>
   );
@@ -565,6 +611,7 @@ function Field({
   name,
   value,
   onChange,
+  onBlur,
   type = "text",
   autoComplete,
   invalid,
@@ -574,6 +621,7 @@ function Field({
   name: string;
   value: string;
   onChange: (e: { target: { value: string } }) => void;
+  onBlur?: () => void;
   type?: string;
   autoComplete?: string;
   invalid?: boolean;
@@ -582,7 +630,16 @@ function Field({
   return (
     <label className={styles.field} data-invalid={invalid || undefined}>
       <span>{label}</span>
-      <input name={name} type={type} value={value} onChange={onChange} autoComplete={autoComplete} required={required} aria-invalid={invalid || undefined} />
+      <input
+        name={name}
+        type={type}
+        value={value}
+        onChange={onChange}
+        onBlur={onBlur}
+        autoComplete={autoComplete}
+        required={required}
+        aria-invalid={invalid || undefined}
+      />
     </label>
   );
 }

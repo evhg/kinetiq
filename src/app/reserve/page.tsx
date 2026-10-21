@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { SiteHeader } from "@/components/chrome/Chrome";
 import { ReserveExperience } from "@/components/reserve/ReserveExperience";
-import { tierById } from "@/content/lineup";
+import { invitesOpen, tierById } from "@/content/lineup";
 import { reserveCopy } from "@/content/reserve";
 import { isFeelId } from "@/content/site";
 
@@ -17,7 +17,7 @@ export default function ReservePage({ searchParams }: { searchParams: Search }) 
     <>
       <SiteHeader />
       <main id="main">
-        <Suspense fallback={<ReserveExperience />}>
+        <Suspense fallback={<ReserveExperience invitesOpen={invitesOpen(process.env.INVITE_CODES)} />}>
           <Preselected searchParams={searchParams} />
         </Suspense>
       </main>
@@ -34,5 +34,12 @@ async function Preselected({ searchParams }: { searchParams: Search }) {
   const initialFeel = isFeelId(feel) ? feel : null;
   // Next keeps a visited /reserve alive (Activity), and useState ignores new initial values, so a link
   // with another ?tier= or ?feel= starts a fresh experience instead of showing the old choice.
-  return <ReserveExperience key={`${initialTier ?? ""}:${initialFeel ?? ""}`} initialTier={initialTier} initialFeel={initialFeel} />;
+  return (
+    <ReserveExperience
+      key={`${initialTier ?? ""}:${initialFeel ?? ""}`}
+      initialTier={initialTier}
+      initialFeel={initialFeel}
+      invitesOpen={invitesOpen(process.env.INVITE_CODES)}
+    />
+  );
 }

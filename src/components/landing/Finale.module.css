@@ -1,49 +1,104 @@
+/* One frame: the still fills the screen above the words, cropped only in its empty backdrop (the racket
+   and its beam span 27-87% of K01-finale), and fades into the floor where the words sit. */
 .section {
   position: relative;
   display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  /* one screen with the footer: the page's last view shows the whole racket, the line and the button */
+  min-height: max(calc(100svh - clamp(96px, 2vw + 70px, 120px) - 1px), 600px);
+  padding-top: var(--chrome-h);
   background: var(--stage);
 }
-/* The still keeps its 16:9 frame (never taller than the screen); the words follow it. */
 .media {
   position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  max-height: 100svh;
   overflow: hidden;
+  min-height: 0;
 }
 .media::after {
   content: "";
   position: absolute;
   inset: auto 0 0;
-  height: 22%;
+  height: 10%;
   background: linear-gradient(transparent, var(--stage));
 }
+.still,
 .still img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
+}
+.still img {
   object-fit: cover;
+  /* keep the floor under the beam; the crop comes off the empty backdrop above the racket */
+  object-position: 50% 72%;
 }
 .copy {
   display: grid;
   justify-items: center;
-  gap: clamp(16px, 1.2vw + 6px, 32px);
+  gap: clamp(14px, 1vw + 6px, 28px);
   text-align: center;
-  padding: clamp(24px, 3vw, 72px) var(--margin) clamp(96px, 9vw, 200px);
+  padding: clamp(8px, 1vw, 24px) var(--margin) clamp(40px, 4vw, 112px);
 }
 .copy :global(.t-h2) {
-  max-width: 18ch;
+  max-width: 24ch;
 }
 .copy :global(.t-lead) {
   max-width: 46ch;
 }
 .cta {
-  margin-top: 8px;
+  margin-top: 4px;
 }
 @media (max-width: 699px) {
-  .media {
-    aspect-ratio: 4 / 5;
+  .still img {
+    object-position: 50% 60%;
   }
   .cta {
     width: 100%;
+  }
+}
+
+/* Wide: the hero's composition, mirrored. The still fills the screen and moves left by 21vw, so the whole
+   racket stands at 29% across with its beam; its right third feathers into a floor painted like the
+   still's own edge (the amber horizon runs on to the right). The words sit right, above the horizon. */
+@media (min-width: 1000px) {
+  .section {
+    --shift: 21vw;
+    grid-template-rows: none;
+    align-content: start;
+    justify-items: end;
+    padding: var(--chrome-h) var(--margin) 0;
+    background: linear-gradient(
+      180deg,
+      rgb(33 33 34),
+      rgb(28 28 29) 45%,
+      rgb(36 29 27) 60%,
+      rgb(70 47 33) 70%,
+      rgb(40 35 33) 76%,
+      rgb(29 29 30) 82%,
+      rgb(27 27 28)
+    );
+  }
+  .media {
+    position: absolute;
+    inset: 0 var(--shift) 0 calc(-1 * var(--shift));
+    -webkit-mask-image: linear-gradient(to left, transparent, #000 34%);
+    mask-image: linear-gradient(to left, transparent, #000 34%);
+  }
+  .media::after {
+    content: none;
+  }
+  .still img {
+    object-position: 50% 50%;
+  }
+  .copy {
+    justify-items: start;
+    text-align: left;
+    width: calc((100vw - 2 * var(--margin) - 11 * var(--gutter)) * 6 / 12 + 5 * var(--gutter));
+    margin-top: clamp(48px, 14vh, 200px);
+    padding: 0;
+  }
+  .copy :global(.t-h2) {
+    max-width: 14ch;
   }
 }

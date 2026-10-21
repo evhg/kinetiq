@@ -9,7 +9,8 @@ export function PreviewBanner() {
   if (process.env.NEXT_PUBLIC_LAUNCHED === "true") return null;
   return (
     <p className={styles.banner} role="note">
-      Preview: claims pending verification. Not open for orders yet.
+      <span className={styles.bannerLong}>Preview: claims pending verification. Not open for orders yet.</span>
+      <span className={styles.bannerShort}>Preview. Claims pending. No orders yet.</span>
     </p>
   );
 }
@@ -83,7 +84,7 @@ export function SiteFooter() {
   return (
     <footer className={styles.footer}>
       <p>© 2026 KINETIQ. 100% Swiss Made.</p>
-      <a href="/CREDITS.md">Credits</a>
+      <Link href="/credits">Credits</Link>
     </footer>
   );
 }

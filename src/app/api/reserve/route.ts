@@ -1,4 +1,4 @@
-import { deliveryCountryCodes, tierById, type Tier } from "@/content/lineup";
+import { deliveryCountryCodes, invitesOpen, tierById, type Tier } from "@/content/lineup";
 import { isFeelId } from "@/content/site";
 
 // "Place Reservation": creates a Stripe PaymentIntent for the chosen tier and returns its
@@ -6,8 +6,9 @@ import { isFeelId } from "@/content/site";
 // The amount always comes from src/content/lineup.ts, never from the browser.
 //
 // Env: STRIPE_SECRET_KEY (server) and NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY (browser).
-// INVITE_CODES (comma-separated): the Invite Only tier needs one of them. Without it, that tier
-// stays closed (403). Without STRIPE_SECRET_KEY the route answers 503 { preview: true }.
+// INVITE_CODES (comma-separated): the Invite Only tier needs one of them. Without codes, or while the
+// ambassador extras are unsigned (lineup.ts `ambassador.confirmed`), that tier stays closed (403).
+// Without STRIPE_SECRET_KEY the route answers 503 { preview: true }.
 //
 // Every request pins STRIPE_VERSION, so the account's default API version can never change what
 // this route sends. Stripe.js loads the same release (src/lib/stripe-client.ts).
@@ -122,7 +123,7 @@ export async function POST(request: Request) {
       .split(",")
       .map((c) => c.trim().toUpperCase())
       .filter(Boolean);
-    if (!codes.length) {
+    if (!invitesOpen(process.env.INVITE_CODES)) {
       return Response.json({ error: "Invitations open soon.", fields: ["invite"] }, { status: 403 });
     }
     invite = clean(body.invite, 40).toUpperCase();

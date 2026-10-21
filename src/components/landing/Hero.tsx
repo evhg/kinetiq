@@ -9,7 +9,11 @@ import { site } from "@/content/site";
 import { gsap, useGSAP } from "@/lib/gsap";
 import styles from "./Hero.module.css";
 
-/** Hero: K01 rises out of the dark (base, then the beam), centred text, one CTA. */
+/**
+ * Hero: K01 rises out of the dark (base, then the beam), one CTA. Wide screens set the words, Reserve Now
+ * and the price line in the left seven columns beside the racket, which stands large on the right; phones
+ * keep the words above the racket and Reserve Now on the floor below it.
+ */
 export function Hero() {
   const root = useRef<HTMLElement>(null);
   const { motionOn } = useMotion();
@@ -30,15 +34,13 @@ export function Hero() {
         });
         if (img?.complete && img.naturalWidth > 0) beam();
         else img?.decode().then(beam, beam);
-        // Scroll away: the image drifts, a veil darkens it, the words leave first.
+        // Scroll away: the image drifts and a veil darkens it. The words and the button simply scroll
+        // with the page, so Reserve Now stays fully opaque.
         const tl = gsap.timeline({
           defaults: { ease: "none" },
           scrollTrigger: { trigger: root.current, start: "top top", end: "bottom top", scrub: 0.4 },
         });
-        tl.to(`.${styles.drift}`, { yPercent: 6 }, 0)
-          .to(`.${styles.veil}`, { opacity: 0.55 }, 0)
-          .to(`.${styles.top}`, { opacity: 0, y: -40, duration: 0.45 }, 0)
-          .to(`.${styles.bottom}`, { opacity: 0, duration: 0.35 }, 0.05);
+        tl.to(`.${styles.drift}`, { yPercent: 6 }, 0).to(`.${styles.veil}`, { opacity: 0.55 }, 0);
         return () => {
           live = false;
         };
@@ -52,12 +54,13 @@ export function Hero() {
     <section ref={root} id="hero" className={styles.hero} aria-labelledby="hero-title">
       <div className={styles.drift} aria-hidden="true">
         <div className={styles.media}>
-          {/* The hero framing keeps the racket below the headline and above the CTA; phones have their own 9:16 master. */}
-          <Still id="K01-hero-base" phoneId="K01-hero-base-phone" phoneCrop="portrait" alt="" priority className={styles.base} />
-          <Still id="K01-hero-full" phoneId="K01-hero-full-phone" phoneCrop="portrait" alt="" loading="eager" fetchPriority="low" className={styles.full} />
+          {/* Wide: the close beam camera (the racket spans 27-80% of the frame). Phones: their own 9:16 master. */}
+          <Still id="K01-base" phoneId="K01-hero-base-phone" phoneCrop="portrait" alt="" priority className={styles.base} />
+          <Still id="K01-full" phoneId="K01-hero-full-phone" phoneCrop="portrait" alt="" loading="eager" fetchPriority="low" className={styles.full} />
         </div>
       </div>
       <div className={styles.veil} aria-hidden="true" />
+      <div className={styles.scrim} aria-hidden="true" />
       <div className={styles.top}>
         <p className={`t-eyebrow ${styles.eyebrow}`}>{hero.eyebrow}</p>
         <h1 id="hero-title" className={`t-h1 ${styles.title}`}>

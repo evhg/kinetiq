@@ -11,7 +11,19 @@ import type { FeelId } from "@/content/site";
 import styles from "./Reserve.module.css";
 
 type Slide =
-  | { kind: "still"; id: string; crop?: string; phoneCrop?: string; position?: string; alt: string }
+  | {
+      kind: "still";
+      id: string;
+      crop?: string;
+      phoneCrop?: string;
+      position?: string;
+      /**
+       * The whole product stays in frame on wide galleries, its edges feathered into the slide:
+       * "contain" for wide shots (letterboxed), "portrait" for a tall crop (pillarboxed).
+       */
+      fit?: "contain" | "portrait";
+      alt: string;
+    }
   | { kind: "card"; alt: string }
   | { kind: "court"; alt: string };
 
@@ -20,20 +32,21 @@ function slidesFor(tier: TierId, feel: FeelId): Slide[] {
     case "reserve":
       return [
         { kind: "still", id: "K01-full", phoneCrop: "card", alt: "A KINETIQ racket standing in a single beam of light" },
-        { kind: "still", id: "K02", alt: "The racket edge-on: one unbroken 38.0 mm carbon wall from handle to tip" },
+        { kind: "still", id: "K02", phoneCrop: "portrait", fit: "contain", alt: "The racket edge-on: one unbroken 38.0 mm carbon wall from handle to tip" },
         { kind: "still", id: "K04-full", phoneCrop: "card", alt: "Close-up of a moulded hole, the carbon weave flowing around its rim" },
         {
           kind: "still",
           id: "K08",
-          position: feel === "command" ? "24% 50%" : "76% 50%",
-          phoneCrop: feel === "command" ? "left" : "right",
+          // The chosen feel's racket alone (the pair's other racket would be cut by the frame).
+          crop: feel === "command" ? "left" : "right",
+          fit: "portrait",
           alt: feel === "command" ? "Command: a fine 3K carbon twill face" : "Pace: a wide 12K spread-tow carbon face",
         },
       ];
     case "limited":
       return [
         { kind: "still", id: "K06-full", phoneCrop: "card", alt: "The precision steel mould, its cavity glowing warm" },
-        { kind: "still", id: "K07", alt: "Five identical KINETIQ rackets, each in its own shaft of light" },
+        { kind: "still", id: "K07", phoneCrop: "trio", fit: "contain", alt: "Identical KINETIQ rackets, each in its own shaft of light" },
         { kind: "still", id: "K03", phoneCrop: "card", alt: "The head cut through: one continuous carbon shell around the core" },
         { kind: "card", alt: "A numbered certificate of measurement, Edition No. 017 of 500" },
       ];
@@ -41,7 +54,7 @@ function slidesFor(tier: TierId, feel: FeelId): Slide[] {
       return [
         { kind: "still", id: "K09", phoneCrop: "card", alt: "Three KINETIQ rackets in a machined, felt-lined case" },
         { kind: "court", alt: "A plan of a padel court marking the one-on-one session" },
-        { kind: "still", id: "K07", alt: "Five identical KINETIQ rackets, each in its own shaft of light" },
+        { kind: "still", id: "K07", phoneCrop: "trio", fit: "contain", alt: "Identical KINETIQ rackets, each in its own shaft of light" },
         { kind: "still", id: "K01-finale", phoneCrop: "card", alt: "A KINETIQ racket in its beam, above a lit horizon" },
       ];
   }
@@ -105,6 +118,7 @@ export function Gallery({ tierId, feel }: { tierId: TierId; feel: FeelId }) {
             key={`${s.kind}-${"id" in s ? s.id : ""}-${i}`}
             className={styles.slide}
             data-active={i === index}
+            data-fit={s.kind === "still" ? s.fit : undefined}
             role="group"
             aria-roledescription="slide"
             aria-label={`${i + 1} of ${slides.length}`}
@@ -122,12 +136,16 @@ export function Gallery({ tierId, feel }: { tierId: TierId; feel: FeelId }) {
                 priority={i === 0}
               />
             ) : s.kind === "card" ? (
-              <div className={styles.slideGraphic} role="img" aria-label={s.alt}>
-                <MeasurementCard edition="Edition No. 017 / 500" enter={false} />
+              <div className={`${styles.slideGraphic} ${styles.slideCard}`} role="img" aria-label={s.alt}>
+                <div className={styles.cardFit}>
+                  <MeasurementCard edition="Edition No. 017 / 500" enter={false} />
+                </div>
               </div>
             ) : (
-              <div className={styles.slideGraphic} role="img" aria-label={s.alt}>
-                <CourtPlan active={i === index} field={false} />
+              <div className={`${styles.slideGraphic} ${styles.slideCourt}`} role="img" aria-label={s.alt}>
+                {/* The court stands up in the phone's 4:5 frame and lies across on wide screens. */}
+                <CourtPlan active={i === index} field={false} aspect="4:5" className={styles.courtTall} />
+                <CourtPlan active={i === index} field={false} aspect="16:10" className={styles.courtWide} />
               </div>
             )}
           </div>

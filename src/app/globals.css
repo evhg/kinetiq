@@ -291,6 +291,21 @@ img {
     var(--stage);
 }
 
+/* G10 pool: a soft graphite light behind a text-only block (headlines, proofs), fading out inside the
+   block's own box so it never leaves a seam. The block needs position: relative; its section isolates. */
+.pool {
+  position: relative;
+  isolation: isolate;
+}
+.pool::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -45% 0;
+  background: radial-gradient(closest-side, rgb(60 60 66), rgb(48 48 54 / 0.85) 45%, rgb(34 34 39 / 0.4) 75%, transparent);
+  pointer-events: none;
+}
+
 /* G09 light line */
 .lightline {
   position: relative;

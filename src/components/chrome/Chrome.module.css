@@ -3,14 +3,20 @@
   inset: 0 0 auto;
   z-index: 30;
 }
-/* First-paint estimate of the banner for --chrome-h (globals.css): one line, two below 490 px.
-   SiteHeader then measures the real height. */
+/* First-paint estimate of the banner for --chrome-h (globals.css): one line at every width (phones get
+   the short wording). SiteHeader then measures the real height. */
 :global(html):has(.banner) {
   --banner-h: calc(2 * clamp(7px, 0.3vw + 5px, 11px) + 1.55rem + 1px);
 }
+.bannerShort {
+  display: none;
+}
 @media (max-width: 489px) {
-  :global(html):has(.banner) {
-    --banner-h: calc(2 * clamp(7px, 0.3vw + 5px, 11px) + 3.1rem + 1px);
+  .bannerLong {
+    display: none;
+  }
+  .bannerShort {
+    display: inline;
   }
 }
 .banner {
@@ -64,9 +70,12 @@
   transform: none;
   pointer-events: auto;
 }
+/* Phones keep the compact Reserve Now too (the next one is many screens down), sized to sit by the wordmark. */
 @media (max-width: 767px) {
   .compact {
-    display: none;
+    min-height: 44px;
+    padding: 0 14px;
+    font-size: 1rem;
   }
 }
 .footer {

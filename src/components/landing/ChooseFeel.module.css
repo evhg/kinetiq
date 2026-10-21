@@ -39,7 +39,7 @@
   justify-items: center;
   gap: clamp(8px, 0.6vw, 16px);
   text-align: center;
-  padding: 24px var(--margin) 64px;
+  padding: 24px var(--margin) 40px;
 }
 .text :global(.t-lead) {
   max-width: 28ch;
@@ -56,26 +56,34 @@
   color: var(--muted);
 }
 
-/* Wide: one 16:9 frame (K08 holds both rackets), the words in its lower band (y 76-95%). */
+/* Wide: one 16:9 K08 frame (both rackets) with the words below each racket. The butt caps sit at 77% of
+   the still, which covers the frame centred (height max(frame, 56.25vw)), so the words start at least
+   48 px under the caps and run on below the frame; its foot fades into the floor. */
 @media (min-width: 700px) {
+  .stage {
+    --frame-h: max(480px, min(56.25vw, 100svh));
+    --butt-y: calc(var(--frame-h) / 2 + 0.27 * max(var(--frame-h), 56.25vw));
+    /* each racket's spotlight carries on as a soft pool on the floor under its words */
+    background:
+      radial-gradient(ellipse 24% 22% at 25% 75%, rgb(58 58 64), rgb(40 40 45 / 0.6) 50%, transparent 100%),
+      radial-gradient(ellipse 24% 22% at 75% 75%, rgb(58 58 64), rgb(40 40 45 / 0.6) 50%, transparent 100%);
+  }
   .wide {
     display: block;
     position: absolute;
-    inset: 0;
+    inset: 0 0 auto;
+    height: var(--frame-h);
     z-index: -1;
-  }
-  .stage {
-    aspect-ratio: 16 / 9;
-    max-height: 100svh;
-    min-height: 560px;
     overflow: hidden;
+    -webkit-mask-image: linear-gradient(#000 82%, transparent);
+    mask-image: linear-gradient(#000 82%, transparent);
   }
   .panels {
-    height: 100%;
     grid-template-columns: 1fr 1fr;
   }
   .panel {
-    align-content: end;
+    align-content: start;
+    padding-top: calc(var(--butt-y) + clamp(48px, 3.4vw, 96px));
   }
   .panel + .panel {
     border-left: 1px solid rgb(255 255 255 / 0.08);
@@ -85,7 +93,7 @@
   }
   .text {
     gap: clamp(4px, 0.4vw, 12px);
-    padding: 0 var(--margin) clamp(24px, 3.2vw, 80px);
+    padding: 0 var(--margin) clamp(56px, 3vw, 96px);
   }
   .text :global(.t-lead) {
     max-width: 40ch;

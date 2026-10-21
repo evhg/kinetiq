@@ -13,7 +13,7 @@ export function Identical() {
     <>
       <section id="identical" className={styles.lineup} aria-labelledby="identical-title">
         <div className={styles.media} aria-hidden="true">
-          <Still id="K07" alt="" className={styles.still} />
+          <Still id="K07" phoneCrop="trio" alt="" className={styles.still} />
         </div>
         <Reveal className={styles.copy}>
           <h2 id="identical-title" className="t-h2">
@@ -22,23 +22,24 @@ export function Identical() {
           <p className="t-lead">{identical.body}</p>
         </Reveal>
       </section>
-      <section className={`lift ${styles.proof}`} aria-label="Measured, racket by racket">
+      <section className={styles.proof} aria-label="Measured, racket by racket">
         <div className={styles.grid}>
           <div className={styles.graph}>
             <ConsistencySpikes />
           </div>
+          {/* The certificate, then the payoff of "Buy two": the second Reserve Now, right under it. */}
           <div className={styles.card}>
             <MeasurementCard rotate />
+            <Reveal className={styles.cta}>
+              <Link href="/reserve" className="btn btn-primary">
+                {site.ctaLabel}
+              </Link>
+              <p className="t-label">
+                {site.fromPriceLabel}. {site.refundLabel}.
+              </p>
+            </Reveal>
           </div>
         </div>
-        <Reveal className={styles.cta}>
-          <Link href="/reserve" className="btn btn-primary">
-            {site.ctaLabel}
-          </Link>
-          <p className="t-label">
-            {site.fromPriceLabel}. {site.refundLabel}.
-          </p>
-        </Reveal>
       </section>
     </>
   );

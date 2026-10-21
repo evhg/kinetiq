@@ -1,23 +1,25 @@
 import Link from "next/link";
-import { Icon, TierGlyph, type IconName } from "@/components/graphics/Icons";
+import { Icon, TierGlyph } from "@/components/graphics/Icons";
 import { Still } from "@/components/media/Still";
 import { editions } from "@/content/copy";
-import { priceLabel, tiers, type TierId } from "@/content/lineup";
+import { includeIcons, priceLabel, tiers, type TierId } from "@/content/lineup";
 import { Reveal } from "./Reveal";
 import styles from "./Editions.module.css";
 
 const IMAGE: Record<TierId, { id: string; crop: string }> = {
-  reserve: { id: "K01-full", crop: "card" },
+  // ConQuer: one racket, three-quarter (the hero and the finale already show the beam camera).
+  reserve: { id: "K08", crop: "left" },
   limited: { id: "K06-full", crop: "card" },
   invite: { id: "K09-card", crop: "card" },
 };
 
-const EXTRA_ICONS: IconName[] = ["penNib", "court", "fittedCase"];
-
-/** The three editions as whole-card links into the reservation page. */
+/**
+ * The three editions as whole-card links into the reservation page. Every card lists what it includes,
+ * and the price with its arrow sits on one shared foot line.
+ */
 export function Editions() {
   return (
-    <section id="editions" className={`lift ${styles.section}`} aria-labelledby="editions-title">
+    <section id="editions" className={styles.section} aria-labelledby="editions-title">
       <h2 id="editions-title" className={`t-h2 ${styles.title}`}>
         {editions.headline}
       </h2>
@@ -36,18 +38,21 @@ export function Editions() {
                     {t.availability}
                   </span>
                 </div>
-                <p className={`t-num ${styles.price}`}>{priceLabel(t.priceEur)}</p>
                 <p className={styles.line}>{t.cardLine}</p>
-                {t.rackets > 1 ? (
-                  <ul className={styles.includes}>
-                    {t.includes.slice(0, 3).map((inc, n) => (
-                      <li key={inc}>
-                        <Icon name={EXTRA_ICONS[n]} size={20} className={styles.includeIcon} />
-                        {inc}
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
+                <ul className={styles.includes}>
+                  {t.includes.map((inc, n) => (
+                    <li key={inc}>
+                      <Icon name={includeIcons[t.id][n] ?? "shieldCheck"} size={20} className={styles.includeIcon} />
+                      {inc}
+                    </li>
+                  ))}
+                </ul>
+                <div className={styles.foot}>
+                  <p className={`t-num ${styles.price}`}>{priceLabel(t.priceEur)}</p>
+                  <svg viewBox="0 0 24 24" className={styles.arrow} aria-hidden="true">
+                    <path d="M5 12h13M13 6.5l5.5 5.5-5.5 5.5" />
+                  </svg>
+                </div>
               </div>
             </Link>
           </li>

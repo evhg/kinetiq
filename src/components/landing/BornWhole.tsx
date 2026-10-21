@@ -3,6 +3,7 @@
 import { Badges } from "@/components/graphics/Badges";
 import { Still } from "@/components/media/Still";
 import { bornWhole } from "@/content/copy";
+import { gsap } from "@/lib/gsap";
 import { Scrub } from "./Scrub";
 import styles from "./BornWhole.module.css";
 
@@ -14,19 +15,22 @@ export function BornWhole() {
       aria-labelledby="born-whole-title"
       className={styles.section}
       build={(tl) => {
+        // A staggered fromTo renders only its first target at once: set both parts of the lockup first.
+        gsap.set(`.${styles.swiss} > *`, { autoAlpha: 0, y: 12 });
         tl.fromTo(`.${styles.media}`, { scale: 1 }, { scale: 1.06, duration: 1 }, 0)
           .fromTo(`.${styles.glow}`, { opacity: 0.35 }, { opacity: 1, duration: 0.45 }, 0.1)
-          .from(`.${styles.lockup} > *`, { opacity: 0, y: 12, stagger: 0.03, duration: 0.12 }, 0.32);
+          .fromTo(`.${styles.swiss} > *`, { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, stagger: 0.03, duration: 0.12, immediateRender: true }, 0.32);
       }}
     >
-      <div className={styles.copy}>
+      <div className={`pool ${styles.copy}`}>
         <p className="t-eyebrow">{bornWhole.eyebrow}</p>
         <h2 id="born-whole-title" className="t-h2">
           {bornWhole.headline}
         </h2>
         <p className="t-lead">{bornWhole.body}</p>
       </div>
-      {/* The mould gets the whole frame; the lockup sits over the plate's dark front face (y 78-96%). */}
+      {/* The mould gets the whole frame; the Swiss Made lockup is set into the plate's front face, below its
+          lit top edge (y 78.5% of the still). The patent hallmark follows under the frame. */}
       <div className={styles.stage}>
         <div className={styles.media} aria-hidden="true">
           <Still id="K06-base" phoneCrop="card" alt="" className={styles.layer} />
@@ -43,9 +47,9 @@ export function BornWhole() {
               {bornWhole.lockup.label}
             </span>
           </p>
-          <Badges className={styles.badges} reveal="none" align="center" />
         </div>
       </div>
+      <Badges className={styles.badges} items={["patent"]} reveal="none" align="center" />
     </Scrub>
   );
 }

@@ -5,7 +5,10 @@ import { site } from "@/content/site";
 import { Reveal } from "./Reveal";
 import styles from "./Finale.module.css";
 
-/** The page ends where it began: the racket in its beam, now over a lit horizon, then the last Reserve Now. */
+/**
+ * The page ends where it began: one screen with the whole racket in its beam over a lit horizon, and the
+ * closing line and the last Reserve Now on the floor beneath it.
+ */
 export function Finale() {
   return (
     <section id="finale" className={styles.section} aria-labelledby="finale-title">

@@ -13,8 +13,10 @@ export function Feel() {
         </h2>
         <p className="t-lead">{feel.body}</p>
       </Reveal>
-      <VibrationGraph />
-      <Reveal as="ul" className={styles.points}>
+      <div className={styles.graph}>
+        <VibrationGraph />
+      </div>
+      <Reveal as="ul" className={`pool ${styles.points}`}>
         {feel.points.map((p) => (
           <li key={p.title} className={styles.point}>
             <h3 className="t-h3">{p.title}</h3>

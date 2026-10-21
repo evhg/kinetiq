@@ -3,15 +3,14 @@ import { specStrip } from "@/content/copy";
 import { Reveal } from "./Reveal";
 import styles from "./SpecStrip.module.css";
 
-/** Four numbers on one line of light, over the engineering drawing. */
+/**
+ * Four numbers on one line of light, then the engineering drawing that backs them, whole and in its own
+ * band: the full sheet with its title block on wide screens, the dimensioned front view on narrow ones.
+ */
 export function SpecStrip() {
   return (
     <section className={`lift ${styles.strip}`} aria-label="Specifications">
       <hr className={`lightline ${styles.line}`} />
-      <div className={styles.drawing} aria-hidden="true">
-        <TechnicalDrawing variant="full" tone="quiet" titleBlock={false} className={styles.wide} />
-        <TechnicalDrawing variant="front" tone="quiet" annotate={false} titleBlock={false} reveal={false} className={styles.narrow} />
-      </div>
       <Reveal as="dl" className={styles.grid} items={`.${styles.cell}`}>
         {specStrip.map((s) => (
           <div key={s.label} className={styles.cell}>
@@ -23,6 +22,10 @@ export function SpecStrip() {
           </div>
         ))}
       </Reveal>
+      <div className={styles.drawing}>
+        <TechnicalDrawing variant="full" className={styles.wide} />
+        <TechnicalDrawing variant="front" className={styles.narrow} />
+      </div>
     </section>
   );
 }
