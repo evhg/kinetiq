@@ -1,18 +1,12 @@
-export const MOTION_STORAGE_KEY = "kinetiq-motion";
-
-export type MotionSetting = "on" | "off";
-
 /**
- * Runs before hydration (inlined in <head>) so the first paint already
- * matches the saved choice or the OS reduced-motion setting.
+ * Runs before hydration (inlined in <head>): html[data-motion] follows the OS
+ * reduced-motion setting only. There is no on-page motion switch (owner, 2026-10-21).
  */
 export const motionInitScript = `(() => {
   try {
-    var saved = localStorage.getItem("${MOTION_STORAGE_KEY}");
     var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    var motion = saved === "on" || saved === "off" ? saved : reduce ? "off" : "on";
-    document.documentElement.dataset.motion = motion;
+    document.documentElement.dataset.motion = reduce ? "off" : "on";
   } catch (e) {
-    document.documentElement.dataset.motion = "off";
+    document.documentElement.dataset.motion = "on";
   }
 })();`;

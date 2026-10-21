@@ -1,0 +1,276 @@
+/* G02 vibration fan graph. Lines live in a normalised viewBox stretched to the plot
+   (non-scaling strokes keep every hairline crisp); all text is HTML, so it never shrinks. */
+.root {
+  --core: clamp(2px, 0.1vw + 1.1px, 4px);
+  --glued: clamp(1.5px, 0.08vw + 0.85px, 3px);
+  --fan: clamp(0.75px, 0.03vw + 0.32px, 1.25px);
+  --glow-blur: clamp(5px, 0.36vw + 2.8px, 12px);
+  --halo-blur: clamp(14px, 1vw + 6px, 34px);
+  --head: clamp(26px, 1.8vw + 4px, 56px);
+  --plot-h: calc(25vw + 240px);
+  --gap: clamp(10px, 0.8vw + 2px, 26px);
+  --rise: calc(var(--fs-label) * 1.2 + clamp(12px, 0.6vw + 4px, 24px));
+  width: 100%;
+  margin: 0;
+  color: var(--muted);
+}
+
+.chart {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  column-gap: var(--gap);
+  row-gap: clamp(14px, 0.9vw + 4px, 30px);
+}
+
+.yTitle,
+.xTitle,
+.label,
+.markerLabel,
+.captionText {
+  font-family: var(--font-data);
+  font-size: var(--fs-label);
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.yTitle {
+  grid-area: 1 / 1;
+  align-self: center;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  color: var(--muted);
+}
+
+.xTitle {
+  grid-area: 2 / 2;
+  justify-self: center;
+  color: var(--muted);
+}
+
+.plot {
+  grid-area: 1 / 2;
+  position: relative;
+  height: var(--plot-h);
+  margin-top: var(--rise);
+  overflow-x: clip;
+}
+
+.layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.layer path,
+.layer line {
+  vector-effect: non-scaling-stroke;
+  fill: none;
+}
+
+.rule {
+  stroke: var(--grid);
+  stroke-width: 1px;
+  shape-rendering: crispEdges;
+}
+
+.zero {
+  stroke: var(--hairline);
+  stroke-width: 1px;
+  shape-rendering: crispEdges;
+}
+
+/* Reveal: the wrapper slides in from the left while its content counter-slides, so the
+   lines appear left to right without animating clip-path or masks. */
+.wipe {
+  position: absolute;
+  inset: 0;
+  overflow-x: clip;
+}
+
+.wipeInner {
+  position: absolute;
+  inset: 0;
+}
+
+.gluedFan path {
+  stroke: var(--steel);
+  stroke-opacity: 0.25;
+  stroke-width: var(--fan);
+}
+
+.glued {
+  stroke: var(--steel);
+  stroke-opacity: 0.7;
+  stroke-width: var(--glued);
+  stroke-linejoin: round;
+}
+
+.kFan path {
+  stroke: var(--amber);
+  stroke-opacity: 0.35;
+  stroke-width: var(--fan);
+}
+
+.halo {
+  filter: blur(var(--halo-blur));
+  opacity: 0.32;
+}
+
+.halo path {
+  stroke: var(--amber);
+  stroke-width: calc(var(--core) * 4);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.glow {
+  filter: blur(var(--glow-blur));
+  opacity: 0.55;
+}
+
+.glow path {
+  stroke: var(--amber);
+  stroke-width: calc(var(--core) * 2.4);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.core {
+  stroke-width: var(--core);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Settled marker: spans the plot, its hairline rises above it to carry the label */
+.marker {
+  --ring: clamp(9px, 0.35vw + 5px, 16px);
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+}
+
+.marker::before {
+  content: "";
+  position: absolute;
+  top: calc(-1 * var(--rise));
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  background: linear-gradient(to bottom, rgb(245 245 243 / 0.75), rgb(245 245 243 / 0.45) 45%, rgb(245 245 243 / 0.06));
+}
+
+.markerLabel {
+  position: absolute;
+  top: calc(-1 * var(--rise));
+  left: clamp(10px, 0.5vw + 4px, 18px);
+  color: var(--text);
+}
+
+.markerRing {
+  position: absolute;
+  left: 0.5px;
+  width: var(--ring);
+  height: var(--ring);
+  margin: calc(var(--ring) / -2) 0 0 calc(var(--ring) / -2);
+  border: 1.5px solid var(--amber-hot);
+  border-radius: 50%;
+  background: var(--stage);
+}
+
+/* Line-end labels, right-aligned, sitting just clear of the converging lines */
+.label {
+  position: absolute;
+  right: 0;
+}
+
+.labelGlued {
+  bottom: calc(56% + 4px);
+  color: var(--steel);
+}
+
+.labelK {
+  top: calc(56% + 4px);
+  color: var(--amber);
+}
+
+/* Time ticks hanging from the bottom rule */
+.ticks {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 0;
+}
+
+.ticks i {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: clamp(4px, 0.2vw + 2px, 8px);
+  background: var(--edge);
+  opacity: 0.7;
+}
+
+.ticks i.major {
+  height: clamp(8px, 0.4vw + 3px, 14px);
+  opacity: 1;
+}
+
+/* Glow head: the track spans the plot, so translate percentages are plot percentages */
+.headTrack {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.head {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--head);
+  height: var(--head);
+  margin: calc(var(--head) / -2) 0 0 calc(var(--head) / -2);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    var(--amber-hot) 0,
+    rgb(255 226 191 / 0.85) 12%,
+    rgb(227 164 103 / 0.35) 34%,
+    rgb(227 164 103 / 0.1) 55%,
+    transparent 70%
+  );
+  opacity: 0;
+}
+
+.caption {
+  margin-top: clamp(20px, 1.4vw + 8px, 48px);
+}
+
+.captionText {
+  display: block;
+  font-size: var(--fs-fine);
+  color: var(--muted);
+  white-space: normal;
+}
+
+@media (max-width: 639px) {
+  .root {
+    --plot-h: calc(40vw + 104px);
+    --gap: 8px;
+  }
+  .extra {
+    display: none;
+  }
+  .labelGlued {
+    bottom: calc(57% + 2px);
+  }
+  .labelK {
+    top: calc(57% + 2px);
+  }
+}

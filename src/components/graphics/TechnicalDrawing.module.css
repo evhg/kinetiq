@@ -1,0 +1,497 @@
+/* G01 technical drawing. ISO 128 line types, amber dimensions, Saira data labels.
+   Strokes are non-scaling and sized in CSS px so hairlines stay crisp at every width. */
+.root {
+  --dw-visible: color-mix(in srgb, var(--steel) 66%, transparent);
+  --dw-hole: color-mix(in srgb, var(--steel) 50%, transparent);
+  --dw-tangent: color-mix(in srgb, var(--steel) 20%, transparent);
+  --dw-hidden: color-mix(in srgb, var(--steel) 34%, transparent);
+  --dw-centre: color-mix(in srgb, var(--edge) 62%, transparent);
+  --dw-construct: var(--grid);
+  --dw-dim: color-mix(in srgb, var(--amber) 88%, transparent);
+  --dw-shell: color-mix(in srgb, var(--steel) 62%, transparent);
+  --dw-hatch: color-mix(in srgb, var(--steel) 30%, transparent);
+  --dw-frame: color-mix(in srgb, var(--steel) 22%, transparent);
+
+  --w-vis: clamp(1.25px, 0.045vw + 0.85px, 2px);
+  --w-thin: clamp(0.8px, 0.02vw + 0.72px, 1.25px);
+  --w-dim: clamp(0.9px, 0.025vw + 0.75px, 1.4px);
+  --dash: clamp(5px, 0.2vw + 3px, 9px);
+  --lab-fs: var(--fs-label);
+  --lab-gap: 0.32em;
+  --band: clamp(26px, 1.25vw + 8px, 42px);
+
+  position: relative;
+  margin: 0;
+  container-type: inline-size;
+  color: var(--steel);
+}
+.root[data-tone="quiet"] {
+  --dw-visible: color-mix(in srgb, var(--steel) 40%, transparent);
+  --dw-hole: color-mix(in srgb, var(--steel) 30%, transparent);
+  --dw-tangent: color-mix(in srgb, var(--steel) 12%, transparent);
+  --dw-hidden: color-mix(in srgb, var(--steel) 22%, transparent);
+  --dw-dim: color-mix(in srgb, var(--amber) 70%, transparent);
+  --dw-shell: color-mix(in srgb, var(--steel) 40%, transparent);
+}
+
+/* ---------- sheet frame ---------- */
+.sheet {
+  position: relative;
+  padding: var(--band);
+  border: 1px solid var(--dw-frame);
+}
+.inner {
+  position: relative;
+  border: 1px solid var(--dw-frame);
+}
+.zones {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  font-family: var(--font-data);
+  font-size: var(--fs-fine);
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--muted);
+}
+.zoneRow,
+.zoneCol {
+  position: absolute;
+  display: flex;
+}
+.zoneRow {
+  left: var(--band);
+  right: var(--band);
+  height: var(--band);
+}
+.zoneRow.top {
+  top: 0;
+}
+.zoneRow.bottom {
+  bottom: 0;
+}
+.zoneCol {
+  flex-direction: column;
+  top: var(--band);
+  bottom: var(--band);
+  width: var(--band);
+}
+.zoneCol.left {
+  left: 0;
+}
+.zoneCol.right {
+  right: 0;
+}
+.zoneRow > span,
+.zoneCol > span {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  line-height: 1;
+}
+.zoneRow > span + span {
+  border-left: 1px solid var(--dw-frame);
+}
+.zoneCol > span + span {
+  border-top: 1px solid var(--dw-frame);
+}
+/* four rows on the wide sheet, six on the tall phone sheet */
+@container (min-width: 1100px) {
+  .zoneCol > span:nth-child(n + 5) {
+    display: none;
+  }
+}
+
+/* ---------- panels ---------- */
+.panel {
+  position: relative;
+  width: 100%;
+}
+.svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.svg path {
+  vector-effect: non-scaling-stroke;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.svg .vis {
+  stroke: var(--dw-visible);
+  stroke-width: var(--w-vis);
+}
+.svg .hole {
+  stroke: var(--dw-hole);
+  stroke-width: var(--w-thin);
+}
+.svg .tangent {
+  stroke: var(--dw-tangent);
+  stroke-width: var(--w-thin);
+}
+.svg .hidden {
+  stroke: var(--dw-hidden);
+  stroke-width: var(--w-thin);
+  stroke-dasharray: var(--dash) calc(var(--dash) * 0.6);
+  stroke-linecap: butt;
+}
+.svg .centre,
+.svg .cut {
+  stroke: var(--dw-centre);
+  stroke-width: var(--w-thin);
+  stroke-dasharray: calc(var(--dash) * 3) calc(var(--dash) * 0.5) calc(var(--dash) * 0.35) calc(var(--dash) * 0.5);
+  stroke-linecap: butt;
+}
+.svg .cutThick {
+  stroke: var(--steel);
+  stroke-width: calc(var(--w-vis) * 1.5);
+  stroke-linecap: butt;
+}
+.svg .construct {
+  stroke: var(--dw-construct);
+  stroke-width: var(--w-thin);
+}
+.svg .dim {
+  stroke: var(--dw-dim);
+  stroke-width: var(--w-dim);
+}
+.svg .dimFill,
+.svg .dot {
+  fill: var(--dw-dim);
+  stroke: none;
+}
+.svg .shell {
+  fill: var(--dw-shell);
+  stroke: var(--steel);
+  stroke-opacity: 0.8;
+  stroke-width: var(--w-thin);
+}
+.svg .core {
+  stroke: var(--dw-hidden);
+  stroke-width: var(--w-thin);
+}
+.svg .fibre {
+  stroke: color-mix(in srgb, var(--void) 55%, transparent);
+  stroke-width: var(--w-thin);
+}
+.svg .ring {
+  stroke: var(--dw-visible);
+  stroke-width: var(--w-thin);
+}
+.hatchLine {
+  stroke: var(--dw-hatch);
+  stroke-width: 0.8;
+}
+.svg .bar {
+  stroke: var(--dw-visible);
+  stroke-width: var(--w-thin);
+}
+.svg .barFill {
+  fill: var(--dw-hidden);
+  stroke: none;
+}
+.glow {
+  opacity: 0.55;
+}
+.glow path {
+  stroke-width: calc(var(--w-dim) * 3);
+}
+
+/* ---------- labels (HTML over the SVG, so they never shrink below 15px) ---------- */
+.labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.lab {
+  position: absolute;
+  font-family: var(--font-data);
+  font-size: var(--lab-fs);
+  font-weight: 400;
+  line-height: 1.12;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums lining-nums;
+  white-space: nowrap;
+}
+.line {
+  display: block;
+}
+.lab[data-place="n"] {
+  transform: translate(-50%, calc(-100% - var(--lab-gap)));
+  text-align: center;
+}
+.lab[data-place="s"] {
+  transform: translate(-50%, var(--lab-gap));
+  text-align: center;
+}
+.lab[data-place="e"] {
+  transform: translate(var(--lab-gap), -50%);
+  text-align: left;
+}
+.lab[data-place="w"] {
+  transform: translate(calc(-100% - var(--lab-gap)), -50%);
+  text-align: right;
+}
+.lab[data-place="c"] {
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+.lab[data-place="se"] {
+  transform: none;
+  text-align: left;
+}
+.lab[data-place="sw"] {
+  transform: translateX(-100%);
+  text-align: right;
+}
+.lab[data-place="vl"] {
+  transform: translate(-50%, -50%) rotate(-90deg) translateY(calc(-50% - var(--lab-gap)));
+}
+.lab[data-place="vr"] {
+  transform: translate(-50%, -50%) rotate(-90deg) translateY(calc(50% + var(--lab-gap)));
+}
+.dim {
+  color: var(--amber);
+  font-weight: 450;
+}
+.note {
+  color: var(--steel);
+}
+.muted,
+.subline,
+.scale {
+  color: var(--muted);
+}
+.subline,
+.scale {
+  font-weight: 400;
+}
+.times {
+  color: var(--amber);
+  margin-left: 0.15em;
+}
+.title {
+  color: var(--text);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+.letter {
+  font-family: var(--font-display);
+  font-variation-settings: "wdth" 110;
+  font-weight: 560;
+  font-size: calc(var(--lab-fs) * 1.2);
+  color: var(--text);
+  line-height: 1;
+}
+
+/* ---------- layouts: one wide sheet, or stacked panels below 1100px ---------- */
+.narrow {
+  display: grid;
+  gap: clamp(28px, 4cqw, 56px);
+  padding: clamp(20px, 4cqw, 40px) clamp(10px, 3cqw, 32px);
+}
+.pViews {
+  max-width: 560px;
+  justify-self: center;
+}
+.pSection,
+.pDetail {
+  max-width: 640px;
+  justify-self: center;
+}
+.wide {
+  display: none;
+}
+.wide {
+  --lab-fs: max(var(--fs-label), 0.92cqw);
+}
+@container (min-width: 1100px) {
+  .wide {
+    display: block;
+  }
+  .narrow {
+    display: none;
+  }
+}
+
+/* front-only variant: sized by its own column, labels capped so they never crowd the geometry */
+.front {
+  --lab-fs: max(15px, min(var(--fs-label), 4.4cqw));
+}
+
+/* ---------- title block ---------- */
+.titleBlock {
+  display: grid;
+  border-top: 1px solid var(--dw-frame);
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+.cells {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+}
+.cell {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  padding: clamp(12px, 0.5vw + 8px, 22px) clamp(14px, 0.7vw + 8px, 30px);
+  border-top: 1px solid var(--dw-frame);
+}
+/* phone order: title, DWG | scale, units | tolerance, sheet | projection */
+.cells > .cell:not(.c2) {
+  border-right: 1px solid var(--dw-frame);
+}
+.titleCell {
+  grid-column: 1 / -1;
+  order: -1;
+  border-right: 0 !important;
+}
+.projCell {
+  order: 10;
+}
+.cell dd {
+  margin: 0;
+}
+.notes {
+  border-top: 0;
+}
+.cap {
+  margin: 0;
+  font-size: var(--fs-fine);
+  color: var(--muted);
+  line-height: 1.2;
+}
+.val {
+  display: block;
+  font-size: var(--fs-label);
+  color: var(--text);
+  line-height: 1.25;
+  white-space: nowrap;
+}
+.titleCell .val {
+  color: var(--steel);
+}
+.wordmark {
+  display: block;
+  font-family: var(--font-display);
+  font-variation-settings: "wdth" 125;
+  font-weight: 600;
+  letter-spacing: 0.32em;
+  font-size: calc(var(--fs-label) * 1.18);
+  color: var(--text);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.noteList {
+  display: grid;
+  gap: 4px 48px;
+  margin-top: 8px;
+  font-size: var(--fs-label);
+  color: var(--steel);
+  line-height: 1.35;
+}
+.noteList li {
+  display: grid;
+  grid-template-columns: 1.7em minmax(0, 1fr);
+}
+.noteNo {
+  color: var(--amber);
+}
+.proj {
+  display: block;
+  width: clamp(54px, 1.6vw + 34px, 84px);
+  height: auto;
+  margin-top: 4px;
+  overflow: visible;
+}
+.proj path,
+.proj circle {
+  fill: none;
+  stroke: var(--steel);
+  stroke-width: 1.4;
+  vector-effect: non-scaling-stroke;
+}
+.proj .projCentre {
+  stroke: var(--dw-centre);
+  stroke-width: 1;
+  stroke-dasharray: 7 2 1.5 2;
+}
+
+@container (min-width: 1100px) {
+  .titleBlock {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .notes {
+    border-right: 1px solid var(--dw-frame);
+  }
+  .cells {
+    grid-template-columns: repeat(7, auto);
+  }
+  .cells > .cell,
+  .cells > .cell:not(.c2) {
+    order: 0;
+    border-top: 0;
+    border-right: 0;
+    border-left: 1px solid var(--dw-frame);
+  }
+  .cells > .cell:first-child {
+    border-left: 0;
+  }
+  .titleCell {
+    grid-column: auto;
+    padding-right: clamp(24px, 2.4vw, 72px);
+  }
+}
+@container (min-width: 1700px) {
+  .noteList {
+    grid-template-columns: repeat(2, max-content);
+    column-gap: clamp(40px, 3vw, 96px);
+  }
+}
+
+/* ---------- G10c ghost contour ---------- */
+.ghost {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  display: none;
+}
+@media (min-width: 1920px) {
+  .ghost {
+    display: block;
+  }
+}
+.ghostPos {
+  position: absolute;
+  top: -20%;
+  height: 140%;
+  aspect-ratio: 280 / 476;
+  transform: rotate(var(--ghost-angle, 0deg));
+}
+.ghost[data-side="right"] .ghostPos {
+  right: 0;
+  translate: 38% 0;
+}
+.ghost[data-side="left"] .ghostPos {
+  left: 0;
+  translate: -38% 0;
+}
+.ghostSvg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.ghostSvg path {
+  fill: none;
+  stroke: var(--steel);
+  stroke-opacity: 0.07;
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}

@@ -1,0 +1,87 @@
+.lineup {
+  position: relative;
+  min-height: 100svh;
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  text-align: center;
+  overflow: hidden;
+  isolation: isolate;
+  padding: clamp(96px, 9vh, 170px) var(--margin) 0;
+  background: var(--void);
+}
+.media {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+.still img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.copy {
+  display: grid;
+  justify-items: center;
+  gap: clamp(14px, 1vw + 6px, 28px);
+}
+.copy :global(.t-h2) {
+  max-width: 20ch;
+}
+.copy :global(.t-lead) {
+  max-width: 50ch;
+}
+.proof {
+  display: grid;
+  gap: clamp(64px, 6vw, 160px);
+  padding: clamp(96px, 8vw, 220px) var(--margin);
+}
+.grid {
+  display: grid;
+  gap: 56px;
+  align-items: center;
+}
+.card {
+  display: grid;
+  justify-items: center;
+}
+.cta {
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  text-align: center;
+}
+@media (min-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+  }
+  .graph {
+    grid-column: 1 / span 7;
+  }
+  .card {
+    grid-column: 9 / span 4;
+  }
+}
+@media (max-width: 699px) {
+  .lineup {
+    min-height: 0;
+    padding-bottom: 0;
+  }
+  .media {
+    position: relative;
+    inset: auto;
+    order: 2;
+    width: 100vw;
+    margin-top: 24px;
+    aspect-ratio: 4 / 5;
+  }
+  .lineup {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .cta :global(.btn) {
+    width: 100%;
+  }
+}

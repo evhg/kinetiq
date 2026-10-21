@@ -1,0 +1,136 @@
+/* Stacked by default (phones, reduced motion); layered and pinned on wide screens (see globals .pin-layered). */
+.chapter {
+  background: var(--void);
+}
+.beatA,
+.beatB {
+  display: grid;
+  overflow: hidden;
+  isolation: isolate;
+}
+.media {
+  position: relative;
+  z-index: -1;
+}
+.still img {
+  width: 100%;
+  height: auto;
+}
+.edgeLight {
+  display: none;
+}
+.copy {
+  display: grid;
+  justify-items: center;
+  gap: clamp(14px, 1vw + 6px, 28px);
+  text-align: center;
+  padding: 40px var(--margin) 8px;
+}
+.copy :global(.t-h2) {
+  max-width: 18ch;
+}
+.copy :global(.t-lead) {
+  max-width: 56ch;
+}
+.callouts {
+  display: grid;
+  gap: 14px;
+  padding: 24px var(--margin) 64px;
+}
+.callout {
+  position: relative;
+  padding-left: 22px;
+  color: var(--steel);
+  font-size: clamp(1rem, 0.4vw + 0.85rem, 1.375rem);
+}
+.callout::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.65em;
+  width: 12px;
+  height: 1px;
+  background: var(--amber);
+  box-shadow: 0 0 6px var(--amber);
+}
+.compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 32px var(--margin) 0;
+}
+.side {
+  min-width: 0;
+}
+.proofs {
+  display: grid;
+  gap: 28px;
+  padding: 40px var(--margin) 80px;
+}
+.proof {
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid var(--hairline);
+  padding-top: 20px;
+}
+.proofTitle {
+  color: var(--text);
+}
+
+@media (min-width: 900px) {
+  .callouts {
+    grid-template-columns: repeat(3, auto);
+    justify-content: center;
+    gap: clamp(32px, 4vw, 120px);
+  }
+  .proofs {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--gutter);
+  }
+}
+
+@media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
+  :global(html[data-motion="on"]) .beatA,
+  :global(html[data-motion="on"]) .beatB {
+    grid-template-rows: auto 1fr auto;
+    padding-top: calc(var(--chrome-h) + clamp(24px, 3vh, 64px));
+  }
+  :global(html[data-motion="on"]) .media {
+    position: absolute;
+    inset: 0;
+  }
+  :global(html[data-motion="on"]) .still img {
+    height: 100%;
+    object-fit: cover;
+  }
+  :global(html[data-motion="on"]) .edgeLight {
+    display: block;
+    position: absolute;
+    left: 6%;
+    right: 6%;
+    top: 47.5%;
+    height: 1px;
+    transform-origin: 0 50%;
+    background: linear-gradient(90deg, transparent, var(--amber) 12%, var(--amber-hot) 50%, var(--amber) 88%, transparent);
+    box-shadow: 0 0 10px rgb(227 164 103 / 0.55);
+  }
+  :global(html[data-motion="on"]) .copy {
+    padding-top: 0;
+  }
+  :global(html[data-motion="on"]) .callouts {
+    grid-row: 3;
+    padding-bottom: clamp(48px, 8vh, 120px);
+  }
+  :global(html[data-motion="on"]) .compare {
+    grid-row: 2;
+    align-self: center;
+    grid-template-columns: minmax(0, 30%) minmax(0, 30%);
+    justify-content: space-between;
+    padding-top: 0;
+  }
+  :global(html[data-motion="on"]) .proofs {
+    grid-row: 3;
+    padding-top: 0;
+    padding-bottom: clamp(32px, 5vh, 88px);
+  }
+}

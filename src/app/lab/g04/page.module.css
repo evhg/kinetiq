@@ -1,0 +1,28 @@
+/* Lab layout for G04: the graphic on columns 1 to 7 of the 12-column grid, the chapter copy beside it. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+  row-gap: 56px;
+  align-items: center;
+}
+
+.graphic {
+  grid-column: 1 / span 7;
+}
+
+.copy {
+  grid-column: 9 / span 4;
+  display: grid;
+  gap: clamp(20px, 1.5vw, 40px);
+}
+
+@media (max-width: 899px) {
+  .graphic,
+  .copy {
+    grid-column: 1 / -1;
+  }
+  .copy {
+    order: -1;
+  }
+}

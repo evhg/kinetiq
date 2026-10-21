@@ -1,0 +1,209 @@
+/* G04 consistency spikes: two small multiples under large stat numerals. */
+.root {
+  --core: clamp(1.75px, 0.08vw + 1.1px, 3.2px);
+  --limit: 1px;
+  --glow-blur: clamp(4px, 0.3vw + 2.8px, 11px);
+  --plot-h: clamp(130px, 6.4vw + 128px, 300px);
+  width: 100%;
+  margin: 0;
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: clamp(28px, 2.4vw + 8px, 88px);
+  row-gap: 48px;
+}
+
+.stack .pair {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.multiple {
+  min-width: 0;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(8px, 0.5vw + 4px, 18px);
+  margin-bottom: clamp(20px, 1.6vw + 4px, 56px);
+}
+
+.value {
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.statLabel,
+.axisTitle,
+.limitLabel,
+.ticks span,
+.captionText {
+  font-family: var(--font-data);
+  font-size: var(--fs-label);
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.statLabel {
+  color: var(--muted);
+}
+
+.graph {
+  position: relative;
+}
+
+.plot {
+  position: relative;
+  height: var(--plot-h);
+}
+
+.layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.layer path,
+.layer line {
+  vector-effect: non-scaling-stroke;
+}
+
+.window {
+  fill: var(--amber);
+  fill-opacity: 0.07;
+}
+
+.axis {
+  stroke: var(--edge);
+  stroke-width: 1px;
+  shape-rendering: crispEdges;
+}
+
+.limit {
+  stroke: var(--text);
+  stroke-opacity: 0.9;
+  stroke-width: var(--limit);
+  shape-rendering: crispEdges;
+}
+
+.spike {
+  position: absolute;
+  inset: 0;
+}
+
+.glow {
+  filter: blur(var(--glow-blur));
+  opacity: 0.65;
+}
+
+.glow path {
+  fill: none;
+  stroke: var(--amber);
+  stroke-width: calc(var(--core) * 2.8);
+  stroke-linejoin: round;
+}
+
+.area {
+  stroke: none;
+}
+
+.core {
+  fill: none;
+  stroke-width: var(--core);
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.rug {
+  stroke: var(--amber-hot);
+  stroke-opacity: 0.4;
+  stroke-width: 1px;
+}
+
+.axisTitle {
+  display: block;
+  margin-top: clamp(8px, 0.4vw + 4px, 16px);
+  text-align: center;
+  color: var(--muted);
+}
+
+.rule {
+  stroke: var(--grid);
+  stroke-width: 1px;
+  shape-rendering: crispEdges;
+}
+
+.limitLabel {
+  position: absolute;
+  top: 0;
+  color: var(--text);
+}
+
+.limitLo {
+  margin-right: clamp(8px, 0.4vw + 4px, 16px);
+}
+
+.limitHi {
+  margin-left: clamp(8px, 0.4vw + 4px, 16px);
+}
+
+.ticks {
+  position: relative;
+  height: calc(1.2em + clamp(14px, 0.6vw + 8px, 24px));
+  font-family: var(--font-data);
+  font-size: var(--fs-label);
+}
+
+.tickMark {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: clamp(5px, 0.25vw + 3px, 10px);
+  background: var(--edge);
+}
+
+.ticks span {
+  position: absolute;
+  bottom: 0;
+  color: var(--muted);
+}
+
+.tickLo {
+  left: 0;
+}
+
+.tickHi {
+  right: 0;
+}
+
+.ticks .tickRef {
+  transform: translateX(-50%);
+  color: var(--steel);
+}
+
+.caption {
+  margin-top: clamp(24px, 1.6vw + 8px, 56px);
+}
+
+.captionText {
+  display: block;
+  font-size: var(--fs-fine);
+  color: var(--muted);
+  white-space: normal;
+}
+
+@media (max-width: 639px) {
+  .root {
+    --plot-h: 132px;
+  }
+  .pair {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 40px;
+  }
+}

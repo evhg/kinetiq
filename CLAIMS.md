@@ -1,32 +1,50 @@
 # Claims register
 
 Every marketing and commercial claim on the site, where it appears, and what is needed before launch.
-Owner decision (2026-10-21): claim boldly now, verify before launch.
+Owner decision (2026-10-21): claim boldly now, verify before launch. Assume pending patents are granted.
 **Launch gate:** keep `NEXT_PUBLIC_LAUNCHED` unset (preview banner on, noindex) until every row is ✅.
-Text lives in `src/content/claims.ts` and `src/content/site.ts`.
+Words live in `src/content/copy.ts` (landing), `src/content/lineup.ts` (editions), `src/content/reserve.ts`
+and `src/content/site.ts`. Research behind rows 3 to 7: `docs/research/non-tubular.md`.
+
+## Product
 
 | # | Claim | Where | Status | Needed before launch |
 | --- | --- | --- | --- | --- |
-| 1 | "The world's first one-piece padel racket." | Hero h1, page title, FAQ | ⚠️ Unverified | Prior-art search (patents, other brands' monocoque rackets). Comparative/superlative claims must be provable (EU Directive 2005/29/EC, Swiss UWG Art. 3). |
-| 2 | "The most precise padel racket ever made", 15 µm on every surface | Hero, Precision chapter | ⚠️ Unverified | Define what is measured (surface profile vs mould), measurement method, sample size; independent report. "Ever made" needs comparison data. |
-| 3 | "The world's first padel racket with moulded holes", zero drilled, zero cut fibres | Identical section, hero stats | ⚠️ Unverified | Factory confirms holes are moulded; prior-art search. |
-| 4 | "100% Swiss Made" / "world's first 100% Swiss Made padel racket" | Hero, Swiss section | ⚠️ High risk | Swissness rules (MSchG Art. 48c): ≥60% of manufacturing cost in CH plus key steps. "100%" is a stronger claim; imported fibre/resin may make it misleading. Legal review required. |
-| 5 | "Patented one-mould process" | Swiss section | ⚠️ High risk | Only true once a patent is granted. Until then use "patent pending" (false patent marking is unlawful in several markets). |
-| 6 | "Every racket within ±1 g and ±1 mm of the reference" | Identical section | ⚠️ Unverified | Factory tolerance data from a production run. |
-| 7 | "Balance is set inside the mould" | Identical section | ⚠️ Unverified | Factory confirms moulded-in weights. |
-| 8 | Measurement card with serial number and own measurements | Identical section | ⚠️ Commitment | Operational process to measure and print per racket. |
-| 9 | Feel/vibration: no glue lines, settles faster, easier on the arm, same response edge to centre | Feel section | ⚠️ Unverified (reasoned, not measured) | Lab vibration test (decay time) vs a glued reference racket; "easier on your arm" is a health-adjacent claim, keep it modest or back it. |
-| 10 | Workshop "already builds full-carbon golf clubs" in St. Gallen | Swiss section | ⚠️ Permission | Factory's permission to reference its golf work. |
-| 11 | Foam and carbon made/moulded on site | Swiss section, specs | ⚠️ Unverified | Factory confirmation. |
-| 12 | Paid in full today; ships January 2027 | Reserve page, finale | ⚠️ Commitment | Production schedule confirmed by factory. Taking full payment for later delivery: EU rules on delivery dates (Directive 2011/83/EU Art. 18). |
-| 13 | "Fully refundable until your racket ships … every euro comes back. No questions." and "reply to the receipt email and we refund every euro" | Landing CTA notes, finale, reserve page, confirmation | ⚠️ Commitment | Business decision + terms page; a monitored inbox for receipt replies (Stripe's receipt reply-to = your support email). Separate from the 14-day statutory withdrawal right, which still applies after delivery. |
-| 14 | "Free delivery in Europe, duties included" | Reserve page | ⚠️ Commitment | Requires DDP shipping from CH to EU (EU VAT registration or fiscal representative). Accountant sign-off. |
-| 15 | Comparison values: paper 100 µm, human hair 70 µm | Precision chapter | ℹ️ General knowledge | Typical values; fine as approximations ("about"). |
-| 16 | Example measurement card numbers (355.2 g, 250.4 mm, 0.011 mm) | Identical section | ℹ️ Illustrative | Replace with a real measured racket before launch. |
+| 1 | "The most precise racket ever made." / "The most precise padel racket ever made" | Hero h1, page title, meta | ⚠️ Unverified superlative | Define what is measured (surface profile against CAD), method (CMM, CT or 3D scan), sample size; independent report. "Ever made" needs comparison data (EU 2005/29/EC, Swiss UWG Art. 3). |
+| 2 | "Held to 15 microns", "15 µm maximum deviation, any surface", "A fifth of a human hair", record counter 500 → 15 µm | Hero lead, spec strip, Precision chapter, G01 drawing, G03 graph | ⚠️ Unverified | The factory's patent states surface profile ±0.1 / ±0.05 / ±0.03 mm and wall thickness ±0.5 / ±0.3 / ±0.2 mm, so 15 µm is tighter than anything published: it needs its own production measurements. "A fifth of a human hair" assumes a 70 µm hair. |
+| 3 | "One piece of space-grade carbon" | Hero lead, meta | ⚠️ Unverified | Fibre grade and supplier datasheet (aerospace-qualified fibre, e.g. a named T700/T800 class). "One piece": factory confirms head, bridge and handle are one injection and one cure. |
+| 4 | "No tube. The shell is the frame." / "No frame tube. One carbon shell, face to handle." / "No tube, no joints" | One piece chapter (beat B), hero lead, meta, G07 drawing | ⚠️ Unverified | Written factory confirmation of the architecture; industrial CT plus physical sections of 3 production rackets through rim, throat, a hole and the handle, showing no separate tube. Copy always says "frame tube"; never "tubeless" as a literal claim (the handle and hole walls are closed sections, and another brand sells "tubeless frame" rackets with a twin tube). |
+| 5 | "Most padel rackets are built around a carbon tube." / "Tubular racket" contrast | One piece chapter, G07, G02 legend | ⚠️ Unverified (comparative, generic) | A dated evidence file of 20+ current spec sheets listing tubular or bi-tubular frames (research found Bullpadel, StarVie, Siux, Adidas, HEAD, Wilson, Royal Padel, Kombat, Joma, Varlion, Osaka). Never name a brand on the site. |
+| 6 | "A wider sweet spot" / "Weight moulded in at the sides, exactly where a tube would have spent it" / "Off-centre shots answer like centre shots" | One piece proofs, Feel chapter | ⚠️ Unverified performance claim (reasoned) | Mechanism: perimeter weighting at 3 and 9 o'clock raises twistweight. Removing a tube alone can narrow the sweet spot, so the factory must confirm insert positions and masses. Independent rebound (ACOR) map, e.g. Testea Padel / UPV Valencia: 25+ points, 5+ impacts per point, 3 KINETIQ vs 3 to 5 tubular rackets, weight-matched; name the definition (area within 90% of peak rebound). |
+| 7 | "Stiffer in twist" / "The bridge is part of the same shell" | One piece proofs | ⚠️ Unverified | CAD or CT shows a closed bridge moulded into the handle; static torsion test (N·m per degree) against tubular rackets. |
+| 8 | "Carbon, never interrupted", "No seam. No tube. No joint.", "One weave, face to edge", "Fibre continuous around the edge" | One piece chapter (beat A), G07 | ⚠️ Unverified | The ply book showing the face plies wrap the edge, with every overlap and splice located. Retire the lines the ply book does not support. |
+| 9 | "42 holes. Not one drilled." / "0 drilled holes of 42" / "0 fibres cut" / "formed in the mould, with carbon wrapped around every edge" | Spec strip, Holes chapter, G05, G06 | ⚠️ Unverified | Factory confirms all 42 holes are formed by mould pins, with zero drilling, reaming or trimming; FIP Rule 6 hole size. Prior-art search before any "first" (a buyer guide asks suppliers whether holes are "integrated into the mold"). |
+| 10 | "100% Swiss Made" / "Swiss Made. Down to the core." / "The two words found on the finest watch dials" | Hero eyebrow, Born whole lockup, G08, G13, footer | ⚠️ High risk | Swissness rules (MSchG Art. 48c): 60%+ of manufacturing cost in CH plus key steps. "100%" is stronger: imported fibre and resin may make it misleading. Legal review. The Swiss cross on a commercial product is governed by the Coat of Arms Protection Act. |
+| 11 | "Patented one-mould process" / "One patented process, performed nowhere else on earth" | Born whole eyebrow, G13 badge | ⚠️ High risk | The factory's patent family is granted in JP and AU only; the European, US, Chinese, Korean and Canadian applications are pending. Owner rule: assume grants. Before launch: "patent pending" in the EU and CH unless granted, KINETIQ's licence, and the factory's agreed wording. "Nowhere else on earth" needs the licence to be exclusive. |
+| 12 | "Every racket plays exactly the same" / "Buy two. It's the same racket." / "±1.0 g" weight, "±1.0 mm" balance, "set inside the mould" | Hero lead, spec strip, Identical chapter, G04 | ⚠️ Unverified | Factory tolerance data from a production run (weight and balance of every racket), moulded-in weights confirmed. G04 is captioned "Illustrative" until data exists. |
+| 13 | Weights shown with one decimal (355.0 g, 355.2 g, ±1.0 g) | Everywhere | ✅ House rule | Every published weight carries a decimal, never a range. Real measured values replace the samples before launch. |
+| 14 | Feel: "Joints blur every impact. A tube echoes it back." / "Pure contact. Then calm." / vibration graph | Feel chapter, G02 | ⚠️ Unverified (reasoned, not measured) | Lab vibration decay test against tubular rackets; G02 stays "Illustrative" until then. |
+| 15 | Certificate of measurement with serial number (sample KQ-000427, 355.2 g, 250.4 mm, 38.00 mm, 0.012 mm) | Identical chapter, reserve gallery, trust list | ⚠️ Commitment + ℹ️ sample | A process to measure and print a card for every racket. The card shown is labelled "Sample card". |
+| 16 | "Space-grade", "two feels": Command (soft core, 3K face), Pace (two-density core, 12K face) | Choose your feel, reserve page | ⚠️ Unverified | Factory confirms both layups and cores can be moulded in the same tool. |
+| 17 | Comparison values: paper 100 µm, human hair 70 µm | Precision chapter, G03 | ℹ️ General knowledge | Typical values. |
 
-| 17 | Edition prices: KINETIQ €410, Founders Series €990, Atelier Edition €2,900 | `site.ts`, reserve page | ⚠️ Owner to confirm | Set by Claude as a starting point (2026-10-21), not by the owner. |
-| 18 | "Founders Series: Numbered 001 to 500. Never made again." | Reserve page | ⚠️ Scarcity claim | Must be true: cap at 500 (set `available: false` when sold; Stripe can't count for us), and never reissue. Laser-marked number, first out of the mould, signed card: production commitments. |
-| 19 | "Atelier Edition: Fifty rackets. One for each name." Name on card, film of your racket leaving the mould, hand-finished, fitted case | Reserve page | ⚠️ Scarcity + commitments | Cap at 50; the film and case need a supplier and a process. |
-| 20 | "We only ask for what we need to deliver it: your email, name and address." | Reserve page | ✅ True by design | Keep Stripe Checkout settings as in `route.ts` (no phone, billing address auto). Privacy policy still needed. |
+## Editions and commerce
 
-Also needed before launch, not claims: terms of sale, withdrawal/refund policy, privacy policy, imprint/contact (required for EU/CH e-commerce), and real Stripe keys.
+| # | Claim | Where | Status | Needed before launch |
+| --- | --- | --- | --- | --- |
+| 18 | Prices: ConQuer €410, VanQuish €990, InviQtus €2,900 | `lineup.ts`, landing editions, reserve page | ⚠️ Owner to confirm | Set by Claude as a starting point (2026-10-21). |
+| 19 | VanQuish: "Numbered 001 to 500 ... First out of the mould. Never made again." | Editions, reserve page, gallery card | ⚠️ Scarcity claim | Cap at 500 (`available: false` when sold out; Stripe does not count for us) and never reissue. Laser-marked number and first-out-of-the-mould are production commitments. |
+| 20 | InviQtus: invite only, 50 sets of three rackets, numbered fitted case | Editions, reserve page | ⚠️ Scarcity + commitments | Cap at 50. Set `INVITE_CODES` to enforce invitations; a case supplier. |
+| 21 | Ambassador extras above €2,000: three rackets autographed by the ambassador, one-on-one session at the next Málaga P1 | `lineup.ts` (`ambassador.confirmed = false`), editions, reserve page, G12 | ⛔ Blocked | Owner asked for Paquito Navarro ("El Paco"). Research: "El Paco" is not his known nickname, and he is a Bullpadel athlete with a signature racket. The site shows the neutral "our Premier Padel ambassador" until a signed agreement exists; then set `confirmed: true`. Also: no dates for a 2027 Málaga P1 are published yet; Premier Padel is a trademark (check the wording "Premier Padel ambassador"); a coaching session sold with goods is a service commitment (terms, travel, cancellation). Never draw, trace or generate an autograph. |
+| 22 | Paid in full today; "Ships January 2027" | Hero note, finale, reserve page | ⚠️ Commitment | Production schedule confirmed by the factory. EU delivery rules (Directive 2011/83/EU Art. 18). |
+| 23 | "Fully refundable until your racket ships" | Hero note, Identical CTA, finale, reserve page | ⚠️ Commitment | Terms of sale and a monitored inbox. Separate from the 14-day statutory withdrawal right after delivery. |
+| 24 | "Free delivery in Europe, duties included" | Reserve trust list | ⚠️ Commitment | DDP shipping from CH to the EU (EU VAT registration or a fiscal representative). Accountant sign-off. |
+| 25 | Only what is needed to deliver: name, email, delivery address, card | Reserve form, `api/reserve/route.ts` | ✅ True by design | No phone, no account, no marketing opt-in. Privacy policy still needed. |
+
+Also needed before launch, not claims: terms of sale, withdrawal and refund policy, privacy policy, imprint and contact
+(required for EU and CH e-commerce), a consent line linking them above Place Reservation, and live Stripe keys.
+
+Retired on 2026-10-21 (research, see `docs/research/non-tubular.md`): "The world's first one-piece padel racket"
+(DOPE Rackets publishes a "carbon monocoque ... single piece"; Babolat x Lamborghini BL001 a "monocoque frame"),
+"Every padel racket is glued. Except one." (tubular rackets are co-cured in one press, not glued), "no glue anywhere"
+(pending factory confirmation), and any mention of the workshop, golf clubs or St. Gallen (owner).

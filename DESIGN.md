@@ -1,103 +1,72 @@
 # KINETIQ design
 
 Read this and `CLAUDE.md` before any interface or animation work.
-Brief (owner, 2026-10-21): an e-commerce landing page, conversion-optimised, with a Stripe checkout.
-It should feel like a product reveal (think a car maker unveiling a roadster). One call to action,
-placed at the emotional peaks. Full payment up front, shipping January 2027. Claims are bold by
-design; see `CLAIMS.md` for what needs proof before launch.
+Brief (owner, 2026-10-21): a launch page in the voice of a Tesla or Apple product reveal, a reservation flow
+modelled on the Tesla Roadster reserve page, and assets that read as expensive and high precision.
+Claims are bold by design; `CLAIMS.md` lists what needs proof before launch.
 
-## Conversion flow
-Modelled on a car-maker reservation page: the landing page builds desire and ends on its last
-"Reserve Now". The reserve page is a calm, two-column form: product visual left (sticky), choices right.
-Editions climb in exclusivity and price; "Fully refundable" appears next to the price and in the trust
-list; one action, "Pay by Card". We collect nothing; Stripe asks only for email, name, address and card.
+## Direction: "Out of the dark, measured."
+The racket rises out of a near-black studio into a single beam. Every chapter proves one claim with one
+photograph (an own Blender Cycles still) and one engineering graphic (SVG or canvas, drawn from
+`src/lib/racket-shape.ts`). Graphite neutrals, a warm amber data glow, and at most one ember-red line per
+image. Precision is the mood: hairlines, tabular numerals, weights with a decimal, nothing cartoonish.
+No real-time 3D anywhere: the owner rejected it as toy-like.
 
-## Direction
-A product reveal on a black stage. The racket rises out of the dark into studio light, and every chapter
-after that proves one claim with one big, simple idea: one piece, 15 µm, nothing glued, two identical
-rackets, Swiss Made. Wide, heavy type does the shouting. The page is quiet around it. Precision is the
-mood: thin rules, measured numbers, nothing decorative.
+## Owner rules (2026-10-21)
+- Fill wide screens. Content spans a 12-column grid with margins 20 / 64 / 128 px (390 / 1440 / 2560);
+  imagery is full-bleed. No left-aligned column beside an empty half, no 1200 px container on a 2560 screen.
+- Never 90% black. Fill rule (checked by the harness at every screenshot): at most 40% of a viewport at
+  luma ≤ 12, at least 8% at luma ≥ 40, and no flat-black vertical strip a quarter of the viewport wide.
+  Fix a failing section with light, a lift or a graphic; never lower the thresholds.
+- Text larger than Tesla's 14 px: nothing below 15 px anywhere, body 18 px and up, 16 px minimum on /reserve.
+- No motion toggle. `prefers-reduced-motion` is honoured silently.
+- Weights always carry a decimal (355.0 g, ±1.0 g), never a range.
+- Copy in the Tesla / Apple launch voice: short, declarative, a superlative backed by one fact. No middle dots,
+  no workshop, town, golf or supply-chain talk, never the banned lines listed in `src/content/copy.ts`.
+- One landing CTA, "Reserve Now", only in the hero, at the Identical peak, in the finale and as the compact
+  header button after the hero. On /reserve: "Pay with Card", then "Place Reservation", nothing after it.
 
-## References
-| Reference | Borrow | Avoid |
+## Colour tokens (`globals.css`)
+| Token | Hex | Role |
 | --- | --- | --- |
-| Car-maker product reveals | The dark stage, the slow light-up, specs as giant numbers, one "reserve" action | Countdown timers, fake scarcity |
-| lighthouse.storage/token (`docs/reference-notes.md`) | Scroll-scrubbed hero model, a skip link inside the pinned stage, Lenis off under reduced motion | Competing CTAs, a nav menu on a one-action page |
-| kinetiq-review.vercel.app (old reference) | Racket proportions, model names, padel shot vocabulary | Its assets (not cleared), mono eyebrows, numbered markers on non-sequences |
+| `--void` | #060607 | Page background |
+| `--stage` / `--lift` | #111113 / #2b2b31 | Graphite section floor and the radial lift behind graphics (G10) |
+| `--graphite`, `--graphite-2`, `--field` | #18181b, #202024, #141417 | Cards, secondary buttons, inputs |
+| `--hairline`, `--edge`, `--grid` | #2c2c31, #6b6e76, #26262a | Rules, input borders, drawing grids |
+| `--text`, `--steel`, `--muted` | #f5f5f3, #c9ccd1, #9b9ea6 | Headlines and primary CTA fill, leads and labels, fine print (7:1+ on --void) |
+| `--amber`, `--amber-hot` | #e3a467, #ffe2bf | Data glow, light lines (G09), selected edges. Never body text. |
+| `--ember` | #ff3a1e | One red line per image (scan line). Never UI text or a fill. |
+| `--swiss` | #da291c | The Swiss cross only |
+| `--paper`, `--ink` | #f3f2ee, #0a0a0a | The measurement card |
 
-## Colour tokens
-| Token | Hex | Role | Contrast notes |
+## Type
+Archivo (OFL, variable weight and width) for display and text; Saira (OFL) for data, labels and numerals.
+Headlines Archivo wdth 112 wght 580; record numerals wght 200–220, tabular; wordmark wdth 125 tracking 0.32em.
+Fluid scale up to 2560 in `globals.css` (`--fs-record` … `--fs-fine`); classes `.t-h1` … `.t-fine`.
+
+## Page
+| # | Section | Media | Motion (reduced motion: final state, no pin) |
 | --- | --- | --- | --- |
-| `--black` | #000000 | Stage, page background | |
-| `--surface` | #0d0d0e | Alternate chapter background | |
-| `--text` | #f5f5f3 | Headlines, body emphasis, the CTA fill | 19.6:1 on black |
-| `--muted` | #a3a3a8 | Body copy, labels | 8.1:1 on black, 7.4:1 on surface |
-| `--steel` | #d4d6da | Leads, secondary emphasis | 14:1 on black |
-| `--paper` | #f3f2ee | Measurement card only | Ink #0a0a0a on paper 18:1 |
-| `--swiss` | #da291c | Swiss flag only, never UI | |
+| 1 | Hero | K01 base → beam crossfade | Load reveal; scroll drift and veil |
+| 2 | Spec strip | G01 technical drawing | Numbers rise on entry |
+| 3 | One piece (pinned ≥ 900 px) | K02 edge-on → K03 cut-through + G07 sections | Light line sweep, beat crossfade |
+| 4 | Born whole | K06 mould, Swiss lockup, G13 badges | Scrubbed push-in, cavity glow |
+| 5 | Precision (pinned ≥ 900 px) | K05 scan, record counter; G03 tolerance graph | Counter 500 → 15 µm with an ember scan line |
+| 6 | Holes | K04 macro + G05 fibre flow; G06 drilled vs moulded | Ring glow, flow advection |
+| 7 | Feel | G02 vibration graph | Graph reveal on entry |
+| 8 | Identical | K07 five rackets; G04 spikes, G08 card; CTA 2 | Rise on entry |
+| 9 | Choose your feel | K08 pair (Command 3K, Pace 12K) | Rise on entry |
+| 10 | Editions | Three cards (K01 / K06 / K09) linking to /reserve?tier= | Rise on entry |
+| 11 | Finale | K01 in its beam; CTA 3 | Rise on entry |
+| /reserve | Sticky gallery (per-edition slides, G14 controls) + options column | Tier cards (G11 glyphs), feel swatches, trust list, Due Today, Pay with Card → form in place | Crossfades, fields rise 8 px |
 
-## Type scale
-One family: **Archivo** (OFL), variable weight and width.
-| Style | Family | Size (phone / desktop) | Weight | Line height | Tracking |
-| --- | --- | --- | --- | --- | --- |
-| Record number | Archivo wdth 125 | 7rem / 20rem | 800 | 0.85 | -0.025em |
-| Display | Archivo wdth 125 | 2.5rem / 5.75rem | 800 | 0.95 | -0.025em |
-| Display 2 | Archivo wdth 125 | 2rem / 4.5rem | 800 | 0.95 | -0.025em |
-| Display 3 | Archivo wdth 125 | 1.4rem / 2rem | 800 | 1.05 | -0.025em |
-| Lead | Archivo | 1.125rem / 1.375rem | 400 | 1.55 | 0 |
-| Body | Archivo | 1.0625rem | 400 | 1.55 | 0 |
-| Label | Archivo | 0.875rem | 400–500 | 1.4 | 0 |
-| Wordmark | Archivo wdth 125 | 0.9375rem | 700 | 1 | 0.32em |
+Stills are exported by `scripts/stills.mjs` from 16-bit Blender masters (not committed) to AVIF + WebP with
+phone crops (`src/content/stills.json`), and rendered with `<Still>` (`src/components/media/Still.tsx`).
+Graphics live in `src/components/graphics/` with review pages at `/lab/<id>` (dev only).
 
-## Spacing
-Base 4 px. Gutter `clamp(16px, 4vw, 56px)`. Sections 120 px top and bottom. Pinned stages are 100svh.
-Two-column split at 900 px. Line length under 62ch.
-
-## Motion language
-### Signature moment
-The reveal: on load, the 3D racket rises from below in the dark, turning, while the studio light comes
-up (2.6 s, `expo.out`). The supporting copy and specs arrive after it. As you scroll away, the racket
-turns edge-on: one piece, 38 mm.
-
-### Scroll chapters
-| # | Chapter | Pin | Scrub / trigger | Length | Motion-off version |
-| --- | --- | --- | --- | --- | --- |
-| 0 | Hero | No | Load-triggered reveal; scroll scrubs the racket edge-on | 1 screen | Static SVG still, all copy visible |
-| 1 | One piece | Yes | Scrub: an exploded stack (face, glue, core, glue, face, frame) closes up, the glue disappears, "1 part" | 2.6 screens | Three beats stacked, stack shown merged |
-| 2 | Precision | Yes | Scrub: counter 500 → 15 µm, comparison bars fill, record headline | 2 screens | 15 µm, bars full, headline visible |
-| 3 | Feel | No | Scrub: two vibration lines draw (glued vs one piece) | — | Lines fully drawn |
-| 4 | Holes and identical | No | None (hover tilt on the card, desktop only) | — | Same |
-| 5 | Swiss | No | None | — | Same |
-| 6 | Finale | No | None | — | Same |
-
-### Micro-interactions
-| Element | Trigger | Properties | Duration | Easing |
-| --- | --- | --- | --- | --- |
-| CTA | press | scale 0.97 | 160 ms | ease-out curve |
-| CTA | hover (fine pointer) | background colour | 200 ms | ease |
-| Motion switch | press | scale 0.97 | 160 ms | ease-out curve |
-| Model picker | select | background, colour | 200 ms | ease |
-| Measurement card | hover (fine pointer) | rotate -3° → 0°, translateY -6 px | 300 ms | ease-out curve |
-| Hero racket | pointer move (fine pointer) | small rotation toward the pointer | damped per frame | exponential |
-
-## 3D use
-One scene, the hero: a procedural racket built from `src/lib/racket-shape.ts` (outline, throat, 42 holes,
-38 mm extrusion with bevels), a canvas-drawn twill texture, clearcoat, and locally rendered Lightformers.
-Loaded after idle, DPR capped at 2 / 1.5, paused off-screen. Fallback: the inline SVG of the same shape.
-
-## Content inventory
-| Section | Copy | Media | CTA |
-| --- | --- | --- | --- |
-| Hero | Claim 1, Swiss Made, 15 µm | 3D racket / SVG still, four stats | Reserve Now |
-| One piece | Three beats | Layer stack | – |
-| Precision | Record claim, comparison | Counter, bars | Reserve Now (after) |
-| Feel | Three reasoned feel claims | Two vibration lines | – |
-| Holes + identical | Moulded holes, ±1 g / ±1 mm | Hole rings, measurement card | – |
-| Swiss | 100% Swiss Made, patented, St. Gallen | Swiss flag | – |
-| Finale | "The first run leaves the mould in January." Fully refundable | Soft spotlight | Reserve Now (last thing on the page; no FAQ after it) |
-| /reserve | Choose your edition (KINETIQ, Founders Series 500, Atelier Edition 50), choose your racket (Command, Pace), trust lines, Due today | Racket still with an edition badge (serial / No. 001/500 / No. 01/50) | Pay by Card (sticky bar on phones) |
-| /reserved | Confirmation and refund promise | – | Back to KINETIQ |
+## Micro-interactions
+Pressables scale 0.97 on `:active`; hover only behind `(hover: hover) and (pointer: fine)`; transform and
+opacity only, 150–300 ms ease-out (`--ease-out`); exits faster than entries.
 
 ## Languages
-English only at launch (`lang="en"`). Archivo is loaded with `latin` and `latin-ext`, which also covers
-German, French, Italian and Spanish if they are added later.
+English only at launch (`lang="en"`). Archivo and Saira load `latin` and `latin-ext`.

@@ -13,6 +13,11 @@ type Props = {
   length?: number;
   /** Build the scrubbed timeline. Selectors are scoped to this chapter. */
   build: (tl: gsap.core.Timeline) => void | (() => void);
+  /**
+   * Media query for pinning. Keep it in step with the CSS that layers the beats (see `.pin-layered`
+   * in globals.css): below it, or with reduced motion, the beats simply stack.
+   */
+  media?: string;
   children: ReactNode;
 };
 
@@ -20,7 +25,9 @@ type Props = {
  * A pinned, scrubbed chapter with a visible Skip link. With motion off it is a
  * normal section: no pin, no scrub, and the CSS shows the final state.
  */
-export function PinnedChapter({ id, nextId, labelledBy, className = "", length = 2, build, children }: Props) {
+export const PIN_MEDIA = "(min-width: 900px) and (prefers-reduced-motion: no-preference)";
+
+export function PinnedChapter({ id, nextId, labelledBy, className = "", length = 2, build, media = PIN_MEDIA, children }: Props) {
   const root = useRef<HTMLElement>(null);
   const { motionOn } = useMotion();
 
@@ -28,7 +35,7 @@ export function PinnedChapter({ id, nextId, labelledBy, className = "", length =
     () => {
       if (!motionOn) return;
       const mm = gsap.matchMedia();
-      mm.add("(prefers-reduced-motion: no-preference)", () => {
+      mm.add(media, () => {
         const tl = gsap.timeline({
           defaults: { ease: "none" },
           scrollTrigger: {

@@ -1,0 +1,92 @@
+.chapter {
+  background: var(--void);
+}
+.stage {
+  position: relative;
+  min-height: 100svh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  justify-items: center;
+  text-align: center;
+  overflow: hidden;
+  isolation: isolate;
+  padding: calc(var(--chrome-h) + clamp(8px, 2vh, 40px)) var(--margin) clamp(40px, 6vh, 110px);
+}
+.media {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+}
+.still img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.scanTrack {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+.scan {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  opacity: 0;
+}
+.scan::before {
+  content: "";
+  position: absolute;
+  top: 18%;
+  bottom: 8%;
+  left: 0;
+  width: 1px;
+  background: linear-gradient(180deg, transparent, var(--ember) 18%, var(--ember) 82%, transparent);
+  box-shadow: 0 0 12px 1px rgb(255 58 30 / 0.65), 0 0 40px 4px rgb(255 58 30 / 0.18);
+}
+.record {
+  margin: 0;
+  font-weight: inherit;
+}
+.number {
+  display: inline-flex;
+  align-items: baseline;
+  font-size: clamp(7rem, 14vw, 22.5rem);
+}
+.value {
+  min-width: 2ch;
+  text-align: right;
+}
+.unit {
+  font-size: 0.3em;
+}
+.line {
+  grid-row: 3;
+  max-width: 34ch;
+}
+.graphSection {
+  display: grid;
+  gap: clamp(40px, 4vw, 112px);
+  padding: clamp(96px, 8vw, 220px) var(--margin);
+}
+.head {
+  display: grid;
+  gap: 24px;
+}
+@media (min-width: 900px) {
+  .head {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--gutter);
+    align-items: end;
+  }
+  .head :global(.t-lead) {
+    max-width: 48ch;
+  }
+}
+@media (max-width: 699px) {
+  .number {
+    font-size: 7rem;
+  }
+}

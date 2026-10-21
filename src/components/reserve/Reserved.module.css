@@ -1,0 +1,20 @@
+.page {
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: calc(var(--chrome-h) + 48px) var(--margin) 96px;
+  background: radial-gradient(ellipse 60% 50% at 50% 45%, var(--lift), transparent 75%), var(--void);
+}
+.box {
+  display: grid;
+  justify-items: center;
+  gap: clamp(18px, 1.2vw + 8px, 32px);
+  max-width: 900px;
+  text-align: center;
+}
+.eyebrow {
+  letter-spacing: 0.24em;
+}
+.tier {
+  font-size: clamp(1.25rem, 0.5vw + 1.05rem, 1.75rem);
+}

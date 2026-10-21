@@ -6,20 +6,16 @@ Nothing is added to the repo without an entry here.
 ## Fonts
 | Font | Source | Licence | Used for |
 | --- | --- | --- | --- |
-| Archivo (variable, weight and width axes) | Google Fonts, by Omnibus-Type; self-hosted at build time by `next/font` (no font files in the repo) | SIL Open Font License 1.1 | All text; display at width 125 |
+| Archivo (variable, weight and width axes) | Google Fonts, by Omnibus-Type; self-hosted at build time by `next/font` (no font files in the repo) | SIL Open Font License 1.1 | Headlines, body, wordmark |
+| Saira (variable weight) | Google Fonts, by Omnibus-Type; self-hosted at build time by `next/font` | SIL Open Font License 1.1 | Data labels, numerals, captions |
 
 ## Images and graphics
 | File | Source | Licence | Notes |
 | --- | --- | --- | --- |
-| Racket still (`src/components/RacketSvg.tsx`, inline SVG) | Drawn in code for this repo from `src/lib/racket-shape.ts` | Owned by KINETIQ | Hero image before 3D loads, and with motion off |
-| Swiss flag (`src/components/sections/Swiss.tsx`, inline SVG) | Drawn in code (national emblem geometry) | Public symbol; use is governed by the Swiss Coat of Arms Protection Act, see CLAIMS.md #4 | Swiss section |
-| Layer stack, hole rings, vibration waves | CSS and inline SVG drawn for this repo | Owned by KINETIQ | Chapters |
-
-## 3D models and textures
-| File | Source | Licence | Notes |
-| --- | --- | --- | --- |
-| Racket model | Generated in code (`src/components/three/RacketModel.tsx`) from `src/lib/racket-shape.ts`; carbon weave texture drawn on a canvas at runtime | Owned by KINETIQ | Hero |
-| Studio lighting | drei `Lightformer`s rendered locally; no HDR files downloaded | n/a | Hero |
+| Product stills (`public/stills/K01` to `K09`, AVIF and WebP) | Rendered for this repo in Blender 4.2 Cycles from a procedural model of `src/lib/racket-shape.ts`; procedural carbon weave textures generated in code | Owned by KINETIQ | 16-bit masters are kept outside the repo and exported with `scripts/stills.mjs` |
+| Data graphics G01 to G13 (`src/components/graphics/`) | Drawn in code (SVG and canvas) for this repo | Owned by KINETIQ | Values marked "Illustrative" until measured (see CLAIMS.md) |
+| Swiss cross (Born whole lockup, badges, measurement card) | Drawn in code (national emblem geometry) | Public symbol; commercial use is governed by the Swiss Coat of Arms Protection Act, see CLAIMS.md #10 | |
+| Weave swatches on /reserve | Drawn in code (SVG patterns) | Owned by KINETIQ | |
 
 ## Not cleared
 - Assets from https://kinetiq-review.vercel.app (made by Erik): not imported. They need written

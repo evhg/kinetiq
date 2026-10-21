@@ -1,0 +1,128 @@
+.section {
+  display: grid;
+  gap: clamp(48px, 4vw, 112px);
+  padding: clamp(96px, 8vw, 220px) var(--margin);
+}
+.title {
+  text-align: center;
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--gutter);
+}
+.item {
+  display: grid;
+}
+.card {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  border: 1px solid var(--hairline);
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--graphite);
+  text-decoration: none;
+  transition: border-color 200ms ease, transform 160ms var(--ease-out);
+}
+.card:active {
+  transform: scale(0.99);
+}
+.media {
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: var(--stage);
+}
+.still img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 600ms var(--ease-out);
+}
+.body {
+  display: grid;
+  align-content: start;
+  gap: clamp(12px, 0.8vw, 20px);
+  padding: clamp(20px, 1.6vw, 40px);
+}
+.head {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 14px;
+}
+.glyph {
+  width: clamp(36px, 1.2vw + 20px, 48px);
+  height: clamp(36px, 1.2vw + 20px, 48px);
+  color: var(--steel);
+}
+.name {
+  font-family: var(--font-display);
+  font-variation-settings: "wdth" 112;
+  font-weight: 580;
+  font-size: clamp(1.625rem, 1vw + 1rem, 2.5rem);
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+}
+.status {
+  font-size: clamp(1rem, 0.3vw + 0.9rem, 1.25rem);
+  color: var(--text);
+}
+.status[data-tier="limited"] {
+  color: var(--amber);
+}
+.status[data-tier="invite"] {
+  color: var(--muted);
+}
+.price {
+  font-size: clamp(1.5rem, 0.6vw + 1.2rem, 2rem);
+  color: var(--text);
+}
+.line {
+  color: var(--steel);
+  font-size: clamp(1.125rem, 0.3vw + 1rem, 1.375rem);
+}
+.includes {
+  display: grid;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--hairline);
+  color: var(--steel);
+  font-size: clamp(1rem, 0.25vw + 0.95rem, 1.25rem);
+}
+.includes li {
+  position: relative;
+  padding-left: 20px;
+}
+.includes li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.7em;
+  width: 10px;
+  height: 1px;
+  background: var(--amber);
+}
+@media (hover: hover) and (pointer: fine) {
+  .card:hover {
+    border-color: var(--edge);
+  }
+  .card:hover .still img {
+    transform: scale(1.02);
+  }
+}
+@media (max-width: 899px) {
+  .cards {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: 84%;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    margin-inline: calc(var(--margin) * -1);
+    padding-inline: var(--margin);
+    scroll-padding-inline: var(--margin);
+    scrollbar-width: none;
+  }
+  .item {
+    scroll-snap-align: start;
+  }
+}

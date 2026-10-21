@@ -16,32 +16,35 @@ older versions: read `AGENTS.md` and the guide in `node_modules/next/dist/docs/`
 
 ## Stack
 Next.js 16 (App Router, TypeScript, Turbopack) · React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` ·
-Lenis · three.js via `@react-three/fiber` and `@react-three/drei` · Playwright (dev only).
+Lenis · Playwright (dev only). No real-time 3D: product imagery is Blender stills (see Stills and graphics).
 
 ## Scripts
 - `npm run dev`: local dev server.
 - `npm run build` / `npm start`: production build and server.
 - `npm run lint`, `npm run typecheck`.
 - `npm run check`: the check harness (see Definition of done). `--skip-build`, `--url=<url>`,
-  `--study` (reference mode), `--only=phone|desktop`, `--mode=motion|reduced`, `--verbose`,
+  `--study` (reference mode), `--only=phone|desktop|wide`, `--mode=motion|reduced`, `--verbose`,
   `--path=/reserve` (any page; run it for `/` and `/reserve`).
   Output goes to `.checks/<label>/` (git-ignored). Uses a free port per run.
+- `node scripts/stills.mjs <masters dir> [id ...]`: export Blender masters to `public/stills/` (AVIF + WebP).
 - Vercel installs with `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm ci` (`vercel.json`), so builds never
   download browsers. Locally: `npx playwright install chromium` once.
 
 ## Folders
 - `src/app/`: routes, `layout.tsx` (motion init script, providers), `globals.css`.
-- `src/components/motion/`: `MotionProvider` (motion state), `MotionToggle`, `SmoothScroll` (Lenis).
-- `src/components/three/`: lazy R3F scenes. `LazyHeroScene` owns the fallback and loading rules.
+- `src/components/motion/`: `MotionProvider` (reduced-motion state), `SmoothScroll` (Lenis), `PinnedChapter`.
+- `src/components/landing/`: one component + CSS module per landing section; `Reveal` and `Scrub` helpers.
+- `src/components/graphics/`: data graphics G01–G13 (SVG/canvas), each with a review page at `/lab/<id>` (dev only).
+- `src/components/media/Still.tsx`: product stills with phone art direction. `src/components/reserve/`: /reserve.
+- `src/components/chrome/`: preview banner, header (compact Reserve Now after the hero), footer.
 - `src/lib/gsap.ts`: the only place GSAP plugins are registered. Import gsap from here.
-- `src/content/`: all copy that carries a claim (`claims.ts`) or a commercial fact (`site.ts`: editions,
-  prices, limits, ship date, refund, models, CTA labels). Change words there, not in components.
-- Flow (modelled on a car-maker reservation page): landing page with one CTA, "Reserve Now", at three
-  peaks and nothing after the last one → `/reserve` (edition, then racket, trust lines, "Due today",
-  "Pay by Card") → `src/app/api/checkout/route.ts` (Stripe Checkout via REST, inline `price_data`,
-  preview mode without a key) → `/reserved`. `/checkout` redirects to `/reserve`.
-- Data minimisation: we collect nothing ourselves; Stripe collects email, name, delivery address and
-  card only. Don't add phone, accounts or opt-ins without a fulfilment reason.
+- `src/content/`: all words. `copy.ts` (landing), `lineup.ts` (editions, prices, limits, ambassador gate,
+  delivery countries), `reserve.ts`, `site.ts` (CTA labels, ship date, refund, feels). Change words there.
+- Flow (Tesla Roadster reserve page): landing page with one CTA, "Reserve Now" → `/reserve?tier=` (edition,
+  feel, trust lines, Due Today, "Pay with Card" expands the form in place) → "Place Reservation" posts to
+  `src/app/api/reserve/route.ts` (PaymentIntent via REST, amount from `lineup.ts`) and confirms the card
+  with Stripe's Payment Element in place → confirmation in place, or `/reserved` after 3-D Secure.
+- Data minimisation: name, email, delivery address and card only. No phone, accounts or opt-ins.
 - `public/`: static assets and `CREDITS.md`. `scripts/`: harness. `docs/`: research notes.
 - `.claude/skills/`: saved reference skills (GSAP, Emil Kowalski, our frontend-design notes).
 
@@ -69,27 +72,23 @@ Lenis · three.js via `@react-three/fiber` and `@react-three/drei` · Playwright
 - Cross-fades in scrubbed sequences must not overlap: two half-faded headings are unreadable.
 
 ## Motion safety
-- `html[data-motion="on|off"]` is set before first paint by the inline script in `layout.tsx`:
-  saved choice first, otherwise `prefers-reduced-motion`.
-- The Motion on/off switch is always visible and saved in `localStorage` (`kinetiq-motion`).
-- Motion off means: no pins, no scrub, no Lenis, no 3D (static image), CSS durations forced to 0.
-  Every section must still read correctly, in order, with all its content visible.
-- Read the state with `useMotion()`; pass `motionOn` as a `useGSAP` dependency with
-  `revertOnUpdate: true`.
+- No motion toggle (owner, 2026-10-21). `html[data-motion="on|off"]` follows `prefers-reduced-motion` only,
+  set before first paint by the inline script in `layout.tsx`.
+- Reduced motion means: no pins, no scrub, no Lenis, CSS durations forced to 0. Every section must still
+  read correctly, in order, with all its content visible. Server render shows the final state.
+- Read the state with `useMotion()`; pass `motionOn` as a `useGSAP` dependency with `revertOnUpdate: true`.
+- Pinned chapters pin only at ≥ 900 px (`PIN_MEDIA`); their beats layer via `.pin-layered` in globals.css.
 
-## 3D
-- three.js only through React Three Fiber, loaded with `next/dynamic` + `ssr: false` from a client
-  component (`LazyScene`), after the page is idle.
-- Device pixel ratio capped: 2 on desktop, 1.5 on phones (`dpr={[1, max]}`).
-- `frameloop="never"` when off-screen (IntersectionObserver) or the tab is hidden.
-- Dispose: keep geometries/materials declarative so R3F disposes them; dispose anything created
-  imperatively (textures, render targets) in effect cleanup.
-- Static fallback image always rendered underneath; shown alone when WebGL is missing or motion is off.
-- No drei helpers that fetch from CDNs at runtime (e.g. `Environment` presets). Self-host HDRs and models.
+## Stills and graphics
+- Product imagery = own Blender Cycles stills (no people, no other brands, no autographs). Masters are 16-bit
+  PNG, not committed; `scripts/stills.mjs` dithers and exports AVIF + WebP crops listed in `stills.json`.
+- `<Still>` renders nothing for a still that has not been exported, so a section must still read without it.
+- Graphics are SVG or canvas, drawn from `racket-shape.ts`. Text in them stays ≥ 15 px at 390 px wide.
+  Canvas loops cap at 30 fps, pause off-screen and when hidden, DPR ≤ 2. Unmeasured data says "Illustrative".
 
 ## Performance budget (phone profile: 4× CPU, 150 ms RTT, 1.6 Mbps)
 - LCP ≤ 2.5 s, CLS ≤ 0.1, INP ≤ 200 ms, no dropped frames while scrolling.
-- The LCP element is text or a static image, never the canvas. Keep hero JavaScript small; 3D after.
+- The LCP element is the hero still or the h1. Keep hero JavaScript small; graphics load with their sections.
 - Fonts with `next/font` (self-hosted at build), `display: swap`, subsets for every brief language.
 
 ## Accessibility
@@ -103,28 +102,28 @@ Lenis · three.js via `@react-three/fiber` and `@react-three/drei` · Playwright
 - No placeholder text in a finished build. The preview banner is deliberate, not a placeholder.
 - Every claim is listed in `CLAIMS.md`. A new claim gets a row there in the same commit.
 - Launch gate: `NEXT_PUBLIC_LAUNCHED=true` (removes banner and noindex) only when CLAIMS.md is cleared.
-- Stripe: `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_SITE_URL` (see `.env.example`). One landing CTA label
-  everywhere: "Reserve Now" (`site.ctaLabel`); the only other action is "Pay by Card" (`site.payLabel`).
-- An edition that sells out: set `available: false` in `site.ts` (shows "Sold out", blocks payment).
+- Stripe: `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, optional `INVITE_CODES` (see
+  `.env.example`). Without keys, /reserve runs in preview (Place Reservation disabled).
+- One landing CTA label: "Reserve Now" (`site.ctaLabel`); then "Pay with Card" and "Place Reservation".
+- An edition that sells out: set `available: false` in `lineup.ts` (shows "Sold out", blocks payment).
+- The ambassador (Invite Only extras) stays neutral until `ambassador.confirmed` is true (`lineup.ts`).
 - Fonts must cover every language listed in `DESIGN.md`.
 
 ## Definition of done
 1. `npm run lint`, `npm run typecheck` and `npm run build` pass.
-2. `npm run check` passes: phone + desktop, motion + reduced motion, 0 console errors, no blank frames
-   (including the 3D region), no horizontal overflow, budgets met, Skip link and Motion switch work.
+2. `npm run check` passes for `/` and `--path=/reserve`: phone, desktop and wide (2560), motion and reduced
+   motion, 0 console errors, no blank frames, the fill rule, no horizontal overflow, budgets met, Skip link works.
 3. You have opened and reviewed the screenshots yourself: fix anything blank, overlapping, cropped or
    unreadable, then rerun.
 4. After pushing, run `npm run check -- --url=<production url>` (and `--path=/reserve`) on the live site.
 
 ## Notes
-- Headless WebGL needs swiftshader flags (the harness sets them). Long-frame counts from headless runs
-  are a smoke signal, not a device measurement.
-- The harness launches Chromium with `--disable-gpu-compositing`: with GPU compositing, swiftshader
-  stalls screenshots after a WebGL frame (captures hang for minutes). Don't remove it.
+- Long-frame counts from headless runs are a smoke signal, not a device measurement.
+- The harness launches Chromium with `--disable-gpu-compositing` (it stalled captures after WebGL frames).
 - The harness scrolls natively (`window.scrollTo`); Lenis follows native scroll events.
-- drei `<Environment>` is the expensive part of the hero in software rendering; keep its
-  `resolution` at 64 unless reflections need to be sharper.
 - Stale servers: never `pkill -f "next start"` (it matches your own shell and kills it). Kill by
   process name: `for d in /proc/[0-9]*; do [ "$(cat $d/comm)" = "next-server (v1" ] && kill ${d#/proc/}; done`.
 - Production URL: https://kinetiq-seven-neon.vercel.app (Vercel team EVHG, project `kinetiq`).
 - `docs/reference-notes.md`: study of lighthouse.storage/token (techniques only, nothing copied).
+- `docs/research/non-tubular.md`: construction terms ("no frame tube", not "tubeless") and factory questions.
+- Never name the factory, its town, its patents or its other customers in the public repo or on the site.

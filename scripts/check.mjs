@@ -1,13 +1,16 @@
 #!/usr/bin/env node
 // Check harness: builds and serves the production site (or targets --url),
-// then screenshots every 10% of the page at phone and desktop sizes, with
-// motion on and with reduced motion. Records console errors, LCP, CLS,
-// horizontal overflow, long frames while scrolling, and blank frames.
+// then screenshots every 10% of the page at phone, desktop and wide (2560) sizes,
+// with motion on and with reduced motion. Records console errors, LCP, CLS,
+// horizontal overflow, long frames while scrolling, blank frames and the fill
+// rule (no mostly-black viewport, no dead black strip).
 //
 // Usage:
 //   node scripts/check.mjs                      build + start locally
 //   node scripts/check.mjs --skip-build         reuse the last .next build
 //   node scripts/check.mjs --url=https://x.app  test a deployed URL
+//   node scripts/check.mjs --path=/reserve      test another page
+//   node scripts/check.mjs --only=wide          one viewport (phone|desktop|wide)
 //   node scripts/check.mjs --url=... --study    reference mode: also detect
 //                                               animation libraries and pins
 // Output: .checks/<label>/ (git-ignored): PNGs, report.json, report.md.
@@ -52,7 +55,13 @@ const BUDGET = { lcpMs: 2500, cls: 0.1 };
 const VIEWPORTS = [
   { name: "phone", width: 390, height: 844, isMobile: true, hasTouch: true, deviceScaleFactor: 2 },
   { name: "desktop", width: 1440, height: 900, isMobile: false, hasTouch: false, deviceScaleFactor: 1 },
+  { name: "wide", width: 2560, height: 1440, isMobile: false, hasTouch: false, deviceScaleFactor: 1 },
 ];
+// Fill rule (DESIGN.md): no viewport may read as mostly black, at any width.
+// - at most 40% of pixels at luma <= 12 (flat black)
+// - at least 8% of pixels at luma >= 40 (something lit)
+// - no vertical strip of flat black as wide as a quarter of the viewport (640 px at 2560, 360 px at 1440)
+const FILL = { darkLuma: 12, maxDark: 0.4, litLuma: 40, minLit: 0.08, deadStrip: 0.25 };
 const MODES = [
   { name: "motion", reducedMotion: "no-preference" },
   { name: "reduced", reducedMotion: "reduce" },
@@ -143,28 +152,44 @@ function metricsInit() {
   requestAnimationFrame(loop);
 }
 
-// Luminance standard deviation of a PNG, computed in a scratch page.
+// Luminance statistics of a PNG, computed in a scratch page: contrast (std), the share of flat-black
+// and lit pixels, and the widest run of columns that are flat black top to bottom (as a share of width).
 async function imageStats(statsPage, png) {
-  return statsPage.evaluate(async (b64) => {
-    const blob = await (await fetch(`data:image/png;base64,${b64}`)).blob();
-    const bmp = await createImageBitmap(blob);
-    const w = 96;
-    const h = Math.max(1, Math.round((bmp.height / bmp.width) * w));
-    const c = new OffscreenCanvas(w, h);
-    const ctx = c.getContext("2d");
-    ctx.drawImage(bmp, 0, 0, w, h);
-    const d = ctx.getImageData(0, 0, w, h).data;
-    let sum = 0;
-    let sq = 0;
-    const n = d.length / 4;
-    for (let i = 0; i < d.length; i += 4) {
-      const l = 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
-      sum += l;
-      sq += l * l;
-    }
-    const mean = sum / n;
-    return { mean, std: Math.sqrt(Math.max(0, sq / n - mean * mean)) };
-  }, png.toString("base64"));
+  return statsPage.evaluate(
+    async ({ b64, fill }) => {
+      const blob = await (await fetch(`data:image/png;base64,${b64}`)).blob();
+      const bmp = await createImageBitmap(blob);
+      const w = 192;
+      const h = Math.max(1, Math.round((bmp.height / bmp.width) * w));
+      const c = new OffscreenCanvas(w, h);
+      const ctx = c.getContext("2d");
+      ctx.drawImage(bmp, 0, 0, w, h);
+      const d = ctx.getImageData(0, 0, w, h).data;
+      let sum = 0;
+      let sq = 0;
+      let dark = 0;
+      let lit = 0;
+      const colLit = new Uint8Array(w);
+      const n = d.length / 4;
+      for (let i = 0; i < d.length; i += 4) {
+        const l = 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
+        sum += l;
+        sq += l * l;
+        if (l <= fill.darkLuma) dark++;
+        else colLit[(i / 4) % w] = 1;
+        if (l >= fill.litLuma) lit++;
+      }
+      let run = 0;
+      let widest = 0;
+      for (let x = 0; x < w; x++) {
+        run = colLit[x] ? 0 : run + 1;
+        widest = Math.max(widest, run);
+      }
+      const mean = sum / n;
+      return { mean, std: Math.sqrt(Math.max(0, sq / n - mean * mean)), dark: dark / n, lit: lit / n, deadStrip: widest / w };
+    },
+    { b64: png.toString("base64"), fill: FILL },
+  );
 }
 
 // Viewport screenshot straight from the DevTools Protocol, with a hard timeout.
@@ -321,7 +346,20 @@ async function runCase(browser, statsPage, vp, mode) {
     const png = await capture(page, join(outDir, file));
     if (args.verbose) log(`${id} ${i * 10}%: screenshot ${Date.now() - shotStart} ms`);
     const stats = await imageStats(statsPage, png);
-    const step = { pct: i * 10, file, std: Number(stats.std.toFixed(1)), blank: stats.std < 2 };
+    const step = {
+      pct: i * 10,
+      file,
+      std: Number(stats.std.toFixed(1)),
+      blank: stats.std < 2,
+      dark: Number(stats.dark.toFixed(2)),
+      lit: Number(stats.lit.toFixed(2)),
+      deadStrip: Number(stats.deadStrip.toFixed(2)),
+    };
+    step.fillFail = [
+      step.dark > FILL.maxDark ? `${Math.round(step.dark * 100)}% flat black` : null,
+      step.lit < FILL.minLit ? `only ${Math.round(step.lit * 100)}% lit` : null,
+      step.deadStrip >= FILL.deadStrip ? `dead strip ${Math.round(step.deadStrip * 100)}% wide` : null,
+    ].filter(Boolean);
     if (study) step.study = await studySnapshot(page);
     steps.push(step);
   }
@@ -348,12 +386,13 @@ async function runCase(browser, statsPage, vp, mode) {
     consoleErrors,
     failedRequests,
     blankSteps: steps.filter((s) => s.blank).map((s) => s.pct),
+    fillSteps: steps.filter((s) => s.fillFail.length).map((s) => `${s.pct}% (${s.fillFail.join(", ")})`),
     steps,
     libs,
   };
 }
 
-// Functional checks for the shared UI: Skip link and Motion switch.
+// Functional checks for the shared UI: the Skip link of the first pinned chapter.
 async function interactionChecks(page) {
   const out = {};
   const skipLink = page.locator(".skip-link").first();
@@ -375,17 +414,6 @@ async function interactionChecks(page) {
     }, href.slice(1));
     out.skip.ok = out.skip.focused && out.skip.targetTop !== null && Math.abs(out.skip.targetTop) < 120;
   }
-  const toggle = page.locator(".motion-toggle").first();
-  if ((await toggle.count()) > 0) {
-    const before = await page.evaluate(() => document.documentElement.dataset.motion);
-    await toggle.click();
-    await page.reload({ waitUntil: "load" });
-    await page.waitForTimeout(800);
-    const afterReload = await page.evaluate(() => document.documentElement.dataset.motion);
-    const pressed = await page.locator(".motion-toggle").first().getAttribute("aria-pressed");
-    out.motionSwitch = { before, afterReload, pressed, ok: before !== afterReload && pressed === String(afterReload === "on") };
-    await page.evaluate(() => localStorage.clear());
-  }
   return out;
 }
 
@@ -399,7 +427,7 @@ function evaluate(results) {
     if (r.viewport === "phone" && r.lcpMs > BUDGET.lcpMs) failures.push(`${r.id}: LCP ${r.lcpMs} ms > ${BUDGET.lcpMs} ms`);
     if (r.sceneState === "webgl" && r.sceneStd !== null && r.sceneStd < 2) failures.push(`${r.id}: 3D scene looks blank`);
     if (r.interactions?.skip && !r.interactions.skip.ok) failures.push(`${r.id}: Skip link did not land on its target with focus`);
-    if (r.interactions?.motionSwitch && !r.interactions.motionSwitch.ok) failures.push(`${r.id}: Motion switch did not persist across reload`);
+    if (r.fillSteps.length) failures.push(`${r.id}: fill rule broken at ${r.fillSteps.join("; ")}`);
   }
   return failures;
 }
@@ -407,7 +435,7 @@ function evaluate(results) {
 function markdown(results, failures) {
   const rows = results.map(
     (r) =>
-      `| ${r.id} | ${r.lcpMs} (${r.lcpElement || "?"}) | ${r.clsAfterScroll} | ${r.longFrames}/${r.frames} (worst ${r.worstFrameMs} ms) | ${r.sceneState ?? "-"} (${r.sceneStd ?? "-"}) | ${r.interactions?.skip ? (r.interactions.skip.ok ? "ok" : "FAIL") : "-"} / ${r.interactions?.motionSwitch ? (r.interactions.motionSwitch.ok ? "ok" : "FAIL") : "-"} | ${r.consoleErrors.length} | ${r.blankSteps.length ? r.blankSteps.join(",") : "none"} |`,
+      `| ${r.id} | ${r.lcpMs} (${r.lcpElement || "?"}) | ${r.clsAfterScroll} | ${r.longFrames}/${r.frames} (worst ${r.worstFrameMs} ms) | ${r.sceneState ?? "-"} (${r.sceneStd ?? "-"}) | ${r.interactions?.skip ? (r.interactions.skip.ok ? "ok" : "FAIL") : "-"} | ${r.consoleErrors.length} | ${r.blankSteps.length ? r.blankSteps.join(",") : "none"} | ${r.fillSteps.length ? r.fillSteps.length : "ok"} |`,
   );
   return [
     `# Check report: ${targetUrl}`,
@@ -415,8 +443,8 @@ function markdown(results, failures) {
     `Run at ${new Date().toISOString()}. Phone runs use 4x CPU slowdown, 150 ms RTT, 1.6 Mbps.`,
     "Long frames are measured in headless Chromium with software WebGL, so treat them as a smoke signal, not a device measurement.",
     "",
-    "| Case | LCP ms (element) | CLS | Long frames >50 ms | Scene (contrast) | Skip / Motion switch | Console errors | Blank steps |",
-    "| --- | --- | --- | --- | --- | --- | --- | --- |",
+    "| Case | LCP ms (element) | CLS | Long frames >50 ms | Scene (contrast) | Skip link | Console errors | Blank steps | Fill rule |",
+    "| --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     ...rows,
     "",
     failures.length ? `## Failures\n\n${failures.map((f) => `- ${f}`).join("\n")}` : "## Result: all checks passed",

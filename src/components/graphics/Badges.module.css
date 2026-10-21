@@ -1,0 +1,40 @@
+/* G13: hairline badges. 1px --hairline border, 4px radius, Saira 16 / 18 / 20px (390 / 1440 / 2560), --steel. */
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(10px, 0.5vw + 6px, 20px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.badges[data-align="center"] {
+  justify-content: center;
+}
+.badges[data-layout="stack"] {
+  flex-direction: column;
+  align-items: stretch;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7em;
+  min-height: clamp(48px, 0.55vw + 42px, 60px);
+  padding: 0.5em 1.05em 0.5em 0.85em;
+  border: 1px solid var(--hairline);
+  border-radius: 4px;
+  font-family: var(--font-data);
+  font-size: clamp(1rem, 0.19vw + 15.26px, 1.25rem);
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: 0;
+  color: var(--steel);
+  white-space: nowrap;
+}
+.badges[data-layout="stack"] .badge {
+  white-space: normal;
+}
+.icon {
+  width: 1.4em;
+  height: 1.4em;
+  color: var(--steel);
+}

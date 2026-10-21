@@ -1,0 +1,34 @@
+.section {
+  display: grid;
+  gap: clamp(48px, 4vw, 120px);
+  padding: clamp(96px, 8vw, 220px) var(--margin);
+}
+.head {
+  display: grid;
+  gap: 24px;
+}
+.points {
+  display: grid;
+  gap: 32px;
+}
+.point {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  padding-top: 24px;
+  border-top: 1px solid var(--hairline);
+}
+@media (min-width: 900px) {
+  .head {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--gutter);
+    align-items: end;
+  }
+  .head :global(.t-lead) {
+    max-width: 50ch;
+  }
+  .points {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--gutter);
+  }
+}
