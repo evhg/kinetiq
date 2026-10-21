@@ -241,5 +241,14 @@
    1080
   ],
   "hash": "96edf26bcd"
+ },
+ "K01-hero-base-phone-portrait": {
+  "w": 1440,
+  "h": 2560,
+  "widths": [
+   828,
+   1170
+  ],
+  "hash": "c680452a9f"
  }
 }
