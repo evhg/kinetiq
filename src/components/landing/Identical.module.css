@@ -7,7 +7,7 @@
   text-align: center;
   overflow: hidden;
   isolation: isolate;
-  padding: clamp(96px, 9vh, 170px) var(--margin) 0;
+  padding: calc(var(--chrome-h) + clamp(16px, 3vh, 56px)) var(--margin) 0;
   background: var(--void);
 }
 .media {
@@ -29,7 +29,7 @@
   max-width: 20ch;
 }
 .copy :global(.t-lead) {
-  max-width: 50ch;
+  max-width: 64ch;
 }
 .proof {
   display: grid;
@@ -52,6 +52,10 @@
   text-align: center;
 }
 @media (min-width: 900px) {
+  /* A little taller than the screen: the covered still scales with it, so the rackets clear the copy. */
+  .lineup {
+    min-height: 104svh;
+  }
   .grid {
     grid-template-columns: repeat(12, minmax(0, 1fr));
     column-gap: var(--gutter);
