@@ -15,8 +15,11 @@ export const FRAMES = {
   field: [-0.97, -0.56, 0.97, 1.4] as Rect,
   /** The centre of the face: three rows either side of the sweet spot. */
   centre: [-0.62, -0.08, 0.62, 0.92] as Rect,
-  /** A horizontal band through the middle rows, for the phone strip. */
-  strip: [-0.95, 0.02, 0.95, 0.82] as Rect,
+  /**
+   * The phone strip: three whole rows (6, 7, 6 holes) centred on the sweet-spot row, with the edges
+   * falling between rows so no bore is cut in half by the top or bottom fade.
+   */
+  strip: [-0.57, -0.08, 0.57, 0.68] as Rect,
 } as const;
 
 export type FrameName = keyof typeof FRAMES;

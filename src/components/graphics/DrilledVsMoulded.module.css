@@ -1,6 +1,9 @@
 /* G06 drilled vs moulded. Each plate is one 1100 x 700 viewBox (slice-fitted, non-scaling hairlines);
    callouts are HTML placed in plate units through container query units, so text never shrinks. */
 .root {
+  /* Opaque plate, so both plates are lit alike wherever they sit on the section's lift, and the
+     callout knockout can match it exactly. */
+  --plate: var(--stage);
   --hair: clamp(1px, 0.045vw + 0.35px, 1.5px);
   --hair-strong: calc(var(--hair) * 1.35);
   --glow-blur: clamp(4px, 0.3vw + 1.5px, 10px);
@@ -25,9 +28,7 @@
   overflow: hidden;
   border: 1px solid var(--hairline);
   border-radius: 2px;
-  background:
-    radial-gradient(ellipse 60% 70% at 50% 50%, rgb(255 255 255 / 0.03), transparent 75%),
-    rgb(6 6 7 / 0.42);
+  background: var(--plate);
 }
 
 .svg {
@@ -72,21 +73,16 @@
   stroke-linejoin: round;
 }
 
-.stubs {
-  stroke: var(--steel);
-  stroke-opacity: 0.32;
-  stroke-width: var(--hair);
-}
-
+/* Torn wall rings (per-ring opacity in the markup) */
 .dWall {
   stroke: var(--steel);
-  stroke-opacity: 0.2;
   stroke-width: var(--hair);
+  stroke-linejoin: round;
 }
 
 .svg .boreFill {
   fill: var(--void);
-  fill-opacity: 0.78;
+  fill-opacity: 0.8;
   stroke: none;
 }
 
@@ -137,20 +133,18 @@
   stroke-linejoin: round;
 }
 
-.svg .dot {
-  fill: var(--text);
-  stroke: none;
-}
 
-/* Callout: right-aligned on the elbow and underlined to it (the leader continues in the SVG). */
+/* Callout: right-aligned on the elbow and underlined to it (the leader continues in the SVG). Set
+   on a knockout in the plate colour: fibres stop crisply at its edges, like a drafting text mask. */
 .note {
   /* px per plate unit: the plate is width-fitted on wide screens */
   --u: calc(100cqw / 1100);
   position: absolute;
   left: calc(50% + var(--x) * var(--u));
   top: calc(50% + var(--y) * var(--u));
-  padding: 0 0 0.3em 0.15em;
+  padding: 0.3em 0.2em 0.32em 0.5em;
   border-bottom: 1px solid var(--edge);
+  background: var(--plate);
   font-family: var(--font-data);
   font-size: clamp(16px, 0.357vw + 14.86px, 24px);
   line-height: 1.2;
@@ -160,13 +154,17 @@
   transform: translate(-100%, -100%);
 }
 
-/* A soft dark field behind the callout, so fibres never run through the letters. */
-.note::before {
-  content: "";
+/* Target dot at the end of the leader: fixed px, centred on the target. */
+.target {
+  --u: calc(100cqw / 1100);
   position: absolute;
-  inset: -70% -12% -40% -22%;
-  z-index: -1;
-  background: radial-gradient(closest-side, rgb(10 10 12 / 0.92) 55%, rgb(10 10 12 / 0));
+  left: calc(50% + var(--x) * var(--u));
+  top: calc(50% + var(--y) * var(--u));
+  width: clamp(6px, 0.13vw + 4.2px, 8px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--text);
+  transform: translate(-50%, -50%);
 }
 
 .caption {
@@ -224,7 +222,8 @@
   .plate {
     aspect-ratio: 4 / 3;
   }
-  .note {
+  .note,
+  .target {
     /* the plate is height-fitted at 4:3: px per unit = height / 700 */
     --u: calc(75cqw / 700);
   }

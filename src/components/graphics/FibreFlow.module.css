@@ -60,7 +60,8 @@
   vector-effect: non-scaling-stroke;
 }
 .fbHole {
-  fill: none;
+  /* the same dark throat the canvas draws */
+  fill: rgb(6 6 7 / 0.55);
   stroke: var(--steel);
   stroke-opacity: 0.6;
   stroke-width: 1px;

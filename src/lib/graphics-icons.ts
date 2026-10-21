@@ -1,7 +1,7 @@
 // Pure geometry for the G11 icons and tier glyphs, drawn from racket-shape.ts.
 // Screen px, y down. Self-contained so the icons can render in server or client components.
 
-import { HANDLE, HEAD_CURVES, HEAD_START, THROAT_CURVES, THROAT_START, type Pt } from "@/lib/racket-shape";
+import { HANDLE, HEAD_CURVES, HEAD_START, HOLES, THROAT_CURVES, THROAT_START, type Pt } from "@/lib/racket-shape";
 
 export type V = [number, number];
 
@@ -156,4 +156,33 @@ export function iconHoles(len: number, step = 0.48): V[] {
 /** Points that sit clear of every front polygon by at least `margin` px. */
 export function clearOf(points: V[], fronts: V[][], margin: number): V[] {
   return points.filter((p) => !fronts.some((f) => inside(p, f) || near(p, f, margin)));
+}
+
+/** The 42 real hole centres (same transform as iconRacket): a regular grid, not a scatter. */
+export function iconHoleCentres(len: number): V[] {
+  const top = HEAD_START[1];
+  const k = len / (top - (HANDLE.top - HANDLE.length));
+  return HOLES.map(([x, y]) => [x * k, (top - y) * k]);
+}
+
+/** Filled dots as one path (two half-arcs each), for fills rather than strokes. */
+export function dotsPath(centres: V[], r: number): string {
+  const f = (v: number) => String(Number(v.toFixed(2)));
+  return centres.map(([x, y]) => `M${f(x - r)} ${f(y)}a${f(r)} ${f(r)} 0 1 0 ${f(2 * r)} 0a${f(r)} ${f(r)} 0 1 0 ${f(-2 * r)} 0Z`).join("");
+}
+
+/** Axis-aligned bounds of point sets. */
+export function bounds(...sets: V[][]): { x0: number; y0: number; x1: number; y1: number } {
+  let x0 = Infinity;
+  let y0 = Infinity;
+  let x1 = -Infinity;
+  let y1 = -Infinity;
+  for (const s of sets)
+    for (const [x, y] of s) {
+      x0 = Math.min(x0, x);
+      y0 = Math.min(y0, y);
+      x1 = Math.max(x1, x);
+      y1 = Math.max(y1, y);
+    }
+  return { x0, y0, x1, y1 };
 }

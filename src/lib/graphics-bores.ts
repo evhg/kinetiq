@@ -5,6 +5,9 @@
 
 export const PLATE = { w: 1100, h: 700, cx: 550, cy: 350, r: 172 } as const;
 
+/** Where both callouts point, in degrees round the bore (upper left), so the pair reads alike. */
+export const TARGET_DEG = 120;
+
 /** Number of tows across the plate (the same on both sides, so the pair reads at one scale). */
 export const TOWS = 60;
 const PITCH = (PLATE.h - 28) / TOWS; // about 11.2 units
@@ -36,85 +39,166 @@ export type DrilledLine = { d: string; cut: boolean; o: number };
 
 export type Drilled = {
   lines: DrilledLine[];
-  /** Short ticks across every cut end, one path per cut tow (both ends). */
+  /** Short ticks across the cut ends, one path per cut tow (both ends). */
   ticks: string[];
-  /** The ragged bore edge. */
+  /** The ragged bore edge, with a few breakout chips where material tore away. */
   rim: string;
-  /** A second, fainter ragged ring: the torn wall below the rim. */
-  wall: string;
-  /** Loose filaments lifted at the edge. */
+  /**
+   * The torn wall seen down the bore: broken, wobbling rings with gaps, the counterpart of the
+   * moulded side's clean concentric wall lines. Outer to inner.
+   */
+  walls: { d: string; o: number }[];
+  /** Frayed filaments: short strands splayed off cut ends, and a few lifted into the bore. */
   loose: string;
-  /** Cut fibre ends seen on the bore wall: short radial stubs just inside the rim. */
-  stubs: string;
   /** One cut end used as the callout target. */
   target: [number, number];
 };
 
+const TAU = Math.PI * 2;
+
+/** A ragged ring: radius noise at several frequencies plus optional outward chips (breakout). */
+function raggedRing(rad: number, amp: number, seed: number, chips: number) {
+  const rr = prng(seed);
+  const ph = [rr() * TAU, rr() * TAU, rr() * TAU];
+  // Breakout chips sit where the tows are cut (the left and right flanks of the bore), as flat-floored
+  // notches with steep sides, never as spikes.
+  const cs = Array.from({ length: chips }, (_, k) => ({
+    a: (k % 2 ? Math.PI : 0) + (rr() - 0.5) * 1.3,
+    w: 0.07 + rr() * 0.07,
+    d: 4 + rr() * 4,
+  }));
+  const N = 360;
+  const radius = new Float64Array(N + 1);
+  for (let k = 0; k < N; k++) {
+    const t = (k / N) * TAU;
+    const n = 0.5 * Math.sin(t * 23 + ph[0]) + 0.3 * Math.sin(t * 57 + ph[1]) + 0.2 * Math.sin(t * 131 + ph[2]);
+    let chip = 0;
+    for (const c of cs) {
+      const d = Math.abs((((t - c.a) % TAU) + TAU * 1.5) % TAU - Math.PI);
+      const e = Math.min(1, Math.max(0, (c.w - d) / (0.45 * c.w)));
+      chip += c.d * e * e * (3 - 2 * e);
+    }
+    radius[k] = rad + amp * (n + (rr() - 0.5) * 0.9) + chip;
+  }
+  radius[N] = radius[0];
+  /** Radius at angle t (radians, SVG y down). */
+  const at = (t: number) => {
+    const u = ((((t % TAU) + TAU) % TAU) / TAU) * N;
+    const i = Math.min(N - 1, Math.floor(u));
+    return radius[i] + (radius[i + 1] - radius[i]) * (u - i);
+  };
+  return { at, radius, N };
+}
+
 export function drilled(seed = 11): Drilled {
   const { w, cx, cy, r } = PLATE;
   const rnd = prng(seed);
+  const rim = raggedRing(r, 2.4, seed + 1, 4);
+  const maxAbs = Math.max(...OFFSETS.map(Math.abs));
   const lines: DrilledLine[] = [];
   const ticks: string[] = [];
   let loose = "";
-  let stubs = "";
-  const stub = (ang: number, len: number) => {
-    const r0 = r - 3;
-    const r1 = r0 - len;
-    stubs += `M${f1(cx + Math.cos(ang) * r0)} ${f1(cy + Math.sin(ang) * r0)}L${f1(cx + Math.cos(ang) * r1)} ${f1(cy + Math.sin(ang) * r1)}`;
-  };
   let target: [number, number] = [cx - r, cy];
   let bestT = Infinity;
-  const tick = 5.5;
+  const tick = 5;
+
+  /** A strand leaving a cut end at (x0, y), heading `side` (+1 right, -1 left), bent by `a`. */
+  const strand = (x0: number, y: number, side: number, len: number, a: number) => {
+    const ex = x0 + side * Math.cos(a) * len;
+    const ey = y + Math.sin(a) * len;
+    const qx = x0 + side * len * 0.55;
+    loose += `M${f1(x0 - side * 2)} ${f1(y)}Q${f1(qx)} ${f1(y + Math.sin(a) * len * 0.25)} ${f1(ex)} ${f1(ey)}`;
+  };
+
   for (const dy of OFFSETS) {
     const y = cy + dy;
-    const o = 0.34 + 0.22 * rnd();
-    if (Math.abs(dy) >= r - 1) {
+    const rank = Math.abs(dy) / maxAbs;
+    // Brightest at the bore (where the damage is), falling away like the moulded side's lines.
+    const o = Math.max(0.2, 0.74 - 0.56 * rank) * (0.94 + 0.12 * rnd());
+    if (Math.abs(dy) >= r + 6) {
       lines.push({ d: `M0 ${f1(y)}H${w}`, cut: false, o });
       continue;
     }
-    const half = Math.sqrt(r * r - dy * dy);
+    // Where this tow meets the real (ragged, chipped) rim on each side.
+    const meet = (left: boolean) => {
+      let half = Math.sqrt(Math.max(0, r * r - dy * dy));
+      for (let k = 0; k < 3; k++) {
+        const t = Math.atan2(dy, left ? -half : half);
+        const rk = rim.at(t);
+        half = Math.sqrt(Math.max(0, rk * rk - dy * dy));
+      }
+      return half;
+    };
+    const hl = meet(true);
+    const hr = meet(false);
+    if (hl < 1 && hr < 1) {
+      lines.push({ d: `M0 ${f1(y)}H${w}`, cut: false, o });
+      continue;
+    }
     // Frayed: most ends sit a little back from the bore, a few stick out into it.
-    const fray = () => (rnd() < 0.2 ? -(1 + rnd() * 5) : rnd() * 9);
-    const xl = cx - half - fray();
-    const xr = cx + half + fray();
-    lines.push({ d: `M0 ${f1(y)}H${f1(xl)}M${f1(xr)} ${f1(y)}H${w}`, cut: true, o: Math.min(0.85, o + 0.2) });
-    ticks.push(`M${f1(xl)} ${f1(y - tick)}V${f1(y + tick)}M${f1(xr)} ${f1(y - tick)}V${f1(y + tick)}`);
-    // the same tow, cut, shows its ends on the wall
-    const a = Math.atan2(dy, -half);
-    stub(a, 7 + rnd() * 14);
-    stub(Math.PI - a, 7 + rnd() * 14);
-    // callout target: the cut end nearest 125 degrees on the upper left
+    const fray = () => (rnd() < 0.22 ? -(1 + rnd() * 5) : rnd() * 8);
+    const xl = cx - hl - fray();
+    const xr = cx + hr + fray();
+    lines.push({ d: `M0 ${f1(y)}H${f1(xl)}M${f1(xr)} ${f1(y)}H${w}`, cut: true, o });
+    // Cut ticks only where the tow meets the wall steeply; near the tangent they would pile onto the rim.
+    if (Math.abs(dy) < r * 0.9) {
+      ticks.push(`M${f1(xl)} ${f1(y - tick)}V${f1(y + tick)}M${f1(xr)} ${f1(y - tick)}V${f1(y + tick)}`);
+    }
+    // Fray: now and then a strand splays off the cut end, and a rarer longer one lifts into the bore.
+    for (const [x0, side] of [
+      [xl, 1],
+      [xr, -1],
+    ] as const) {
+      const u = rnd();
+      if (u < 0.3) strand(x0, y, side, 5 + rnd() * 7, (rnd() < 0.5 ? -1 : 1) * (0.18 + rnd() * 0.35));
+      else if (u < 0.4) strand(x0, y, side, 14 + rnd() * 14, (rnd() - 0.5) * 1.1);
+    }
+    // callout target: the cut end nearest TARGET_DEG on the upper left
     const ang = Math.atan2(-(y - cy), xl - cx);
-    const dist = Math.abs(ang - (125 * Math.PI) / 180);
+    const dist = Math.abs(ang - (TARGET_DEG * Math.PI) / 180);
     if (dist < bestT) {
       bestT = dist;
       target = [xl, y];
     }
-    // a loose filament now and then, lifted off the cut end
-    if (rnd() < 0.28) {
-      const side = rnd() < 0.5 ? -1 : 1;
-      const x0 = side < 0 ? xl : xr;
-      const len = 10 + rnd() * 18;
-      // lifted off the cut end, pointing into the bore
-      const a = (rnd() - 0.5) * 1.4;
-      loose += `M${f1(x0)} ${f1(y)}L${f1(x0 - side * Math.cos(a) * len)} ${f1(y + Math.sin(a) * len)}`;
-    }
   }
-  // Ragged rim: radius noise at several frequencies, sampled every degree.
-  const ragged = (rad: number, amp: number, s: number) => {
-    const rr = prng(s);
-    const ph = [rr() * 6.28, rr() * 6.28, rr() * 6.28];
+
+  /** Arcs of a ring, from angle a for length l (radians), sampled every degree. */
+  const arcPath = (radiusAt: (t: number) => number, arcs: [number, number][]) => {
     let d = "";
-    for (let k = 0; k <= 360; k++) {
-      const t = (k * Math.PI) / 180;
-      const n = 0.5 * Math.sin(t * 23 + ph[0]) + 0.3 * Math.sin(t * 57 + ph[1]) + 0.2 * Math.sin(t * 131 + ph[2]);
-      const jag = (rr() - 0.5) * 0.9;
-      const rk = rad + amp * (n + jag);
-      d += `${k ? "L" : "M"}${f1(cx + Math.cos(t) * rk)} ${f1(cy + Math.sin(t) * rk)}`;
+    for (const [a, l] of arcs) {
+      const n = Math.max(2, Math.round((l * 180) / Math.PI));
+      for (let k = 0; k <= n; k++) {
+        const t = a + (l * k) / n;
+        const rk = radiusAt(t);
+        d += `${k ? "L" : "M"}${f1(cx + Math.cos(t) * rk)} ${f1(cy + Math.sin(t) * rk)}`;
+      }
     }
-    return d + "Z";
+    return d;
   };
-  return { lines, ticks, rim: ragged(r, 2.6, seed + 1), wall: ragged(r * 0.86, 2.2, seed + 2), loose, stubs, target };
+
+  // Torn wall: where the moulded side shows continuous wall lines, the drilled wall shows only
+  // broken fragments of ply edges at a few depths, each following the rim's chips a little.
+  const walls: { d: string; o: number }[] = [];
+  const wr = prng(seed + 7);
+  const DEPTHS = [0.055, 0.1, 0.14];
+  const ALPHA = [0.4, 0.28, 0.18];
+  DEPTHS.forEach((dp, k) => {
+    const ring = raggedRing(r * (1 - dp), 1.1, seed + 20 + k, 0);
+    const follow = 0.6 - 0.2 * k;
+    const at = (t: number) => ring.at(t) + (rim.at(t) - r) * follow;
+    const arcs: [number, number][] = [];
+    let a = wr() * TAU;
+    const end = a + TAU;
+    while (a < end - 0.4) {
+      const l = Math.min(end - a - 0.2, 0.25 + wr() * 0.9);
+      arcs.push([a, l]);
+      a += l + 0.2 + wr() * 0.8;
+    }
+    walls.push({ d: arcPath(at, arcs), o: ALPHA[k] });
+  });
+
+  // The rim, sampled every degree.
+  return { lines, ticks, rim: arcPath(rim.at, [[0, TAU]]) + "Z", walls, loose, target };
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -201,8 +285,8 @@ export function moulded(): Moulded {
     rr -= gap;
     gap *= 0.84;
   }
-  // Callout target: the innermost upper streamline, 125 degrees round the bore (upper left).
-  const tx = r * Math.cos((125 * Math.PI) / 180);
+  // Callout target: the innermost upper streamline, TARGET_DEG round the bore (upper left).
+  const tx = r * Math.cos((TARGET_DEG * Math.PI) / 180);
   const target: [number, number] = [cx + tx, cy + streamY(-sorted[0], tx, r)];
   return { lines, walls, target };
 }

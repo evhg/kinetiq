@@ -125,10 +125,13 @@ export function FibreFlow({
     const amber = hexToRgb(css.getPropertyValue("--amber"), [227, 164, 103]);
     const hot = hexToRgb(css.getPropertyValue("--amber-hot"), [255, 226, 191]);
     const steel = hexToRgb(css.getPropertyValue("--steel"), [201, 204, 209]);
+    const dark = hexToRgb(css.getPropertyValue("--void"), [6, 6, 7]);
 
     let engine: Engine | null = null;
     let dpr = 1;
     let size = { w: 0, h: 0 };
+    /** Within reach (build ahead of time) and actually on screen (run the loop). */
+    let near = false;
     let visible = false;
     let raf = 0;
     let last = 0;
@@ -173,7 +176,7 @@ export function FibreFlow({
 
     // Fades are baked into the drawing (a CSS mask would re-composite the whole band every frame):
     // the edges of the band, and the side under a text block.
-    const EDGE = mode === "strip" ? 0.14 : 0.09;
+    const EDGE = mode === "strip" ? 0.1 : 0.09;
     const SIDE: [number, number][] = [
       [0, 0.04],
       [0.2, 0.1],
@@ -296,7 +299,8 @@ export function FibreFlow({
       ctx.restore();
 
       yield;
-      // Bores: clear the inside, a faint warm glow through the hole, an amber rim light, hairline rings.
+      // Bores, drawn as G06 draws a moulded hole: cleared, a throat that darkens with depth, an
+      // amber rim light outside, a crisp rim and wall lines that tighten down the bore.
       const r = f.holeR;
       const h = f.holes;
       const circles = (rr: number) => {
@@ -313,9 +317,9 @@ export function FibreFlow({
       ctx.restore();
       for (let k = 0; k < h.length; k += 2) {
         const rg = ctx.createRadialGradient(h[k], h[k + 1], 0, h[k], h[k + 1], r);
-        rg.addColorStop(0, rgba(amber, 0.13));
-        rg.addColorStop(0.6, rgba(amber, 0.04));
-        rg.addColorStop(1, rgba(amber, 0));
+        rg.addColorStop(0, rgba(dark, 0.62));
+        rg.addColorStop(0.7, rgba(dark, 0.5));
+        rg.addColorStop(1, rgba(dark, 0.22));
         ctx.fillStyle = rg;
         ctx.beginPath();
         ctx.arc(h[k], h[k + 1], r, 0, Math.PI * 2);
@@ -328,13 +332,21 @@ export function FibreFlow({
         ctx.lineWidth = wd;
         ctx.stroke();
       }
+      // Wall lines: spacing and brightness fall away with depth (the G06 moulded wall in miniature).
+      const wallW = Math.max(0.6, lineW);
+      for (const [k, a] of [
+        [0.9, 0.42],
+        [0.82, 0.26],
+        [0.765, 0.15],
+      ] as const) {
+        circles(r * k);
+        ctx.strokeStyle = rgba(amber, a);
+        ctx.lineWidth = wallW;
+        ctx.stroke();
+      }
       circles(r);
-      ctx.strokeStyle = rgba(steel, 0.7);
-      ctx.lineWidth = 1;
-      ctx.stroke();
-      circles(r * 0.8);
-      ctx.strokeStyle = rgba(steel, 0.16);
-      ctx.lineWidth = 0.75;
+      ctx.strokeStyle = rgba(steel, 0.72);
+      ctx.lineWidth = Math.max(1, lineW + 0.25);
       ctx.stroke();
       applyFades(ctx, f.width, f.height);
     }
@@ -411,9 +423,11 @@ export function FibreFlow({
       for (const c of engine.comets) {
         const [hx, hy] = pointAt(c.line, c.s - c.len / 2);
         const t = Math.hypot((hx - Lg.cx) / Lg.rx, (hy - Lg.cy) / Lg.ry);
-        // Pulses fade faster than the lines away from the light, so the edges never look scratched.
+        // Pulses fade much faster than the lines away from the light and towards the edges, so the
+        // dim fringe never shows a lone bright dash (it read as a scratch at 2560).
         const lt = lightAt(t);
-        const peak = c.peak * lt * lt * fadeAt(hx, hy, engine.field.width, engine.field.height);
+        const fd = fadeAt(hx, hy, engine.field.width, engine.field.height);
+        const peak = c.peak * lt * lt * lt * fd * fd;
         const col = c.group === 3 ? 1 : 0;
         for (let k = 0; k < PULSE_STEPS; k++) {
           const w = Math.pow(Math.sin((Math.PI * (k + 0.5)) / PULSE_STEPS), 1.6);
@@ -591,19 +605,25 @@ export function FibreFlow({
       if (Math.abs(w - size.w) < 2 && Math.abs(h - size.h) < 2) return;
       window.clearTimeout(resizeTimer);
       resizeTimer = window.setTimeout(() => {
-        if (visible || engine) build();
+        if (near || engine) build();
       }, engine ? 180 : 0);
     });
-    const io = new IntersectionObserver(
+    // Two observers: one builds the field a little before the band arrives, the other runs the
+    // loop only while some of the band is actually on screen (paused off-screen).
+    const pre = new IntersectionObserver(
       ([e]) => {
-        visible = e.isIntersecting;
-        if (visible && !engine && !building) build();
-        sync();
+        near = e.isIntersecting;
+        if (near && !engine && !building) build();
       },
       { rootMargin: "35% 0px" },
     );
+    const io = new IntersectionObserver(([e]) => {
+      visible = e.isIntersecting;
+      sync();
+    });
     const onVis = () => sync();
     ro.observe(el);
+    pre.observe(el);
     io.observe(el);
     document.addEventListener("visibilitychange", onVis);
 
@@ -612,6 +632,7 @@ export function FibreFlow({
       building?.cancel();
       window.clearTimeout(resizeTimer);
       ro.disconnect();
+      pre.disconnect();
       io.disconnect();
       document.removeEventListener("visibilitychange", onVis);
       syncRef.current = () => {};

@@ -20,6 +20,8 @@ export const DIM = {
   handleR: HANDLE.radius * MM, // 16.5
   shell: 2, // drawn shell wall in sections (mm)
   rimShell: 3,
+  /** Balance point from the butt (mm): the sample card's 250.4. Drawn as a symbol only, never printed. */
+  balance: 250.4,
 };
 
 const n = (v: number) => (Math.abs(v) < 0.005 ? "0" : String(Number(v.toFixed(2))));

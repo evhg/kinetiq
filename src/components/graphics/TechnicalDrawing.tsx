@@ -52,16 +52,23 @@ export const LABELS = {
     "No glue line. No seam. No joint.",
     "42 holes moulded. 0 drilled.",
     "Every surface within ±0.015 of design.",
+    "Mass within ±1.0 g of reference.",
+    "Balance within ±1.0, set in the mould.",
   ],
+  balance: "Balance ±1.0",
+  balanceSub: "set in the mould",
   title: "KINETIQ",
   titleSub: "One-piece padel racket",
+  titleCap: "Title",
+  /** Title-block cells, each in its own grid area (see .cells in the CSS module). */
   cells: [
-    ["DWG", "K-01"],
-    ["Scale", "1:4"],
-    ["Units", "mm"],
-    ["Tolerance", "±0.015"],
-    ["Sheet", "1 of 1"],
-  ] as [string, string][],
+    ["dwg", "DWG", "K-01"],
+    ["rev", "Rev", "A"],
+    ["scale", "Scale", "1:4"],
+    ["units", "Units", "mm"],
+    ["tol", "Tolerance", "±0.015"],
+    ["sheet", "Sheet", "1 of 1"],
+  ] as [string, string, string][],
   projection: "Projection",
 };
 
@@ -83,7 +90,10 @@ type Kind =
   | "ring"
   | "bar"
   | "barFill"
-  | "dot";
+  | "dot"
+  | "cgDisc"
+  | "cgRing"
+  | "cgFill";
 type Prim = { layer: Layer; kind: Kind; d: string; clip?: string };
 type Place = "n" | "s" | "e" | "w" | "c" | "vl" | "vr" | "se" | "sw";
 type LabelKind = "dim" | "note" | "muted" | "title" | "letter";
@@ -151,6 +161,28 @@ function leader(D: Draft, tip: V, elbow: V, land: number, kind: LabelKind, lines
   D.label(end[0], end[1], land >= 0 ? "e" : "w", kind, ...lines);
 }
 
+/**
+ * The engineering diameter sign, drawn: Saira's Ø reads as a zero at label sizes. Sized in em so
+ * it tracks the label; the stroke matches Saira's regular stem.
+ */
+function Dia() {
+  return (
+    <svg className={styles.dia} viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+      <circle cx="6" cy="6" r="4.5" />
+      <path d="M1.3 10.7 L10.7 1.3" />
+    </svg>
+  );
+}
+
+/** ISO centre-of-gravity mark: a ring with two opposite quadrants filled, over a masking disc. */
+function cgMark(D: Draft, t: Xf, c: V, r: number) {
+  const [cx, cy] = at(t, c);
+  const R = r * t.s;
+  D.add("dims", "cgDisc", circle(t, c, r));
+  D.add("dims", "cgFill", `M${cx} ${cy}V${cy - R}A${R} ${R} 0 0 1 ${cx + R} ${cy}Z M${cx} ${cy}V${cy + R}A${R} ${R} 0 0 1 ${cx - R} ${cy}Z`);
+  D.add("dims", "cgRing", circle(t, c, r));
+}
+
 type FrontOpts = { dims?: boolean; cut?: boolean; callout?: boolean };
 
 /** ISO cutting plane: thin chain, thick ends, arrows in the direction of view, a letter at each arrow. */
@@ -175,8 +207,11 @@ function frontView(D: Draft, t: Xf, o: FrontOpts = {}) {
   D.add("outline", "tangent", tangentEdge(t, 13));
   D.add("hidden", "centre", line(at(t, [0, top + 16]), at(t, [0, butt - 16])));
   if (o.cut) {
-    cutPlane(D, t, CUT_Y, -158, 158, 13, "A");
-    cutPlane(D, t, BORE[1], BORE[0] - 24, BORE[0] + 19.5, 7, "B", 10);
+    // both planes run clear across the head, so every letter sits outside the outline
+    const wa = Math.round(headHalfWidth(CUT_Y) + 28);
+    const wb = Math.round(headHalfWidth(BORE[1]) + 28);
+    cutPlane(D, t, CUT_Y, -wa, wa, 13, "A");
+    cutPlane(D, t, BORE[1], -wb, wb, 13, "B");
   }
   if (o.dims) {
     dimV(D, at(t, [0, top]), at(t, [-DIM.handleR - 1.6, butt]), at(t, [-174, 0])[0], String(DIM.length));
@@ -188,7 +223,8 @@ function frontView(D: Draft, t: Xf, o: FrontOpts = {}) {
     const tip = at(t, [hole[0] + Math.cos(a) * (DIM.holeD / 2), hole[1] + Math.sin(a) * (DIM.holeD / 2)]);
     leader(D, tip, at(t, [72, -197]), 9, "dim", [
       <span key="a">
-        Ø{DIM.holeD.toFixed(1)} <span className={styles.times}>×{DIM.holes}</span>
+        <Dia />
+        {DIM.holeD.toFixed(1)} <span className={styles.times}>×{DIM.holes}</span>
       </span>,
       <span key="b" className={styles.subline}>
         {LABELS.holeNote}
@@ -197,7 +233,7 @@ function frontView(D: Draft, t: Xf, o: FrontOpts = {}) {
   }
 }
 
-function sideView(D: Draft, t: Xf, o: { dims?: boolean } = {}) {
+function sideView(D: Draft, t: Xf, o: { dims?: boolean; balance?: boolean } = {}) {
   const h = DIM.thickness / 2;
   D.add("outline", "vis", sideProfile(t));
   D.add("hidden", "hidden", sideHidden(t));
@@ -206,6 +242,19 @@ function sideView(D: Draft, t: Xf, o: { dims?: boolean } = {}) {
     dimH(D, at(t, [-h, DIM.headTop - 7]), at(t, [h, DIM.headTop - 7]), at(t, [0, DIM.headTop + 32])[1], DIM.thickness.toFixed(1), {
       outside: true,
     });
+  }
+  if (o.balance) {
+    // the balance point on the centreline, with its tolerance (the position itself is never printed)
+    const r = 5;
+    const c: V = [0, DIM.buttY + DIM.balance];
+    cgMark(D, t, c, r);
+    const tip = at(t, [r * 0.7071, c[1] + r * 0.7071]);
+    leader(D, tip, [tip[0] + 44, tip[1] - 34], 9, "dim", [
+      LABELS.balance,
+      <span key="s" className={styles.subline}>
+        {LABELS.balanceSub}
+      </span>,
+    ]);
   }
 }
 
@@ -264,7 +313,17 @@ function boreView(D: Draft, t: Xf, o: { callouts: "flank" | "right"; R?: number 
   D.add("hidden", "centre", line(at(t, [0, h + R + 3]), at(t, [0, h - R - 3])));
   D.add("outline", "ring", circle(t, [0, h], R));
   const y = at(t, [0, h - 7.5])[1];
-  dimH(D, at(t, [-r, 0]), at(t, [r, 0]), y, `Ø${DIM.holeD.toFixed(1)}`, { ext: false });
+  dimH(
+    D,
+    at(t, [-r, 0]),
+    at(t, [r, 0]),
+    y,
+    <span key="d">
+      <Dia />
+      {DIM.holeD.toFixed(1)}
+    </span>,
+    { ext: false },
+  );
   D.label(at(t, [0, 0])[0], y, "s", "dim", "±0.015");
   const c = at(t, [0, h]);
   const rr = R * t.s;
@@ -307,7 +366,7 @@ function wideSheet(uid: string): Draft {
   const f: Xf = { ox: 228, oy: 244, s: 1 };
   const s: Xf = { ox: f.ox + 268, oy: f.oy, s: 1 };
   frontView(D, f, { dims: true, cut: true, callout: true });
-  sideView(D, s, { dims: true });
+  sideView(D, s, { dims: true, balance: true });
   projection(D, f, s);
   const sec: Xf = { ox: 908, oy: 150, s: 2 };
   sectionView(D, sec, { callouts: "wide" });
@@ -437,7 +496,7 @@ function ProjectionSymbol() {
 function TitleBlock() {
   return (
     <div className={styles.titleBlock} data-layer="values">
-      <div className={`${styles.cell} ${styles.notes}`}>
+      <div className={styles.notes}>
         <p className={styles.cap}>{LABELS.notesTitle}</p>
         <ol className={styles.noteList}>
           {LABELS.notes.map((t, i) => (
@@ -448,27 +507,29 @@ function TitleBlock() {
           ))}
         </ol>
       </div>
-      <dl className={styles.cells}>
-        <div className={`${styles.cell} ${styles.projCell} ${styles.c2}`}>
-          <dt className={styles.cap}>{LABELS.projection}</dt>
-          <dd>
-            <ProjectionSymbol />
-          </dd>
-        </div>
-        <div className={`${styles.cell} ${styles.titleCell}`}>
-          <dt className={styles.cap}>Title</dt>
-          <dd>
-            <span className={styles.wordmark}>{LABELS.title}</span>
-            <span className={styles.val}>{LABELS.titleSub}</span>
-          </dd>
-        </div>
-        {LABELS.cells.map(([k, v], i) => (
-          <div className={`${styles.cell} ${i % 2 ? styles.c2 : ""}`} key={k}>
-            <dt className={styles.cap}>{k}</dt>
-            <dd className={styles.val}>{v}</dd>
+      <div className={styles.cellsWrap}>
+        <dl className={styles.cells}>
+          <div className={`${styles.cell} ${styles.titleCell}`} style={{ gridArea: "title" }}>
+            <dt className={styles.cap}>{LABELS.titleCap}</dt>
+            <dd>
+              <span className={styles.wordmark}>{LABELS.title}</span>
+              <span className={styles.val}>{LABELS.titleSub}</span>
+            </dd>
           </div>
-        ))}
-      </dl>
+          {LABELS.cells.map(([area, k, v]) => (
+            <div className={styles.cell} style={{ gridArea: area }} key={area}>
+              <dt className={styles.cap}>{k}</dt>
+              <dd className={styles.val}>{v}</dd>
+            </div>
+          ))}
+          <div className={styles.cell} style={{ gridArea: "proj" }}>
+            <dt className={styles.cap}>{LABELS.projection}</dt>
+            <dd>
+              <ProjectionSymbol />
+            </dd>
+          </div>
+        </dl>
+      </div>
     </div>
   );
 }

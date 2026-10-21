@@ -29,12 +29,17 @@ const D = drilled();
 const M = moulded();
 
 /**
- * Callouts sit in the same place on both plates (upper left, 125 degrees round the bore), so the
- * pair reads as one comparison. The label is right-aligned on the elbow, underlined to it, and a
- * leader drops from the elbow to the target. Plate units.
+ * Callouts sit in the same place on both plates (upper left, 120 degrees round the bore), so the
+ * pair reads as one comparison. The label is right-aligned on its elbow and set on a knockout
+ * (fibres stop at its edges, as a drafting background mask does), underlined to the elbow, and a
+ * plumb leader drops from the elbow straight down to the target. Plate units.
  */
-const ELBOW: [number, number] = [420, 116];
+const ELBOW_Y = 112;
 const LEAD = { drilled: D.target, moulded: M.target };
+
+/** Opacity for inline styles, rounded so server and client markup match exactly (Math.pow and
+ * friends may differ in the last bit between Node and the browser). */
+const op = (v: number) => String(Math.round(v * 1000) / 1000);
 
 const pos = (x: number, y: number) => ({ "--x": String(x - CX), "--y": String(y - CY) }) as CSSProperties;
 
@@ -110,11 +115,12 @@ export function DrilledVsMoulded({ className, callouts = true }: Props) {
                 <Vignette id={`${uid}-ds`} color="var(--steel)" />
               </defs>
               {D.lines.map((l, i) => (
-                <path key={i} d={l.d} className={styles.tow} stroke={`url(#${uid}-ds)`} style={{ strokeOpacity: l.o }} />
+                <path key={i} d={l.d} className={styles.tow} stroke={`url(#${uid}-ds)`} style={{ strokeOpacity: op(l.o) }} />
               ))}
-              <circle cx={CX} cy={CY} r={R} className={styles.boreFill} />
-              <path d={D.wall} className={styles.dWall} />
-              <path d={D.stubs} className={styles.stubs} />
+              <path d={D.rim} className={styles.boreFill} />
+              {D.walls.map((wl, i) => (
+                <path key={i} d={wl.d} className={styles.dWall} style={{ strokeOpacity: op(wl.o) }} />
+              ))}
               <path d={D.rim} className={styles.dRim} />
               <path d={D.loose} className={styles.loose} data-loose />
               {D.ticks.map((t, i) => (
@@ -123,11 +129,7 @@ export function DrilledVsMoulded({ className, callouts = true }: Props) {
               <Crosshair />
               {callouts ? <Leader to={dl} /> : null}
             </svg>
-            {callouts ? (
-              <span className={styles.note} style={pos(ELBOW[0], ELBOW[1])} data-note>
-                {LABELS.drilledCallout}
-              </span>
-            ) : null}
+            {callouts ? <Note to={dl}>{LABELS.drilledCallout}</Note> : null}
           </div>
           <p className={styles.caption}>
             <span className={styles.rule} aria-hidden="true" />
@@ -168,7 +170,7 @@ export function DrilledVsMoulded({ className, callouts = true }: Props) {
                   d={l.d}
                   className={styles.flow}
                   stroke={`url(#${uid}-${l.rank < 0.12 ? "mh" : "ma"})`}
-                  style={{ strokeOpacity: Math.max(0.3, 0.95 - 0.7 * l.rank) }}
+                  style={{ strokeOpacity: op(Math.max(0.3, 0.95 - 0.7 * l.rank)) }}
                   data-flow
                   data-order={l.order}
                 />
@@ -176,16 +178,12 @@ export function DrilledVsMoulded({ className, callouts = true }: Props) {
               <circle cx={CX} cy={CY} r={R} className={styles.boreFill} />
               <circle cx={CX} cy={CY} r={R} fill={`url(#${uid}-bore)`} />
               {M.walls.map((wl, i) => (
-                <circle key={i} cx={CX} cy={CY} r={wl.r} className={i === 0 ? styles.mRim : styles.mWall} style={i === 0 ? undefined : { strokeOpacity: wl.o }} data-wall />
+                <circle key={i} cx={CX} cy={CY} r={wl.r} className={i === 0 ? styles.mRim : styles.mWall} style={i === 0 ? undefined : { strokeOpacity: op(wl.o) }} data-wall />
               ))}
               <Crosshair />
               {callouts ? <Leader to={ml} /> : null}
             </svg>
-            {callouts ? (
-              <span className={styles.note} style={pos(ELBOW[0], ELBOW[1])} data-note>
-                {LABELS.mouldedCallout}
-              </span>
-            ) : null}
+            {callouts ? <Note to={ml}>{LABELS.mouldedCallout}</Note> : null}
           </div>
           <p className={styles.caption}>
             <span className={`${styles.rule} ${styles.ruleAmber}`} aria-hidden="true" />
@@ -204,18 +202,24 @@ function split(s: string): [string, string] {
   return i < 0 ? ["", s] : [s.slice(0, i + 1), s.slice(i + 1).trim()];
 }
 
-/** Leader from the label elbow to its target, with a small dot on the target. */
+/** Plumb leader from the label elbow (directly above the target) down to it. */
 function Leader({ to }: { to: [number, number] }) {
-  const [ex, ey] = ELBOW;
   const [tx, ty] = to;
-  // stop just short of the dot
-  const d = Math.hypot(tx - ex, ty - ey);
-  const k = (d - 7) / d;
+  return <line className={styles.leader} x1={tx} y1={ELBOW_Y} x2={tx} y2={ty} data-note />;
+}
+
+/**
+ * The callout label (HTML, so it never shrinks) and its target dot, a fixed size in px at every
+ * viewport (an SVG dot would scale down with the plate to about 1 px on phones).
+ */
+function Note({ to, children }: { to: [number, number]; children: string }) {
   return (
-    <g data-note>
-      <line className={styles.leader} x1={ex} y1={ey} x2={ex + (tx - ex) * k} y2={ey + (ty - ey) * k} />
-      <circle className={styles.dot} cx={tx} cy={ty} r="3.5" />
-    </g>
+    <>
+      <span className={styles.note} style={pos(to[0], ELBOW_Y)} data-note>
+        {children}
+      </span>
+      <span className={styles.target} style={pos(to[0], to[1])} aria-hidden="true" data-note />
+    </>
   );
 }
 
