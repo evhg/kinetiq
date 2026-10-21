@@ -79,6 +79,8 @@ Lenis · Playwright (dev only). No real-time 3D: product imagery is Blender stil
   read correctly, in order, with all its content visible. Server render shows the final state.
 - Read the state with `useMotion()`; pass `motionOn` as a `useGSAP` dependency with `revertOnUpdate: true`.
 - Pinned chapters pin only at ≥ 900 px (`PIN_MEDIA`); their beats layer via `.pin-layered` in globals.css.
+  The pin is CSS `position: sticky` in a section sized `(1 + --pin-len) × 100svh`; ScrollTrigger only scrubs.
+  Never use ScrollTrigger `pin: true`: its switch to `position: fixed` measured as CLS ≈ 1.0.
 
 ## Stills and graphics
 - Product imagery = own Blender Cycles stills (no people, no other brands, no autographs). Masters are 16-bit
