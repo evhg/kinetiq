@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
 import { useMotion } from "@/components/motion/MotionProvider";
 import { ambassador } from "@/content/lineup";
-import { LAYOUT, courtPaths, dimPath, type Aspect } from "@/lib/graphics-court";
+import { LAYOUT, courtPaths, dimBox, type Aspect } from "@/lib/graphics-court";
 import { gsap, useGSAP } from "@/lib/gsap";
 import styles from "./CourtPlan.module.css";
 
@@ -77,17 +77,18 @@ export function CourtPlan({ className, aspect = "16:10", active, field = true }:
     { scope: root, dependencies: [motionOn, shown], revertOnUpdate: true },
   );
 
-  const pct = (x: number, y: number) => ({ left: `${((x / w) * 100).toFixed(3)}%`, top: `${((y / h) * 100).toFixed(3)}%` });
-  const dims = layout.dims.map((d) => ({ ...d, ...dimPath(d.from, d.to) }));
+  const pc = (v: number) => `${(v * 100).toFixed(3)}%`;
+  const dims = layout.dims.map((d) => ({ ...d, ...dimBox(aspect, d.from, d.to) }));
   const { x: mx, y: my } = p.marker;
   const { caption } = layout;
+  const vars = { aspectRatio: `${w} / ${h}`, "--shift-by": `${layout.shift}%` } as CSSProperties;
 
   return (
     <figure
       ref={root}
       className={`${styles.root}${field ? " lift tech-grid" : ""}${className ? ` ${className}` : ""}`}
       data-aspect={aspect}
-      style={{ aspectRatio: `${w} / ${h}` }}
+      style={vars}
     >
       <svg className={styles.plan} viewBox={`0 0 ${w} ${h}`} aria-hidden="true" focusable="false">
         <defs>
@@ -107,11 +108,6 @@ export function CourtPlan({ className, aspect = "16:10", active, field = true }:
         <path className={styles.net} d={p.net} vectorEffect="non-scaling-stroke" />
         <path className={styles.post} d={p.netPosts} />
 
-        <g className={styles.dims}>
-          {dims.map((d) => (
-            <path key={d.key} d={d.d} vectorEffect="non-scaling-stroke" />
-          ))}
-        </g>
         <path className={styles.leader} d={`${p.leader}M${mx} ${caption.y}h1.6`} vectorEffect="non-scaling-stroke" />
 
         <g data-g12-glow="">
@@ -127,15 +123,24 @@ export function CourtPlan({ className, aspect = "16:10", active, field = true }:
         <circle className={styles.core} cx={mx} cy={my} r="0.17" />
       </svg>
 
+      {/* dimension lines in HTML: the gap always fits its label, and the ticks stay crisp */}
       {dims.map((d) => (
-        <span key={d.key} className={styles.dim} data-vertical={d.vertical ? "" : undefined} style={pct(d.at[0], d.at[1])} aria-hidden="true">
-          {d.text}
+        <span
+          key={d.key}
+          className={styles.dim}
+          data-vertical={d.vertical ? "" : undefined}
+          style={{ "--x": d.x, "--y": d.y, "--len": d.len } as CSSProperties}
+          aria-hidden="true"
+        >
+          <span className={styles.dimLine} />
+          <span className={styles.dimText}>{d.text}</span>
+          <span className={styles.dimLine} />
         </span>
       ))}
 
       <figcaption
         className={styles.caption}
-        style={{ ...pct(caption.x, caption.y), width: `${((caption.w / w) * 100).toFixed(3)}%` }}
+        style={{ "--x": pc(caption.x / w), "--y": pc(caption.y / h), "--len": pc(caption.w / w) } as CSSProperties}
       >
         <span className={styles.who}>{LABELS.who}</span>
         <span className={styles.where}>{LABELS.where}</span>

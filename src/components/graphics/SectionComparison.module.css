@@ -4,15 +4,16 @@
 .root {
   --w-part: clamp(1px, 0.32cqw + 0.2px, 1.75px);
   --w-hair: clamp(0.75px, 0.16cqw + 0.2px, 1.25px);
-  --w-shell: clamp(1.5px, 0.42cqw + 0.35px, 3px);
+  --w-shell: clamp(1.5px, 0.3cqw + 0.9px, 3.5px);
   --w-glow: calc(var(--w-shell) * 2.6);
   --w-halo: calc(var(--w-shell) * 5);
   --w-bond: clamp(1.1px, 0.3cqw + 0.2px, 2.25px);
   --bond-dash: clamp(3px, 1cqw, 7px);
   --bond-gap: clamp(2.5px, 0.7cqw, 5px);
   --dot: clamp(3.5px, 0.9cqw + 0.5px, 7px);
-  --lab-fs: clamp(15px, 2.6cqw + 8px, 22px);
-  --title-fs: clamp(16px, 3cqw + 8px, 26px);
+  /* 15 / 18 / 22 px at 170 / 380 / 700 px, still growing on the widest placements */
+  --lab-fs: clamp(15px, 1.5cqw + 12px, 26px);
+  --title-fs: clamp(16px, 1.75cqw + 11px, 30px);
 
   --c-part: color-mix(in srgb, var(--steel) 78%, transparent);
   --c-fill: color-mix(in srgb, var(--steel) 13%, transparent);
@@ -32,6 +33,8 @@
   margin: 0;
   min-width: 0;
   color: var(--steel);
+  /* Saira's hinted advances open a gap after "t" at 15 to 16 px on some rasterisers */
+  text-rendering: geometricPrecision;
 }
 
 /* ---------- title row ---------- */

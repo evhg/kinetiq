@@ -130,76 +130,92 @@ export function MeasurementCard({ className, edition, rotate = false, variant = 
       aria-hidden={thumb ? true : undefined}
     >
       <div className={styles.mover} data-g08-mover="">
-        <div className={styles.plate} aria-hidden="true" />
-        <div className={styles.card}>
-          <div className={styles.rosetteClip} aria-hidden="true">
-            <Rosette className={styles.rosette} />
-          </div>
-
-          <div className={styles.thumbBody} aria-hidden="true">
-            <span className={styles.thumbBar} />
-            <span className={styles.thumbBarWide} />
-            {rows.map(([k]) => (
-              <span key={k} className={styles.thumbRow} />
-            ))}
-            <div className={styles.thumbFoot}>
-              <div className={styles.map}>
-                <FlatnessMap uid={`${uid}t`} />
-              </div>
-              <SwissCross className={styles.cross} />
+        {/* the tilt carries card and plate together, so the plate always sits square behind the card */}
+        <div className={styles.tilt}>
+          <div className={styles.plate} aria-hidden="true" />
+          <div className={styles.card}>
+            <div className={styles.rosetteClip} aria-hidden="true">
+              <Rosette className={styles.rosette} />
             </div>
-          </div>
-          {thumb ? null : (
-            <div className={styles.fullBody}>
-              <header className={styles.top}>
-                <span className={styles.wordmark}>{LABELS.wordmark}</span>
-                <span className={styles.tag}>{card.tag}</span>
-              </header>
-              <p className={styles.title}>{card.title}</p>
-              <p className={styles.meta}>
-                <span>
-                  <span className={styles.metaKey}>{LABELS.serial}</span> <span className={styles.metaValue}>{card.serial}</span>
-                </span>
-                {edition ? <span className={styles.edition}>{edition}</span> : null}
-              </p>
 
-              <dl className={styles.rows}>
-                {rows.map(([k, v]) => (
-                  <div key={k} className={styles.row}>
-                    <dt>{k}</dt>
-                    <dd>
-                      {v}
-                      {k === deviationKey ? <span className={styles.limit}>{LABELS.limit}</span> : null}
-                    </dd>
-                  </div>
+            {/* text-free miniature: the card's structure as fine strokes, never solid redaction bars */}
+            <div className={styles.thumbBody} aria-hidden="true">
+              <span className={styles.thumbHead}>
+                <span className={styles.thumbMark} />
+                <span className={styles.thumbTag} />
+              </span>
+              <span className={styles.thumbTitle} />
+              <span className={styles.thumbTitle2} />
+              <span className={styles.thumbRows}>
+                {rows.map(([k]) => (
+                  <span key={k} className={styles.thumbRow}>
+                    <span className={styles.thumbKey} />
+                    <span className={styles.thumbValue} />
+                  </span>
                 ))}
-              </dl>
+              </span>
+              <span className={styles.thumbFoot}>
+                <span className={styles.thumbMap}>
+                  <FlatnessMap uid={`${uid}t`} />
+                </span>
+                <span className={styles.thumbSide}>
+                  <SwissCross className={styles.thumbCross} />
+                  <span className={styles.thumbSign} />
+                </span>
+              </span>
+            </div>
+            {thumb ? null : (
+              <div className={styles.fullBody}>
+                <header className={styles.top}>
+                  <span className={styles.wordmark}>{LABELS.wordmark}</span>
+                  <span className={styles.tag}>{card.tag}</span>
+                </header>
+                <p className={styles.title}>{card.title}</p>
+                <p className={styles.meta}>
+                  <span>
+                    <span className={styles.metaKey}>{LABELS.serial}</span> <span className={styles.metaValue}>{card.serial}</span>
+                  </span>
+                  {edition ? <span className={styles.edition}>{edition}</span> : null}
+                </p>
 
-              <div className={styles.foot}>
-                <div className={styles.map}>
-                  <FlatnessMap uid={uid} />
-                </div>
-                <div className={styles.side}>
-                  <div className={styles.legend} aria-hidden="true">
-                    <span className={styles.legendTitle}>{LABELS.mapTitle}</span>
-                    <span className={styles.legendScale}>
-                      <span>{LABELS.mapScaleFrom}</span>
-                      <span className={styles.legendBar} />
-                      <span>{LABELS.mapScaleTo}</span>
-                    </span>
+                <dl className={styles.rows}>
+                  {rows.map(([k, v]) => (
+                    <div key={k} className={styles.row}>
+                      <dt>{k}</dt>
+                      <dd>
+                        {v}
+                        {k === deviationKey ? <span className={styles.limit}>{LABELS.limit}</span> : null}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+
+                <div className={styles.foot}>
+                  <div className={styles.map}>
+                    <FlatnessMap uid={uid} />
                   </div>
-                  <p className={styles.swiss}>
-                    <SwissCross className={styles.cross} />
-                    <span>{card.swiss}</span>
-                  </p>
-                  <p className={styles.sign}>
-                    <span className={styles.signLine} aria-hidden="true" />
-                    <span className={styles.signLabel}>{LABELS.signature}</span>
-                  </p>
+                  <div className={styles.side}>
+                    <div className={styles.legend} aria-hidden="true">
+                      <span className={styles.legendTitle}>{LABELS.mapTitle}</span>
+                      <span className={styles.legendScale}>
+                        <span>{LABELS.mapScaleFrom}</span>
+                        <span className={styles.legendBar} />
+                        <span>{LABELS.mapScaleTo}</span>
+                      </span>
+                    </div>
+                    <p className={styles.swiss}>
+                      <SwissCross className={styles.cross} />
+                      <span>{card.swiss}</span>
+                    </p>
+                    <p className={styles.sign}>
+                      <span className={styles.signLine} aria-hidden="true" />
+                      <span className={styles.signLabel}>{LABELS.signature}</span>
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
       {thumb ? null : <figcaption className="visually-hidden">{LABELS.summary}</figcaption>}

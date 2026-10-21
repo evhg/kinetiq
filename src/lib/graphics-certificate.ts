@@ -160,7 +160,7 @@ export const flatness = contours([2, 4, 6, 8, 10]);
  * A guilloché rosette: one polar wave, repeated with small rotations (a rotation of the wave is a
  * phase shift, so the copies interleave into the engraved net). Radius about 100.
  */
-export const ROSETTE_COPIES = 16;
+export const ROSETTE_COPIES = 9;
 export const ROSETTE_LOBES = 15;
 export const rosetteWave = (() => {
   const pts: string[] = [];

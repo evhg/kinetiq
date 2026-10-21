@@ -34,8 +34,8 @@
   background: radial-gradient(ellipse 70% 70% at 50% 45%, var(--lift), var(--stage) 75%);
 }
 .slideCard {
-  /* phones: a portrait slide, the card wide enough to stay readable */
-  width: 84%;
+  /* phones: a portrait slide, the card wide enough to stay a readable card (280 px or more) */
+  width: 86%;
 }
 .thumbs {
   grid-column: 1 / -1;
@@ -59,8 +59,8 @@
     aspect-ratio: 16 / 10;
   }
   .slideCard {
-    /* 80% of the slide height, in A6 proportions, plus the plate */
-    width: 37%;
+    /* about 84% of the slide height, in A6 proportions, plus the plate */
+    width: 38%;
   }
   .thumbs {
     grid-column: 9 / 13;

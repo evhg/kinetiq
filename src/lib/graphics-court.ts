@@ -17,10 +17,16 @@ type Layout = {
   vb: { w: number; h: number };
   /** Court origin and orientation in the viewBox. */
   map: (u: number, v: number) => [number, number];
-  /** Dimension lines (viewBox units): from, to, and the label between. */
+  /** Dimension lines (viewBox units): from, to, and the label between. Drawn in HTML, so the gap fits the label. */
   dims: { key: "length" | "width"; from: [number, number]; to: [number, number]; text: string }[];
   /** Caption box: left, top and width in viewBox units. */
   caption: { x: number; y: number; w: number };
+  /**
+   * Downward shift of the whole composition, in percent of the slide height. CourtPlan.module.css applies
+   * it only on wide slides (16:10 from 560 px, 4:5 from 600 px), where the caption is short enough
+   * that the drawing can sit centred instead of top-heavy.
+   */
+  shift: number;
   /** One player position at the back of the court, near the back glass, on the caption's side. */
   marker: { u: number; v: number };
 };
@@ -35,8 +41,9 @@ export const LAYOUT: Record<Aspect, Layout> = {
       { key: "length", from: [6, 1.2], to: [26, 1.2], text: "20 m" },
       { key: "width", from: [27.75, 2.55], to: [27.75, 12.55], text: "10 m" },
     ],
-    caption: { x: 7.45, y: 13.75, w: 18.5 },
+    caption: { x: 7.45, y: 13.6, w: 22.5 },
     marker: { u: 1.45, v: 6.7 },
+    shift: 6.5,
   },
   "4:5": {
     vb: { w: 24, h: 30 },
@@ -45,8 +52,9 @@ export const LAYOUT: Record<Aspect, Layout> = {
       { key: "width", from: [7, 1.55], to: [17, 1.55], text: "10 m" },
       { key: "length", from: [5.25, 3], to: [5.25, 23], text: "20 m" },
     ],
-    caption: { x: 9.4, y: 24.7, w: 13.4 },
+    caption: { x: 9.4, y: 24.45, w: 14.2 },
     marker: { u: 18.55, v: 2.4 },
+    shift: 2.5,
   },
 };
 
@@ -109,21 +117,14 @@ export function courtPaths(aspect: Aspect) {
   return { glass, meshOuter, meshInner, posts: posts.join(""), lines, net, netPosts, surface, marker: { x: mx, y: my }, leader };
 }
 
-/** A dimension line with a gap for its label and end ticks perpendicular to it. */
-export function dimPath(from: [number, number], to: [number, number], gap = 3.6, tick = 0.5) {
-  const [x0, y0] = from;
-  const [x1, y1] = to;
-  const len = Math.hypot(x1 - x0, y1 - y0);
-  const ux = (x1 - x0) / len;
-  const uy = (y1 - y0) / len;
-  const cx = (x0 + x1) / 2;
-  const cy = (y0 + y1) / 2;
-  const a: [number, number] = [cx - (ux * gap) / 2, cy - (uy * gap) / 2];
-  const b: [number, number] = [cx + (ux * gap) / 2, cy + (uy * gap) / 2];
-  const t = (x: number, y: number) => `M${r2(x - uy * tick)} ${r2(y + ux * tick)}L${r2(x + uy * tick)} ${r2(y - ux * tick)}`;
-  return {
-    d: `M${r2(x0)} ${r2(y0)}L${r2(a[0])} ${r2(a[1])}M${r2(b[0])} ${r2(b[1])}L${r2(x1)} ${r2(y1)}${t(x0, y0)}${t(x1, y1)}`,
-    at: [cx, cy] as [number, number],
-    vertical: Math.abs(uy) > Math.abs(ux),
-  };
+/** Placement of an HTML dimension line, in percent of the slide: axis, start and length. */
+export function dimBox(aspect: Aspect, from: [number, number], to: [number, number]) {
+  const { w, h } = LAYOUT[aspect].vb;
+  const pc = (v: number) => `${(v * 100).toFixed(3)}%`;
+  const vertical = Math.abs(to[1] - from[1]) > Math.abs(to[0] - from[0]);
+  const x0 = Math.min(from[0], to[0]);
+  const y0 = Math.min(from[1], to[1]);
+  return vertical
+    ? { vertical, x: pc(x0 / w), y: pc(y0 / h), len: pc(Math.abs(to[1] - from[1]) / h) }
+    : { vertical, x: pc(x0 / w), y: pc(y0 / h), len: pc(Math.abs(to[0] - from[0]) / w) };
 }

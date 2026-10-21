@@ -1,5 +1,7 @@
 /* G12 court plan. The SVG's viewBox has the slide's exact aspect, so HTML text placed in percent
    lands where the drawing expects it. Strokes are non-scaling hairlines; text never drops below 15 px.
+   Dimension lines are HTML so their gap always fits the label. On wide slides everything moves down
+   by --shift (from the layout in graphics-court.ts) so the composition sits centred.
    Below 300 px wide (thumbnails) the plan shows without text. */
 .root {
   --w-wall: clamp(1px, 0.12cqw + 0.6px, 1.75px);
@@ -8,17 +10,48 @@
   --c-line: color-mix(in srgb, var(--steel) 40%, transparent);
   --c-net: color-mix(in srgb, var(--steel) 72%, transparent);
   --c-dim: color-mix(in srgb, var(--amber) 70%, transparent);
+  --fs-dim: clamp(15px, 1.1cqw + 9.5px, 28px);
+  --fs-who: clamp(15px, 1.7cqw + 8px, 36px);
+  --fs-where: clamp(15px, 1.15cqw + 9px, 27px);
+  --tick: clamp(9px, 0.9cqw + 4px, 20px);
 
   container: court / inline-size;
   position: relative;
   margin: 0;
   width: 100%;
   overflow: hidden;
+  /* Saira's hinted advances open a gap after "t" at 15 to 16 px on some rasterisers */
+  text-rendering: geometricPrecision;
+}
+
+/* A 4:5 slide has the area of a 16:10 slide about 1.4x as wide: its labels grow faster with width. */
+.root[data-aspect="4:5"] {
+  --fs-dim: clamp(15px, 1.5cqw + 8px, 28px);
+  --fs-who: clamp(15px, 2.4cqw + 7px, 34px);
+  --fs-where: clamp(15px, 1.6cqw + 7.5px, 26px);
+}
+
+/* the wide-slide offset; 0 on narrow slides, where the caption needs the room below */
+.plan,
+.dim,
+.caption {
+  --shift: 0%;
+}
+@container court (min-width: 560px) {
+  .root[data-aspect="16:10"] :is(.plan, .dim, .caption) {
+    --shift: var(--shift-by);
+  }
+}
+@container court (min-width: 600px) {
+  .root[data-aspect="4:5"] :is(.plan, .dim, .caption) {
+    --shift: var(--shift-by);
+  }
 }
 
 .plan {
   position: absolute;
-  inset: 0;
+  top: var(--shift);
+  left: 0;
   width: 100%;
   height: 100%;
 }
@@ -51,10 +84,6 @@
   stroke: var(--c-net);
   stroke-width: calc(var(--w-wall) * 1.2);
 }
-.dims path {
-  stroke: var(--c-dim);
-  stroke-width: var(--w-hair);
-}
 .leader {
   stroke: color-mix(in srgb, var(--amber) 75%, transparent);
   stroke-width: var(--w-hair);
@@ -80,24 +109,79 @@
   fill: var(--amber-hot) !important;
 }
 
+/* dimension line: tick, line, label, line, tick. Positioned with top/left (pixel-snapped), not translate. */
 .dim {
   position: absolute;
-  translate: -50% -50%;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  left: var(--x);
+  top: calc(var(--y) + var(--shift) - var(--tick) / 2);
+  width: var(--len);
+  height: var(--tick);
   font-family: var(--font-data);
-  font-size: clamp(15px, 1.1cqw + 10px, 26px);
+  font-size: var(--fs-dim);
   font-variant-numeric: tabular-nums lining-nums;
   line-height: 1;
   color: var(--amber);
   white-space: nowrap;
 }
+.dim::before,
+.dim::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: var(--w-hair);
+  height: 100%;
+  background: var(--c-dim);
+}
+.dim::before {
+  left: 0;
+}
+.dim::after {
+  right: 0;
+}
+.dimLine {
+  flex: 1;
+  height: var(--w-hair);
+  background: var(--c-dim);
+}
 .dim[data-vertical] {
+  flex-direction: column;
+  left: calc(var(--x) - var(--tick) / 2);
+  top: calc(var(--y) + var(--shift));
+  width: var(--tick);
+  height: var(--len);
+}
+.dim[data-vertical]::before,
+.dim[data-vertical]::after {
+  left: 0;
+  right: auto;
+  width: 100%;
+  height: var(--w-hair);
+}
+.dim[data-vertical]::before {
+  top: 0;
+}
+.dim[data-vertical]::after {
+  top: auto;
+  bottom: 0;
+}
+.dim[data-vertical] .dimLine {
+  width: var(--w-hair);
+  height: auto;
+}
+.dim[data-vertical] .dimText {
+  /* reads bottom to top, as on a drawing */
   writing-mode: vertical-rl;
   rotate: 180deg;
-  translate: 50% 50%;
 }
 
 .caption {
   position: absolute;
+  left: var(--x);
+  top: calc(var(--y) + var(--shift));
+  width: var(--len);
   display: grid;
   gap: 0.22em;
   padding-top: clamp(6px, 0.7cqw + 3px, 16px);
@@ -105,21 +189,29 @@
   line-height: 1.18;
 }
 .who {
-  font-size: clamp(15px, 1.5cqw + 9.5px, 34px);
+  font-size: var(--fs-who);
   font-weight: 500;
   color: var(--text);
   text-wrap: balance;
 }
 .where {
-  font-size: clamp(15px, 1.05cqw + 10.5px, 26px);
+  font-size: var(--fs-where);
   color: var(--muted);
   font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* narrow slides: the caption wraps, so it sets tighter to fit under the plan from 320 px up */
+@container court (max-width: 419.98px) {
+  .caption {
+    gap: 0.1em;
+    padding-top: 4px;
+    line-height: 1.1;
+  }
 }
 
 @container court (max-width: 299.98px) {
   .dim,
   .caption > :not(:global(.visually-hidden)),
-  .dims,
   .leader {
     display: none;
   }

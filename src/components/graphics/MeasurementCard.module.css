@@ -1,5 +1,7 @@
 /* G08 certificate of measurement: an A6 card on paper stock. Everything scales with the card's own
-   width (container units) and no text drops below 15 px. Hover and rotation are CSS transforms. */
+   width (container units) and no text drops below 15 px. Hover and rotation are CSS transforms.
+   Layers: .mover (GSAP entry: y and opacity) > .tilt (rest angle, straightens on hover; carries the
+   plate so it always sits square behind the card) > .card (lifts 6 px on hover). */
 .root {
   --ink-strong: var(--ink);
   --ink-body: color-mix(in srgb, var(--ink) 66%, var(--paper));
@@ -10,15 +12,30 @@
   --fs-small: max(15px, 0.8em);
   --pad: 7.4cqw;
   --plate: 2.4cqw;
+  /* vertical rhythm; the compact layout (narrow cards, text at the 15 px floor) tightens these */
+  --title-size: 1.44em;
+  --title-gap: 0.62em;
+  --meta-gap: 0.5em;
+  --rows-gap: 0.85em;
+  --row-pad: 0.3em;
+  --foot-gap: 0.9em;
+  --map-w: 29cqw;
 
   container-type: inline-size;
   margin: 0;
   width: 100%;
+  /* Saira's hinted advances open a gap after "t" at 15 to 16 px on some rasterisers */
+  text-rendering: geometricPrecision;
 }
 
 .mover {
   position: relative;
+}
+.tilt {
+  position: relative;
   padding: 0 var(--plate) var(--plate) 0;
+  transform-origin: 50% 55%;
+  transition: transform 300ms var(--ease-out);
 }
 
 /* graphite mount plate: the card rests on it, offset down and right */
@@ -48,7 +65,6 @@
   font-size: var(--fs);
   line-height: 1.25;
   font-variant-numeric: tabular-nums lining-nums;
-  transform-origin: 50% 60%;
   transition: transform 300ms var(--ease-out);
 }
 /* double-rule certificate frame */
@@ -69,13 +85,17 @@
 }
 
 @media (min-width: 900px) {
-  .root[data-rotate] .card {
+  .root[data-rotate] .tilt {
     transform: rotate(-3deg);
   }
 }
+/* the hover target is .mover, which never moves on hover, so the card cannot flicker at its edges */
 @media (hover: hover) and (pointer: fine) {
+  .mover:hover .tilt {
+    transform: rotate(0deg);
+  }
   .mover:hover .card {
-    transform: translateY(-6px) rotate(0deg);
+    transform: translateY(-6px);
   }
 }
 
@@ -89,17 +109,20 @@
 }
 .rosette {
   position: absolute;
-  top: -19cqw;
-  right: -19cqw;
-  width: 62cqw;
-  height: 62cqw;
+  top: -27cqw;
+  right: -27cqw;
+  width: 78cqw;
+  height: 78cqw;
   pointer-events: none;
 }
 .rosette path,
 .rosette circle {
   fill: none;
-  stroke: color-mix(in srgb, var(--ink) 9%, transparent);
-  stroke-width: 0.7px;
+  stroke: color-mix(in srgb, var(--ink) 7%, transparent);
+  stroke-width: 0.6px;
+}
+.rosette circle {
+  stroke: color-mix(in srgb, var(--ink) 11%, transparent);
 }
 
 /* ---------- header ---------- */
@@ -132,11 +155,11 @@
 }
 .title {
   position: relative;
-  margin-top: 0.62em;
+  margin-top: var(--title-gap);
   font-family: var(--font-display);
   font-variation-settings: "wdth" 112;
   font-weight: 560;
-  font-size: 1.44em;
+  font-size: var(--title-size);
   line-height: 1.04;
   letter-spacing: -0.012em;
   max-width: 9.5em;
@@ -147,7 +170,7 @@
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 0.2em 1em;
-  margin-top: 0.5em;
+  margin-top: var(--meta-gap);
   font-size: var(--fs-small);
 }
 .metaKey {
@@ -162,7 +185,7 @@
 /* ---------- measured rows ---------- */
 .rows {
   position: relative;
-  margin-top: 0.85em;
+  margin-top: var(--rows-gap);
   border-top: 1.5px solid var(--rule-strong);
 }
 .row {
@@ -170,7 +193,7 @@
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: baseline;
   gap: 0.75em;
-  padding: 0.3em 0 0.28em;
+  padding: var(--row-pad) 0 calc(var(--row-pad) - 0.02em);
   border-bottom: 1px solid var(--rule);
 }
 .row dt {
@@ -193,13 +216,13 @@
 .foot {
   position: relative;
   display: grid;
-  grid-template-columns: 26cqw minmax(0, 1fr);
+  grid-template-columns: var(--map-w) minmax(0, 1fr);
   gap: 4.4cqw;
   margin-top: auto;
-  padding-top: 0.9em;
+  padding-top: var(--foot-gap);
 }
 .map {
-  width: 26cqw;
+  width: var(--map-w);
   aspect-ratio: 272 / 322;
 }
 .mapSvg {
@@ -296,9 +319,30 @@
   line-height: 1.1;
 }
 
+/* ---------- compact: narrow cards, where the text sits at its 15 px floor ----------
+   Tighter rhythm so the card keeps close to A6 instead of growing tall. */
+@container (max-width: 339.98px) {
+  .card {
+    --pad: 6.2cqw;
+    --title-size: 1.28em;
+    --title-gap: 0.5em;
+    --meta-gap: 0.3em;
+    --rows-gap: 0.6em;
+    --row-pad: 0.17em;
+    --foot-gap: 0.55em;
+    --map-w: 23cqw;
+  }
+  .tag {
+    padding: 0.22em 0.5em 0.26em;
+  }
+  .side {
+    gap: 0.35em;
+  }
+}
+
 /* ---------- thumb: no text, structure only ----------
-   Used by variant="thumb", and automatically when a full card is placed narrower than 300 px,
-   where its text could not stay at 15 px. */
+   Used by variant="thumb", and automatically when a full card is placed narrower than 280 px,
+   where its text could not stay at 15 px. Fine strokes in ink, like the card seen from afar. */
 .fullBody {
   display: contents;
 }
@@ -306,59 +350,126 @@
   display: none;
 }
 .root[data-variant="thumb"] .card {
-  padding: 9cqw;
+  padding: 10cqw 9cqw 9cqw;
 }
 .root[data-variant="thumb"] .thumbBody {
-  display: grid;
+  display: flex;
 }
-@container (max-width: 299.98px) {
-  .fullBody {
+.root[data-variant="thumb"] .rosetteClip {
+  display: none;
+}
+@container (max-width: 279.98px) {
+  .fullBody,
+  .rosetteClip {
     display: none;
   }
   .card {
-    padding: 9cqw;
+    padding: 10cqw 9cqw 9cqw;
   }
   .thumbBody {
-    display: grid;
+    display: flex;
   }
 }
 .thumbBody {
   position: relative;
-  gap: 4.2cqw;
+  flex-direction: column;
   height: 100%;
-  align-content: start;
 }
-.thumbBar,
-.thumbBarWide {
+.thumbHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.thumbMark {
   display: block;
-  height: 4cqw;
-  background: var(--ink);
+  width: 36%;
+  height: max(1.5px, 2.4cqw);
+  background: color-mix(in srgb, var(--ink) 82%, transparent);
+}
+.thumbTag {
+  display: block;
+  width: 24%;
+  height: 6cqw;
+  border: 1px solid color-mix(in srgb, var(--ink) 34%, transparent);
   border-radius: 1px;
 }
-.thumbBar {
-  width: 38%;
-  height: 3cqw;
+.thumbTitle,
+.thumbTitle2 {
+  display: block;
+  height: max(2px, 3.6cqw);
+  background: color-mix(in srgb, var(--ink) 88%, transparent);
 }
-.thumbBarWide {
-  width: 78%;
-  margin-bottom: 3cqw;
+.thumbTitle {
+  width: 58%;
+  margin-top: 7cqw;
+}
+.thumbTitle2 {
+  width: 70%;
+  margin-top: 2.4cqw;
+}
+.thumbRows {
+  display: block;
+  margin-top: 7cqw;
+  border-top: 1px solid color-mix(in srgb, var(--ink) 70%, transparent);
 }
 .thumbRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 6.4cqw;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+}
+.thumbKey,
+.thumbValue {
   display: block;
-  height: 1px;
-  background: var(--rule-strong);
-  opacity: 0.4;
+  height: max(1px, 1.6cqw);
+}
+.thumbKey {
+  width: 26%;
+  background: color-mix(in srgb, var(--ink) 30%, transparent);
+}
+.thumbValue {
+  width: 20%;
+  background: color-mix(in srgb, var(--ink) 66%, transparent);
+}
+.thumbRow:nth-child(2n) .thumbKey {
+  width: 20%;
+}
+.thumbRow:nth-child(3n) .thumbValue {
+  width: 27%;
 }
 .thumbFoot {
   display: flex;
   justify-content: space-between;
   align-items: end;
-  margin-top: 4cqw;
+  gap: 8cqw;
+  margin-top: auto;
 }
-.thumbFoot .map {
-  width: 34%;
+.thumbMap {
+  display: block;
+  flex: none;
+  width: 30%;
+  aspect-ratio: 272 / 322;
 }
-.thumbFoot .cross {
-  width: 11cqw;
-  height: 11cqw;
+/* at thumbnail size the iso-lines would only blur the 42 holes */
+.thumbMap .contour {
+  display: none;
+}
+.thumbSide {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: end;
+  gap: 6cqw;
+}
+.thumbCross {
+  display: block;
+  width: 9cqw;
+  height: 9cqw;
+}
+.thumbSign {
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: color-mix(in srgb, var(--ink) 50%, transparent);
 }
