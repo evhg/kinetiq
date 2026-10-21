@@ -37,9 +37,8 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: 50% 56%;
-  transform: scale(1.12);
-  transform-origin: 50% 60%;
+  /* Framed for this layout: the racket sits between the headline band and the CTA (K01-hero renders). */
+  object-position: 50% 50%;
 }
 /* The lit layer waits for the reveal when motion is on; otherwise it shows at once. */
 :global(html[data-motion="on"]) .full {
@@ -62,7 +61,7 @@
   max-width: 15ch;
 }
 .lead {
-  max-width: 40ch;
+  max-width: 54ch;
 }
 .bottom {
   display: grid;
@@ -82,11 +81,6 @@
   }
   .top {
     max-width: none;
-  }
-  .base img,
-  .full img {
-    object-position: 50% 62%;
-    transform: scale(1.25);
   }
   .bottom {
     width: 100%;

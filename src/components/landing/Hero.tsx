@@ -52,8 +52,9 @@ export function Hero() {
     <section ref={root} id="hero" className={styles.hero} aria-labelledby="hero-title">
       <div className={styles.drift} aria-hidden="true">
         <div className={styles.media}>
-          <Still id="K01-base" phoneCrop="portrait" alt="" priority className={styles.base} />
-          <Still id="K01-full" phoneCrop="portrait" alt="" loading="eager" fetchPriority="low" className={styles.full} />
+          {/* The hero framing keeps the racket below the headline and above the CTA; phones have their own 9:16 master. */}
+          <Still id="K01-hero-base" phoneId="K01-hero-base-phone" phoneCrop="portrait" alt="" priority className={styles.base} />
+          <Still id="K01-hero-full" phoneId="K01-hero-full-phone" phoneCrop="portrait" alt="" loading="eager" fetchPriority="low" className={styles.full} />
         </div>
       </div>
       <div className={styles.veil} aria-hidden="true" />

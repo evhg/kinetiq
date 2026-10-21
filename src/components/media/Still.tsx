@@ -11,6 +11,8 @@ type Props = {
   crop?: string;
   /** Crop for phones (below 700 px); omit to use the same crop everywhere. */
   phoneCrop?: string;
+  /** A separate still for phones (its own camera framing), used with phoneCrop. Defaults to id. */
+  phoneId?: string;
   alt: string;
   /** The rendered width, as a sizes attribute. */
   sizes?: string;
@@ -36,6 +38,7 @@ export function Still({
   id,
   crop = "wide",
   phoneCrop,
+  phoneId,
   alt,
   sizes: sz = "100vw",
   phoneSizes = "100vw",
@@ -47,7 +50,7 @@ export function Still({
   const key = `${id}-${crop}`;
   const main = sizes[key];
   if (!main) return null;
-  const phoneKey = phoneCrop ? `${id}-${phoneCrop}` : null;
+  const phoneKey = phoneCrop ? `${phoneId ?? id}-${phoneCrop}` : null;
   const phone = phoneKey ? sizes[phoneKey] : null;
   const fallback = main.widths.find((w) => w >= 1280) ?? main.widths[main.widths.length - 1];
   return (
