@@ -133,5 +133,33 @@
    1080
   ],
   "hash": "df7ba7dfb3"
+ },
+ "K01-finale-wide": {
+  "w": 2560,
+  "h": 1440,
+  "widths": [
+   828,
+   1280,
+   1920,
+   2560
+  ],
+  "hash": "aa1310e7d7"
+ },
+ "K01-finale-portrait": {
+  "w": 809,
+  "h": 1440,
+  "widths": [
+   809
+  ],
+  "hash": "db05964ca6"
+ },
+ "K01-finale-card": {
+  "w": 1024,
+  "h": 1440,
+  "widths": [
+   640,
+   1024
+  ],
+  "hash": "b2d1f1d0c8"
  }
 }
