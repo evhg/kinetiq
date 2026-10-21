@@ -68,7 +68,8 @@ body {
   font-size: var(--fs-body);
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
+  /* geometricPrecision: optimizeLegibility rounds Saira's hinted advances at 15-17 px ("Pat ent ed"). */
+  text-rendering: geometricPrecision;
   overflow-x: clip;
 }
 

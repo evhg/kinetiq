@@ -21,7 +21,7 @@ export const SIDE_WALL = 4.5; // KINETIQ: the shell is thicker at the sides (wei
 export const DRIFT = 1.8;
 
 /** The viewBox: drawing plus label bands, the union of both layouts' windows. */
-export const VB = { x: -4, y: -27.5, w: 120, h: 85 };
+export const VB = { x: -6, y: -41, w: 124, h: 101 };
 export const viewBox = `${VB.x} ${VB.y} ${VB.w} ${VB.h}`;
 /**
  * Visible windows. Wide containers show the whole section (one label row below); narrow ones
@@ -29,11 +29,12 @@ export const viewBox = `${VB.x} ${VB.y} ${VB.w} ${VB.h}`;
  * KINETIQ right half, with two label rows in each band.
  */
 export const WINDOW = {
-  full: { x0: -4, x1: 116, y0: -19, y1: 51 },
+  full: { x0: -4, x1: 116, y0: -21.5, y1: 52.8 },
   /** 640 px and wider: the labels take fewer millimetres, so the bands close up. */
-  wide: { x0: -4, x1: 116, y0: -15.5, y1: 48.5 },
-  tubular: { x0: -4, x1: 58, y0: -27.5, y1: 57.5 },
-  kinetiq: { x0: 54, x1: 116, y0: -27.5, y1: 57.5 },
+  wide: { x0: -4, x1: 116, y0: -16.5, y1: 49.5 },
+  /** One edge, sized so 15 px labels still fit at 150 px wide (360 px phones, side by side). */
+  tubular: { x0: -6, x1: 60, y0: -41, y1: 60 },
+  kinetiq: { x0: 52, x1: 118, y0: -41, y1: 60 },
 } as const;
 
 const r1 = (v: number) => (Math.round(v * 100) / 100).toString();
@@ -272,8 +273,11 @@ export type Callout = {
   tone?: "bond" | "part" | "shell";
 };
 
-/** Shelf heights for the two rows of each band (top: text above the shelf; bottom: below). */
-export const ROW = { top1: -5.2, top2: -13, bottom1: T + 5.2 } as const;
+/**
+ * Shelf heights (top: text above the shelf; bottom: below). top2 is used only by the one-edge phone
+ * layout: it sits a full two-line label above top1, so stacked labels never overlap at 150 px.
+ */
+export const ROW = { top1: -5.2, top2: -22.5, bottom1: T + 5.2 } as const;
 
 /** Split a callout into two lines of similar length, at a word boundary. */
 export function twoLines(text: string): [string, string] {

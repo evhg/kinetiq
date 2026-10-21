@@ -37,7 +37,7 @@ export const LABELS = {
   summary:
     "Technical drawing of the KINETIQ racket. Overall length 455 mm, head width 260 mm, thickness 38.0 mm, 42 moulded holes of 12.4 mm diameter, every surface within plus or minus 0.015 mm. Section A-A shows one continuous shell around the core; section B-B shows the shell running unbroken down the wall of a moulded hole.",
   holeNote: "0 drilled",
-  shell: "One shell. No glue.",
+  shell: "One shell. No tube.",
   core: "Core",
   fibre: ["Fibre continuous", "around the edge"],
   weave: ["One weave,", "face to edge"],
@@ -49,7 +49,7 @@ export const LABELS = {
   notesTitle: "Notes",
   notes: [
     "One piece, from a single mould.",
-    "No glue line. No seam. No joint.",
+    "No frame tube. No seam. No joint.",
     "42 holes moulded. 0 drilled.",
     "Every surface within ±0.015 of design.",
     "Mass within ±1.0 g of reference.",
