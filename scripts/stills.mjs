@@ -61,8 +61,8 @@ for (const [id, still] of Object.entries(config.stills)) {
     const encoded = [];
     for (const w of widths) {
       const resized = base.clone().resize({ width: w, kernel: "lanczos3" });
-      const avif = await resized.clone().avif({ quality: 58, effort: 5, chromaSubsampling: "4:4:4" }).toBuffer();
-      const webp = await resized.clone().webp({ quality: 80, effort: 5, smartSubsample: true }).toBuffer();
+      const avif = await resized.clone().avif({ quality: 74, effort: 5, chromaSubsampling: "4:4:4" }).toBuffer();
+      const webp = await resized.clone().webp({ quality: 86, effort: 5, smartSubsample: true }).toBuffer();
       encoded.push({ w, avif, webp });
       // Social cards: crawlers want a plain JPEG at 1200 x 630.
       if (crop === "og" && w === top) await resized.clone().resize({ width: 1200, height: 630, fit: "cover" }).jpeg({ quality: 86, mozjpeg: true }).toFile(join(out, "og.jpg"));
