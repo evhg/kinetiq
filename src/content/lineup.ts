@@ -21,15 +21,16 @@ export type Tier = {
 };
 
 /**
- * The ambassador for the Invite Only extras. The owner named Paquito Navarro, but he is a
- * Bullpadel athlete with a 2026 signature racket: his name, autograph and a coaching session
- * may only appear once a signed agreement exists. Until then `confirmed` stays false and the
- * site shows the neutral wording. See CLAIMS.md.
+ * The ambassador for the Invite Only extras. The owner has a touring pro in mind who is under
+ * contract with another racket brand: a name, autograph or coaching session may only appear once a
+ * signed agreement exists. Until then `confirmed` stays false, the name stays out of the public repo,
+ * and the site shows the neutral wording. See CLAIMS.md row 21.
  */
 export const ambassador = {
   confirmed: false,
-  name: "Paquito Navarro",
-  neutral: "our Premier Padel ambassador",
+  // The athlete the owner named. Fill in together with confirmed: true once a signed agreement exists.
+  name: "",
+  neutral: "our touring-pro ambassador",
   event: "the next Málaga P1",
 };
 
@@ -53,7 +54,7 @@ export const tiers: Tier[] = [
     name: "VanQuish",
     availability: "Limited",
     priceEur: 990,
-    cardLine: "Numbered 001 to 500. Includes ConQuer, plus your number laser-marked on the throat. First out of the mould. Never made again.",
+    cardLine: "Numbered 001 to 500 and laser-marked on the throat. First out of the mould. Never made again.",
     includes: [
       "Your number, 001 to 500, laser-marked on the throat",
       "From the first rackets out of the mould",
@@ -69,12 +70,12 @@ export const tiers: Tier[] = [
     name: "InviQtus",
     availability: "Invite Only",
     priceEur: 2900,
-    cardLine: `Three rackets, each autographed by ${amb}. Then train one-on-one with ${ambShort} at ${ambassador.event}.`,
+    cardLine: `Fifty sets of three, by invitation. Each racket autographed by ${amb}, then a session with ${ambShort} at ${ambassador.event}.`,
     includes: [
       `Three KINETIQ rackets, each autographed by ${amb}`,
       `A one-on-one session with ${ambShort} at ${ambassador.event}`,
-      "Numbered 01 to 50, in a fitted case",
-      "Everything in VanQuish, on all three",
+      "Laser-marked 01 to 50, in a fitted case",
+      "From the first rackets out of the mould",
     ],
     limit: 50,
     rackets: 3,

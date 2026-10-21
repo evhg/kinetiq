@@ -15,7 +15,7 @@ export const reserveCopy = {
     "Free delivery in Europe, duties included",
     "Serial number and measurement card with every racket",
   ],
-  inviteNote: "By invitation. Your code is asked with your details.",
+  inviteNote: "By invitation. Enter your code with your details.",
   payButton: "Pay with Card",
   formHeading: "Your details",
   feelRequired: "Choose Command or Pace.",
@@ -25,5 +25,5 @@ export const reserveCopy = {
   fineprint: "Your card is charged the full amount today. Cancel any time before your racket ships for a full refund to the same card. Payments are processed securely by Stripe.",
   stickyPay: "Pay with Card",
   confirmationHeadline: "Reserved. Now we make it.",
-  confirmationBody: "Your confirmation is on its way to your inbox. Your racket ships in January 2027, with its serial and measurement card. Fully refundable until then.",
+  confirmationBody: "Your receipt is on its way to your inbox. Your KINETIQ ships in January 2027 with its serial number and measurement card. Fully refundable until then.",
 };

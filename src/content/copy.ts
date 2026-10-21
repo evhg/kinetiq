@@ -21,14 +21,14 @@ export const specStrip = [
 export const onePiece = {
   edge: {
     headline: "Carbon, never interrupted.",
-    body: "Carbon is strongest when nothing breaks its path. In KINETIQ, nothing does. No tube. No joint. No cut fibre. Every shot travels through one continuous shell.",
+    body: "Carbon is strongest when nothing breaks its path. In KINETIQ, nothing does. No frame tube. No joint. No cut fibre. Every shot travels through one continuous shell.",
     callouts: ["38.0 mm, one continuous wall", "No seam. No tube. No joint.", "One weave, face to edge"],
   },
   section: {
-    eyebrow: "Tubeless monocoque",
+    eyebrow: "No frame tube",
     headline: "No tube. The shell is the frame.",
     body: "Most padel rackets are built around a carbon tube. KINETIQ has no frame tube. Its faces close around the edge into one shell, and the grams a tube spends on structure go to the sides, where they widen the sweet spot.",
-    left: { title: "Tubular racket", parts: ["Frame tube", "Face", "Core", "Face"], glue: "bond" },
+    left: { title: "Tubular racket", parts: ["Frame tube", "Face", "Core", "Face"], glue: "joint" },
     right: { title: "KINETIQ", lines: ["One shell. No tube.", "Fibre continuous around the edge", "Balance set in the mould"] },
     proofs: [
       { title: "No frame tube.", body: "One carbon shell, face to handle. The skin carries every load, so the whole racket works as one structure." },
@@ -81,7 +81,7 @@ export const feel = {
     { title: "The same, edge to centre.", body: "Walls held to the same thickness mean the same stiffness everywhere, and weight at the sides widens the sweet spot. Off-centre shots answer like centre shots." },
   ],
   graph: {
-    caption: "Illustrative. Vibration after impact, measured across the face.",
+    caption: "Illustrative. How vibration fades after impact, edge to centre.",
     glued: "Tubular racket",
     kinetiq: "KINETIQ, one piece",
     settled: "Settled",
@@ -90,7 +90,7 @@ export const feel = {
 
 export const identical = {
   headline: "Buy two. It's the same racket.",
-  body: "Within a gram of the reference weight. Within a millimetre of its balance, set inside the mould. Swap rackets mid-match. Your hand will never know.",
+  body: "Within 1.0 g of the reference weight. Within 1.0 mm of its balance point, set inside the mould. Swap rackets mid-match. Your hand will never know.",
   stats: [
     { value: "±1.0", unit: "g", label: "weight, every racket" },
     { value: "±1.0", unit: "mm", label: "balance, set in the mould" },
@@ -122,12 +122,12 @@ export const feelChoice = {
 };
 
 export const editions = {
-  headline: "Three editions. One standard.",
+  headline: "Three editions. One racket.",
 };
 
 export const finale = {
   headline: "One piece. Fifteen microns. Yours.",
-  sub: "Reservations are open. From €410, fully refundable until your racket ships in January 2027.",
+  sub: "From €410. Fully refundable until your racket ships in January 2027.",
 };
 
 export const meta = {

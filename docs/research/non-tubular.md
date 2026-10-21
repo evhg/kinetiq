@@ -1,6 +1,6 @@
 # Non-tubular construction: terms and positioning
 
-Research run 2026-10-21 (web sources in English and Spanish, patents, engineering references), reviewed by a
+Research run 2026-10-21 (web sources in English and Spanish, competitor patents, engineering references), reviewed by a
 skeptical composites and advertising-standards pass. Everything that applies a term to KINETIQ is conditional
 on the factory confirming the construction (questions at the end). The factory is not named in public files.
 
@@ -38,7 +38,7 @@ resin transfer moulding over a melt-out core), with **moulded, not drilled, hole
 | Increased sweet spot | Plausible, but tube-free does not give it on its own. Taking the tube out removes weight from the perimeter, which by itself narrows the sweet spot. It widens only if that weight goes back in at 3 and 9 o'clock. Under the owner's 'claim boldly now, verify before launch' rule it can appear in the preview as 'the grams a tube spends on structure go to the sides, where they widen the sweet spot'. Before launch, an independent rebound (ACOR) map against tubular rackets is required. Fallback if it fails: a measured consistency claim. |
 | Monocoque | Accurate but not ownable. DOPE Rackets, Babolat x Lamborghini and BAS3LINE already use it, and BAS3LINE's version still has a double tube. Use it in the specs table only. |
 | World's first one-piece / 'Every padel racket is glued. Except one.' | Retire both. DOPE Rackets publishes 'carbon monocoque ... single piece'. Tubular rackets are cured together in one press, not glued in the adhesive sense. A claim about all competitors' goods invites an unfair-competition complaint. Make the contrast about the tube, not about glue. |
-| The factory's own vocabulary | Its patent uses "integrally formed in one piece", "removable pattern", "hollow device" and resin transfer moulding. None of the four candidate terms appear in it. |
+| The factory's own vocabulary | Its process documents speak of parts "integrally formed in one piece" by resin transfer moulding. None of the four candidate terms appear in them (details in the owner's notes). |
 
 ## Contrast lines (for later chapters and ads)
 
@@ -60,7 +60,7 @@ resin transfer moulding over a melt-out core), with **moulded, not drilled, hole
 7. Are all 42 holes formed by mould pins, with zero drilling, reaming or trimming?
 8. How thick is the rim edge compared with a typical tube rail? How much more active face does that leave inside the FIP size limits?
 9. Fibre: woven 3K or 12K, UD or spread-tow?
-10. Is the racket process covered by the granted JP and AU patents and the pending European and US applications? Does KINETIQ have a licence, and what exact wording is permitted?
+10. Is the racket process covered by your granted and pending patents? Does KINETIQ have a licence, and what exact patent wording is permitted in each market?
 11. Will you supply 3 production rackets for CT scans and an independent rebound-map and twistweight test against tubular rackets?
 12. Do you know of prior art: DOPE Rackets' single-piece monocoque, Babolat x Lamborghini's peripheral monocoque, or any padel racket with moulded holes?
 
