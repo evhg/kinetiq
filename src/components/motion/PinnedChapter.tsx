@@ -28,6 +28,7 @@ type Props = {
 export const PIN_MEDIA = "(min-width: 900px) and (prefers-reduced-motion: no-preference)";
 
 export function PinnedChapter({ id, nextId, labelledBy, className = "", length = 2, build, media = PIN_MEDIA, children }: Props) {
+  // `length` reaches the CSS as --pin-len, which sizes the sticky scroll range.
   const root = useRef<HTMLElement>(null);
   const { motionOn } = useMotion();
 
@@ -36,17 +37,14 @@ export function PinnedChapter({ id, nextId, labelledBy, className = "", length =
       if (!motionOn) return;
       const mm = gsap.matchMedia();
       mm.add(media, () => {
-        // globals.css reserves the pinned length as the section's padding-bottom before JS runs (PIN_MEDIA),
-        // so the pin adds no spacing of its own and releases exactly where the next section starts.
-        const reserved = () => parseFloat(getComputedStyle(root.current!).paddingBottom) || 0;
+        // The pin itself is CSS (globals.css: the section is one screen plus `length` screens tall and the
+        // stage is position: sticky), so the timeline only scrubs while the stage is stuck.
         const tl = gsap.timeline({
           defaults: { ease: "none" },
           scrollTrigger: {
-            trigger: ".pin-stage",
+            trigger: root.current,
             start: "top top",
-            end: () => `+=${reserved() || window.innerHeight * length}`,
-            pin: true,
-            pinSpacing: reserved() === 0,
+            end: "bottom bottom",
             scrub: 0.6,
             invalidateOnRefresh: true,
           },

@@ -211,9 +211,21 @@ async function capture(page, path) {
 }
 
 async function scrollTo(page, y) {
-  // Native scroll, like a scrollbar drag or keyboard: Lenis follows native scroll
-  // events. (Instant lenis.scrollTo jumps into a pin can stall headless capture.)
-  await page.evaluate((target) => window.scrollTo({ top: target, behavior: "instant" }), y);
+  // Native scroll, like a scrollbar drag or keyboard: Lenis follows native scroll events. The page is
+  // scrolled in 120 px steps, one per frame, as a person would: an instant 1,500 px jump lands in the
+  // middle of a pinned chapter, and the pin engaging one frame later reads as a layout shift no visitor
+  // ever sees. (Instant lenis.scrollTo jumps into a pin can also stall headless capture.)
+  await page.evaluate(async (target) => {
+    const frame = () => new Promise((r) => requestAnimationFrame(() => r()));
+    let y = window.scrollY;
+    while (Math.abs(target - y) > 120) {
+      y += Math.sign(target - y) * 120;
+      window.scrollTo({ top: y, behavior: "instant" });
+      await frame();
+    }
+    window.scrollTo({ top: target, behavior: "instant" });
+    await frame();
+  }, y);
 }
 
 async function studySnapshot(page) {

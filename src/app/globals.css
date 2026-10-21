@@ -343,10 +343,16 @@ img {
   position: relative;
 }
 @media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
-  /* The pinned scroll length is reserved here, before any JS runs (PinnedChapter pins with
-     pinSpacing: false and moves the stage into this space when the pin releases). */
+  /* Pinning is pure CSS: the section is one screen plus its scroll length tall, and the stage sticks
+     to the top while the timeline scrubs over that length. Nothing is repositioned by JS, so there is
+     no layout shift, no jitter with Lenis, and hash links land in the same place before and after JS. */
   html[data-motion="on"] .pin {
-    padding-bottom: calc(var(--pin-len, 0) * 100svh);
+    min-height: calc((1 + var(--pin-len, 0)) * 100svh);
+  }
+  html[data-motion="on"] .pin .pin-stage {
+    position: sticky;
+    top: 0;
+    min-height: 100svh;
   }
   html[data-motion="on"] .pin-layered .pin-stage {
     height: 100svh;
