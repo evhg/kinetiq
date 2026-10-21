@@ -67,6 +67,8 @@ export type FlowField = {
   /** Hole centres in px, interleaved, and the hole radius in px. */
   holes: Float32Array;
   holeR: number;
+  /** The framed world rect in px: x0, y0, x1, y1 (y down). */
+  frameBox: [number, number, number, number];
   lines: FlowLine[];
 };
 
@@ -86,6 +88,9 @@ const A2 = HOLE_RADIUS * HOLE_RADIUS;
 const HX = new Float64Array(HOLES.map((h: Pt) => h[0]));
 const HY = new Float64Array(HOLES.map((h: Pt) => h[1]));
 const NH = HOLES.length;
+/** Doublet window: full strength inside R1, zero beyond R2 (the nearest neighbour bore is 0.208 away). */
+const R1 = HOLE_RADIUS * 1.45;
+const R2 = 0.2;
 
 /**
  * Builds the field lazily: `step()` integrates one line and returns false when every line is done,
@@ -125,27 +130,45 @@ export function createFlowBuilder(opts: FlowOptions) {
   const c = Math.cos(rad);
   const s = Math.sin(rad);
 
-  // Velocity at (x, y): W(z) = e^{-ia} - sum a^2 e^{ia} / (z - zk)^2  (unit free stream).
-  // Writes u, v and the distance from the nearest hole surface (world units) into `out`.
-  const out = new Float64Array(3);
+  // Stream function: free stream plus one doublet per hole, each windowed to zero before it can
+  // reach a neighbouring bore (R2 < pitch - radius). So every bore is an exact streamline, lines are
+  // level sets of psi (they can never cross or merge), and far from the holes they run dead straight.
+  // psi = -x sin a + y cos a + sum a^2 (dx sin a - dy cos a) / r^2 * W(r)
+  // Velocity is the rotated gradient (d psi/dy, -d psi/dx). Writes psi, u, v and the distance to the
+  // nearest bore surface into `out` (only holes within R2 are visited, so most points cost nothing).
+  const out = new Float64Array(4);
   const vel = (x: number, y: number) => {
-    let su = 0;
-    let sv = 0;
+    let psi = -x * s + y * c;
+    let gx = -s;
+    let gy = c;
     let near = Infinity;
     for (let k = 0; k < NH; k++) {
       const dx = x - HX[k];
       const dy = y - HY[k];
       const r2 = dx * dx + dy * dy;
       if (r2 < near) near = r2;
+      if (r2 >= R2 * R2) continue;
+      const r = Math.sqrt(r2);
+      const g = s * dx - c * dy;
+      const P = g / r2;
       const r4 = r2 * r2;
-      const p = (dx * dx - dy * dy) / r4;
-      const q = (-2 * dx * dy) / r4;
-      su += c * p - s * q;
-      sv += c * q + s * p;
+      const px = s / r2 - (2 * dx * g) / r4;
+      const py = -c / r2 - (2 * dy * g) / r4;
+      let w = 1;
+      let dw = 0;
+      if (r > R1) {
+        const t = (r - R1) / (R2 - R1);
+        w = 1 - t * t * t * (t * (6 * t - 15) + 10);
+        dw = (-30 * t * t * (1 - t) * (1 - t)) / (R2 - R1);
+      }
+      psi += A2 * P * w;
+      gx += A2 * (w * px + (P * dw * dx) / r);
+      gy += A2 * (w * py + (P * dw * dy) / r);
     }
-    out[0] = c - A2 * su;
-    out[1] = s + A2 * sv;
+    out[0] = gy;
+    out[1] = -gx;
     out[2] = Math.sqrt(near) - HOLE_RADIUS;
+    out[3] = psi;
   };
 
   // Flow-aligned extent of the box (u along the flow, v across it), in world units.
@@ -213,6 +236,8 @@ export function createFlowBuilder(opts: FlowOptions) {
   function integrate(v0: number) {
     let x = uSeed * c - v0 * s;
     let y = uSeed * s + v0 * c;
+    vel(x, y);
+    const psi0 = out[3];
     const xs: number[] = [];
     const sp2: number[] = [];
     let entered = false;
@@ -237,20 +262,14 @@ export function createFlowBuilder(opts: FlowOptions) {
       dir(x + h * k3[0], y + h * k3[1], k4);
       x += (h / 6) * (k1[0] + 2 * k2[0] + 2 * k3[0] + k4[0]);
       y += (h / 6) * (k1[1] + 2 * k2[1] + 2 * k3[1] + k4[1]);
-      // Superposed doublets are not exactly tangent to every wall: keep lines on the surface.
-      for (let k = 0; k < NH; k++) {
-        const dx = x - HX[k];
-        const dy = y - HY[k];
-        const r = Math.hypot(dx, dy);
-        const rMin = HOLE_RADIUS * 1.012;
-        if (r < rMin) {
-          if (r < 1e-9) {
-            x += rMin;
-          } else {
-            x = HX[k] + (dx / r) * rMin;
-            y = HY[k] + (dy / r) * rMin;
-          }
-        }
+      // Pull the point back onto its own level set (RK4 drifts a little where lines turn hard).
+      vel(x, y);
+      const g2 = out[0] * out[0] + out[1] * out[1];
+      if (g2 > 1e-4) {
+        const e = (out[3] - psi0) / g2;
+        // grad psi = (-v, u)
+        x -= e * -out[1];
+        y -= e * out[0];
       }
     }
     const nPts = xs.length / 2;
@@ -269,7 +288,8 @@ export function createFlowBuilder(opts: FlowOptions) {
     holes[2 * k + 1] = oy - HY[k] * scale;
   }
 
-  const field: FlowField = { width: W, height: H, scale, holes, holeR: HOLE_RADIUS * scale, lines };
+  const frameBox: FlowField["frameBox"] = [ox + frame[0] * scale, oy - frame[3] * scale, ox + frame[2] * scale, oy - frame[1] * scale];
+  const field: FlowField = { width: W, height: H, scale, holes, holeR: HOLE_RADIUS * scale, frameBox, lines };
 
   return {
     field,
@@ -279,9 +299,12 @@ export function createFlowBuilder(opts: FlowOptions) {
       if (i >= seeds.length) return false;
       const sd = seeds[i++];
       const { pts, len, speed } = integrate(sd.v);
-      // Tow shading: filaments at the centre of a tow catch more light than those at its edges.
-      const shade = 0.5 + 0.5 * Math.sin(Math.PI * (0.15 + 0.7 * sd.f));
-      const jitter = 0.75 + 0.5 * rnd();
+      // Tow shading: filaments at the centre of a tow catch more light than those at its edges,
+      // and broad bands of tows catch more than others (grazing light across a weave).
+      const shade = 0.3 + 0.7 * Math.sin(Math.PI * (0.1 + 0.8 * sd.f));
+      const vp = sd.v * scale;
+      const band = 0.3 + 0.7 * (0.5 + 0.3 * Math.sin(vp / 61 + 1.3) + 0.2 * Math.sin(vp / 23.7 + 4.1));
+      const jitter = (0.8 + 0.4 * rnd()) * band;
       const hot = rnd() < 0.022;
       if (pts.length >= 4) lines.push({ pts, len, speed, alpha: Math.min(1, shade * jitter), hot });
       return i < seeds.length;
