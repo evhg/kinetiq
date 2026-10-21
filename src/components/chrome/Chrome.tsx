@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { site } from "@/content/site";
 import styles from "./Chrome.module.css";
 
@@ -19,8 +19,25 @@ export function PreviewBanner() {
  * left the viewport (sentinel = the element with id "hero").
  */
 export function SiteHeader({ compactCta = false }: { compactCta?: boolean }) {
+  const ref = useRef<HTMLElement>(null);
   const [scrolled, setScrolled] = useState(false);
   const [pastHero, setPastHero] = useState(false);
+
+  // The fixed chrome's real height (the banner wraps on phones) replaces the CSS estimate in --chrome-h.
+  useEffect(() => {
+    const header = ref.current;
+    if (!header) return;
+    const root = document.documentElement.style;
+    const ro = new ResizeObserver(([entry]) => {
+      const h = entry.borderBoxSize?.[0]?.blockSize ?? header.getBoundingClientRect().height;
+      root.setProperty("--chrome-h", `${h}px`);
+    });
+    ro.observe(header);
+    return () => {
+      ro.disconnect();
+      root.removeProperty("--chrome-h");
+    };
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -39,7 +56,7 @@ export function SiteHeader({ compactCta = false }: { compactCta?: boolean }) {
   }, [compactCta]);
 
   return (
-    <header className={styles.header} data-scrolled={scrolled}>
+    <header ref={ref} className={styles.header} data-scrolled={scrolled}>
       <PreviewBanner />
       <div className={styles.row}>
         <Link href="/" className={styles.wordmark} aria-label="KINETIQ home">

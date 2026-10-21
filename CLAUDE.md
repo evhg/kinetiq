@@ -34,7 +34,8 @@ Lenis · Playwright (dev only). No real-time 3D: product imagery is Blender stil
 - `src/app/`: routes, `layout.tsx` (motion init script, providers), `globals.css`.
 - `src/components/motion/`: `MotionProvider` (reduced-motion state), `SmoothScroll` (Lenis), `PinnedChapter`.
 - `src/components/landing/`: one component + CSS module per landing section; `Reveal` and `Scrub` helpers.
-- `src/components/graphics/`: data graphics G01–G13 (SVG/canvas), each with a review page at `/lab/<id>` (dev only).
+- `src/components/graphics/`: data graphics G01–G13 (SVG/canvas), each with a review page at `/lab/<id>` (dev only;
+  `KQ_LAB=1` serves them in production).
 - `src/components/media/Still.tsx`: product stills with phone art direction. `src/components/reserve/`: /reserve.
 - `src/components/chrome/`: preview banner, header (compact Reserve Now after the hero), footer.
 - `src/lib/gsap.ts`: the only place GSAP plugins are registered. Import gsap from here.
@@ -102,8 +103,9 @@ Lenis · Playwright (dev only). No real-time 3D: product imagery is Blender stil
 - No placeholder text in a finished build. The preview banner is deliberate, not a placeholder.
 - Every claim is listed in `CLAIMS.md`. A new claim gets a row there in the same commit.
 - Launch gate: `NEXT_PUBLIC_LAUNCHED=true` (removes banner and noindex) only when CLAIMS.md is cleared.
-- Stripe: `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, optional `INVITE_CODES` (see
-  `.env.example`). Without keys, /reserve runs in preview (Place Reservation disabled).
+- Stripe: `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `INVITE_CODES` (see `.env.example`).
+  Server and Stripe.js are pinned to API version `2026-09-30.endive` (`allowed_payment_method_types`).
+  Without keys, /reserve runs in preview (Place Reservation disabled). Invite Only fails closed without codes.
 - One landing CTA label: "Reserve Now" (`site.ctaLabel`); then "Pay with Card" and "Place Reservation".
 - An edition that sells out: set `available: false` in `lineup.ts` (shows "Sold out", blocks payment).
 - The ambassador (Invite Only extras) stays neutral until `ambassador.confirmed` is true (`lineup.ts`).

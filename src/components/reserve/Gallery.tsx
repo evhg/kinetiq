@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } f
 import { CourtPlan } from "@/components/graphics/CourtPlan";
 import { MeasurementCard } from "@/components/graphics/MeasurementCard";
 import { Still } from "@/components/media/Still";
+import { useMotion } from "@/components/motion/MotionProvider";
 import { tierById, type TierId } from "@/content/lineup";
 import { reserveCopy } from "@/content/reserve";
 import type { FeelId } from "@/content/site";
@@ -52,6 +53,7 @@ export function Gallery({ tierId, feel }: { tierId: TierId; feel: FeelId }) {
   const [index, setIndex] = useState(0);
   const track = useRef<HTMLDivElement>(null);
   const tier = tierById(tierId)!;
+  const { motionOn } = useMotion();
 
   // A new edition starts from its first slide.
   useEffect(() => {
@@ -60,7 +62,8 @@ export function Gallery({ tierId, feel }: { tierId: TierId; feel: FeelId }) {
     track.current?.scrollTo({ left: 0 });
   }, [tierId]);
 
-  // Phones swipe with scroll-snap: follow the scroll to keep the dots in step.
+  // Phones swipe with scroll-snap: follow the scroll to keep the dots in step. The track is keyed
+  // by edition, so the listener moves to each new track.
   useEffect(() => {
     const el = track.current;
     if (!el) return;
@@ -70,17 +73,20 @@ export function Gallery({ tierId, feel }: { tierId: TierId; feel: FeelId }) {
     };
     el.addEventListener("scroll", onScroll, { passive: true });
     return () => el.removeEventListener("scroll", onScroll);
-  }, []);
+  }, [tierId]);
 
-  const go = (i: number) => {
+  // Keyboard steps and reduced motion jump; pointer steps glide.
+  const go = (i: number, instant = false) => {
     const n = (i + slides.length) % slides.length;
     setIndex(n);
     const el = track.current;
-    if (el && getComputedStyle(el).overflowX === "auto") el.scrollTo({ left: n * el.clientWidth, behavior: "smooth" });
+    if (el && getComputedStyle(el).overflowX === "auto") {
+      el.scrollTo({ left: n * el.clientWidth, behavior: motionOn && !instant ? "smooth" : "instant" });
+    }
   };
   const onKey = (e: KeyboardEvent) => {
-    if (e.key === "ArrowRight") go(index + 1);
-    else if (e.key === "ArrowLeft") go(index - 1);
+    if (e.key === "ArrowRight") go(index + 1, true);
+    else if (e.key === "ArrowLeft") go(index - 1, true);
     else return;
     e.preventDefault();
   };
@@ -93,7 +99,7 @@ export function Gallery({ tierId, feel }: { tierId: TierId; feel: FeelId }) {
       tabIndex={0}
       onKeyDown={onKey}
     >
-      <div ref={track} key={tierId} className={styles.track}>
+      <div ref={track} key={tierId} className={styles.track} tabIndex={-1}>
         {slides.map((s, i) => (
           <div
             key={`${s.kind}-${"id" in s ? s.id : ""}-${i}`}
@@ -128,7 +134,7 @@ export function Gallery({ tierId, feel }: { tierId: TierId; feel: FeelId }) {
         ))}
       </div>
       <div className={styles.controls}>
-        <button type="button" className={styles.arrow} onClick={() => go(index - 1)} aria-label="Previous image">
+        <button type="button" className={styles.arrow} onClick={(e) => go(index - 1, e.detail === 0)} aria-label={reserveCopy.previousImage}>
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M14.5 6 8.5 12l6 6" />
           </svg>
@@ -141,7 +147,7 @@ export function Gallery({ tierId, feel }: { tierId: TierId; feel: FeelId }) {
         <p className={styles.counter} aria-live="polite">
           {index + 1} / {slides.length}
         </p>
-        <button type="button" className={styles.arrow} onClick={() => go(index + 1)} aria-label="Next image">
+        <button type="button" className={styles.arrow} onClick={(e) => go(index + 1, e.detail === 0)} aria-label={reserveCopy.nextImage}>
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="m9.5 6 6 6-6 6" />
           </svg>

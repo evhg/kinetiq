@@ -29,6 +29,10 @@ export function Reveal({ as: Tag = "div", className, children, items = ":scope >
       if (!motionOn || !root.current) return;
       const mm = gsap.matchMedia();
       mm.add("(prefers-reduced-motion: no-preference)", () => {
+        // Already at or past its start line when the page hydrates (a reload mid-page, a hash link):
+        // the server-rendered content stays as it is instead of vanishing and fading back.
+        const line = /^top (\d+(?:\.\d+)?)%$/.exec(start);
+        if (line && root.current!.getBoundingClientRect().top < (window.innerHeight * Number(line[1])) / 100) return;
         const targets = root.current!.querySelectorAll(items);
         gsap.from(targets, {
           opacity: 0,

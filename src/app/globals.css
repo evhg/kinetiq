@@ -33,8 +33,10 @@
   --margin: clamp(20px, 5vw - 4px, 128px);
   --gutter: clamp(16px, 1.1vw + 8px, 40px);
   --header-h: clamp(56px, 2.5vw + 36px, 88px);
-  /* Fixed chrome: preview banner (about 40px) + header row */
-  --chrome-h: calc(var(--header-h) + 40px);
+  /* Fixed chrome: preview banner + header row. SiteHeader measures the real height into --chrome-h;
+     this calc is the first-paint estimate (the banner sets --banner-h in Chrome.module.css). */
+  --banner-h: 0px;
+  --chrome-h: calc(var(--header-h) + var(--banner-h));
 
   /* Type scale (fluid up to 2560) */
   --fs-record: clamp(7rem, 14vw, 22.5rem);
@@ -58,6 +60,13 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  /* Focused controls and link targets stop clear of the fixed header (and the /reserve phone bar). */
+  scroll-padding-top: calc(var(--chrome-h) + 16px);
+}
+@media (max-width: 1023px) {
+  html:has([data-reserve-bar]:not([data-hidden="true"])) {
+    scroll-padding-bottom: calc(88px + env(safe-area-inset-bottom));
+  }
 }
 
 body {
@@ -104,6 +113,10 @@ img {
   outline: 2px solid var(--text);
   outline-offset: 4px;
   border-radius: 2px;
+}
+/* Sections focused by script (Skip link targets) are not controls: no page-wide ring. */
+[tabindex="-1"]:focus {
+  outline: none;
 }
 
 .visually-hidden {
@@ -330,6 +343,11 @@ img {
   position: relative;
 }
 @media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
+  /* The pinned scroll length is reserved here, before any JS runs (PinnedChapter pins with
+     pinSpacing: false and moves the stage into this space when the pin releases). */
+  html[data-motion="on"] .pin {
+    padding-bottom: calc(var(--pin-len, 0) * 100svh);
+  }
   html[data-motion="on"] .pin-layered .pin-stage {
     height: 100svh;
     overflow: hidden;
@@ -357,6 +375,9 @@ html.lenis body {
 .lenis:not(.lenis-autoToggle).lenis-stopped {
   overflow: clip;
 }
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
 
 /* Reduced motion: final states, no transitions */
 @media (prefers-reduced-motion: reduce) {
@@ -364,7 +385,9 @@ html.lenis body {
   *::before,
   *::after {
     transition-duration: 0ms !important;
+    transition-delay: 0ms !important;
     animation-duration: 0ms !important;
+    animation-delay: 0ms !important;
     scroll-behavior: auto !important;
   }
 }

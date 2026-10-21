@@ -41,9 +41,9 @@ export function Holes() {
           <p className="t-body">{holes.body}</p>
           <dl className={styles.stats}>
             {holes.stats.map((s) => (
-              <div key={s.label}>
-                <dt className={`t-stat ${styles.statValue}`}>{s.value}</dt>
-                <dd className={`t-label ${styles.statLabel}`}>{s.label}</dd>
+              <div key={s.label} className={styles.stat}>
+                <dt className={`t-label ${styles.statLabel}`}>{s.label}</dt>
+                <dd className={`t-stat ${styles.statValue}`}>{s.value}</dd>
               </div>
             ))}
           </dl>

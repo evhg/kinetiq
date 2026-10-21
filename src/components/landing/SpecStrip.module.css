@@ -41,7 +41,9 @@
   border-left: 0;
   padding-left: 0;
 }
+/* The label is the term (dt) and comes first in the markup; the number still reads first. */
 .value {
+  order: -1;
   font-size: clamp(4rem, 6.2vw + 0.5rem, 12.5rem);
   white-space: nowrap;
 }

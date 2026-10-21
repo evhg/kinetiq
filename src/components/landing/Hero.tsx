@@ -15,13 +15,21 @@ export function Hero() {
   const { motionOn } = useMotion();
 
   useGSAP(
-    () => {
+    (_, contextSafe) => {
       if (!motionOn) return;
       const mm = gsap.matchMedia();
       mm.add("(prefers-reduced-motion: no-preference)", () => {
-        // The beam: the lit render fades over the dark base while the frame settles.
-        gsap.fromTo(`.${styles.full}`, { opacity: 0 }, { opacity: 1, duration: 1.6, delay: 0.2, ease: "power2.out" });
+        // The frame settles from the scale the CSS painted first (Hero.module.css), so nothing jumps.
         gsap.fromTo(`.${styles.media}`, { scale: 1.035 }, { scale: 1, duration: 2.4, ease: "expo.out" });
+        // The beam: the lit render fades over the dark base once its image has decoded, never before.
+        const full = root.current?.querySelector<HTMLElement>(`.${styles.full}`);
+        const img = full?.querySelector("img");
+        let live = true;
+        const beam = contextSafe!(() => {
+          if (live && full) gsap.fromTo(full, { opacity: 0 }, { opacity: 1, duration: 1.6, delay: 0.2, ease: "power2.out" });
+        });
+        if (img?.complete && img.naturalWidth > 0) beam();
+        else img?.decode().then(beam, beam);
         // Scroll away: the image drifts, a veil darkens it, the words leave first.
         const tl = gsap.timeline({
           defaults: { ease: "none" },
@@ -31,6 +39,9 @@ export function Hero() {
           .to(`.${styles.veil}`, { opacity: 0.55 }, 0)
           .to(`.${styles.top}`, { opacity: 0, y: -40, duration: 0.45 }, 0)
           .to(`.${styles.bottom}`, { opacity: 0, duration: 0.35 }, 0.05);
+        return () => {
+          live = false;
+        };
       });
       return () => mm.revert();
     },
@@ -42,7 +53,7 @@ export function Hero() {
       <div className={styles.drift} aria-hidden="true">
         <div className={styles.media}>
           <Still id="K01-base" phoneCrop="portrait" alt="" priority className={styles.base} />
-          <Still id="K01-full" phoneCrop="portrait" alt="" className={styles.full} />
+          <Still id="K01-full" phoneCrop="portrait" alt="" loading="eager" fetchPriority="low" className={styles.full} />
         </div>
       </div>
       <div className={styles.veil} aria-hidden="true" />

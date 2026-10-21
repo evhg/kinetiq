@@ -56,8 +56,22 @@
   font-size: clamp(7rem, 14vw, 22.5rem);
 }
 .value {
-  min-width: 2ch;
-  text-align: right;
+  display: inline-grid;
+  justify-items: end;
+}
+.value .ghost,
+.digits {
+  grid-area: 1 / 1;
+}
+.ghost {
+  display: none;
+  visibility: hidden;
+}
+/* Pinned: the count runs 500 to 15 in a fixed three-digit box (PinnedChapter's PIN_MEDIA). */
+@media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
+  :global(html[data-motion="on"]) .ghost {
+    display: inline;
+  }
 }
 .unit {
   font-size: 0.3em;

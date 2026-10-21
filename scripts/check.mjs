@@ -392,11 +392,12 @@ async function runCase(browser, statsPage, vp, mode) {
   };
 }
 
-// Functional checks for the shared UI: the Skip link of the first pinned chapter.
+// Functional checks for the shared UI: the Skip link of the first pinned chapter. Below 900 px the
+// chapters don't pin and the link is hidden by design, so there is nothing to check there.
 async function interactionChecks(page) {
   const out = {};
   const skipLink = page.locator(".skip-link").first();
-  if ((await skipLink.count()) > 0) {
+  if ((await skipLink.count()) > 0 && (await skipLink.isVisible())) {
     const href = await skipLink.getAttribute("href");
     const pinTop = await page.evaluate(() => {
       const el = document.querySelector(".pin");
@@ -407,12 +408,14 @@ async function interactionChecks(page) {
     await skipLink.focus();
     await page.keyboard.press("Enter");
     await page.waitForTimeout(800);
+    // The target lands just below the fixed header: html's scroll-padding-top (header height + 16 px).
     out.skip = await page.evaluate((id) => {
       const t = document.getElementById(id);
       const top = t ? t.getBoundingClientRect().top : null;
-      return { targetTop: top === null ? null : Math.round(top), focused: document.activeElement?.id === id };
+      const pad = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+      return { targetTop: top === null ? null : Math.round(top), expectedTop: Math.round(pad), focused: document.activeElement?.id === id };
     }, href.slice(1));
-    out.skip.ok = out.skip.focused && out.skip.targetTop !== null && Math.abs(out.skip.targetTop) < 120;
+    out.skip.ok = out.skip.focused && out.skip.targetTop !== null && Math.abs(out.skip.targetTop - out.skip.expectedTop) < 40;
   }
   return out;
 }

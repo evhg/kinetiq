@@ -44,7 +44,13 @@
 .stats dd {
   margin: 0;
 }
+/* The label is the term (dt) and comes first in the markup; the number still reads first. */
+.stat {
+  display: grid;
+  align-content: start;
+}
 .statValue {
+  order: -1;
   font-size: clamp(2.75rem, 3.6vw + 0.5rem, 7.5rem);
 }
 .statLabel {

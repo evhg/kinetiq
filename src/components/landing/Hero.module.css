@@ -23,6 +23,10 @@
 .media {
   transform-origin: 50% 60%;
 }
+/* First paint matches the load reveal's start (Hero.tsx), so the frame never snaps when it begins. */
+:global(html[data-motion="on"]) .media {
+  transform: scale(1.035);
+}
 .base,
 .full {
   position: absolute;

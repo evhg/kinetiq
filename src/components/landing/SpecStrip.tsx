@@ -15,11 +15,11 @@ export function SpecStrip() {
       <Reveal as="dl" className={styles.grid} items={`.${styles.cell}`}>
         {specStrip.map((s) => (
           <div key={s.label} className={styles.cell}>
-            <dt className={`t-stat ${styles.value}`}>
+            <dt className={`t-label ${styles.label}`}>{s.label}</dt>
+            <dd className={`t-stat ${styles.value}`}>
               {s.value}
               {s.unit ? <span className="t-unit">{s.unit}</span> : null}
-            </dt>
-            <dd className={`t-label ${styles.label}`}>{s.label}</dd>
+            </dd>
           </div>
         ))}
       </Reveal>

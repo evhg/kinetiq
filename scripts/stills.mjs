@@ -1,9 +1,11 @@
 // Export the product stills from 16-bit Blender masters to AVIF and WebP.
 // Usage: node scripts/stills.mjs <masters dir> [id ...]
-// Reads src/content/stills.json (crops and widths); writes public/stills/<id>-<crop>-<width>.(avif|webp)
-// and src/content/stills.generated.json (pixel size and exported widths of every crop, read by <Still>).
-// Masters are not committed (too large); the exported files are.
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
+// Reads src/content/stills.json (crops and widths); writes public/stills/<id>-<crop>-<width>.<hash>.(avif|webp)
+// and src/content/stills.generated.json (pixel size, exported widths and content hash of every crop, read by
+// <Still>). The hash makes every name change with its bytes, so /stills is served immutable (next.config.ts);
+// og.jpg keeps a fixed name for social cards. Masters are not committed (too large); the exported files are.
+import { createHash } from "node:crypto";
+import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, unlinkSync } from "node:fs";
 import { join } from "node:path";
 import sharp from "sharp";
 
@@ -52,17 +54,32 @@ for (const [id, still] of Object.entries(config.stills)) {
     }
     const d = await dithered(img);
     const base = sharp(d.buf, { raw: { width: d.width, height: d.height, channels: d.channels } });
-    const widths = (config.widths[crop] ?? config.widths.card).filter((w) => w < d.width);
-    widths.push(Math.min(d.width, Math.max(...(config.widths[crop] ?? config.widths.card))));
-    sizes[`${id}-${crop}`] = { w: d.width, h: d.height, widths };
+    // Configured widths below the master's, then the largest the master allows (each width once).
+    const list = config.widths[crop] ?? config.widths.card;
+    const top = Math.min(d.width, Math.max(...list));
+    const widths = [...list.filter((w) => w < top), top];
+    const encoded = [];
     for (const w of widths) {
       const resized = base.clone().resize({ width: w, kernel: "lanczos3" });
-      await resized.clone().avif({ quality: 58, effort: 5, chromaSubsampling: "4:4:4" }).toFile(join(out, `${id}-${crop}-${w}.avif`));
-      await resized.clone().webp({ quality: 80, effort: 5, smartSubsample: true }).toFile(join(out, `${id}-${crop}-${w}.webp`));
+      const avif = await resized.clone().avif({ quality: 58, effort: 5, chromaSubsampling: "4:4:4" }).toBuffer();
+      const webp = await resized.clone().webp({ quality: 80, effort: 5, smartSubsample: true }).toBuffer();
+      encoded.push({ w, avif, webp });
       // Social cards: crawlers want a plain JPEG at 1200 x 630.
-      if (crop === "og") await resized.clone().resize({ width: 1200, height: 630, fit: "cover" }).jpeg({ quality: 86, mozjpeg: true }).toFile(join(out, "og.jpg"));
+      if (crop === "og" && w === top) await resized.clone().resize({ width: 1200, height: 630, fit: "cover" }).jpeg({ quality: 86, mozjpeg: true }).toFile(join(out, "og.jpg"));
     }
-    console.log(`${id}-${crop}: ${d.width}x${d.height}, widths ${widths.join(", ")}`);
+    const digest = createHash("sha256");
+    for (const e of encoded) digest.update(e.avif).update(e.webp);
+    const hash = digest.digest("hex").slice(0, 10);
+    // Replace this crop's earlier exports (hashed or not) with the new set.
+    const key = `${id}-${crop}`;
+    const previous = new RegExp(`^${key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}-\\d+(\\.[0-9a-f]{10})?\\.(avif|webp)$`);
+    for (const f of readdirSync(out)) if (previous.test(f)) unlinkSync(join(out, f));
+    for (const e of encoded) {
+      writeFileSync(join(out, `${key}-${e.w}.${hash}.avif`), e.avif);
+      writeFileSync(join(out, `${key}-${e.w}.${hash}.webp`), e.webp);
+    }
+    sizes[key] = { w: d.width, h: d.height, widths, hash };
+    console.log(`${key}: ${d.width}x${d.height}, widths ${widths.join(", ")}, hash ${hash}`);
   }
 }
 writeFileSync(sizesFile, JSON.stringify(sizes, null, 1) + "\n");

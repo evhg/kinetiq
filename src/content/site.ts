@@ -1,9 +1,13 @@
+import { priceLabel, tiers } from "@/content/lineup";
+
+const shipMonth = "January 2027";
+
 // Commercial facts shared by the landing page and /reserve.
 export const site = {
   name: "KINETIQ",
-  fromPriceLabel: "From €410",
-  shipLabel: "Ships January 2027",
-  refundShort: "Fully refundable",
+  fromPriceLabel: `From ${priceLabel(Math.min(...tiers.map((t) => t.priceEur)))}`,
+  shipMonth,
+  shipLabel: `Ships ${shipMonth}`,
   refundLabel: "Fully refundable until your racket ships",
   ctaLabel: "Reserve Now",
   payLabel: "Pay with Card",

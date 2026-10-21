@@ -57,7 +57,7 @@
   padding: 16px var(--margin) 0;
 }
 .arrow {
-  display: none;
+  display: grid;
   place-items: center;
   width: clamp(48px, 0.6vw + 40px, 56px);
   height: clamp(48px, 0.6vw + 40px, 56px);
@@ -153,9 +153,6 @@
     right: 0;
     bottom: 32px;
     padding: 0;
-  }
-  .arrow {
-    display: grid;
   }
 }
 @keyframes set-in {
@@ -276,6 +273,13 @@
 }
 .tiers:disabled .tier:not([data-checked="true"]) {
   opacity: 0.5;
+}
+.tiers:disabled .tier {
+  cursor: default;
+}
+.tiers:disabled .tier:active,
+.feel:disabled .feelOption:active {
+  transform: none;
 }
 .tierHead {
   display: grid;
@@ -535,8 +539,8 @@
 }
 @media (hover: hover) and (pointer: fine) {
   .pay:not(:disabled):hover,
-  .tier:not([data-disabled="true"]):hover,
-  .feelOption:hover {
+  .tiers:not(:disabled) .tier:not([data-disabled="true"]):hover,
+  .feel:not(:disabled) .feelOption:hover {
     border-color: var(--steel);
   }
 }
@@ -556,6 +560,14 @@
 .form > :nth-child(5) { animation-delay: 160ms; }
 .form > :nth-child(6) { animation-delay: 200ms; }
 .form > :nth-child(n + 7) { animation-delay: 240ms; }
+.form[data-instant] > * {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .form > * {
+    animation: none;
+  }
+}
 @keyframes field-in {
   from {
     opacity: 0;
@@ -602,7 +614,8 @@
 }
 .field input:focus,
 .field select:focus {
-  outline: none;
+  outline: 2px solid transparent;
+  outline-offset: 2px;
   border-color: var(--text);
   box-shadow: 0 0 0 1px var(--amber);
 }
@@ -633,6 +646,12 @@
 }
 .error:empty {
   display: none;
+}
+.placeDue {
+  font-size: clamp(1rem, 0.15vw + 0.95rem, 1.125rem);
+  color: var(--steel);
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
 }
 .place {
   position: relative;
@@ -745,8 +764,12 @@
   font-size: 1.0625rem;
   cursor: pointer;
 }
-.barPay:active {
+.barPay:not(:disabled):active {
   transform: scale(0.97);
+}
+.barPay:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 @media (min-width: 1024px) {
   .bar {
@@ -762,5 +785,14 @@
   }
   .tierStatus {
     grid-column: 2;
+  }
+}
+
+/* Windows High Contrast: borders and shadows are forced, so mark selection with a system colour */
+@media (forced-colors: active) {
+  .tier[data-checked="true"],
+  .feelOption[data-checked="true"],
+  .pay[aria-expanded="true"] {
+    border: 3px solid Highlight;
   }
 }

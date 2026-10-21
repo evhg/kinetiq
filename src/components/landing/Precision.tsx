@@ -9,6 +9,9 @@ import styles from "./Precision.module.css";
 /** Precision: the record numeral counts down to 15 µm as a scan line crosses the racket, then the graph. */
 export function Precision() {
   const { record } = precision;
+  // While pinned, the numeral sits in a box as wide as its longest value, so the count never shifts it; a
+  // matching ghost after the unit keeps the final reading centred (Precision.module.css).
+  const digits = String(Math.max(record.from, record.to)).length;
   return (
     <>
       <PinnedChapter
@@ -18,7 +21,7 @@ export function Precision() {
         className={styles.chapter}
         length={1.2}
         build={(tl) => {
-          const out = document.querySelector<HTMLElement>(`.${styles.value}`);
+          const out = document.querySelector<HTMLElement>(`.${styles.digits}`);
           const counter = { v: record.from };
           tl.fromTo(
             counter,
@@ -50,11 +53,15 @@ export function Precision() {
             <span className={styles.scan} />
           </div>
           <h2 id="precision-record" className={styles.record}>
-            <span className={`t-record ${styles.number}`}>
-              <span className={styles.value}>{record.to}</span>
+            <span className={`t-record ${styles.number}`} aria-hidden="true">
+              <span className={styles.value}>
+                <span className={styles.ghost}>{"0".repeat(digits)}</span>
+                <span className={styles.digits}>{record.to}</span>
+              </span>
               <span className={`t-unit ${styles.unit}`}>{record.unit}</span>
+              <span className={styles.ghost}>{"0".repeat(digits - String(record.to).length)}</span>
             </span>
-            <span className="visually-hidden">: {precision.headline}</span>
+            <span className="visually-hidden">{`${record.to} ${record.unit}: ${precision.headline}`}</span>
           </h2>
           <p className={`t-lead ${styles.line}`}>{precision.recordLine}</p>
         </div>

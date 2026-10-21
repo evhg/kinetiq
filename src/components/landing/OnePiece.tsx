@@ -10,7 +10,7 @@ const { edge, section } = onePiece;
 
 /**
  * One piece, pinned on wide screens: beat A is the edge-on racket (one unbroken wall), beat B the
- * cut-through head between a tubular section and the KINETIQ shell.
+ * cut-through head between a tubular section and the KINETIQ shell, beat C the three proofs over the shell.
  */
 export function OnePiece() {
   return (
@@ -19,7 +19,7 @@ export function OnePiece() {
       nextId="born-whole"
       labelledBy="one-piece-title"
       className={`pin-layered ${styles.chapter}`}
-      length={1.5}
+      length={1.9}
       build={(tl) => {
         tl.from(`.${styles.edgeLight}`, { scaleX: 0, duration: 0.35 }, 0.1)
           .from(`.${styles.callout}`, { opacity: 0, y: 12, stagger: 0.03, duration: 0.1 }, 0.4)
@@ -33,8 +33,11 @@ export function OnePiece() {
         tl
           // The conventional tubular cut dissolves into the KINETIQ shell (both stills share one camera).
           .fromTo(`.${styles.tubular}`, { autoAlpha: 1 }, { autoAlpha: 0, duration: 0.1 }, 0.78)
-          .from(`.${styles.proof}`, { autoAlpha: 0, y: 12, stagger: 0.03, duration: 0.08 }, 0.84)
-          .to({}, { duration: 0.08 });
+          // Beat C: the words and drawings leave the shell before the proofs arrive (no overlapping fades).
+          .to(`.${styles.beatB} .${styles.copy}, .${styles.compare}`, { autoAlpha: 0, duration: 0.08 }, 1.0)
+          .fromTo(`.${styles.beatC}`, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.02 }, 1.08)
+          .from(`.${styles.proof}`, { autoAlpha: 0, y: 12, stagger: 0.03, duration: 0.08 }, 1.1)
+          .to({}, { duration: 0.1 });
       }}
     >
       <div className={`beat ${styles.beatA}`}>
@@ -75,6 +78,9 @@ export function OnePiece() {
             <KinetiqSection />
           </div>
         </div>
+      </div>
+
+      <div className={`beat ${styles.beatC}`}>
         <ul className={styles.proofs}>
           {section.proofs.map((p) => (
             <li key={p.title} className={styles.proof}>

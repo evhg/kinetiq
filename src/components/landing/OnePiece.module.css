@@ -3,7 +3,8 @@
   background: var(--void);
 }
 .beatA,
-.beatB {
+.beatB,
+.beatC {
   display: grid;
   overflow: hidden;
   isolation: isolate;
@@ -95,9 +96,21 @@
 
 @media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
   :global(html[data-motion="on"]) .beatA,
-  :global(html[data-motion="on"]) .beatB {
-    grid-template-rows: auto 1fr auto;
+  :global(html[data-motion="on"]) .beatB,
+  :global(html[data-motion="on"]) .beatC {
     padding-top: calc(var(--chrome-h) + clamp(24px, 3vh, 64px));
+  }
+  :global(html[data-motion="on"]) .beatA {
+    grid-template-rows: auto 1fr auto;
+  }
+  /* Beat B: heading and the two G07 drawings only; the proofs have their own beat. */
+  :global(html[data-motion="on"]) .beatB {
+    grid-template-rows: auto minmax(0, 1fr);
+    padding-bottom: clamp(32px, 6vh, 112px);
+  }
+  /* Beat C sits over beat B's shell still: the proofs along the foot of the stage. */
+  :global(html[data-motion="on"]) .beatC {
+    align-content: end;
   }
   :global(html[data-motion="on"]) .media {
     position: absolute;
@@ -130,6 +143,14 @@
   :global(html[data-motion="on"]) .copy {
     padding-top: 0;
   }
+  /* Short laptop windows: the pinned heading and lead scale with the stage height so they keep
+     clear of the G07 drawings (they fit unscaled from about 800 px tall). */
+  :global(html[data-motion="on"]) .copy :global(.t-h2) {
+    font-size: min(var(--fs-h2), 7.2svh);
+  }
+  :global(html[data-motion="on"]) .copy :global(.t-lead) {
+    font-size: max(1.0625rem, min(var(--fs-lead), 2.7svh));
+  }
   :global(html[data-motion="on"]) .callouts {
     grid-row: 3;
     padding-bottom: clamp(48px, 8vh, 120px);
@@ -137,13 +158,14 @@
   :global(html[data-motion="on"]) .compare {
     grid-row: 2;
     align-self: center;
-    grid-template-columns: minmax(0, 30%) minmax(0, 30%);
+    /* At least 340 px, so G07 keeps its whole-section layout (the cropped half is too tall here),
+       and capped by height on wide, short screens. */
+    grid-template-columns: repeat(2, minmax(0, clamp(340px, 30%, 50svh)));
     justify-content: space-between;
     padding-top: 0;
   }
   :global(html[data-motion="on"]) .proofs {
-    grid-row: 3;
     padding-top: 0;
-    padding-bottom: clamp(32px, 5vh, 88px);
+    padding-bottom: clamp(48px, 8vh, 120px);
   }
 }

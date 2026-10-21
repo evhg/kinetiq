@@ -3,6 +3,16 @@
   inset: 0 0 auto;
   z-index: 30;
 }
+/* First-paint estimate of the banner for --chrome-h (globals.css): one line, two below 490 px.
+   SiteHeader then measures the real height. */
+:global(html):has(.banner) {
+  --banner-h: calc(2 * clamp(7px, 0.3vw + 5px, 11px) + 1.55rem + 1px);
+}
+@media (max-width: 489px) {
+  :global(html):has(.banner) {
+    --banner-h: calc(2 * clamp(7px, 0.3vw + 5px, 11px) + 3.1rem + 1px);
+  }
+}
 .banner {
   margin: 0;
   padding: clamp(7px, 0.3vw + 5px, 11px) var(--margin);

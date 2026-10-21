@@ -1,0 +1,20 @@
+.main {
+  position: relative;
+  min-height: 100svh;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: clamp(16px, 1.2vw + 8px, 32px);
+  padding: calc(var(--chrome-h) + 48px) var(--margin) clamp(64px, 6vw, 160px);
+  text-align: center;
+}
+.line {
+  position: absolute;
+  inset: auto 0 0;
+}
+.code {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+.home {
+  margin-top: clamp(8px, 1vw, 24px);
+}
