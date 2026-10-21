@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { SiteHeader } from "@/components/chrome/Chrome";
+import { Still } from "@/components/media/Still";
 import { ReservedStatus } from "@/components/reserve/ReservedStatus";
 import styles from "@/components/reserve/Reserved.module.css";
 import { reserveCopy } from "@/content/reserve";
@@ -14,6 +15,9 @@ export default function ReservedPage({ searchParams }: { searchParams: Search })
     <>
       <SiteHeader />
       <main id="main" className={styles.page}>
+        <div className={styles.backdrop} aria-hidden="true">
+          <Still id="K01-finale" phoneCrop="portrait" alt="" className={styles.still} />
+        </div>
         <Suspense fallback={<ReservedStatus pending />}>
           <FromReturnUrl searchParams={searchParams} />
         </Suspense>

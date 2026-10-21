@@ -1,9 +1,30 @@
 .page {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   min-height: 100svh;
   display: grid;
   place-items: center;
   padding: calc(var(--chrome-h) + 48px) var(--margin) 96px;
-  background: radial-gradient(ellipse 60% 50% at 50% 45%, var(--lift), transparent 75%), var(--void);
+  background: radial-gradient(ellipse 70% 60% at 50% 45%, var(--lift), transparent 78%), var(--stage);
+}
+/* The racket in its beam, under a veil so the words stay the brightest thing on the page. */
+.backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+.backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 45% at 50% 42%, rgb(17 17 19 / 0.82), rgb(17 17 19 / 0.25) 100%);
+}
+.still img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 60%;
 }
 .box {
   display: grid;

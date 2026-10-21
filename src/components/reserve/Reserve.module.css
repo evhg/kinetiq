@@ -170,7 +170,7 @@
   padding: 32px var(--margin) calc(96px + env(safe-area-inset-bottom));
   background:
     radial-gradient(ellipse 90% 30% at 50% 0%, var(--lift), transparent 75%),
-    var(--void);
+    var(--stage);
 }
 /* G10: a 3% technical grid behind the top of the column, fading out */
 .options::before {
