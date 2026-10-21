@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { TierGlyph } from "@/components/graphics/Icons";
+import { Icon, TierGlyph, type IconName } from "@/components/graphics/Icons";
 import { Still } from "@/components/media/Still";
 import { editions } from "@/content/copy";
 import { priceLabel, tiers, type TierId } from "@/content/lineup";
@@ -11,6 +11,8 @@ const IMAGE: Record<TierId, { id: string; crop: string }> = {
   limited: { id: "K06-full", crop: "card" },
   invite: { id: "K09", crop: "card" },
 };
+
+const EXTRA_ICONS: IconName[] = ["penNib", "court", "fittedCase"];
 
 /** The three editions as whole-card links into the reservation page. */
 export function Editions() {
@@ -38,8 +40,11 @@ export function Editions() {
                 <p className={styles.line}>{t.cardLine}</p>
                 {t.rackets > 1 ? (
                   <ul className={styles.includes}>
-                    {t.includes.slice(0, 3).map((inc) => (
-                      <li key={inc}>{inc}</li>
+                    {t.includes.slice(0, 3).map((inc, n) => (
+                      <li key={inc}>
+                        <Icon name={EXTRA_ICONS[n]} size={20} className={styles.includeIcon} />
+                        {inc}
+                      </li>
                     ))}
                   </ul>
                 ) : null}

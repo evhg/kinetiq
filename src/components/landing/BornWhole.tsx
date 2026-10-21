@@ -41,7 +41,7 @@ export function BornWhole() {
             {bornWhole.lockup.label}
           </span>
         </p>
-        <Badges className={styles.badges} />
+        <Badges className={styles.badges} reveal="none" align="center" />
       </div>
     </Scrub>
   );

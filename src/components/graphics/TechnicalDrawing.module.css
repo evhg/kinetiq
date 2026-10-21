@@ -495,3 +495,8 @@
   stroke-width: 1px;
   vector-effect: non-scaling-stroke;
 }
+
+/* cutting-plane letters stay compact on the stacked phone panels */
+.narrow .letter {
+  font-size: calc(var(--lab-fs) * 1.05);
+}

@@ -9,8 +9,8 @@ export function SpecStrip() {
     <section className={`lift ${styles.strip}`} aria-label="Specifications">
       <hr className={`lightline ${styles.line}`} />
       <div className={styles.drawing} aria-hidden="true">
-        <TechnicalDrawing variant="full" className={styles.wide} />
-        <TechnicalDrawing variant="front" className={styles.narrow} />
+        <TechnicalDrawing variant="full" tone="quiet" className={styles.wide} />
+        <TechnicalDrawing variant="front" tone="quiet" annotate={false} titleBlock={false} className={styles.narrow} />
       </div>
       <Reveal as="dl" className={styles.grid} items={`.${styles.cell}`}>
         {specStrip.map((s) => (

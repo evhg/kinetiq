@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useMemo, useRef, type ReactNode } from "react";
-import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
+import { gsap, useGSAP } from "@/lib/gsap";
 import { useMotion } from "@/components/motion/MotionProvider";
 import {
   BORE,
@@ -154,15 +154,15 @@ function leader(D: Draft, tip: V, elbow: V, land: number, kind: LabelKind, lines
 type FrontOpts = { dims?: boolean; cut?: boolean; callout?: boolean };
 
 /** ISO cutting plane: thin chain, thick ends, arrows in the direction of view, a letter at each arrow. */
-function cutPlane(D: Draft, t: Xf, y: number, x0: number, x1: number, end: number, letter: string) {
+function cutPlane(D: Draft, t: Xf, y: number, x0: number, x1: number, end: number, letter: string, drop = 17) {
   D.add("hidden", "cut", line(at(t, [x0, y]), at(t, [x1, y])));
   D.add("hidden", "cutThick", line(at(t, [x0, y]), at(t, [x0 + end, y])) + line(at(t, [x1 - end, y]), at(t, [x1, y])));
   for (const x of [x0 + 4, x1 - 4]) {
     const base = at(t, [x, y]);
-    const tip = at(t, [x, y - 17]);
+    const tip = at(t, [x, y - drop]);
     D.add("hidden", "cut", line(base, [tip[0], tip[1] - 3]));
     D.add("dims", "dimFill", arrow(tip, base, AL * 1.25, AH * 1.4));
-    D.label(tip[0], tip[1] + 2, "s", "letter", letter);
+    D.label(tip[0], tip[1] + 1, "s", "letter", letter);
   }
 }
 
@@ -176,7 +176,7 @@ function frontView(D: Draft, t: Xf, o: FrontOpts = {}) {
   D.add("hidden", "centre", line(at(t, [0, top + 16]), at(t, [0, butt - 16])));
   if (o.cut) {
     cutPlane(D, t, CUT_Y, -158, 158, 13, "A");
-    cutPlane(D, t, BORE[1], BORE[0] - 36, BORE[0] + 31, 8, "B");
+    cutPlane(D, t, BORE[1], BORE[0] - 24, BORE[0] + 19.5, 7, "B", 10);
   }
   if (o.dims) {
     dimV(D, at(t, [0, top]), at(t, [-DIM.handleR - 1.6, butt]), at(t, [-174, 0])[0], String(DIM.length));
@@ -512,7 +512,6 @@ function useReveal(root: React.RefObject<HTMLElement | null>, enabled: boolean) 
         (["outline", "hidden", "dims", "values"] as Layer[]).forEach((l, i) => {
           tl.from(q(`[data-layer="${l}"]`), { opacity: 0 }, i * 0.12);
         });
-        ScrollTrigger.refresh();
       });
       return () => mm.revert();
     },

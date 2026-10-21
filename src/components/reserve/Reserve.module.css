@@ -332,19 +332,16 @@
   color: var(--amber);
 }
 .extra {
-  position: relative;
-  padding-left: 22px;
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  gap: 12px;
+  align-items: start;
   color: var(--text);
   font-size: clamp(1.0625rem, 0.2vw + 1rem, 1.25rem);
 }
-.extra::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.75em;
-  width: 12px;
-  height: 1px;
-  background: var(--amber);
+.extraIcon {
+  margin-top: 0.15em;
+  color: var(--amber);
 }
 @keyframes extras-in {
   from {
@@ -436,21 +433,15 @@
   gap: 12px;
 }
 .trust li {
-  position: relative;
-  padding-left: 30px;
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 14px;
+  align-items: start;
   color: var(--steel);
   font-size: clamp(1.0625rem, 0.2vw + 1rem, 1.25rem);
 }
-.trust li::before {
-  content: "";
-  position: absolute;
-  left: 2px;
-  top: 0.35em;
-  width: 14px;
-  height: 8px;
-  border-left: 1.5px solid var(--amber);
-  border-bottom: 1.5px solid var(--amber);
-  transform: rotate(-45deg);
+.trustIcon {
+  color: var(--steel);
 }
 .badges {
   margin-top: -8px;

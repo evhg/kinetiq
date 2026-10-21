@@ -19,6 +19,10 @@
 .edgeLight {
   display: none;
 }
+/* Only the pinned version plays the tubular-to-shell dissolve. */
+.tubular {
+  display: none;
+}
 .copy {
   display: grid;
   justify-items: center;
@@ -102,6 +106,11 @@
   :global(html[data-motion="on"]) .still img {
     height: 100%;
     object-fit: cover;
+  }
+  :global(html[data-motion="on"]) .tubular {
+    display: block;
+    position: absolute;
+    inset: 0;
   }
   :global(html[data-motion="on"]) .edgeLight {
     display: block;

@@ -46,7 +46,7 @@ export default function LabG01() {
                 <div key={s.label} style={{ borderTop: "1px solid var(--hairline)", paddingTop: "14px" }}>
                   <dt className="t-stat" style={{ fontSize: "clamp(2.5rem, 3vw, 4.5rem)" }}>
                     {s.value}
-                    {s.unit ? <span className="t-unit">{s.unit}</span> : null}
+                    {s.unit ? <span className="t-unit" style={{ fontSize: "max(15px, 0.3em)" }}>{s.unit}</span> : null}
                   </dt>
                   <dd className="t-label">{s.label}</dd>
                 </div>

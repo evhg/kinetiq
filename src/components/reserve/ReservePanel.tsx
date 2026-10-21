@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { Badges } from "@/components/graphics/Badges";
-import { TierGlyph } from "@/components/graphics/Icons";
+import { Icon, TierGlyph, type IconName } from "@/components/graphics/Icons";
 import { EXTRAS_THRESHOLD_EUR, deliveryCountries, priceLabel, tiers, tierById, type TierId } from "@/content/lineup";
 import { reserveCopy } from "@/content/reserve";
 import { feels, site, type FeelId } from "@/content/site";
@@ -20,6 +20,10 @@ type Fields = {
   country: string;
   invite: string;
 };
+
+// Icons for the trust lines and the Invite Only extras, in the order of their strings.
+const TRUST_ICONS: IconName[] = ["refundArrow", "deliveryBox", "measurementCard"];
+const EXTRA_ICONS: IconName[] = ["penNib", "court", "fittedCase", "numberedTag"];
 
 const EMPTY: Fields = { name: "", email: "", line1: "", line2: "", postal_code: "", city: "", country: "", invite: "" };
 const PK = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
@@ -269,8 +273,9 @@ export function ReservePanel({ tierId, onTier, feel, onFeel }: Props) {
                     {checked && t.priceEur > EXTRAS_THRESHOLD_EUR ? (
                       <span className={styles.extras}>
                         <span className={styles.extrasHead}>{reserveCopy.extrasHeading}</span>
-                        {t.includes.map((x) => (
+                        {t.includes.map((x, n) => (
                           <span key={x} className={styles.extra}>
+                            <Icon name={EXTRA_ICONS[n] ?? "rackets3"} size={20} className={styles.extraIcon} />
                             {x}
                           </span>
                         ))}
@@ -312,11 +317,14 @@ export function ReservePanel({ tierId, onTier, feel, onFeel }: Props) {
           </fieldset>
 
           <ul className={styles.trust}>
-            {reserveCopy.trustLines.map((l) => (
-              <li key={l}>{l}</li>
+            {reserveCopy.trustLines.map((l, n) => (
+              <li key={l}>
+                <Icon name={TRUST_ICONS[n] ?? "shieldCheck"} className={styles.trustIcon} />
+                {l}
+              </li>
             ))}
           </ul>
-          <Badges className={styles.badges} />
+          <Badges className={styles.badges} reveal="none" align="start" />
 
           <div className={styles.due}>
             <div className={styles.dueRow}>

@@ -27,8 +27,10 @@ export function OnePiece() {
           .to(`.${styles.beatA}`, { autoAlpha: 0, duration: 0.12 }, 0.55)
           .fromTo(`.${styles.beatB}`, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.12 }, 0.55)
           .from(`.${styles.beatB} .${styles.copy}`, { autoAlpha: 0, y: 16, duration: 0.08 }, 0.62)
-          .from(`.${styles.side}`, { autoAlpha: 0, y: 16, stagger: 0.04, duration: 0.12 }, 0.7)
-          .from(`.${styles.proof}`, { autoAlpha: 0, y: 12, stagger: 0.03, duration: 0.08 }, 0.82)
+          .from(`.${styles.side}`, { autoAlpha: 0, y: 16, stagger: 0.04, duration: 0.12 }, 0.66)
+          // The conventional tubular cut dissolves into the KINETIQ shell (both stills share one camera).
+          .fromTo(`.${styles.tubular}`, { autoAlpha: 1 }, { autoAlpha: 0, duration: 0.1 }, 0.78)
+          .from(`.${styles.proof}`, { autoAlpha: 0, y: 12, stagger: 0.03, duration: 0.08 }, 0.84)
           .to({}, { duration: 0.08 });
       }}
     >
@@ -55,6 +57,7 @@ export function OnePiece() {
       <div className={`beat ${styles.beatB}`}>
         <div className={styles.media} aria-hidden="true">
           <Still id="K03" crop="wide" phoneCrop="card" alt="" sizes="100vw" className={styles.still} />
+          <Still id="K03b-tubular" alt="" sizes="100vw" className={`${styles.still} ${styles.tubular}`} />
         </div>
         <div className={styles.copy}>
           <p className="t-eyebrow">{section.eyebrow}</p>

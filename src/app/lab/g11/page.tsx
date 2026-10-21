@@ -6,16 +6,18 @@ const section = { paddingBlock: "clamp(64px, 8vw, 200px)" } as const;
 const cell = {
   display: "grid",
   justifyItems: "center",
-  alignContent: "center",
+  alignContent: "start",
+  textAlign: "center",
   gap: "14px",
-  minHeight: "clamp(120px, 6vw + 60px, 200px)",
-  padding: "20px 12px",
+  minHeight: "clamp(120px, 5vw + 70px, 210px)",
+  overflowWrap: "anywhere",
+  padding: "clamp(28px, 1.5vw + 16px, 48px) 12px 20px",
   borderTop: "1px solid var(--hairline)",
   borderLeft: "1px solid var(--hairline)",
 } as const;
 const grid = {
   display: "grid",
-  gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 150px), 1fr))",
+  gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, clamp(150px, 6vw + 80px, 240px)), 1fr))",
   borderRight: "1px solid var(--hairline)",
   borderBottom: "1px solid var(--hairline)",
 } as const;

@@ -90,17 +90,14 @@
   font-size: clamp(1rem, 0.25vw + 0.95rem, 1.25rem);
 }
 .includes li {
-  position: relative;
-  padding-left: 20px;
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  gap: 12px;
+  align-items: start;
 }
-.includes li::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.7em;
-  width: 10px;
-  height: 1px;
-  background: var(--amber);
+.includeIcon {
+  margin-top: 0.15em;
+  color: var(--amber);
 }
 @media (hover: hover) and (pointer: fine) {
   .card:hover {
