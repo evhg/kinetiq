@@ -1,0 +1,223 @@
+/* Smoke-test styles. Real tokens come from DESIGN.md once the brief lands. */
+:root {
+  --bg: #121212;
+  --surface: #1c1c1c;
+  --text: #f1eee8;
+  --text-muted: #b5b0a7; /* 8.9:1 on --bg */
+  --accent: #e2574c; /* 5.2:1 on --bg */
+  --focus: #ffd166;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --gutter: clamp(16px, 4vw, 48px);
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.5em;
+}
+
+h1 {
+  font-size: clamp(2.5rem, 7vw, 5.5rem);
+}
+
+h2 {
+  font-size: clamp(1.75rem, 4vw, 3rem);
+}
+
+p {
+  max-width: 60ch;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+/* Lenis recommended base styles */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis:not(.lenis-autoToggle).lenis-stopped {
+  overflow: clip;
+}
+.lenis [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.site-header {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px var(--gutter);
+  background: linear-gradient(var(--bg), rgb(18 18 18 / 0));
+}
+
+.wordmark {
+  font-weight: 600;
+  letter-spacing: 0.4em;
+}
+
+.motion-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid rgb(241 238 232 / 0.35);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: transform 160ms var(--ease-out);
+}
+.motion-toggle:active {
+  transform: scale(0.97);
+}
+.motion-toggle:disabled {
+  opacity: 0.6;
+}
+.motion-toggle__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+}
+.motion-toggle[aria-pressed="true"] .motion-toggle__dot {
+  background: var(--accent);
+}
+
+.hero {
+  min-height: 100svh;
+  display: grid;
+  align-items: center;
+  gap: 24px;
+  padding: 96px var(--gutter) 48px;
+}
+@media (min-width: 900px) {
+  .hero {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.scene {
+  position: relative;
+  aspect-ratio: 1;
+  width: min(100%, 560px);
+  justify-self: center;
+}
+.scene-fallback,
+.scene-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.scene[data-scene="webgl"] .scene-fallback {
+  opacity: 0;
+  transition: opacity 300ms var(--ease-out);
+}
+
+.pin-stage {
+  position: relative;
+  min-height: 100svh;
+  display: grid;
+  align-content: center;
+  gap: 24px;
+  padding: 96px var(--gutter) 48px;
+  background: var(--surface);
+}
+
+.skip-link {
+  justify-self: start;
+  color: var(--text);
+  font-size: 0.875rem;
+  padding: 10px 14px;
+  border: 1px solid rgb(241 238 232 / 0.35);
+  border-radius: 999px;
+}
+
+.pin-progress {
+  height: 2px;
+  background: rgb(241 238 232 / 0.15);
+}
+.pin-progress__bar {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transform-origin: left center;
+  transform: scaleX(0);
+}
+
+.pin-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+
+/* Motion on: steps share one cell and GSAP crossfades them. */
+.pin[data-motion-on="true"] .pin-step {
+  grid-area: 1 / 1;
+}
+/* Motion off: every step is visible, stacked, and the bar is full. */
+.pin[data-motion-on="false"] .pin-steps {
+  gap: 32px;
+}
+.pin[data-motion-on="false"] .pin-progress__bar {
+  transform: none;
+}
+
+.pin-step h3 {
+  font-size: clamp(2rem, 6vw, 4rem);
+  color: var(--text);
+}
+
+.after {
+  min-height: 80svh;
+  padding: 96px var(--gutter);
+}
+
+.site-footer {
+  padding: 32px var(--gutter);
+  border-top: 1px solid rgb(241 238 232 / 0.15);
+}
+
+html[data-motion="off"] *,
+html[data-motion="off"] *::before,
+html[data-motion="off"] *::after {
+  transition-duration: 0ms !important;
+  animation-duration: 0ms !important;
+  scroll-behavior: auto !important;
+}
