@@ -9,7 +9,7 @@ import styles from "./Editions.module.css";
 const IMAGE: Record<TierId, { id: string; crop: string }> = {
   reserve: { id: "K01-full", crop: "card" },
   limited: { id: "K06-full", crop: "card" },
-  invite: { id: "K09", crop: "card" },
+  invite: { id: "K09-card", crop: "card" },
 };
 
 const EXTRA_ICONS: IconName[] = ["penNib", "court", "fittedCase"];
