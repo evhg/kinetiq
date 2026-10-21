@@ -1,9 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   cacheComponents: true,
   partialPrefetching: true,
+  async redirects() {
+    // The old checkout URL now lives at /reserve.
+    return [{ source: "/checkout", destination: "/reserve", permanent: true }];
+  },
 };
 
 export default nextConfig;

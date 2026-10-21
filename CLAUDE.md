@@ -23,7 +23,8 @@ Lenis · three.js via `@react-three/fiber` and `@react-three/drei` · Playwright
 - `npm run build` / `npm start`: production build and server.
 - `npm run lint`, `npm run typecheck`.
 - `npm run check`: the check harness (see Definition of done). `--skip-build`, `--url=<url>`,
-  `--study` (reference mode), `--only=phone|desktop`, `--mode=motion|reduced`, `--verbose`.
+  `--study` (reference mode), `--only=phone|desktop`, `--mode=motion|reduced`, `--verbose`,
+  `--path=/reserve` (any page; run it for `/` and `/reserve`).
   Output goes to `.checks/<label>/` (git-ignored). Uses a free port per run.
 - Vercel installs with `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm ci` (`vercel.json`), so builds never
   download browsers. Locally: `npx playwright install chromium` once.
@@ -31,12 +32,16 @@ Lenis · three.js via `@react-three/fiber` and `@react-three/drei` · Playwright
 ## Folders
 - `src/app/`: routes, `layout.tsx` (motion init script, providers), `globals.css`.
 - `src/components/motion/`: `MotionProvider` (motion state), `MotionToggle`, `SmoothScroll` (Lenis).
-- `src/components/three/`: lazy R3F scenes. `LazyScene` owns the fallback and loading rules.
+- `src/components/three/`: lazy R3F scenes. `LazyHeroScene` owns the fallback and loading rules.
 - `src/lib/gsap.ts`: the only place GSAP plugins are registered. Import gsap from here.
-- `src/content/`: all copy that carries a claim (`claims.ts`) or a commercial fact (`site.ts`: price,
-  ship date, refund, models). Change words there, not in components.
-- `src/app/checkout/`, `src/app/api/checkout/route.ts` (Stripe via REST, preview mode without keys),
-  `src/app/reserved/` (success page).
+- `src/content/`: all copy that carries a claim (`claims.ts`) or a commercial fact (`site.ts`: editions,
+  prices, limits, ship date, refund, models, CTA labels). Change words there, not in components.
+- Flow (modelled on a car-maker reservation page): landing page with one CTA, "Reserve Now", at three
+  peaks and nothing after the last one → `/reserve` (edition, then racket, trust lines, "Due today",
+  "Pay by Card") → `src/app/api/checkout/route.ts` (Stripe Checkout via REST, inline `price_data`,
+  preview mode without a key) → `/reserved`. `/checkout` redirects to `/reserve`.
+- Data minimisation: we collect nothing ourselves; Stripe collects email, name, delivery address and
+  card only. Don't add phone, accounts or opt-ins without a fulfilment reason.
 - `public/`: static assets and `CREDITS.md`. `scripts/`: harness. `docs/`: research notes.
 - `.claude/skills/`: saved reference skills (GSAP, Emil Kowalski, our frontend-design notes).
 
@@ -60,7 +65,7 @@ Lenis · three.js via `@react-three/fiber` and `@react-three/drei` · Playwright
 - Lenis smooth scrolling on desktop only (fine pointer, ≥1024 px), driven by `gsap.ticker` and wired to
   `ScrollTrigger.update` (`SmoothScroll.tsx`). Never add ScrollSmoother as well.
 - Every pinned sequence has a visible Skip link inside the pinned stage. It jumps instantly to the next
-  section and moves focus there (target has `tabIndex={-1}`). See `PinnedSequence.tsx`.
+  section and moves focus there (target has `tabIndex={-1}`). See `motion/PinnedChapter.tsx`.
 - Cross-fades in scrubbed sequences must not overlap: two half-faded headings are unreadable.
 
 ## Motion safety
@@ -98,8 +103,9 @@ Lenis · three.js via `@react-three/fiber` and `@react-three/drei` · Playwright
 - No placeholder text in a finished build. The preview banner is deliberate, not a placeholder.
 - Every claim is listed in `CLAIMS.md`. A new claim gets a row there in the same commit.
 - Launch gate: `NEXT_PUBLIC_LAUNCHED=true` (removes banner and noindex) only when CLAIMS.md is cleared.
-- Stripe: `STRIPE_SECRET_KEY`, `STRIPE_PRICE_COMMAND`, `STRIPE_PRICE_PACE`, `NEXT_PUBLIC_SITE_URL`
-  (see `.env.example`). One CTA label everywhere: "Reserve yours" (`site.ctaLabel`).
+- Stripe: `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_SITE_URL` (see `.env.example`). One landing CTA label
+  everywhere: "Reserve Now" (`site.ctaLabel`); the only other action is "Pay by Card" (`site.payLabel`).
+- An edition that sells out: set `available: false` in `site.ts` (shows "Sold out", blocks payment).
 - Fonts must cover every language listed in `DESIGN.md`.
 
 ## Definition of done
@@ -108,7 +114,7 @@ Lenis · three.js via `@react-three/fiber` and `@react-three/drei` · Playwright
    (including the 3D region), no horizontal overflow, budgets met, Skip link and Motion switch work.
 3. You have opened and reviewed the screenshots yourself: fix anything blank, overlapping, cropped or
    unreadable, then rerun.
-4. After pushing, run `npm run check -- --url=<production url>` against the live site.
+4. After pushing, run `npm run check -- --url=<production url>` (and `--path=/reserve`) on the live site.
 
 ## Notes
 - Headless WebGL needs swiftshader flags (the harness sets them). Long-frame counts from headless runs

@@ -4,8 +4,7 @@ import { Precision } from "@/components/sections/Precision";
 import { Feel } from "@/components/sections/Feel";
 import { Identical } from "@/components/sections/Identical";
 import { Swiss } from "@/components/sections/Swiss";
-import { Reserve } from "@/components/sections/Reserve";
-import { Faq } from "@/components/sections/Faq";
+import { Finale } from "@/components/sections/Finale";
 
 export default function Home() {
   return (
@@ -16,8 +15,7 @@ export default function Home() {
       <Feel />
       <Identical />
       <Swiss />
-      <Reserve />
-      <Faq />
+      <Finale />
     </main>
   );
 }

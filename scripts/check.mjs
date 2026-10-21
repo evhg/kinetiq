@@ -42,7 +42,10 @@ function freePort() {
   });
 }
 const study = Boolean(args.study);
-const label = args.label ?? (remote ? new URL(baseUrl).hostname : "local");
+// --path=/reserve tests another page on the same site.
+const pagePath = typeof args.path === "string" ? args.path : "/";
+const targetUrl = new URL(pagePath, baseUrl).toString();
+const label = args.label ?? `${remote ? new URL(baseUrl).hostname : "local"}${pagePath === "/" ? "" : pagePath.replace(/\//g, "-")}`;
 const outDir = join(process.cwd(), ".checks", label);
 
 const BUDGET = { lcpMs: 2500, cls: 0.1 };
@@ -287,8 +290,8 @@ async function runCase(browser, statsPage, vp, mode) {
   }
 
   const id = `${vp.name}-${mode.name}`;
-  log(`${id}: loading ${baseUrl}`);
-  await page.goto(baseUrl, { waitUntil: "load", timeout: 120_000 });
+  log(`${id}: loading ${targetUrl}`);
+  await page.goto(targetUrl, { waitUntil: "load", timeout: 120_000 });
   await page.waitForLoadState("networkidle", { timeout: 30_000 }).catch(() => {});
   await page.waitForTimeout(2500); // idle-loaded 3D and late layout
 
@@ -407,7 +410,7 @@ function markdown(results, failures) {
       `| ${r.id} | ${r.lcpMs} (${r.lcpElement || "?"}) | ${r.clsAfterScroll} | ${r.longFrames}/${r.frames} (worst ${r.worstFrameMs} ms) | ${r.sceneState ?? "-"} (${r.sceneStd ?? "-"}) | ${r.interactions?.skip ? (r.interactions.skip.ok ? "ok" : "FAIL") : "-"} / ${r.interactions?.motionSwitch ? (r.interactions.motionSwitch.ok ? "ok" : "FAIL") : "-"} | ${r.consoleErrors.length} | ${r.blankSteps.length ? r.blankSteps.join(",") : "none"} |`,
   );
   return [
-    `# Check report: ${baseUrl}`,
+    `# Check report: ${targetUrl}`,
     "",
     `Run at ${new Date().toISOString()}. Phone runs use 4x CPU slowdown, 150 ms RTT, 1.6 Mbps.`,
     "Long frames are measured in headless Chromium with software WebGL, so treat them as a smoke signal, not a device measurement.",

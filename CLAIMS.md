@@ -18,10 +18,15 @@ Text lives in `src/content/claims.ts` and `src/content/site.ts`.
 | 9 | Feel/vibration: no glue lines, settles faster, easier on the arm, same response edge to centre | Feel section | ⚠️ Unverified (reasoned, not measured) | Lab vibration test (decay time) vs a glued reference racket; "easier on your arm" is a health-adjacent claim, keep it modest or back it. |
 | 10 | Workshop "already builds full-carbon golf clubs" in St. Gallen | Swiss section | ⚠️ Permission | Factory's permission to reference its golf work. |
 | 11 | Foam and carbon made/moulded on site | Swiss section, specs | ⚠️ Unverified | Factory confirmation. |
-| 12 | €410 paid in full; ships January 2027 | Hero, CTA notes, reserve, checkout | ⚠️ Commitment | Production schedule confirmed by factory. Taking full payment for later delivery: EU rules on delivery dates (Directive 2011/83/EU Art. 18). |
-| 13 | "Full refund any time before your racket ships" | Reserve, checkout, FAQ | ⚠️ Commitment | Business decision + terms page. Separate from the 14-day statutory withdrawal right, which still applies after delivery. |
-| 14 | Free shipping in Europe; "duties and import VAT are included" | Reserve, checkout, FAQ | ⚠️ Commitment | Requires DDP shipping from CH to EU (EU VAT registration or fiscal representative). Accountant sign-off. |
+| 12 | Paid in full today; ships January 2027 | Reserve page, finale | ⚠️ Commitment | Production schedule confirmed by factory. Taking full payment for later delivery: EU rules on delivery dates (Directive 2011/83/EU Art. 18). |
+| 13 | "Fully refundable until your racket ships … every euro comes back. No questions." and "reply to the receipt email and we refund every euro" | Landing CTA notes, finale, reserve page, confirmation | ⚠️ Commitment | Business decision + terms page; a monitored inbox for receipt replies (Stripe's receipt reply-to = your support email). Separate from the 14-day statutory withdrawal right, which still applies after delivery. |
+| 14 | "Free delivery in Europe, duties included" | Reserve page | ⚠️ Commitment | Requires DDP shipping from CH to EU (EU VAT registration or fiscal representative). Accountant sign-off. |
 | 15 | Comparison values: paper 100 µm, human hair 70 µm | Precision chapter | ℹ️ General knowledge | Typical values; fine as approximations ("about"). |
 | 16 | Example measurement card numbers (355.2 g, 250.4 mm, 0.011 mm) | Identical section | ℹ️ Illustrative | Replace with a real measured racket before launch. |
+
+| 17 | Edition prices: KINETIQ €410, Founders Series €990, Atelier Edition €2,900 | `site.ts`, reserve page | ⚠️ Owner to confirm | Set by Claude as a starting point (2026-10-21), not by the owner. |
+| 18 | "Founders Series: Numbered 001 to 500. Never made again." | Reserve page | ⚠️ Scarcity claim | Must be true: cap at 500 (set `available: false` when sold; Stripe can't count for us), and never reissue. Laser-marked number, first out of the mould, signed card: production commitments. |
+| 19 | "Atelier Edition: Fifty rackets. One for each name." Name on card, film of your racket leaving the mould, hand-finished, fitted case | Reserve page | ⚠️ Scarcity + commitments | Cap at 50; the film and case need a supplier and a process. |
+| 20 | "We only ask for what we need to deliver it: your email, name and address." | Reserve page | ✅ True by design | Keep Stripe Checkout settings as in `route.ts` (no phone, billing address auto). Privacy policy still needed. |
 
 Also needed before launch, not claims: terms of sale, withdrawal/refund policy, privacy policy, imprint/contact (required for EU/CH e-commerce), and real Stripe keys.

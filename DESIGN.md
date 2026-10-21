@@ -6,6 +6,12 @@ It should feel like a product reveal (think a car maker unveiling a roadster). O
 placed at the emotional peaks. Full payment up front, shipping January 2027. Claims are bold by
 design; see `CLAIMS.md` for what needs proof before launch.
 
+## Conversion flow
+Modelled on a car-maker reservation page: the landing page builds desire and ends on its last
+"Reserve Now". The reserve page is a calm, two-column form: product visual left (sticky), choices right.
+Editions climb in exclusivity and price; "Fully refundable" appears next to the price and in the trust
+list; one action, "Pay by Card". We collect nothing; Stripe asks only for email, name, address and card.
+
 ## Direction
 A product reveal on a black stage. The racket rises out of the dark into studio light, and every chapter
 after that proves one claim with one big, simple idea: one piece, 15 µm, nothing glued, two identical
@@ -62,7 +68,7 @@ turns edge-on: one piece, 38 mm.
 | 3 | Feel | No | Scrub: two vibration lines draw (glued vs one piece) | — | Lines fully drawn |
 | 4 | Holes and identical | No | None (hover tilt on the card, desktop only) | — | Same |
 | 5 | Swiss | No | None | — | Same |
-| 6 | Reserve | No | None | — | Same |
+| 6 | Finale | No | None | — | Same |
 
 ### Micro-interactions
 | Element | Trigger | Properties | Duration | Easing |
@@ -82,15 +88,15 @@ Loaded after idle, DPR capped at 2 / 1.5, paused off-screen. Fallback: the inlin
 ## Content inventory
 | Section | Copy | Media | CTA |
 | --- | --- | --- | --- |
-| Hero | Claim 1, Swiss Made, 15 µm | 3D racket / SVG still, four stats | Reserve yours |
+| Hero | Claim 1, Swiss Made, 15 µm | 3D racket / SVG still, four stats | Reserve Now |
 | One piece | Three beats | Layer stack | – |
-| Precision | Record claim, comparison | Counter, bars | Reserve yours (after) |
+| Precision | Record claim, comparison | Counter, bars | Reserve Now (after) |
 | Feel | Three reasoned feel claims | Two vibration lines | – |
 | Holes + identical | Moulded holes, ±1 g / ±1 mm | Hole rings, measurement card | – |
 | Swiss | 100% Swiss Made, patented, St. Gallen | Swiss flag | – |
-| Reserve | Model picker, specs, price, terms | – | Reserve yours (model preselected) |
-| FAQ | Six answers | – | – |
-| Checkout | Model, summary, terms | – | Continue to secure payment (Stripe) |
+| Finale | "The first run leaves the mould in January." Fully refundable | Soft spotlight | Reserve Now (last thing on the page; no FAQ after it) |
+| /reserve | Choose your edition (KINETIQ, Founders Series 500, Atelier Edition 50), choose your racket (Command, Pace), trust lines, Due today | Racket still with an edition badge (serial / No. 001/500 / No. 01/50) | Pay by Card (sticky bar on phones) |
+| /reserved | Confirmation and refund promise | – | Back to KINETIQ |
 
 ## Languages
 English only at launch (`lang="en"`). Archivo is loaded with `latin` and `latin-ext`, which also covers
