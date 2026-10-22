@@ -56,7 +56,7 @@
   max-width: 56ch;
 }
 /* Beat A's words come in two parts: the eyebrow and headline, then the lead. On phones K02 stands between them, so
-   the chapter opens on its own heading, never on a bare image straight after the sweet spot's fine print. */
+   the chapter opens on its own heading, never on a bare image straight after the sweet spot's numbers. */
 .headA {
   padding-bottom: 20px;
 }

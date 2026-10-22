@@ -6,7 +6,7 @@ import { MeasurementCard } from "@/components/graphics/MeasurementCard";
 import { Still, hasStill } from "@/components/media/Still";
 import { useMotion } from "@/components/motion/MotionProvider";
 import { identical } from "@/content/copy";
-import { sampleSet, tierById, type TierId } from "@/content/lineup";
+import { ambassador, sampleSet, tierById, type TierId } from "@/content/lineup";
 import { reserveCopy } from "@/content/reserve";
 import { feels, type FeelId } from "@/content/site";
 import styles from "./Reserve.module.css";
@@ -106,7 +106,10 @@ function slidesFor(tier: TierId, feel: FeelId): Slide[] {
     case "invite":
       return [
         { kind: "still", id: "K09", phoneCrop: "card", alt: `The three rackets of a ${name} set in their machined, felt-lined case` },
-        { kind: "court", alt: "A plan of a padel court marking the exclusive coaching session" },
+        {
+          kind: "court",
+          alt: `A plan of a padel court marking the exclusive coaching session${ambassador.named ? ` with ${ambassador.name}` : ""}`,
+        },
         { kind: "still", id: "K07", phoneCrop: "trio", fit: "contain", alt: "Identical KINETIQ rackets, each in its own shaft of light" },
         { kind: "still", id: "K01-finale", phoneCrop: "card", alt: "A KINETIQ racket in its beam, above a lit horizon" },
       ];

@@ -29,21 +29,24 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
   only; `KQ_LAB=1` serves them in production), `media/Still.tsx`, `reserve/`, `chrome/` (`SiteHeader`, `SiteFooter`;
   `HeaderClient.tsx`: scroll state and the compact Reserve Now after the hero, its label passed in). No preview banner.
 - `src/content/`: all words; change them there. `copy.ts` (landing), `lineup.ts` (editions, prices, limits, `lifetime`,
-  `identicalFine`, `sampleSet`, the coach, invitation gate, delivery countries), `reserve.ts`, `site.ts` (CTA labels,
+  `sampleSet`, the coach, invitation gate, delivery countries), `reserve.ts`, `site.ts` (CTA labels,
   price note, ship date, refund, feels), `stills.json` (crops).
 - Flow (Tesla Roadster reserve page): "Reserve Now" → `/reserve?tier=` (edition, feel, trust lines, Due Today, "Pay
   with Card" expands the form in place) → "Place Reservation" posts to `src/app/api/reserve/route.ts` (PaymentIntent
   via REST, amount from `lineup.ts`) and confirms the card with Stripe's Payment Element in place → confirmation in
   place, or `/reserved` after 3-D Secure. One of Ten: never chosen from a link (`?tier=invite` shows KINETIQ), never
   interactive until a valid code (POST /api/invite, or `?invite=CODE`) unlocks it; /api/reserve checks it again.
-- Data minimisation: name, email, delivery address and card only. No phone, accounts or opt-ins.
+- Data minimisation: name, email, delivery address and card only. No phone, accounts or opt-ins. The NDA gate's
+  email goes only to the owner's inbox (see NDA gate).
 - `public/`: assets and `CREDITS.md`. `scripts/`: harness. `docs/`: research. `.claude/skills/`: reference skills.
 
 ## NDA gate (owner, 2026-10-22: investors declare the NDA, then give an email, once per device)
 - `src/proxy.ts` (Next 16 "proxy", formerly middleware) rewrites every page to `/nda` without a valid `kq_nda` cookie
   (`src/lib/nda.ts`) and answers assets, `/api/*` and other `/_next/*` paths with an empty 403; only `/_next/static/`,
   the HMR socket, the two icon files and `POST /api/nda` pass. Exclusions, cookie and arrival: DESIGN.md "NDA gate".
-- A declaration, not a login (unsigned cookie, public format; CLAIMS.md row 25b). Nothing is stored or logged.
+- A declaration, not a login (unsigned cookie, public format; CLAIMS.md row 25b). Each sign-in is emailed to the owner
+  through Resend (`src/lib/nda-notify.ts`, after the response) when RESEND_API_KEY, NDA_NOTIFY_TO and NDA_NOTIFY_FROM
+  are set on Vercel (never in the repo; the owner's address is private). Nothing else is stored or logged.
 - The root layout's metadata is neutral (title "KINETIQ", noindex): the product's title, description and og:image live
   in `src/lib/product-metadata.ts`, used by `/` and `/reserve` only. Never put product metadata back in `layout.tsx`.
 - Stills are `Cache-Control: private` with `Vary: Cookie` (`next.config.ts`). After each deploy, check production
@@ -114,30 +117,37 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
   preview. One of Ten fails closed without codes: keep `INVITE_CODES` empty until CLAIMS.md rows 20, 21, 29 are ready.
 - The hero lead is the owner's sentence (2026-10-22), verbatim though "one piece" is retired elsewhere: "One single
   piece of space-grade carbon. No tube, no joints. Ultra-precision moulded to 15 microns and 1 gram. Every racket
-  plays exactly the same." Then "Built to last five years." Elsewhere "unibody", "Zero seams"; never "zero weak points".
+  plays exactly the same." Nothing follows it. Elsewhere "unibody", "Zero seams"; never "zero weak points".
 - Sweet spot (CLAIMS.md row 6b): "Edge to edge.", "Nearly 94% of the face is sweet spot" and "4 mm from the sweet spot
-  to the edge", always with the ‡ fine print: a design ceiling from `racket-shape.ts`, rounded as Apple rounds (down,
-  or up only with "Nearly"). `SWEET_CLAIM` (`graphics-sweetspot.ts`) builds every number the section prints; none is
-  typed in `copy.ts` (/lab/g15 checks). Never "bezel", "all sweet spot", "zero", "100%", "no dead zones", "largest",
-  or a tube or brand comparison.
-- Sealed core (CLAIMS.md rows 30 to 34; wording in DESIGN.md): "Three times longer" only against an open core and
-  always with its † fine print (`durability.coreFine`). Never heat, "airtight", "waterproof" or "first".
+  to the edge", with line 1 saying in its own words that the flat face is sweet spot by design: a design ceiling from
+  `racket-shape.ts`, rounded as Apple rounds (down, or up only with "Nearly"). `SWEET_CLAIM` builds every number the
+  section prints; none is typed in `copy.ts` (/lab/g15 checks). Never "bezel", "all sweet spot", "zero", "100%", "no
+  dead zones", "largest", or a tube or brand comparison.
+- Sealed core (CLAIMS.md rows 30 to 34; wording in DESIGN.md): "Three times longer" only against the same core left
+  open, and as a design ("made to last") until tested. Never heat, "airtight", "waterproof" or "first".
 - Lineup (owner, 2026-10-22): KINETIQ, one racket, €410; First 500, two identical rackets (one feel per set), the
   first 500 sets, numbered 001 to 500, first to ship, €990; One of Ten, ten sets of three, €2,900, each with an
   exclusive coaching session. "First 500" and "One of Ten" in full (no-break spaces in code), never shortened or with
   ™ (row 35). Every edition holds the same racket, and the copy says so; never compare the pair's price with KINETIQ's.
-- Durability lives in `lifetime` (`lineup.ts`): "Built to last five years" always travels with `lifetime.fine`; only One
-  of Ten has a guarantee ("five-year guarantee", never "lifetime guarantee"); "first" only in the Durability lead.
-  Footnote markers: * design life, † sealed core, ‡ sweet spot, § the One of Ten guarantee.
+- The five-year claim is said in one place only, the Durability section (owner, 2026-10-22): its h2 (`lifetime.line`),
+  lead, G14 and point 4, which gives the usage profile and the promised fatigue tests in a plain sentence. Never in
+  the hero, finale, edition includes, meta or confirmation. Only One of Ten has a guarantee ("five-year guarantee",
+  never "lifetime guarantee"); "first" only in the Durability lead.
+- No small print (owner, 2026-10-22, risk accepted in CLAIMS.md): no footnote markers (*, †, ‡, §) and no fine-print
+  lines, on the landing page, the edition cards or /reserve. A qualifier that keeps a claim honest goes in a plain
+  sentence of the body copy ("as designed", "made to last"), or is dropped. Graphics with unmeasured data keep their
+  "Illustrative" caption. /reserve keeps what the law needs at the payment: Due Today, the refund line, the order line.
 - One landing CTA, "Reserve Now"; then "Pay with Card" and "Place Reservation". Sold out: `available: false`.
-- The coach has agreed (`ambassador.confirmed: true`); name him only once `COACH_FULL_NAME` (`lineup.ts`) holds his
-  first name and surname as approved in writing. Never a nickname or his family; signed rackets only with `signs`.
+- The coach is named "Paquito Navarro" (`COACH_FULL_NAME`, `lineup.ts`), approved in writing (owner, 2026-10-22), in
+  the One of Ten coaching include and G12. Exactly that name; never his family, no descriptor until a true one is
+  confirmed, signed rackets only with `signs`. His racket sponsor's contract must allow it (CLAIMS.md row 21).
 
 ## Definition of done
 1. `npm run lint`, `npm run typecheck` and `npm run build` pass.
 2. `npm run check` passes for `/`, `--path=/reserve` and `--gate`: phone, desktop and wide (2560), motion and reduced
    motion, 0 console errors, no blank frames, the fill rule, no horizontal overflow, budgets met, Skip links reached
-   by Tab work, the gate's keyboard flow opens the page and assets and APIs answer 403 without the cookie.
+   by Tab work, no footnote markers, the gate's keyboard flow opens the page and assets and APIs answer 403 without
+   the cookie.
 3. You have opened and reviewed the screenshots yourself: fix anything blank, overlapping, cropped or unreadable.
 4. After pushing, run `npm run check -- --url=<production url>` (and `--path=/reserve`, `--gate`) on the live site.
 

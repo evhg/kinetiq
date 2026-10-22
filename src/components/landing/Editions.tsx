@@ -3,18 +3,7 @@ import { Fragment, type ReactNode } from "react";
 import { Icon, TierGlyph } from "@/components/graphics/Icons";
 import { Still } from "@/components/media/Still";
 import { Hyphens } from "@/components/text/Hyphens";
-import {
-  editionsIntro,
-  guaranteeFine,
-  identicalFine,
-  includeIcons,
-  invitesOpen,
-  lifetime,
-  priceLabel,
-  tiers,
-  type Tier,
-  type TierId,
-} from "@/content/lineup";
+import { editionsIntro, includeIcons, invitesOpen, priceLabel, tiers, type Tier, type TierId } from "@/content/lineup";
 import { reserveCopy } from "@/content/reserve";
 import { Reveal } from "./Reveal";
 import styles from "./Editions.module.css";
@@ -29,17 +18,12 @@ const IMAGE: Record<TierId, { id: string; crop: string }> = {
   invite: { id: "K09-card", crop: "card" },
 };
 
-// "Identical: one mould ..." leads its fine-print line the way "*Built to last five years." leads the design life's.
-const [IDENTICAL_HEAD, IDENTICAL_BODY] = (() => {
-  const at = identicalFine.indexOf(": ");
-  return [identicalFine.slice(0, at + 1), identicalFine.slice(at + 2)];
-})();
-
 /**
  * One racket, in three editions. KINETIQ and First 500 are whole-card links into the reservation page; One of Ten is
  * by invitation only, so its card is not a link (no hover, no arrow): it says so where the arrow would be, and a quiet
  * "Have an invitation?" opens the code field on /reserve. Every card lists what it includes and ends on the same price
- * line. The lead says plainly that every edition holds the same racket.
+ * line. The lead says plainly that every edition holds the same racket. No footnote markers and no fine print under
+ * the cards (owner, 2026-10-22): what "identical" means is told by the Identical section's own body.
  */
 export function Editions() {
   // Read at build: Vercel rebuilds when INVITE_CODES changes.
@@ -92,25 +76,6 @@ export function Editions() {
           </li>
         ))}
       </Reveal>
-      {/* The fine print under the cards, one line per claim: the design life (*), what "identical" means (the two sets'
-          card lines promise identical rackets), then One of Ten's guarantee (\u00a7), so "a design life, not a
-          guarantee" never runs into the one guarantee. */}
-      <div className={styles.notes}>
-        <p className={styles.fine}>
-          <span className={styles.fineHead}>
-            {lifetime.mark}
-            {lifetime.line}.
-          </span>{" "}
-          {lifetime.fine}
-        </p>
-        <p className={styles.fine}>
-          <span className={styles.fineHead}>{IDENTICAL_HEAD}</span> {IDENTICAL_BODY}
-        </p>
-        <p className={styles.fine}>
-          <span className={styles.fineHead}>{lifetime.guaranteeMark}</span>
-          {guaranteeFine}
-        </p>
-      </div>
     </section>
   );
 }
@@ -136,10 +101,6 @@ function CardBody({ t, after, end }: { t: Tier; after?: ReactNode; end: ReactNod
               <Icon name={includeIcons[t.id][n] ?? "shieldCheck"} size={20} className={styles.includeIcon} />
               <span>
                 <Hyphens text={inc} />
-                {/* the design life is a property, not a perk, and the guarantee is One of Ten's alone: each marker
-                    points to its own line of fine print under the cards */}
-                {inc === lifetime.include ? <span className={styles.mark}>{lifetime.mark}</span> : null}
-                {inc === lifetime.guarantee ? <span className={`${styles.mark} ${styles.raised}`}>{lifetime.guaranteeMark}</span> : null}
               </span>
             </li>
           ))}

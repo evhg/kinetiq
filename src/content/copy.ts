@@ -8,15 +8,18 @@
 // construction words are "unibody" and "Zero seams.", scoped to the frame: "No joint to work loose." Never
 // "zero weak points" or "nothing to come apart" (absolute durability promises, CLAIMS.md row 8b), never
 // "first unibody" (the word is already used in other racket sports, row 3).
-// Durability (owner, 2026-10-22): "Built to last five years" always travels with its usage profile: a footnote
-// marker (lifetime.mark) links the hero and finale lines to the fine print (lifetime.fine) in the durability
-// section. Never "lifetime guarantee", never "sustainable", and never a guarantee for every racket (only
-// One of Ten carries one). Until the independent fatigue report exists the testing is promised, never claimed
-// as done (CLAIMS.md rows 26 and 28).
+// Durability (owner, 2026-10-22): "Built to last five years" is said in one place only, the Durability section,
+// where its usage profile and the promised fatigue tests are told in its own sentences (owner: the five years in
+// three places was too much). Never in the hero, the finale, the editions or the meta. Never "lifetime guarantee",
+// never "sustainable", and never a guarantee for every racket (only One of Ten carries one). Until the independent
+// fatigue report exists the testing is promised, never claimed as done (CLAIMS.md rows 26 and 28).
+// No small print (owner, 2026-10-22): no footnote markers (*, \u2020, \u2021, \u00a7) and no fine-print lines. Where a
+// qualifier keeps a claim honest, it is part of a plain sentence in the body copy ("as designed", "made to last",
+// "Independent fatigue tests will confirm it"); a graphic with unmeasured data keeps its "Illustrative" caption.
 // Sealed core (owner, 2026-10-22; CLAIMS.md rows 30 to 34): the carbon shell closes around the whole EVA core
 // and lines every hole, so the core never touches the air. It is told once per place: the reveal in the
 // unibody chapter (unibody.sealed), the drilled hole that opens a core (holes.body), and the result in
-// Durability ("three times longer", only against an open core and only with its fine print, durability.coreFine).
+// Durability ("three times longer", only against the same core left open, and only as a design: "made to last").
 // The seal keeps out sweat, humidity and UV; never heat (the shell does not insulate), never "airtight",
 // "waterproof" or "first". "Swiss-made EVA" stays at country level: never the factory, a supplier or a town.
 // Voice (owner, 2026-10-22; batch 3 names-copy-final): whole, plain sentences that say what we made and what it does
@@ -34,8 +37,6 @@ export const hero = {
    * and "1 gram" (the ±1.0 g weight tolerance, CLAIMS.md row 12) even though both rules apply everywhere else.
    */
   lead: "One single piece of space-grade carbon. No tube, no joints. Ultra-precision moulded to 15 microns and 1 gram. Every racket plays exactly the same.",
-  /** Set after the lead in brighter type, with a marker to its usage profile (CLAIMS.md row 26). */
-  life: `${lifetime.line}.`,
   /** Under Reserve Now: "From €410, fully refundable, and shipping in January 2027." */
   ctaNote: site.priceNote,
 };
@@ -53,8 +54,10 @@ export const hero = {
  * ends 4 mm in from the edge (the 1.5 mm edge radius plus 2.5 mm) and 4 mm above the throat, and covers 498.7 of
  * the 531.5 cm² of face above the bridge, 93.8%, said "Nearly 94%" (Apple Watch Series 7: "nearly 20 percent";
  * a 5.85-inch iPhone X display was sold as 5.8-inch, so Apple never rounds up without a word). A design ceiling,
- * not a measurement: the fine print says so, and the graphic says "Illustrative" until the independent rebound
- * map exists. Line 1 is about the face only: the cause (the frame tube we left out) is told once, in Unibody.
+ * not a measurement: line 1 says so in its own words ("we designed all of that flat face to be sweet spot": what is
+ * counted, and that it is a design), and the caption says "Illustrative. The sweet spot as designed." until the
+ * independent rebound map exists. No fine print (owner, 2026-10-22). Line 1 is about the face only: the cause (the
+ * frame tube we left out) is told once, in Unibody.
  * Never "all sweet spot", "zero", "no dead zones", "100%", "bezel", "twice the sweet spot", a comparison with a
  * tubular racket or another brand, or "largest".
  */
@@ -64,17 +67,15 @@ export const sweetSpot = {
   eyebrow: "Sweet spot",
   headline: "Edge to edge.",
   lines: [
-    "The face stays flat right out to where the edge begins to curve.",
+    "The face stays flat right out to where the edge begins to curve, and we designed all of that flat face to be sweet spot.",
     "That matters most on the shots you can't set up, when you meet the ball late, high or off the glass.",
   ],
   /**
    * The lockup, each item read as a sentence: "Nearly 94% of the face is sweet spot." and "4 mm from the sweet spot
-   * to the edge." Both carry the fine-print marker. `nearly` shows only when the numeral is rounded up.
+   * to the edge." `nearly` shows only when the numeral is rounded up.
    */
   share: { nearly: "Nearly", unit: "%", label: "of the face is sweet spot" },
   inset: { unit: "mm", label: "from the sweet spot to the edge" },
-  fine: (n: SweetNumbers) =>
-    `Sweet spot as designed: the flat face inside the rounded edge, ${n.field} of the ${n.face}\u00a0cm² of face above the bridge (${n.exact}%), ending ${n.inset}\u00a0mm from the edge. We count the whole flat face as sweet spot, the most the shape allows. Rebound across it to be mapped in independent tests before we ship.`,
   /** Under the image, the K12 still or G15, which stands in for it until K12 is exported. */
   caption: "Illustrative. The sweet spot as designed.",
   /** K12 (K12-base, then K12-full): a face-on white Command racket whose face lights up to 4 mm from the edge. */
@@ -86,13 +87,6 @@ export const sweetSpot = {
     alt: (n: SweetNumbers) =>
       `Face-on KINETIQ Command racket in white 3K carbon twill. Warm light fills its face to within ${n.inset}\u00a0mm of the edge, ${n.nearly ? "nearly " : ""}${n.share}% of the face above the bridge, and the 42 moulded holes stay dark. A magnified detail of the edge measures the ${n.inset}\u00a0mm band. Illustrative.`,
   },
-};
-
-/** The marker on the sweet-spot numbers, linking to sweetSpot.fine (which carries the same marker). */
-export const sweetNote = {
-  mark: "‡",
-  id: "sweet-spot-fine",
-  label: "Sweet spot as designed: what it counts and how it will be tested",
 };
 
 /**
@@ -205,18 +199,24 @@ export const durability = {
   lead: "Most padel rackets are spent in one to two years. KINETIQ is the first padel racket built for five.",
   // The sealed core comes first: in most rackets the foam core is what gives out first (CLAIMS.md row 34). Its title
   // names the difference ("sealed, not open"), never "nothing to break down" (absolute, rows 8b and 30).
-  // Point 4 promises the fatigue tests (future tense); it never reads as a test already passed (row 26).
-  // "Three times longer" compares the sealed core with the same EVA left open, never with other brands' rackets,
-  // and never becomes a racket lifespan ("three to six years"): the five years rest on row 26's own test.
+  // Point 4 carries what the fine print used to: the usage profile and the promised fatigue tests (future tense); it
+  // never reads as a test already passed, and never repeats the five years the headline states (row 26). Its body is a
+  // whole sentence that stands without its title; no "design life" (the page no longer defines it), "ball strikes"
+  // never "of play" (row 27).
+  // "Three times longer" compares the sealed core with the same EVA left open ("the same core left open"), never with
+  // other brands' rackets, and never becomes a racket lifespan ("three to six years"): the five years rest on row 26's
+  // own test. "Made to last" keeps it a design until the independent test exists (row 34).
   points: [
     {
       title: "A sealed core, not an open one.",
-      body: "In a padel racket, the foam core usually gives out first. Sealed in carbon, ours lasts three times longer than an open core.",
-      note: "core" as const,
+      body: "In a padel racket, the foam core usually gives out first. Sealed in carbon, ours is made to last three times longer than the same core left open.",
     },
     { title: "No seam to open.", body: "Face, bridge and handle are one carbon shell. No joint between face and frame to work loose." },
     { title: "No drilled hole to crack.", body: "Cracks often start at a drilled hole. All 42 of ours are moulded, with carbon wrapped around every edge." },
-    { title: "Built for five years of play.", body: "Two 90-minute sessions a week for five years: about 780 hours of ball strikes. Independent fatigue tests will prove it before the first racket ships." },
+    {
+      title: "Designed for regular play.",
+      body: "We designed it for two 90-minute sessions a week, about 780 hours of ball strikes in all. Independent fatigue tests will confirm that before the first racket ships.",
+    },
   ],
   graph: {
     typical: "Most padel rackets",
@@ -225,33 +225,8 @@ export const durability = {
     kinetiqSpan: { value: "5", unit: "years" },
     kinetiqNote: "About 780 hours of ball strikes",
     xAxis: "Years, at two 90-minute sessions a week",
-    caption:
-      "Illustrative. KINETIQ: design life, ball strikes only, to be verified in independent fatigue tests. Most padel rackets: brand and retailer guidance for recreational play.",
+    caption: "Illustrative. KINETIQ as designed, against brand and retailer guidance for most padel rackets.",
   },
-  finePrint: lifetime.fine,
-  /**
-   * What "three times longer" is measured against, and under what use (CLAIMS.md row 34): a durability claim
-   * in terms of usage time, so it never appears without this line.
-   */
-  coreFine:
-    "Against an open core: the same EVA, left open at drilled holes, aged side by side in one accelerated test of ball strikes, humidity, artificial sweat and UV modelled on two 90-minute sessions a week, until each has lost the same share of its rebound. To be verified in independent tests before we ship.",
-};
-
-/** The marker on "three times longer" (Durability point 1), linking to durability.coreFine. */
-export const coreNote = {
-  mark: "\u2020",
-  id: "core-fine",
-  label: "Three times longer: what it is measured against",
-};
-
-/**
- * The footnote marker on the five-year lines that stand apart from their usage profile (hero, finale):
- * it links to the durability fine print, which carries the same marker.
- */
-export const lifeNote = {
-  mark: lifetime.mark,
-  id: "durability-fine",
-  label: "Five-year design life: usage profile and terms",
 };
 
 // Feel follows the Unibody chapter, its cause (CLAIMS.md row 14). Unibody has just told the cause, so Feel names the
@@ -348,13 +323,16 @@ export const feelChoice = {
 };
 
 export const finale = {
-  /** "five years." carries the footnote marker to the usage profile (CLAIMS.md row 26). */
-  headline: "Zero seams, held to fifteen microns, and built to last five years.",
+  /**
+   * The page's last line: no five years (said once, in Durability) and no marker (owner, 2026-10-22). Its three
+   * clauses sum up Unibody, Precision and Born whole; never "the feel you choose", which Two feels and Editions say.
+   */
+  headline: "Zero seams, held to fifteen microns, and made in Switzerland.",
   sub: site.priceNote,
 };
 
 export const meta = {
   title: "KINETIQ | The most precise padel racket ever made",
   description:
-    "Unibody, in space-grade carbon. Zero seams, no frame tube, a sealed core, held to 15 microns. Designed to last five years at two sessions a week. 100% Swiss Made. Reserve now, fully refundable.",
+    "Unibody, in space-grade carbon. Zero seams, no frame tube, a sealed core, held to 15 microns. 100% Swiss Made. Reserve now, fully refundable.",
 };

@@ -4,7 +4,7 @@ import { useRef } from "react";
 import { SweetSpotField, addSweetSpotReveal } from "@/components/graphics/SweetSpotField";
 import { Still, hasStill } from "@/components/media/Still";
 import { useMotion } from "@/components/motion/MotionProvider";
-import { sweetNote, sweetSpot } from "@/content/copy";
+import { sweetSpot } from "@/content/copy";
 import { SWEET_CLAIM } from "@/lib/graphics-sweetspot";
 import { gsap, useGSAP } from "@/lib/gsap";
 import styles from "./SweetSpot.module.css";
@@ -16,9 +16,8 @@ const K12 = hasStill("K12-base") && hasStill("K12-full");
 const past = (el: Element, pct: number) => el.getBoundingClientRect().top < (window.innerHeight * pct) / 100;
 
 /**
- * The words rise once, staggered: the eyebrow and headline, the two lines, the numbers, the fine print. Opacity
- * only, never visibility: the claim, its ‡ marks and the fine print stay in the accessibility tree and in the tab
- * order before the section is scrolled to (a focus inside it finishes the rise at once, SweetSpot below).
+ * The words rise once, staggered: the eyebrow and headline, the two lines, then the numbers. Opacity only, never
+ * visibility: the claim stays in the accessibility tree before the section is scrolled to.
  */
 function rise(targets: Element[], trigger: Element, pct: number) {
   if (!targets.length || past(trigger, pct)) return;
@@ -50,7 +49,6 @@ export function SweetSpot() {
       const q = gsap.utils.selector(el);
       const media = q(`.${styles.media}`)[0];
       const blocks = q("[data-rise]");
-      const words: (gsap.core.Tween | undefined)[] = [];
       const mm = gsap.matchMedia();
       const image = (tl: gsap.core.Timeline, scrub: boolean) => {
         // Wide screens: the racket rises only as the hero's fades out (Hero.tsx, gone at 32% of the hero scrolled), so
@@ -73,33 +71,18 @@ export function SweetSpot() {
         });
         image(tl, true);
         tl.to({}, { duration: 0.05 }); // a short hold at the end, so the detail lands before the scrub runs out
-        words.push(rise(blocks, blocks[0], 55));
+        rise(blocks, blocks[0], 55);
       });
       mm.add("(prefers-reduced-motion: no-preference) and (max-width: 999px)", () => {
         // Phones: no scrub. The image fades in on entry, the words rise block by block.
         if (media && !past(media, 80)) {
           image(gsap.timeline({ scrollTrigger: { trigger: media, start: "top 80%", once: true } }), false);
         }
-        for (const b of blocks) words.push(rise([b], b, 85));
+        for (const b of blocks) rise([b], b, 85);
       });
-      // Keyboard: Tab can reach a ‡ mark before the section has been scrolled to. Focus finishes the words' rise at
-      // once (no animation on keyboard-triggered moves), so a focused mark is never invisible.
-      const settle = () => {
-        for (const t of words) t?.progress(1);
-      };
-      el.addEventListener("focusin", settle);
-      return () => {
-        el.removeEventListener("focusin", settle);
-        mm.revert();
-      };
+      return () => mm.revert();
     },
     { scope: root, dependencies: [motionOn], revertOnUpdate: true },
-  );
-
-  const mark = (
-    <a href={`#${sweetNote.id}`} className="footmark" aria-label={sweetNote.label}>
-      {sweetNote.mark}
-    </a>
   );
 
   return (
@@ -145,27 +128,16 @@ export function SweetSpot() {
             {SWEET_CLAIM.share}
             <span className={`t-unit ${styles.pct}`}>{sweetSpot.share.unit}</span>
           </span>{" "}
-          <span className={`t-label ${styles.label}`}>
-            {sweetSpot.share.label}
-            {mark}
-          </span>
+          <span className={`t-label ${styles.label}`}>{sweetSpot.share.label}</span>
         </li>
         <li className={styles.stat}>
           <span className={`t-stat ${styles.value}`}>
             {SWEET_CLAIM.inset}
             <span className="t-unit">{sweetSpot.inset.unit}</span>
           </span>{" "}
-          <span className={`t-label ${styles.label}`}>
-            {sweetSpot.inset.label}
-            {mark}
-          </span>
+          <span className={`t-label ${styles.label}`}>{sweetSpot.inset.label}</span>
         </li>
       </ul>
-
-      <p id={sweetNote.id} className={`t-fine ${styles.fine}`} data-rise="">
-        <span className={styles.mark}>{sweetNote.mark}</span>
-        {sweetSpot.fine(SWEET_CLAIM)}
-      </p>
     </section>
   );
 }

@@ -102,10 +102,6 @@
   max-width: 54ch;
   text-wrap: pretty;
 }
-/* The five-year line follows the owner's sentence in the headline white. */
-.life {
-  color: var(--text);
-}
 .bottom {
   display: grid;
   justify-items: center;

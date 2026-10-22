@@ -92,11 +92,11 @@ export const SWEET_CLAIM = (() => {
     share: String(whole),
     /** True when the numeral is rounded up, so the lockup reads "Nearly 94%". */
     nearly: whole > pct + 1e-9,
-    /** The exact share, for the fine print: "93.8". */
+    /** The exact share, to one decimal ("93.8"): /lab/g15 and CLAIMS.md only (no fine print since 2026-10-22). */
     exact: pct.toFixed(1),
     /** The inset in mm: "4". */
     inset: String(Number(SWEET.inset.toFixed(1))),
-    /** The two areas in cm², to one decimal, for the fine print: "498.7" and "531.5". */
+    /** The two areas in cm², to one decimal ("498.7" and "531.5"): /lab/g15 and CLAIMS.md only. */
     field: SWEET.field.toFixed(1),
     face: SWEET.face.toFixed(1),
   };

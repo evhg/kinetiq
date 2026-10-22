@@ -564,12 +564,6 @@
 .extras[data-quiet] .extrasHead {
   color: var(--steel);
 }
-.extrasFine {
-  margin-top: 4px;
-  font-size: 1rem;
-  line-height: 1.5;
-  color: var(--muted);
-}
 .lockedNote {
   font-family: var(--font-data);
   font-size: clamp(1rem, 0.15vw + 0.95rem, 1.125rem);
@@ -853,13 +847,8 @@
   font-size: clamp(1.75rem, 0.8vw + 1.35rem, 2.5rem);
   font-weight: 500;
 }
-.dueRefund,
-.dueNote {
-  font-family: var(--font-data);
-  font-size: clamp(1rem, 0.15vw + 0.95rem, 1.125rem);
-  color: var(--muted);
-}
-.fine {
+/* the confirmation's "Receipt sent to ..." */
+.sent {
   font-size: clamp(1rem, 0.15vw + 0.95rem, 1.125rem);
   color: var(--muted);
   line-height: 1.5;

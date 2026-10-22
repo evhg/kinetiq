@@ -111,15 +111,6 @@
   color: var(--steel);
   text-wrap: balance;
 }
-.fine {
-  margin-top: clamp(20px, 2vw, 36px);
-  max-width: 62ch;
-  text-wrap: pretty;
-}
-.mark {
-  margin-right: 0.2em;
-  color: var(--amber-hot);
-}
 
 /* Wide: the words in columns 1 to 5, centred in the screen; the racket on the right at the height of the screen.
    G15 stands in columns 6 to 12; K12 is full bleed, its own left side kept clear for the words. */
@@ -127,7 +118,7 @@
   .section {
     min-height: 100svh;
     grid-template-columns: repeat(12, minmax(0, 1fr));
-    grid-template-rows: 1fr auto auto auto auto 1fr;
+    grid-template-rows: 1fr auto auto auto 1fr;
     column-gap: var(--gutter);
     padding: calc(var(--chrome-h) + clamp(16px, 3vh, 64px)) var(--margin) clamp(32px, 5vh, 96px);
     background:
@@ -136,8 +127,7 @@
   }
   .head,
   .body,
-  .lockup,
-  .fine {
+  .lockup {
     grid-column: 1 / span 5;
   }
   .head {
@@ -150,9 +140,6 @@
   .lockup {
     grid-row: 4;
     margin-top: clamp(32px, 3.4vw, 88px);
-  }
-  .fine {
-    grid-row: 5;
   }
   .media {
     grid-column: 6 / -1;

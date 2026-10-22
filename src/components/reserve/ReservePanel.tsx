@@ -5,7 +5,7 @@ import { Badges } from "@/components/graphics/Badges";
 import { Icon, TierGlyph, type IconName } from "@/components/graphics/Icons";
 import { useMotion } from "@/components/motion/MotionProvider";
 import { Hyphens } from "@/components/text/Hyphens";
-import { deliveryCountries, includeIcons, includesFine, orderLine, priceLabel, tiers, tierById, type TierId } from "@/content/lineup";
+import { deliveryCountries, includeIcons, orderLine, priceLabel, tiers, tierById, type TierId } from "@/content/lineup";
 import { reserveCopy } from "@/content/reserve";
 import { feels, site, type FeelId } from "@/content/site";
 import { isPaid, loadStripe, type Stripe, type StripeElement, type StripeElements } from "@/lib/stripe-client";
@@ -483,7 +483,6 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
                       </span>
                     </span>
                   ))}
-                  <span className={styles.extrasFine}>{includesFine(t.id)}</span>
                 </span>
               );
               const head = (
@@ -651,7 +650,6 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
               <span className={styles.dueLabel}>{reserveCopy.dueTodayLabel}</span>
               <span className={`t-num ${styles.dueAmount}`}>{priceLabel(tier.priceEur)}</span>
             </div>
-            <p className={styles.fine}>{PK ? reserveCopy.fineprint : reserveCopy.previewLine}</p>
           </div>
 
           <button
@@ -766,7 +764,7 @@ function Confirmation({ tier, feel, email, paymentId }: { tier: TierId; feel: Fe
       </p>
       <p className="t-body">{reserveCopy.confirmationBody(t.id)}</p>
       <p className={`t-num ${styles.doneRef}`}>{reserveCopy.reference(paymentId)}</p>
-      {email ? <p className={styles.fine}>{reserveCopy.receiptSent(email)}</p> : null}
+      {email ? <p className={styles.sent}>{reserveCopy.receiptSent(email)}</p> : null}
     </div>
   );
 }

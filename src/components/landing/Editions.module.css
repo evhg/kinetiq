@@ -156,17 +156,6 @@ a.card:active {
   align-items: start;
   text-wrap: pretty;
 }
-/* the footnote marker after the design life, at the line's own size (never below 15 px) */
-.mark {
-  color: var(--amber-hot);
-}
-/* the guarantee's section mark reads as a stray glyph at full size: raised, tight to the word, still 15 px or more */
-.raised {
-  margin-left: 0.04em;
-  font-size: max(15px, 0.78em);
-  line-height: 0;
-  vertical-align: 0.38em;
-}
 .includeIcon {
   margin-top: 0.15em;
   color: var(--amber);
@@ -194,36 +183,6 @@ a.card:active {
   color: var(--muted);
   font-family: var(--font-data);
   font-size: clamp(1rem, 0.25vw + 0.95rem, 1.25rem);
-}
-/* the fine print, once under the three cards: the design life, what "identical" means, then the One of Ten guarantee,
-   one line each */
-.notes {
-  position: relative;
-  display: grid;
-  gap: 8px;
-  margin-top: calc(clamp(40px, 4vw, 112px) * -0.4);
-}
-/* a soft pool under the fine print, so the band between the cards and the finale keeps a lit floor (fill rule);
-   dim enough at its centre (luma 48) that the muted fine print keeps 5:1 */
-.notes::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  inset: -70% 4%;
-  background: radial-gradient(closest-side, rgb(48 48 54), rgb(43 43 48) 40%, rgb(30 30 34 / 0.5) 75%, transparent);
-  pointer-events: none;
-}
-.fine {
-  max-width: 76ch;
-  margin-inline: auto;
-  color: var(--muted);
-  font-size: clamp(0.9375rem, 0.2vw + 0.9rem, 1.125rem);
-  line-height: 1.55;
-  text-align: center;
-  text-wrap: pretty;
-}
-.fineHead {
-  color: var(--steel);
 }
 @media (hover: hover) and (pointer: fine) {
   a.card:hover {

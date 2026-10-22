@@ -5,7 +5,7 @@ import { useRef } from "react";
 import { Still } from "@/components/media/Still";
 import { useMotion } from "@/components/motion/MotionProvider";
 import { Hyphens } from "@/components/text/Hyphens";
-import { hero, lifeNote } from "@/content/copy";
+import { hero } from "@/content/copy";
 import { site } from "@/content/site";
 import { gsap, useGSAP } from "@/lib/gsap";
 import styles from "./Hero.module.css";
@@ -77,13 +77,7 @@ export function Hero() {
           {hero.headline}
         </h1>
         <p className={`t-lead ${styles.lead}`}>
-          <Hyphens text={hero.lead} />{" "}
-          <span className={styles.life}>
-            {hero.life}
-            <a href={`#${lifeNote.id}`} className="footmark" aria-label={lifeNote.label}>
-              {lifeNote.mark}
-            </a>
-          </span>
+          <Hyphens text={hero.lead} />
         </p>
       </div>
       <div className={styles.bottom}>

@@ -45,22 +45,6 @@
 .point :global(.t-h3) {
   text-wrap: balance;
 }
-.notes {
-  display: grid;
-  gap: 10px;
-}
-.fine {
-  max-width: 96ch;
-  text-wrap: pretty;
-}
-.mark {
-  margin-right: 0.2em;
-  color: var(--amber-hot);
-}
-/* the claim a note qualifies, first and brighter: "*Built to last five years." */
-.claim {
-  color: var(--steel);
-}
 
 @media (min-width: 1000px) {
   .grid {

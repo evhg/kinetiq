@@ -4,7 +4,7 @@
 // with motion on and with reduced motion. Records console errors, LCP, CLS,
 // horizontal overflow, long frames while scrolling, blank frames and the fill
 // rule (no mostly-black viewport, no dead black strip). By keyboard: every Skip
-// link, and the sweet-spot ‡ marks reached by Tab and shown the moment they have focus.
+// link. And no footnote markers or small print anywhere in the page's text (owner, 2026-10-22).
 //
 // Usage:
 //   node scripts/check.mjs                      build + start locally
@@ -464,63 +464,32 @@ async function skipLinkState(page, href) {
   }, href);
 }
 
-// The sweet-spot claim and its ‡ marks stay in the tab order and the accessibility tree before the section is scrolled
-// to (its words rise on opacity only, never visibility). From the top of the page, with nothing focused, Tab must reach
-// every ‡ mark in #sweet-spot before anything after the section (a Skip link included), at every width, and each mark
-// must be fully shown the moment it has focus (a focus inside the section finishes the rise at once).
-const MAX_TABS_TO_SWEET = 20;
-
-async function sweetSpotKeyboard(page) {
-  const marks = await page.evaluate(() => document.querySelectorAll("#sweet-spot .footmark").length);
-  if (!marks) return null;
-  await scrollTo(page, 0);
-  await page.waitForTimeout(300);
-  await page.evaluate(() => document.activeElement instanceof HTMLElement && document.activeElement.blur());
-  const problems = [];
-  const seen = [];
-  let tabs = 0;
-  while (seen.length < marks && tabs < MAX_TABS_TO_SWEET) {
-    await page.keyboard.press("Tab");
-    tabs++;
-    const at = await page.evaluate(() => {
-      const a = document.activeElement;
-      const section = document.getElementById("sweet-spot");
-      if (!a || a === document.body || !section) return { kind: "none" };
-      const name = (a.getAttribute("aria-label") || a.textContent || "").trim().replace(/\s+/g, " ").slice(0, 40);
-      if (!section.contains(a)) {
-        const after = Boolean(section.compareDocumentPosition(a) & Node.DOCUMENT_POSITION_FOLLOWING);
-        return { kind: after ? "after" : "before", name, where: a.closest("section")?.id ?? a.closest("header,footer")?.tagName ?? "-" };
-      }
-      if (!a.classList.contains("footmark")) return { kind: "inside", name };
-      // Effective opacity: the mark's own and every ancestor's up to the section (the rise moves its block).
-      let opacity = 1;
-      for (let e = a; e && e !== section; e = e.parentElement) opacity *= parseFloat(getComputedStyle(e).opacity);
-      const r = a.getBoundingClientRect();
-      return {
-        kind: "mark",
-        opacity: Number(opacity.toFixed(2)),
-        visible: getComputedStyle(a).visibility === "visible",
-        inView: r.width > 1 && r.bottom > 0 && r.top < window.innerHeight,
-      };
+// No small print (owner, 2026-10-22): no footnote markers anywhere in the page's text, hidden text included: no
+// dagger, double dagger or section sign, and no asterisk attached to a word ("five years.*"), and no element left
+// with the old footnote-link class. A qualifier that keeps a claim honest belongs in a plain sentence instead.
+async function footnoteMarks(page) {
+  const hits = await page.evaluate(() => {
+    const out = [];
+    const re = /[\u2020\u2021\u00a7]|\S\*|\*\S/g;
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+      acceptNode: (n) => (n.parentElement?.closest("script,style,noscript,template") ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT),
     });
-    if (at.kind === "after") {
-      problems.push(`Tab reached "${at.name}" (${at.where}) after ${seen.length} of ${marks} sweet-spot ‡ mark(s)`);
-      break;
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+      const text = n.textContent ?? "";
+      for (const m of text.matchAll(re)) {
+        const at = m.index ?? 0;
+        out.push(`"${text.slice(Math.max(0, at - 24), at + 8).replace(/\s+/g, " ").trim()}" (${n.parentElement?.closest("section")?.id || n.parentElement?.tagName.toLowerCase()})`);
+      }
     }
-    if (at.kind !== "mark") continue;
-    seen.push(at);
-    if (!at.visible || at.opacity < 0.99) problems.push(`‡ mark ${seen.length} focused but not shown (visibility ${at.visible ? "visible" : "hidden"}, opacity ${at.opacity})`);
-    if (!at.inView) problems.push(`‡ mark ${seen.length} focused out of view`);
-  }
-  if (seen.length < marks && !problems.length) problems.push(`only ${seen.length} of ${marks} sweet-spot ‡ mark(s) reached in ${MAX_TABS_TO_SWEET} Tab presses`);
-  await page.evaluate(() => document.activeElement instanceof HTMLElement && document.activeElement.blur());
-  return { ok: problems.length === 0, marks, reached: seen.length, tabs, problems };
+    for (const el of document.querySelectorAll(".footmark")) out.push(`.footmark element "${el.textContent}"`);
+    return out.slice(0, 12);
+  });
+  return { ok: hits.length === 0, problems: hits };
 }
 
 async function interactionChecks(page) {
   const out = {};
-  const sweet = await sweetSpotKeyboard(page);
-  if (sweet) out.sweet = sweet;
+  out.marks = await footnoteMarks(page);
   const { links, pins, wide } = await page.evaluate(() => ({
     links: [...document.querySelectorAll(".skip-link")]
       .filter((a) => getComputedStyle(a).display !== "none")
@@ -829,7 +798,7 @@ function evaluate(results) {
     if (r.viewport === "phone" && r.lcpMs > BUDGET.lcpMs) failures.push(`${r.id}: LCP ${r.lcpMs} ms > ${BUDGET.lcpMs} ms`);
     if (r.sceneState === "webgl" && r.sceneStd !== null && r.sceneStd < 2) failures.push(`${r.id}: 3D scene looks blank`);
     if (r.interactions?.skip && !r.interactions.skip.ok) failures.push(`${r.id}: Skip links: ${r.interactions.skip.problems.join("; ")}`);
-    if (r.interactions?.sweet && !r.interactions.sweet.ok) failures.push(`${r.id}: sweet-spot ‡ by Tab: ${r.interactions.sweet.problems.join("; ")}`);
+    if (r.interactions?.marks && !r.interactions.marks.ok) failures.push(`${r.id}: footnote markers: ${r.interactions.marks.problems.join("; ")}`);
     if (r.interactions?.gate && !r.interactions.gate.ok) failures.push(`${r.id}: gate: ${r.interactions.gate.problems.join("; ")}`);
     if (r.fillSteps.length) failures.push(`${r.id}: fill rule broken at ${r.fillSteps.join("; ")}`);
   }
@@ -839,7 +808,7 @@ function evaluate(results) {
 function markdown(results, failures, server = []) {
   const rows = results.map(
     (r) =>
-      `| ${r.id} | ${r.lcpMs} (${r.lcpElement || "?"}) | ${r.clsAfterScroll} | ${r.longFrames}/${r.frames} (worst ${r.worstFrameMs} ms) | ${r.sceneState ?? "-"} (${r.sceneStd ?? "-"}) | ${r.interactions?.skip ? (r.interactions.skip.ok ? `ok (${r.interactions.skip.links.length}, by Tab)` : "FAIL") : r.interactions?.gate ? (r.interactions.gate.ok ? "gate ok" : "gate FAIL") : "-"}${r.interactions?.sweet ? (r.interactions.sweet.ok ? `; ‡ ok (${r.interactions.sweet.reached}, by Tab)` : "; ‡ FAIL") : ""} | ${r.consoleErrors.length} | ${r.blankSteps.length ? r.blankSteps.join(",") : "none"} | ${r.fillSteps.length ? r.fillSteps.length : "ok"} |`,
+      `| ${r.id} | ${r.lcpMs} (${r.lcpElement || "?"}) | ${r.clsAfterScroll} | ${r.longFrames}/${r.frames} (worst ${r.worstFrameMs} ms) | ${r.sceneState ?? "-"} (${r.sceneStd ?? "-"}) | ${r.interactions?.skip ? (r.interactions.skip.ok ? `ok (${r.interactions.skip.links.length}, by Tab)` : "FAIL") : r.interactions?.gate ? (r.interactions.gate.ok ? "gate ok" : "gate FAIL") : "-"}${r.interactions?.marks ? (r.interactions.marks.ok ? "; no markers" : "; markers FAIL") : ""} | ${r.consoleErrors.length} | ${r.blankSteps.length ? r.blankSteps.join(",") : "none"} | ${r.fillSteps.length ? r.fillSteps.length : "ok"} |`,
   );
   return [
     `# Check report: ${targetUrl}`,

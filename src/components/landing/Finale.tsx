@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Still } from "@/components/media/Still";
-import { finale, lifeNote } from "@/content/copy";
+import { finale } from "@/content/copy";
 import { site } from "@/content/site";
 import { Reveal } from "./Reveal";
 import styles from "./Finale.module.css";
@@ -18,9 +18,6 @@ export function Finale() {
       <Reveal className={styles.copy}>
         <h2 id="finale-title" className="t-h2">
           {finale.headline}
-          <a href={`#${lifeNote.id}`} className="footmark" aria-label={lifeNote.label}>
-            {lifeNote.mark}
-          </a>
         </h2>
         <p className="t-lead">{finale.sub}</p>
         <Link href="/reserve" className={`btn btn-primary ${styles.cta}`}>

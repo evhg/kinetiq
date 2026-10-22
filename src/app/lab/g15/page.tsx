@@ -9,12 +9,12 @@ const cell = { borderTop: "1px solid var(--hairline)", paddingTop: "14px", displ
 
 /** The claim's numbers as computed from racket-shape.ts, beside the words the page prints (built from SWEET_CLAIM). */
 const CHECK: [string, string, string][] = [
-  ["Face above the bridge", `${SWEET.face.toFixed(2)} cm²`, `${SWEET_CLAIM.face} cm² (fine print)`],
-  ["Sweet spot, 4 mm in", `${SWEET.field.toFixed(2)} cm²`, `${SWEET_CLAIM.field} cm² (fine print)`],
+  ["Face above the bridge", `${SWEET.face.toFixed(2)} cm²`, `${SWEET_CLAIM.face} cm² (not printed: no fine print since 2026-10-22)`],
+  ["Sweet spot, 4 mm in", `${SWEET.field.toFixed(2)} cm²`, `${SWEET_CLAIM.field} cm² (not printed)`],
   [
     "Share of the face",
     `${(SWEET.share * 100).toFixed(2)}%`,
-    `${SWEET_CLAIM.nearly ? `${sweetSpot.share.nearly} ` : ""}${SWEET_CLAIM.share}${sweetSpot.share.unit} (lockup), ${SWEET_CLAIM.exact}% (fine print)`,
+    `${SWEET_CLAIM.nearly ? `${sweetSpot.share.nearly} ` : ""}${SWEET_CLAIM.share}${sweetSpot.share.unit} (lockup; exact ${SWEET_CLAIM.exact}%, not printed)`,
   ],
   ["Inset from the edge", `${SWEET.inset.toFixed(1)} mm`, `${SWEET_CLAIM.inset} ${sweetSpot.inset.unit} (lockup)`],
   ["Bridge line", `y ${SWEET.bridge.toFixed(1)} mm`, "the top of the throat"],

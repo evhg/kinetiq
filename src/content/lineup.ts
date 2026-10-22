@@ -35,40 +35,20 @@ export type Tier = {
 };
 
 /**
- * Durability (owner, 2026-10-22). Every KINETIQ is built to last five years; only One of Ten carries a
- * guarantee. The fine print travels with each line wherever it is shown: beside it on /reserve, and
- * through the footnote marker (`mark`) on the landing page. CLAIMS.md rows 26 and 29: the design life
- * needs an independent fatigue report (promised before shipping, never claimed as done), and the
- * guarantee needs its written statement and the EU harmonised guarantee label before One of Ten can be
- * paid for (INVITE_TERMS_READY). Never "lifetime guarantee", never "sustainable", and never a guarantee
- * for the KINETIQ or First 500 editions.
+ * Durability (owner, 2026-10-22). Every KINETIQ is built to last five years; only One of Ten carries a guarantee.
+ * The five-year line is said in one place only, the Durability section (owner, 2026-10-22: "it's too much" in the
+ * hero, the finale and the edition includes), with no footnote marker and no small print: its usage profile and
+ * the promised fatigue tests are told in the section's own sentences (copy.ts `durability`). CLAIMS.md rows 26 and
+ * 29: the design life needs an independent fatigue report (promised before shipping, never claimed as done), and
+ * the guarantee needs its written statement and the EU harmonised guarantee label before One of Ten can be paid
+ * for (INVITE_TERMS_READY). Never "lifetime guarantee", never "sustainable", and never a guarantee for the KINETIQ
+ * or First 500 editions.
  */
 export const lifetime = {
   line: "Built to last five years",
-  /** The design life as an edition property (KINETIQ and First 500 includes), never as a perk or cover. */
-  include: "A five-year design life",
-  /** Footnote marker from a five-year line to `fine`. */
-  mark: "*",
-  fine: "Five years at two 90-minute sessions a week (about 780 hours), ball strikes only, to be verified in independent fatigue tests before we ship. A design life, not a guarantee; your legal guarantee rights are unaffected.",
   /** Its scope is the written statement's (CLAIMS.md row 29): KINETIQ guarantees all three rackets of the set. */
   guarantee: "A five-year KINETIQ guarantee on all three rackets",
-  /**
-   * Footnote marker from the guarantee to its own fine-print line (guaranteeTerms, then legal), kept apart from the
-   * design life's `fine`, which says "not a guarantee". The page's markers, in the usual order: * the design life,
-   * \u2020 the sealed core's comparison, \u2021 the sweet spot, \u00a7 this guarantee.
-   */
-  guaranteeMark: "\u00a7",
-  guaranteeTerms: "The guarantee terms for One\u00a0of\u00a0Ten come in writing with every invitation.",
-  legal: "Your legal guarantee rights are unaffected.",
 };
-
-/**
- * What "identical" means wherever a set promises identical rackets (CLAIMS.md row 12): it is absolute, so the
- * definition travels with it, under the edition cards and under a set's includes on /reserve. Within \u00b11.0 g two
- * rackets can be 2.0 g apart: never promise a tighter spread inside a set without data.
- */
-export const identicalFine =
-  "Identical: one mould and one layup per feel; every racket within 1.0\u00a0g of 355.0\u00a0g and within 1.0\u00a0mm of its 250\u00a0mm balance.";
 
 /**
  * The sample set number shown for First 500: on both throats in K10 and K11 ("027/500") and on the two sample
@@ -85,12 +65,13 @@ export const sampleSet = {
 };
 
 /**
- * The coach behind the One of Ten sessions (owner, 2026-10-22: he has agreed to ten sessions, one per
- * set). The site names him only by his first name and surname exactly as he approves them in writing:
- * never a nickname, and never his family. Until `fullName` is filled in, `name` is the neutral wording.
- * Signed rackets are offered only once he has agreed in writing to sign them (`signs`). CLAIMS.md row 21.
+ * The coach behind the One of Ten sessions (owner, 2026-10-22: he has agreed to ten sessions, one per set). The
+ * site names him exactly as his name was approved in writing (owner, 2026-10-22): "Paquito Navarro". Never another
+ * form of his name, and never his family. Left empty, `name` falls back to the neutral wording. Signed rackets are
+ * offered only once he has agreed in writing to sign them (`signs`). CLAIMS.md row 21: his racket sponsor's
+ * contract must allow it.
  */
-const COACH_FULL_NAME = "";
+const COACH_FULL_NAME = "Paquito\u00a0Navarro";
 export const ambassador = {
   /** He has agreed to the ten coaching sessions, so the One of Ten extras can be offered. */
   confirmed: true,
@@ -116,7 +97,7 @@ export const countWord = (n: number) => COUNT_WORDS[n] ?? String(n);
 // "Exclusive" is the owner's word; the format (one-on-one or a small group) waits for the written terms (row 20).
 // "One of ten sessions" is retired: it clashed with the edition's name.
 const coaching = ambassador.named
-  ? `An exclusive coaching session with ${ambassador.name}, one per set`
+  ? `An exclusive coaching session with ${ambassador.name}, one per\u00a0set`
   : "An exclusive coaching session, one per\u00a0set";
 
 /** The editions section on the landing page: one racket, three editions. */
@@ -134,7 +115,15 @@ export const tiers: Tier[] = [
     availability: "Reserve",
     priceEur: 410,
     cardLine: "One racket, moulded in the feel you choose. It is the same racket you will find in every edition.",
-    includes: ["One KINETIQ racket, Command\u00a0or\u00a0Pace", "Its own serial number and measurement card", lifetime.include],
+    // Four includes, in the First 500 card's order (racket, number, card, shipping), so this card has no empty band
+    // above its price. The serial on the throat is the canon mark (CLAIMS.md row 15); the ship month is the same as
+    // `site.shipMonth` (typed here: site.ts imports this file). Never the five years (Durability only).
+    includes: [
+      "One KINETIQ racket, Command\u00a0or\u00a0Pace",
+      "Its own serial number, laser-marked on the\u00a0throat",
+      "A measurement card, numbered to\u00a0match",
+      "Ships in January\u00a02027",
+    ],
     limit: null,
     offSite: 0,
     rackets: 1,
@@ -154,7 +143,6 @@ export const tiers: Tier[] = [
       "Your set number, 001\u00a0to\u00a0500, laser-marked on both throats",
       "Two measurement cards, numbered to\u00a0match",
       "First out of the mould and first to ship, in January\u00a02027",
-      lifetime.include,
     ],
     limit: 500,
     offSite: 0,
@@ -182,23 +170,10 @@ export const tiers: Tier[] = [
 
 /** One icon per line of `includes`, in order (edition cards and the reserve options). */
 export const includeIcons: Record<TierId, IconName[]> = {
-  reserve: ["racket", "measurementCard", "fiveYears"],
-  limited: ["rackets2", "numberedTag", "measurementCard", "deliveryBox", "fiveYears"],
+  reserve: ["racket", "numberedTag", "measurementCard", "deliveryBox"],
+  limited: ["rackets2", "numberedTag", "measurementCard", "deliveryBox"],
   invite: ["fittedCase", ...(ambassador.signs ? (["penNib"] as IconName[]) : []), "court", "shieldCheck"],
 };
-
-/** One of Ten's guarantee fine print: its terms, then the legal-rights line (CLAIMS.md row 29). */
-export const guaranteeFine = `${lifetime.guaranteeTerms} ${lifetime.legal}`;
-
-/**
- * The fine print under an edition's includes on /reserve: the design life, the "identical" definition for the
- * sets, and One of Ten's guarantee terms.
- */
-export function includesFine(id: TierId): string {
-  if (id === "invite") return `${identicalFine} ${guaranteeFine}`;
-  if (id === "limited") return `${lifetime.fine} ${identicalFine}`;
-  return lifetime.fine;
-}
 
 /**
  * The One of Ten paperwork exists: the written coaching terms (CLAIMS.md row 20), the coach's signed agreement

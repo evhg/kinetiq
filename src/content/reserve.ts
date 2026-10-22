@@ -83,9 +83,6 @@ export const reserveCopy = {
    * "First 500, two Command rackets. Due today €990.", "One of Ten, three Pace rackets. Due today €2,900."
    */
   placeDue: (order: string, price: string) => `${order}. Due today ${price}.`,
-  fineprint: "Charged in full today. Payments by Stripe.",
-  /** Shown instead of the fine print while card payments are off (no Stripe key: the preview). */
-  previewLine: "Reservations open at launch. Nothing is charged in this preview.",
   errors: {
     checkCard: "Please check your card details.",
     generic: "Something went wrong. Nothing was charged.",
