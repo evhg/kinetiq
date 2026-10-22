@@ -1,6 +1,13 @@
 // The lineup, modelled on a reservation page with three tiers of rising exclusivity.
 // Names, prices, limits and extras are owner decisions tracked in CLAIMS.md.
 // Tier ids are stable keys; names and copy can change freely.
+//
+// One racket, three editions (owner, 2026-10-22). Every edition holds the same KINETIQ, in the feel the buyer
+// chooses: the editions differ only in how many rackets come, when they ship and what comes with them. So the names
+// never describe the racket; each is a number you can read on it (its serial; its set number, 001 to 500; its set
+// number, 01 to 10). Command and Pace stay the only words about play. Write "First 500" and "One of Ten"
+// in full, with no-break spaces, never shortened ("500", "The Ten") and never with ™ (CLAIMS.md row 35). ConQuer,
+// VanQuish and InviQtus are retired.
 
 import type { IconName } from "@/components/graphics/Icons";
 
@@ -21,24 +28,24 @@ export type Tier = {
    * reservation. Raise it the day a set is promised; never reissue a number.
    */
   offSite: number;
-  /** Rackets in the box. A set is one feel: every racket in it is Command, or every racket is Pace. */
+  /** Rackets in the edition. A set is one feel: every racket in it is Command, or every racket is Pace. */
   rackets: number;
   /** False shows "Sold out" and blocks payment. */
   available: boolean;
 };
 
 /**
- * Durability (owner, 2026-10-22). Every KINETIQ is built to last five years; only InviQtus carries a
+ * Durability (owner, 2026-10-22). Every KINETIQ is built to last five years; only One of Ten carries a
  * guarantee. The fine print travels with each line wherever it is shown: beside it on /reserve, and
  * through the footnote marker (`mark`) on the landing page. CLAIMS.md rows 26 and 29: the design life
  * needs an independent fatigue report (promised before shipping, never claimed as done), and the
- * guarantee needs its written statement and the EU harmonised guarantee label before InviQtus can be
+ * guarantee needs its written statement and the EU harmonised guarantee label before One of Ten can be
  * paid for (INVITE_TERMS_READY). Never "lifetime guarantee", never "sustainable", and never a guarantee
- * for ConQuer or VanQuish.
+ * for the KINETIQ or First 500 editions.
  */
 export const lifetime = {
   line: "Built to last five years",
-  /** The design life as an edition property (ConQuer and VanQuish includes), never as a perk or cover. */
+  /** The design life as an edition property (KINETIQ and First 500 includes), never as a perk or cover. */
   include: "A five-year design life",
   /** Footnote marker from a five-year line to `fine`. */
   mark: "*",
@@ -47,22 +54,45 @@ export const lifetime = {
   guarantee: "A five-year KINETIQ guarantee on all three rackets",
   /**
    * Footnote marker from the guarantee to its own fine-print line (guaranteeTerms, then legal), kept apart from the
-   * design life's `fine`, which says "not a guarantee" (* is the design life, \u2020 the sealed core's comparison).
+   * design life's `fine`, which says "not a guarantee". The page's markers, in the usual order: * the design life,
+   * \u2020 the sealed core's comparison, \u2021 the sweet spot, \u00a7 this guarantee.
    */
-  guaranteeMark: "\u2021",
-  guaranteeTerms: "InviQtus guarantee terms come in writing with every invitation.",
+  guaranteeMark: "\u00a7",
+  guaranteeTerms: "The guarantee terms for One\u00a0of\u00a0Ten come in writing with every invitation.",
   legal: "Your legal guarantee rights are unaffected.",
 };
 
 /**
- * The coach behind the InviQtus sessions (owner, 2026-10-22: he has agreed to ten sessions, one per
+ * What "identical" means wherever a set promises identical rackets (CLAIMS.md row 12): it is absolute, so the
+ * definition travels with it, under the edition cards and under a set's includes on /reserve. Within \u00b11.0 g two
+ * rackets can be 2.0 g apart: never promise a tighter spread inside a set without data.
+ */
+export const identicalFine =
+  "Identical: one mould and one layup per feel; every racket within 1.0\u00a0g of 355.0\u00a0g and within 1.0\u00a0mm of its 250\u00a0mm balance.";
+
+/**
+ * The sample set number shown for First 500: on both throats in K10 and K11 ("027/500") and on the two sample
+ * measurement cards ("Set No. 027 / 500 A" and "B"). Never reissued; a single racket shows its serial instead
+ * (KQ-000427, `identical.card.serial` in copy.ts).
+ */
+export const sampleSet = {
+  /** As laser-marked on the throats. */
+  mark: "027/500",
+  /** As spoken in alt text. */
+  words: "set 027 of 500",
+  /** The line on each of the set's two measurement cards. */
+  card: (racket: "A" | "B") => `Set No. 027 / 500 ${racket}`,
+};
+
+/**
+ * The coach behind the One of Ten sessions (owner, 2026-10-22: he has agreed to ten sessions, one per
  * set). The site names him only by his first name and surname exactly as he approves them in writing:
  * never a nickname, and never his family. Until `fullName` is filled in, `name` is the neutral wording.
  * Signed rackets are offered only once he has agreed in writing to sign them (`signs`). CLAIMS.md row 21.
  */
 const COACH_FULL_NAME = "";
 export const ambassador = {
-  /** He has agreed to the ten coaching sessions, so the InviQtus extras can be offered. */
+  /** He has agreed to the ten coaching sessions, so the One of Ten extras can be offered. */
   confirmed: true,
   /** How the site names him: his approved full name, or the neutral wording until then. */
   name: COACH_FULL_NAME || "our coach",
@@ -77,24 +107,33 @@ export const ambassador = {
    * The second line of the G12 court plan. No event is promised (the Málaga P1 line is retired: no
    * 2027 dates are published and the coach is not tied to it), so it says what exists: ten sessions.
    */
-  event: "one of ten sessions, one per set",
+  event: "ten sessions, one per set",
 };
 
 const COUNT_WORDS: Record<number, string> = { 1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 10: "ten" };
 export const countWord = (n: number) => COUNT_WORDS[n] ?? String(n);
 
 // "Exclusive" is the owner's word; the format (one-on-one or a small group) waits for the written terms (row 20).
+// "One of ten sessions" is retired: it clashed with the edition's name.
 const coaching = ambassador.named
-  ? `One of ten exclusive coaching sessions with ${ambassador.name}`
-  : "One of ten exclusive coaching sessions";
+  ? `An exclusive coaching session with ${ambassador.name}, one per set`
+  : "An exclusive coaching session, one per\u00a0set";
+
+/** The editions section on the landing page: one racket, three editions. */
+export const editionsIntro = {
+  headline: "We make one racket, in three editions.",
+  lead: "Each edition holds the same KINETIQ, moulded in the feel you choose. The editions differ only in how many rackets you receive, when they ship and what comes with them.",
+  /** The invitation edition's card says so where the other two cards carry their arrow. */
+  byInvitation: "By invitation",
+};
 
 export const tiers: Tier[] = [
   {
     id: "reserve",
-    name: "ConQuer",
+    name: "KINETIQ",
     availability: "Reserve",
     priceEur: 410,
-    cardLine: "The full KINETIQ. No lesser version exists. Unibody, true to 15 microns, moulded in the feel you choose.",
+    cardLine: "One racket, moulded in the feel you choose. It is the same racket you will find in every edition.",
     includes: ["One KINETIQ racket, Command\u00a0or\u00a0Pace", "Its own serial number and measurement card", lifetime.include],
     limit: null,
     offSite: 0,
@@ -103,15 +142,18 @@ export const tiers: Tier[] = [
   },
   {
     id: "limited",
-    name: "VanQuish",
+    name: "First\u00a0500",
     availability: "Limited",
     priceEur: 990,
-    cardLine: "A matched pair. Two Command or two Pace, numbered 001\u00a0to\u00a0500 on both throats. Never made again.",
+    // "First" is a production promise (CLAIMS.md row 19): sets 001 to 500 leave the mould before any other
+    // edition and ship first. Every line says "sets": 500 sets are 1,000 rackets.
+    cardLine:
+      "The first 500 sets we make are numbered 001\u00a0to\u00a0500, and they ship first. Each set is two identical rackets in one\u00a0feel.",
     includes: [
-      "Two KINETIQ rackets, both Command or both\u00a0Pace",
+      "Two identical KINETIQ rackets, both Command or both\u00a0Pace",
       "Your set number, 001\u00a0to\u00a0500, laser-marked on both throats",
       "Two measurement cards, numbered to\u00a0match",
-      "First out of the mould. First to ship, January\u00a02027",
+      "First out of the mould and first to ship, in January\u00a02027",
       lifetime.include,
     ],
     limit: 500,
@@ -121,12 +163,12 @@ export const tiers: Tier[] = [
   },
   {
     id: "invite",
-    name: "InviQtus",
+    name: "One\u00a0of\u00a0Ten",
     availability: "Invite Only",
     priceEur: 2900,
-    cardLine: "Ten sets of three. By invitation.",
+    cardLine: "We make ten sets of three identical rackets, numbered 01\u00a0to\u00a010, and offer them only by invitation.",
     includes: [
-      "Three KINETIQ rackets, laser-marked 01\u00a0to\u00a010, in a fitted case",
+      "Three identical KINETIQ rackets, laser-marked 01\u00a0to\u00a010, in a fitted case",
       ...(ambassador.signs ? [`Each racket signed by ${ambassador.name}`] : []),
       coaching,
       lifetime.guarantee,
@@ -145,20 +187,28 @@ export const includeIcons: Record<TierId, IconName[]> = {
   invite: ["fittedCase", ...(ambassador.signs ? (["penNib"] as IconName[]) : []), "court", "shieldCheck"],
 };
 
-/** The fine print that belongs to an edition's includes: the design life, or InviQtus's guarantee. */
+/** One of Ten's guarantee fine print: its terms, then the legal-rights line (CLAIMS.md row 29). */
+export const guaranteeFine = `${lifetime.guaranteeTerms} ${lifetime.legal}`;
+
+/**
+ * The fine print under an edition's includes on /reserve: the design life, the "identical" definition for the
+ * sets, and One of Ten's guarantee terms.
+ */
 export function includesFine(id: TierId): string {
-  return id === "invite" ? `${lifetime.guaranteeTerms} ${lifetime.legal}` : lifetime.fine;
+  if (id === "invite") return `${identicalFine} ${guaranteeFine}`;
+  if (id === "limited") return `${lifetime.fine} ${identicalFine}`;
+  return lifetime.fine;
 }
 
 /**
- * The InviQtus paperwork exists: the written coaching terms (CLAIMS.md row 20), the coach's signed agreement
+ * The One of Ten paperwork exists: the written coaching terms (CLAIMS.md row 20), the coach's signed agreement
  * (row 21), and the guarantee statement with the EU guarantee label and legal-guarantee notice on /reserve
  * (row 29). Until it is set to true, invitations stay closed even if INVITE_CODES is filled in early.
  */
 export const INVITE_TERMS_READY = false;
 
 /**
- * Whether InviQtus can be paid for: the paperwork is ready (INVITE_TERMS_READY) and invitation codes
+ * Whether One of Ten can be paid for: the paperwork is ready (INVITE_TERMS_READY) and invitation codes
  * exist (INVITE_CODES, server only). Until then it shows, but cannot be reserved. Even then only an
  * invitee can choose it: /reserve unlocks it with a valid code (/api/invite), and /api/reserve checks the
  * code again, and that it has not been used, before any charge.
@@ -179,12 +229,16 @@ export function priceLabel(eur: number): string {
 }
 
 /**
- * The order in words: "ConQuer, Command" for one racket, "VanQuish, two Command rackets" for a set
- * (the feel covers every racket in it).
+ * The order in words, one pattern for every edition: "KINETIQ, one Command racket", "First 500, two Command
+ * rackets", "One of Ten, three Pace rackets" (a set is one feel: it covers every racket in it).
  */
 export function orderLine(tier: Tier, feelName: string): string {
-  return tier.rackets > 1 ? `${tier.name}, ${countWord(tier.rackets)} ${feelName} rackets` : `${tier.name}, ${feelName}`;
+  const rackets = `${countWord(tier.rackets)} ${feelName ? `${feelName} ` : ""}racket${tier.rackets > 1 ? "s" : ""}`;
+  return `${tier.name}, ${rackets}`;
 }
+
+/** A name for places that take plain text only (Stripe's description and metadata): no-break spaces as spaces. */
+export const plainText = (s: string) => s.replace(/ /g, " ");
 
 /** Delivery countries offered in the address form (EU, EEA, Switzerland, UK and micro-states). */
 export const deliveryCountries: [code: string, name: string][] = [

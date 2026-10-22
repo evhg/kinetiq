@@ -98,5 +98,9 @@ commands and 51 exited non-zero. None of them broke the site. They fall into fou
 - **Resume, don't restart:** relaunch a workflow with its `resumeFromRunId`; finished agents replay from the journal
   and only the interrupted one runs again. An interrupted agent leaves half-applied edits, so tell its rerun to look
   before re-applying.
+- **Keep every agent short when restarts are frequent** (three in five hours on 2026-10-22). A restart throws
+  away the context of every agent in flight, so a two-hour writer or an agent that renders six finals in a row may
+  never finish. Split work into steps of well under an hour, each with its own file set and its own check: a lane of
+  small sequential steps instead of one big writer, and one agent per Blender render instead of one per group.
 - **Snapshot often:** commit work in progress to a separate branch (never `main`, which deploys) so a restart or a
   reclaimed container loses nothing. Restart the dev server detached after a restart (`setsid nohup npx next dev`).
