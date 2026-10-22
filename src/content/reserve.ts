@@ -119,11 +119,6 @@ export const reserveCopy = {
     }
   },
   /**
-   * @deprecated Retired (round 2): `confirmationBody` now names the address, so the receipt is said once. Delete it
-   * with its last use, ReservePanel.tsx's `styles.sent` line.
-   */
-  receiptSent: (email: string) => `Receipt sent to ${email}.`,
-  /**
    * The reference the buyer can quote, "Reservation KQ-1A2B3C4D". /api/reserve makes it (KQ- and 8 hex characters)
    * and stores it in the payment's description and `metadata[reference]`, so it prints on Stripe's receipt and the
    * owner can look it up. Pass that reference, never the payment's id.

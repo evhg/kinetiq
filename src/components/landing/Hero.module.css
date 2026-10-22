@@ -223,8 +223,9 @@
 /* Wide: the words, Reserve Now and the price line in the left seven columns, vertically centred; the
    still (close beam camera) moves right by 21vw so the racket, 54% of the screen tall, stands at 71% across.
    Its left third feathers into the studio backdrop the hero paints, which matches the still's own edge. From 1000 px
-   and no narrower than 4:5; a narrower window takes the portrait layout above (the racket would meet the lead). */
-@media (min-width: 1000px) and (min-aspect-ratio: 801/1000) {
+   and wider than 4:5 (range syntax, so it is the exact complement of the portrait layout's max-aspect-ratio: 4/5 and
+   no window falls between the two); a narrower window takes the portrait layout above (the racket would meet the lead). */
+@media (min-width: 1000px) and (aspect-ratio > 4/5) {
   .hero {
     --shift: 21vw;
     display: grid;

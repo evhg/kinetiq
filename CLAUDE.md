@@ -15,9 +15,9 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
 
 ## Scripts
 - `npm run dev` (local), `npm run build` / `npm start` (production), `npm run lint`, `npm run typecheck`.
-- `npm run check`: the check harness (see Definition of done). `--skip-build`, `--url=<url>`, `--study` (reference
-  mode), `--only=phone|desktop|wide`, `--mode=motion|reduced`, `--verbose`, `--path=/reserve` (any page; run it for
-  `/` and `/reserve`), `--gate` (the NDA gate, without the cookie). Output in `.checks/<label>/`; a free port per run.
+- `npm run check`: the harness (Definition of done). `--skip-build`, `--url=<url>`, `--study` (reference mode),
+  `--only=phone|phone-short|tablet|desktop|wide` (or a comma list), `--mode=motion|reduced`, `--verbose`,
+  `--path=/reserve` (any page), `--gate` (the NDA gate, no cookie). Output in `.checks/<label>/`.
 - `node scripts/stills.mjs <masters dir> [id ...]`: export Blender masters to `public/stills/` (AVIF + WebP).
 - Vercel runs `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm ci` (no browsers); locally `npx playwright install chromium`.
 
@@ -43,10 +43,10 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
 - `src/proxy.ts` (Next 16 "proxy", formerly middleware) rewrites every page to `/nda` without a valid `kq_nda` cookie
   (`src/lib/nda.ts`) and answers assets, `/api/*` and other `/_next/*` paths with an empty 403; only `/_next/static/`,
   the HMR socket, the two icon files and `POST /api/nda` pass. Exclusions, cookie and arrival: DESIGN.md "NDA gate".
-- A declaration, not a login (unsigned cookie, public format; CLAIMS.md row 25b). With RESEND_API_KEY, NDA_NOTIFY_TO
-  and NDA_NOTIFY_FROM on Vercel (never in the repo), a same-origin sign-in emails the owner only the address, time and
-  page (its path and edition; no country, browser or other parameter) via Resend (`nda-notify.ts`), at most once per
-  address a day and 20 an hour per server instance. Nothing else is stored or logged.
+- A declaration, not a login (unsigned cookie, public format; CLAIMS.md row 25b). With RESEND_API_KEY, NDA_NOTIFY_TO and
+  NDA_NOTIFY_FROM on Vercel (never in the repo), a same-origin sign-in emails the owner only the address, time and page
+  (path and edition only) via Resend (`nda-notify.ts`): once per address a day, 20 an hour and 40 a day per server
+  instance; sign-ins over the caps go in the next email. Nothing else is stored or logged.
 - The root layout's metadata is neutral (title "KINETIQ", noindex): the product's title, description and og:image live
   in `src/lib/product-metadata.ts`, used by `/` and `/reserve` only. Never put product metadata back in `layout.tsx`.
 - Stills are `Cache-Control: private` with `Vary: Cookie` (`next.config.ts`). After each deploy, check production
@@ -100,9 +100,9 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
   white-Command copy to `main` only with the canon re-exports of K01 to K12, so no screen shows two different rackets.
 
 ## Performance and accessibility
-- Phone profile (4× CPU, 150 ms RTT, 1.6 Mbps): LCP ≤ 2.5 s, CLS ≤ 0.1, INP ≤ 200 ms, no dropped frames while
-  scrolling. The LCP element is the hero still or the h1. Keep hero JavaScript small; graphics load with their
-  sections. Fonts with `next/font` (self-hosted at build), `display: swap`, covering every language in `DESIGN.md`.
+- Phone profile (4× CPU, 150 ms RTT, 1.6 Mbps; the `phone` and `phone-short` cases): LCP ≤ 2.5 s, CLS ≤ 0.1, INP ≤ 200
+  ms, no dropped frames while scrolling. LCP element: the hero still or the h1. Keep hero JavaScript small; graphics
+  load with their sections. Fonts: `next/font` (self-hosted), `display: swap`, every language in `DESIGN.md`.
 - Semantic HTML, one `h1`, landmarks, real buttons and links; visible `:focus-visible` outline, full keyboard use,
   logical tab order; no scroll traps (pins end, Skip links work, no hijacked keys). WCAG AA contrast (4.5:1 body, 3:1
   large text and UI; check new colour tokens). Decorative canvases get `aria-hidden`; fallbacks real `alt` text.
@@ -112,8 +112,9 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
   claims stay off the live domain, and `NEXT_PUBLIC_LAUNCHED=true` (removes noindex) waits until CLAIMS.md is cleared.
   Voice (owner, 2026-10-22): whole, plain sentences that say what we made and what it does for the player.
 - Stripe: `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `INVITE_CODES` (`.env.example`); server and
-  Stripe.js pinned to API version `2026-09-30.endive` (`allowed_payment_method_types`). No keys: /reserve runs in
-  preview. One of Ten fails closed without codes: keep `INVITE_CODES` empty until CLAIMS.md rows 20, 21, 29 are ready.
+  Stripe.js pinned to API `2026-09-30.endive` (`allowed_payment_method_types`). No keys: /reserve runs in preview. One
+  of Ten fails closed (`invitationsOpen()`): keep `INVITE_CODES` (12+ characters each) empty until CLAIMS.md rows 20,
+  21, 29 are ready. It takes no payment until the atomic one-use invite check exists (`INVITE_ONE_USE_ENFORCED`).
 - The hero lead is the owner's sentence (2026-10-22), verbatim though "one piece" is retired elsewhere: "One single
   piece of space-grade carbon. No tube, no joints. Ultra-precision moulded to 15 microns and 1 gram. Every racket
   plays exactly the same." Nothing follows it. Elsewhere "unibody", "Zero seams"; never "zero weak points".
@@ -143,11 +144,11 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
 
 ## Definition of done
 1. `npm run lint`, `npm run typecheck` and `npm run build` pass.
-2. `npm run check` passes for `/`, `--path=/reserve` and `--gate`: phone, desktop and wide (2560), motion and reduced
-   motion, 0 console errors, no blank frames, the fill rule, no horizontal overflow, budgets met, Skip links reached
-   by Tab work, no footnote markers, the gate's keyboard flow opens the page and assets and APIs answer 403 without
-   the cookie.
-3. You have opened and reviewed the screenshots yourself: fix anything blank, overlapping, cropped or unreadable.
+2. `npm run check` passes for `/`, `--path=/reserve` and `--gate`: phone (390x844), phone-short (390x664, Safari on an
+   iPhone), tablet (768x1024), desktop and wide (2560), motion and reduced motion, 0 console errors, no blank frames,
+   the fill rule, no horizontal overflow, budgets met, Skip links reached by Tab work, no footnote markers, the gate
+   opens the page by keyboard, and assets and APIs answer 403 without the cookie.
+3. Review the screenshots yourself, plus a 375x667 spot check: fix anything blank, overlapping, cropped or unreadable.
 4. After pushing, run `npm run check -- --url=<production url>` (and `--path=/reserve`, `--gate`) on the live site.
 
 ## Notes

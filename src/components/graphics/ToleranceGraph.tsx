@@ -18,6 +18,8 @@ export const LABELS = {
   limitBottom: `${MINUS}${precision.graph.limitLabel}`,
   summary:
     "Illustrative graph. Along the full 455 mm of the racket, the KINETIQ surface stays inside the plus or minus 15 micron limit. For scale, a human hair is 70 microns and a sheet of paper 100 microns.",
+  /** A scale reference's label: "Human hair, 70 µm thick". */
+  reference: (label: string, um: number) => `${label}, ${um} µm thick`,
 };
 
 const um = (v: number) => (v > 0 ? `+${v}` : v < 0 ? `${MINUS}${Math.abs(v)}` : "0");
@@ -141,7 +143,7 @@ export function ToleranceGraph({ className, caption = true }: Props) {
               there reads as data, and the pair as a "±70 µm" hair. */}
           {refs.map((r) => (
             <div key={r.label} className={styles.ref} style={{ top: pct(Y(r.um)) }} data-ref>
-              <span className={styles.refLabel}>{`${r.label}, ${r.um} µm thick`}</span>
+              <span className={styles.refLabel}>{LABELS.reference(r.label, r.um)}</span>
             </div>
           ))}
 

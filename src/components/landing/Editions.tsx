@@ -3,15 +3,16 @@ import { Fragment, type ReactNode } from "react";
 import { Icon, TierGlyph } from "@/components/graphics/Icons";
 import { Still } from "@/components/media/Still";
 import { Hyphens } from "@/components/text/Hyphens";
-import { editionsIntro, includeIcons, invitesOpen, priceLabel, tiers, type Tier, type TierId } from "@/content/lineup";
+import { editionsIntro, includeIcons, priceLabel, tiers, type Tier, type TierId } from "@/content/lineup";
 import { reserveCopy } from "@/content/reserve";
+import { invitationsOpen } from "@/lib/stripe-server";
 import { Reveal } from "./Reveal";
 import styles from "./Editions.module.css";
 
 const IMAGE: Record<TierId, { id: string; crop: string }> = {
-  // KINETIQ: one racket face-on, K12's base render (the hero and the finale show the beam camera, and Choose your feel
-  // shows K08 just before).
-  reserve: { id: "K12-base", crop: "portrait" },
+  // KINETIQ: one white Command racket (KQ-000427) shot with K11's camera and light, so the three cards read as one
+  // shoot (the hero and the finale show the beam camera, and Choose your feel shows K08 just before).
+  reserve: { id: "K11-single", crop: "card" },
   // First 500: the set of two, both throats laser-marked with the set number (027/500). Command: the K11 Pace render's
   // 12K face reads as a flat checkerboard at this size (art review, 2026-10-22).
   limited: { id: "K11-command", crop: "card" },
@@ -28,8 +29,9 @@ const IMAGE: Record<TierId, { id: string; crop: string }> = {
  * 2026-10-22): what "identical" means is told by the Identical section's own body.
  */
 export function Editions() {
-  // Read at build: Vercel rebuilds when INVITE_CODES changes.
-  const open = invitesOpen(process.env.INVITE_CODES);
+  // Read at build: Vercel rebuilds when INVITE_CODES changes. The same rule as /reserve and both APIs (paperwork, valid
+  // codes and the one-use check), so the card never offers what /reserve refuses.
+  const open = invitationsOpen();
   return (
     <section id="editions" className={styles.section} aria-labelledby="editions-title">
       <div className={styles.intro}>

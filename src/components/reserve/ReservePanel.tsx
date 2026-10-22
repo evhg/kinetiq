@@ -768,7 +768,7 @@ function Confirmation({ tier, feel, email, reference }: { tier: TierId; feel: Fe
       <p className={styles.doneTier}>
         {orderLine(t, feels[feel].name)}. <span className="t-num">{priceLabel(t.priceEur)}</span>
       </p>
-      <p className="t-body">{reserveCopy.confirmationBody(t.id, email || undefined)}</p>
+      <p className={`t-body ${styles.doneBody}`}>{reserveCopy.confirmationBody(t.id, email || undefined)}</p>
       {reference ? <p className={`t-num ${styles.doneRef}`}>{reserveCopy.reference(reference)}</p> : null}
     </div>
   );

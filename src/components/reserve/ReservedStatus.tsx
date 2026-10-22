@@ -22,7 +22,7 @@ function fromRedirect(s: string | undefined): Exclude<Status, "checking"> {
  * The reference /api/reserve wrote into the payment's description ("Reservation KQ-1A2B3C4D: ..."), which a
  * publishable-key retrieve returns (metadata it does not); null for a payment without one.
  */
-function referenceOf(pi: PaymentIntentStatus & { description?: string | null }): string | null {
+function referenceOf(pi: PaymentIntentStatus): string | null {
   return /^Reservation (KQ-[0-9A-F]{8})\b/.exec(pi.description ?? "")?.[1] ?? null;
 }
 

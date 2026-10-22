@@ -192,10 +192,11 @@ export const includeIcons: Record<TierId, IconName[]> = {
 export const INVITE_TERMS_READY = false;
 
 /**
- * Whether One of Ten can be paid for: the paperwork is ready (INVITE_TERMS_READY) and invitation codes
- * exist (INVITE_CODES, server only). Until then it shows, but cannot be reserved. Even then only an
- * invitee can choose it: /reserve unlocks it with a valid code (/api/invite), and /api/reserve checks the
- * code again, and that it has not been used, before any charge.
+ * The content half of whether One of Ten can be paid for: the paperwork is ready (INVITE_TERMS_READY) and invitation
+ * codes exist. Never call it directly: `invitationsOpen()` (src/lib/stripe-server.ts) passes it only the valid codes
+ * (12 characters or more) and also needs the atomic one-use check (INVITE_ONE_USE_ENFORCED). Until then it shows, but
+ * cannot be reserved. Even then only an invitee can choose it: /reserve unlocks it with a valid code (/api/invite),
+ * and /api/reserve checks the code again, and that it has not been used, before any charge.
  */
 export function invitesOpen(codes: string | undefined): boolean {
   return INVITE_TERMS_READY && Boolean(codes?.split(",").some((c) => c.trim()));

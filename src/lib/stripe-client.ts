@@ -5,7 +5,8 @@
 const STRIPE_JS = "https://js.stripe.com/endive/stripe.js";
 
 type StripeError = { message?: string; type?: string; code?: string };
-export type PaymentIntentStatus = { id: string; status: string; amount?: number; currency?: string };
+/** `description` holds the reservation's reference ("Reservation KQ-1A2B3C4D: ..."; /api/reserve). */
+export type PaymentIntentStatus = { id: string; status: string; amount?: number; currency?: string; description?: string | null };
 
 export type StripeElement = {
   mount: (el: HTMLElement) => void;

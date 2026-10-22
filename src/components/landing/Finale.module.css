@@ -75,8 +75,8 @@
 /* Short phones (Safari on most iPhones, 740 px tall or less): one screen with the footer leaves the frame about 200 px
    high, too short for the 4:5 card crop, so it shows the wide crop (Finale.tsx) with the whole racket and its horizon
    centred and no frame edges, and the section is exactly one screen with the footer (no 600 px floor, which pushed
-   the frame under the header). */
-@media (max-width: 699px) and (max-height: 740px) {
+   the frame under the header). Portrait only: a phone on its side keeps the 600 px floor, so the frame never collapses. */
+@media (max-width: 699px) and (max-height: 740px) and (orientation: portrait) {
   .section {
     min-height: calc(100svh - clamp(96px, 2vw + 70px, 120px) - 1px);
     background: linear-gradient(var(--stage), rgb(30 30 31) var(--chrome-h), var(--stage) calc(var(--chrome-h) + 1px));

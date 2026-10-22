@@ -167,8 +167,11 @@ export const bornWhole = {
 };
 
 export const precision = {
-  /** `spokenUnit`: the record's h2 says "15 microns" to screen readers (the graph section's h2 says the headline). */
-  record: { from: 500, to: 15, unit: "µm", spokenUnit: "microns" },
+  /**
+   * The record never counts (a count can stop on a value that is not the claim). `spokenUnit`: the record's h2 says
+   * "15 microns" to screen readers (the graph section's h2 says the headline).
+   */
+  record: { to: 15, unit: "µm", spokenUnit: "microns" },
   /** "About": 15 µm is 21% of the 70 µm hair G03 prints, so "a fifth" alone would round in our favour. */
   recordLine: "About a fifth of a human hair.",
   headline: "Measured in microns.",
@@ -344,9 +347,10 @@ export const finale = {
    * The page's last line, one whole sentence that answers the hero's "moulded to 15 microns": it sums up Born whole,
    * Unibody and Precision. No five years (said once, in Durability) and no marker (owner, 2026-10-22); never "the
    * feel you choose", which Two feels and Editions say. "Each", because Identical's h2 opens "Every KINETIQ is made".
-   * No-break spaces keep "in Switzerland", "one carbon shell" and "15 microns" whole, so from 768 px it sets as four
-   * whole phrases ("Each KINETIQ is / moulded in Switzerland / as one carbon shell, / to within 15 microns."). Never
-   * glue "moulded in Switzerland" or "as one carbon shell": either is wider than a phone's measure.
+   * No-break spaces keep "in Switzerland", "one carbon shell" and "15 microns" whole, so it sets as four whole phrases
+   * ("Each KINETIQ is / moulded in Switzerland / as one carbon shell, / to within 15 microns."), on phones at the size
+   * Finale.module.css gives it. Never glue "moulded in Switzerland" or "as one carbon shell": either can be wider than
+   * a phone's measure.
    */
   headline: "Each KINETIQ is moulded in\u00a0Switzerland as one\u00a0carbon\u00a0shell, to within 15\u00a0microns.",
   sub: site.priceNote,
