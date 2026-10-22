@@ -181,7 +181,7 @@ no product copy, no claim.
   in under the wordmark (240 ms) and the page reloads at the same URL, whose header puts its wordmark in the same
   place, so there is no flash. Arriving: the page's first frame is painted under the same void, which lifts over
   600 ms (on /reserve once the linked edition is in), so leaving and arriving read as one move. Reduced motion: all
-  instant. Text 16 px and up; Enter submits. The tab shows the site icon (`src/app/icon.svg`, a K over an amber line).
+  instant. Text 16 px and up; Enter submits. The tab shows the site icon (`src/app/icon.svg`, the Q, the company mark, over an amber line).
 - Mechanics:
   - `src/proxy.ts` (Next 16 "proxy", Node runtime) skips only `/_next/static/`, the HMR socket and the two icon files
     (`/icon.svg`, `/apple-icon.png`, from `src/app/`); each exclusion is anchored, so `/iconography` or `/_next/imagex`

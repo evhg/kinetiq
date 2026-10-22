@@ -28,16 +28,6 @@
     ]
   },
   "stills": {
-    "K01-hero-base": {
-      "crops": {
-        "wide": {}
-      }
-    },
-    "K01-hero-full": {
-      "crops": {
-        "wide": {}
-      }
-    },
     "K01-hero-base-phone": {
       "crops": {
         "portrait": {}
