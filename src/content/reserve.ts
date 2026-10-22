@@ -1,7 +1,18 @@
-import { countWord } from "@/content/lineup";
-import { site } from "@/content/site";
+import { countWord, tierById, type TierId } from "@/content/lineup";
+import { site, type FeelId } from "@/content/site";
 
 // Words on /reserve and /reserved. The structure follows a car-maker reservation page.
+// The editions are KINETIQ, First 500 and One of Ten (names in lineup.ts, with their no-break spaces): every
+// edition holds the same racket, so nothing here describes one edition's racket as different from another's.
+
+const name = (id: TierId) => tierById(id)?.name ?? site.name;
+
+/** Under each feel on the picker (16 px minimum): what we made, then what it does for the player (CLAIMS.md row 16). */
+const feelLines: Record<FeelId, string> = {
+  command: "It gives a little as it meets the ball, and helps you place it.",
+  pace: "It is stiffer and quicker, and gives you more power through the ball.",
+};
+
 export const reserveCopy = {
   pageTitle: "Reserve",
   includedWith: (edition: string) => `Included with ${edition}`,
@@ -10,21 +21,25 @@ export const reserveCopy = {
   nextImage: "Next image",
   chooseLegend: "Choose your edition",
   soldOut: "Sold out",
-  /** Under InviQtus's includes while no invitations exist (its status still reads "Invite Only"). */
+  /** Under One of Ten's includes while no invitations exist (its status still reads "Invite Only"). */
   invitesClosedNote: "Invitations open soon.",
-  /** InviQtus is shown to everyone but chosen only with an invitation code. */
+  /** One of Ten is shown to everyone but chosen only with an invitation code. */
   invite: {
     ask: "Have an invitation?",
     label: "Invitation code",
     unlock: "Unlock",
     checking: "Checking",
-    accepted: "Invitation accepted. InviQtus is yours to reserve.",
+    accepted: `Invitation accepted. You can now reserve ${name("invite")}.`,
     acceptedStatus: "Invited",
     invalid: "That invitation code is not valid.",
     offline: "The code could not be checked. Please try again.",
   },
   feelLegend: (rackets: number) =>
     rackets === 1 ? "Your feel" : rackets === 2 ? "Your feel, for both rackets" : `Your feel, for all ${countWord(rackets)} rackets`,
+  /** One line per feel, under its name, sub and spec (site.ts `feels`). */
+  feelLines,
+  /** Under the two feels: guidance, not a result (CLAIMS.md row 16). */
+  feelHelper: "Command suits a game built on placement, and Pace suits a game built on pressure.",
   feelHint: (rackets: number) =>
     rackets === 1
       ? "Chosen before your racket is moulded."
@@ -52,7 +67,10 @@ export const reserveCopy = {
   feelRequired: "Choose Command or Pace.",
   processing: "Placing reservation…",
   cardPreview: "Card payments open at launch. Nothing can be charged yet.",
-  /** The order and its total, stated directly above Place Reservation ("VanQuish, two Command rackets."). */
+  /**
+   * The order and its total, stated directly above Place Reservation: "KINETIQ, one Command racket. Due today €410.",
+   * "First 500, two Command rackets. Due today €990.", "One of Ten, three Pace rackets. Due today €2,900."
+   */
   placeDue: (order: string, price: string) => `${order}. Due today ${price}.`,
   fineprint: "Charged in full today. Payments by Stripe.",
   /** Shown instead of the fine print while card payments are off (no Stripe key: the preview). */
@@ -64,12 +82,31 @@ export const reserveCopy = {
     notCharged: "Your card was not charged. Please try again.",
   },
   stickyPay: site.payLabel,
-  confirmationHeadline: "Reserved. Now we make it.",
-  /** After payment; `rackets` is unknown when /reserved cannot tell the edition. */
-  confirmationBody: (rackets?: number) =>
-    rackets && rackets > 1
-      ? `Your receipt is on its way to your inbox. Your ${countWord(rackets)} rackets ship in ${site.shipMonth}, each with its serial number and measurement card. Fully refundable until then.`
-      : `Your receipt is on its way to your inbox. Your KINETIQ ships in ${site.shipMonth} with its serial number and measurement card. Fully refundable until then.`,
+  /** After payment, by the number of rackets in the order; unknown when /reserved cannot tell the edition. */
+  confirmationHeadline: (rackets?: number) =>
+    rackets === undefined
+      ? "Thank you. Your reservation is complete."
+      : rackets > 1
+        ? "Thank you. Your rackets are reserved."
+        : "Thank you. Your racket is reserved.",
+  /**
+   * After payment, by edition: what ships, when, and what comes with it; unknown when /reserved cannot tell the
+   * edition. "Until then" is the shipping date it follows (CLAIMS.md row 23).
+   */
+  confirmationBody: (tierId?: TierId) => {
+    const receipt = "Your receipt is on its way to your inbox.";
+    const tier = tierById(tierId);
+    switch (tier?.id) {
+      case "reserve":
+        return `${receipt} Your ${site.name} ships in ${site.shipMonth} with its serial number and measurement card. It is fully refundable until then.`;
+      case "limited":
+        return `${receipt} Your set is one of the ${tier.name}, and it ships first, in ${site.shipMonth}, with its number on both throats and two measurement cards to match. It is fully refundable until then.`;
+      case "invite":
+        return `${receipt} Your ${countWord(tier.rackets)} rackets ship in ${site.shipMonth} in their fitted case, marked with your set number, and we will write to you about your coaching session. They are fully refundable until then.`;
+      default:
+        return `${receipt} We ship in ${site.shipMonth}, and your reservation is fully refundable until then.`;
+    }
+  },
   receiptSent: (email: string) => `Receipt sent to ${email}.`,
   /** A short reference the buyer can quote: KQ- and the last 8 characters of the payment's id. */
   reference: (paymentId: string) => `Reservation KQ-${paymentId.slice(-8).toUpperCase()}`,

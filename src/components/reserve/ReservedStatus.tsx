@@ -81,13 +81,13 @@ export function ReservedStatus({ pending = false, redirect, hasSecret = false, t
         <h1 className="t-h2">{R.checking}</h1>
       ) : reserved ? (
         <>
-          <h1 className="t-h2">{reserveCopy.confirmationHeadline}</h1>
+          <h1 className="t-h2">{reserveCopy.confirmationHeadline(t?.rackets)}</h1>
           {t ? (
             <p className={styles.tier}>
               {isFeelId(feel) ? orderLine(t, feels[feel].name) : t.name}. <span className="t-num">{priceLabel(t.priceEur)}</span>
             </p>
           ) : null}
-          <p className="t-lead">{reserveCopy.confirmationBody(t?.rackets)}</p>
+          <p className="t-lead">{reserveCopy.confirmationBody(t?.id)}</p>
           {paymentId ? <p className={`t-num ${styles.ref}`}>{reserveCopy.reference(paymentId)}</p> : null}
           <Link href="/" className="btn btn-secondary">
             {R.back}

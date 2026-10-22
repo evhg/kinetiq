@@ -238,7 +238,7 @@ export function orderLine(tier: Tier, feelName: string): string {
 }
 
 /** A name for places that take plain text only (Stripe's description and metadata): no-break spaces as spaces. */
-export const plainText = (s: string) => s.replace(/ /g, " ");
+export const plainText = (s: string) => s.replace(/\u00a0/g, " ");
 
 /** Delivery countries offered in the address form (EU, EEA, Switzerland, UK and micro-states). */
 export const deliveryCountries: [code: string, name: string][] = [

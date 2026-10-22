@@ -754,12 +754,12 @@ function Confirmation({ tier, feel, email, paymentId }: { tier: TierId; feel: Fe
   return (
     <div ref={box} className={styles.done}>
       <h2 ref={heading} tabIndex={-1} className={styles.doneTitle}>
-        {reserveCopy.confirmationHeadline}
+        {reserveCopy.confirmationHeadline(t.rackets)}
       </h2>
       <p className={styles.doneTier}>
         {orderLine(t, feels[feel].name)}. <span className="t-num">{priceLabel(t.priceEur)}</span>
       </p>
-      <p className="t-body">{reserveCopy.confirmationBody(t.rackets)}</p>
+      <p className="t-body">{reserveCopy.confirmationBody(t.id)}</p>
       <p className={`t-num ${styles.doneRef}`}>{reserveCopy.reference(paymentId)}</p>
       {email ? <p className={styles.fine}>{reserveCopy.receiptSent(email)}</p> : null}
     </div>

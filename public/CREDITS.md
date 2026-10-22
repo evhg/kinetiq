@@ -16,7 +16,7 @@ Nothing is added to the repo without an entry here.
 | Data graphics G01 to G14 (`src/components/graphics/`) | Drawn in code (SVG and canvas) for this repo | Owned by KINETIQ | Values marked "Illustrative" until measured (see CLAIMS.md) |
 | Swiss cross (Born whole lockup, badges, measurement card) | Drawn in code (national emblem geometry) | Public symbol; commercial use is governed by the Swiss Coat of Arms Protection Act, see CLAIMS.md #10 | |
 | Weave swatches on /reserve | Drawn in code (SVG patterns) | Owned by KINETIQ | |
-| Site icon (`src/app/icon.svg`, `src/app/apple-icon.png`) | Drawn for this repo as SVG paths (a K with an amber light line, no font); the PNG is rendered from it with sharp | Owned by KINETIQ | Shown on the NDA gate too: it carries no product image or claim |
+| Site icon (`src/app/icon.svg`, `src/app/apple-icon.png`) | Drawn for this repo as SVG paths (the Q, the company mark, over an amber light line; no font); the PNG is rendered from it with sharp | Owned by KINETIQ | Shown on the NDA gate too: it carries no product image or claim |
 | Sealed-core trace over K03 (`src/components/graphics/SealedCoreTrace.tsx`) | Drawn in code (SVG) for this repo, over the K03 still | Owned by KINETIQ | |
 
 ## Not cleared
