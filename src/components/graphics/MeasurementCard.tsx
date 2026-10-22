@@ -61,6 +61,11 @@ type Props = {
    * (no title, rows or map), so the strip beside the front card is clean paper, never clipped values.
    */
   peek?: boolean;
+  /**
+   * A tighter rhythm on a narrow card (below 340 px, where the text sits at its floor), so a set's two cards fit a
+   * phone's 4:5 gallery frame whole: the /reserve gallery only.
+   */
+  dense?: boolean;
 };
 
 function SwissCross({ className }: { className?: string }) {
@@ -124,6 +129,7 @@ export function MeasurementCard({
   enter = true,
   plate = true,
   peek = false,
+  dense = false,
 }: Props) {
   const root = useRef<HTMLElement>(null);
   const { motionOn } = useMotion();
@@ -162,6 +168,7 @@ export function MeasurementCard({
       data-variant={variant}
       data-plate={plate ? undefined : "none"}
       data-peek={peek ? "" : undefined}
+      data-dense={dense ? "" : undefined}
       aria-hidden={thumb ? true : undefined}
     >
       <div className={styles.mover} data-g08-mover="">

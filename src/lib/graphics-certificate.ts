@@ -2,7 +2,7 @@
 // Deterministic: the server and the client render identical path strings.
 // Map units are millimetres, y down, origin at the head centre (racket-shape.ts is in dm, y up).
 
-import { HEAD_CURVES, HEAD_START, HOLES, HOLE_RADIUS, THROAT_CURVES, THROAT_START, type Cubic, type Pt } from "@/lib/racket-shape";
+import { HEAD_CURVES, HEAD_START, HOLES, THROAT_CURVES, THROAT_START, type Cubic, type Pt } from "@/lib/racket-shape";
 
 const r1 = (v: number) => (Math.round(v * 10) / 10).toString();
 const P = ([x, y]: Pt) => `${r1(x * 100)} ${r1(-y * 100)}`;
@@ -14,7 +14,8 @@ export const mapViewBox = `${MAP_BOX.x} ${MAP_BOX.y} ${MAP_BOX.w} ${MAP_BOX.h}`;
 
 export const headOutline = curves(HEAD_START, HEAD_CURVES);
 export const throatOutline = curves(THROAT_START, THROAT_CURVES);
-export const holeDots = HOLES.map(([x, y]) => ({ cx: Number(r1(x * 100)), cy: Number(r1(-y * 100)), r: Number(r1(HOLE_RADIUS * 100)) }));
+/** The 42 holes at their own diameters (the crown of 8 along the top is 14.0 mm, the rest 12.4 mm). */
+export const holeDots = HOLES.map(([x, y, r]) => ({ cx: Number(r1(x * 100)), cy: Number(r1(-y * 100)), r: Number(r1(r * 100)) }));
 
 /** Illustrative deviation field, in µm (0 at the reference surface, 12 at the highest point). */
 function field(x: number, y: number) {

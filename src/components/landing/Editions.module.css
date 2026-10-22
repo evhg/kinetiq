@@ -29,6 +29,11 @@
   max-width: 22ch;
   text-wrap: balance;
 }
+/* a clause wraps inside itself only where it is wider than the screen (phones: "We make / one racket, / in three
+   editions.") */
+.clause {
+  display: inline-block;
+}
 .lead {
   max-width: 50ch;
   color: var(--steel);
@@ -92,13 +97,11 @@ a.card:active {
   letter-spacing: -0.01em;
   line-height: 1.1;
 }
+/* the availability tags, all in the amber family: a tag, never a control (the card already ends in its arrow) */
 .status {
   font-size: clamp(1rem, 0.3vw + 0.9rem, 1.25rem);
-  color: var(--text);
-  white-space: nowrap;
-}
-.status[data-tier="limited"] {
   color: var(--amber);
+  white-space: nowrap;
 }
 /* The top tier, by invitation: a warm, static mark of rank (never a hover or pressed state). */
 .status[data-tier="invite"] {

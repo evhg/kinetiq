@@ -116,7 +116,8 @@ export const NECK_TAPER = { top: -1.5, end: -1.76, thickness: 0.29 };
 /** Overgrip: 0.5 mm tape over the 33.0 x 29.0 mm core in a helical wrap (27 mm pitch), an 11 mm finishing band at the top. */
 export const GRIP = { top: -1.74, bottom: -2.842, tape: 0.005, pitch: 0.27, band: 0.11 };
 /**
- * Satin black anodised butt cap, about 1.5 mm proud of the grip, with one fine groove and an engraved K.
+ * Satin black anodised butt cap, about 1.5 mm proud of the grip, with one fine groove and an engraved Q (the company
+ * logo, owner 2026-10-22; it replaced the K).
  * `profile`: [scale of the grip's section, y], top to bottom (K05's cap, as kq_canon.cap_profile).
  */
 export const CAP = {

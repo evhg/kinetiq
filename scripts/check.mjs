@@ -3,7 +3,8 @@
 // then screenshots every 10% of the page at phone, desktop and wide (2560) sizes,
 // with motion on and with reduced motion. Records console errors, LCP, CLS,
 // horizontal overflow, long frames while scrolling, blank frames and the fill
-// rule (no mostly-black viewport, no dead black strip).
+// rule (no mostly-black viewport, no dead black strip). By keyboard: every Skip
+// link, and the sweet-spot ‡ marks reached by Tab and shown the moment they have focus.
 //
 // Usage:
 //   node scripts/check.mjs                      build + start locally
@@ -428,31 +429,175 @@ async function runCase(browser, statsPage, vp, mode) {
   };
 }
 
-// Functional checks for the shared UI: the Skip link of the first pinned chapter. Below 900 px the
-// chapters don't pin and the link is hidden by design, so there is nothing to check there.
+// Functional checks for the shared UI: the Skip link of every pinned chapter, reached by keyboard as a visitor would.
+// Each link is visually hidden until it takes focus (globals.css `.skip-link`). From the top of the page, Tab must reach
+// the first link (and, after each skip, Tab from its target must reach the next one, in page order); the moment it has
+// focus it must show, with no transition, at the top of its stage with the stage at the top of the window (just below
+// the header), at least 44 px tall and not under anything; Enter must land on its target with focus, just below the
+// header; once focus moves on, the link hides again.
+// Below 900 px the chapters don't pin and the links are not rendered (display: none), so there is nothing to check.
+const MAX_TABS = 80; // Tab presses allowed to reach each Skip link (header, hero and section controls come first)
+
+async function skipLinkState(page, href) {
+  return page.evaluate((href) => {
+    const a = [...document.querySelectorAll(".skip-link")].find((el) => el.getAttribute("href") === href);
+    if (!a) return null;
+    const r = a.getBoundingClientRect();
+    const stage = a.closest(".pin-stage")?.getBoundingClientRect() ?? null;
+    const cs = getComputedStyle(a);
+    const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    const pad = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+    const zero = (list) => list.split(",").every((d) => parseFloat(d) === 0);
+    return {
+      focused: document.activeElement === a,
+      width: Math.round(r.width),
+      height: Math.round(r.height),
+      top: Math.round(r.top),
+      // Distance from the top of the pinned stage; the CSS puts it just below the header (= html's scroll padding).
+      fromStageTop: stage ? Math.round(r.top - stage.top) : null,
+      expectedFromStageTop: Math.round(pad),
+      inView: r.top >= 0 && r.left >= 0 && r.bottom <= window.innerHeight && r.right <= window.innerWidth,
+      onTop: Boolean(hit && (hit === a || a.contains(hit))),
+      clipped: cs.clipPath !== "none",
+      instant: zero(cs.transitionDuration) && cs.animationName === "none",
+    };
+  }, href);
+}
+
+// The sweet-spot claim and its ‡ marks stay in the tab order and the accessibility tree before the section is scrolled
+// to (its words rise on opacity only, never visibility). From the top of the page, with nothing focused, Tab must reach
+// every ‡ mark in #sweet-spot before anything after the section (a Skip link included), at every width, and each mark
+// must be fully shown the moment it has focus (a focus inside the section finishes the rise at once).
+const MAX_TABS_TO_SWEET = 20;
+
+async function sweetSpotKeyboard(page) {
+  const marks = await page.evaluate(() => document.querySelectorAll("#sweet-spot .footmark").length);
+  if (!marks) return null;
+  await scrollTo(page, 0);
+  await page.waitForTimeout(300);
+  await page.evaluate(() => document.activeElement instanceof HTMLElement && document.activeElement.blur());
+  const problems = [];
+  const seen = [];
+  let tabs = 0;
+  while (seen.length < marks && tabs < MAX_TABS_TO_SWEET) {
+    await page.keyboard.press("Tab");
+    tabs++;
+    const at = await page.evaluate(() => {
+      const a = document.activeElement;
+      const section = document.getElementById("sweet-spot");
+      if (!a || a === document.body || !section) return { kind: "none" };
+      const name = (a.getAttribute("aria-label") || a.textContent || "").trim().replace(/\s+/g, " ").slice(0, 40);
+      if (!section.contains(a)) {
+        const after = Boolean(section.compareDocumentPosition(a) & Node.DOCUMENT_POSITION_FOLLOWING);
+        return { kind: after ? "after" : "before", name, where: a.closest("section")?.id ?? a.closest("header,footer")?.tagName ?? "-" };
+      }
+      if (!a.classList.contains("footmark")) return { kind: "inside", name };
+      // Effective opacity: the mark's own and every ancestor's up to the section (the rise moves its block).
+      let opacity = 1;
+      for (let e = a; e && e !== section; e = e.parentElement) opacity *= parseFloat(getComputedStyle(e).opacity);
+      const r = a.getBoundingClientRect();
+      return {
+        kind: "mark",
+        opacity: Number(opacity.toFixed(2)),
+        visible: getComputedStyle(a).visibility === "visible",
+        inView: r.width > 1 && r.bottom > 0 && r.top < window.innerHeight,
+      };
+    });
+    if (at.kind === "after") {
+      problems.push(`Tab reached "${at.name}" (${at.where}) after ${seen.length} of ${marks} sweet-spot ‡ mark(s)`);
+      break;
+    }
+    if (at.kind !== "mark") continue;
+    seen.push(at);
+    if (!at.visible || at.opacity < 0.99) problems.push(`‡ mark ${seen.length} focused but not shown (visibility ${at.visible ? "visible" : "hidden"}, opacity ${at.opacity})`);
+    if (!at.inView) problems.push(`‡ mark ${seen.length} focused out of view`);
+  }
+  if (seen.length < marks && !problems.length) problems.push(`only ${seen.length} of ${marks} sweet-spot ‡ mark(s) reached in ${MAX_TABS_TO_SWEET} Tab presses`);
+  await page.evaluate(() => document.activeElement instanceof HTMLElement && document.activeElement.blur());
+  return { ok: problems.length === 0, marks, reached: seen.length, tabs, problems };
+}
+
 async function interactionChecks(page) {
   const out = {};
-  const skipLink = page.locator(".skip-link").first();
-  if ((await skipLink.count()) > 0 && (await skipLink.isVisible())) {
-    const href = await skipLink.getAttribute("href");
-    const pinTop = await page.evaluate(() => {
-      const el = document.querySelector(".pin");
-      return el ? el.getBoundingClientRect().top + window.scrollY : 0;
-    });
-    await scrollTo(page, Math.round(pinTop + 50));
-    await page.waitForTimeout(800);
-    await skipLink.focus();
+  const sweet = await sweetSpotKeyboard(page);
+  if (sweet) out.sweet = sweet;
+  const { links, pins, wide } = await page.evaluate(() => ({
+    links: [...document.querySelectorAll(".skip-link")]
+      .filter((a) => getComputedStyle(a).display !== "none")
+      .map((a) => ({ href: a.getAttribute("href"), chapter: a.closest(".pin")?.id ?? null })),
+    pins: document.querySelectorAll(".pin").length,
+    wide: window.innerWidth >= 900,
+  }));
+  if (!links.length) {
+    // A page with pinned chapters must offer their Skip links wherever the chapters can pin.
+    if (pins && wide) out.skip = { ok: false, links: [], problems: [`${pins} pinned chapter(s) but no Skip link rendered`] };
+    return out;
+  }
+
+  // Start from the top of the page with nothing focused, so the first Tab goes to the first control.
+  await scrollTo(page, 0);
+  await page.waitForTimeout(500);
+  await page.evaluate(() => document.activeElement instanceof HTMLElement && document.activeElement.blur());
+
+  const problems = [];
+  const results = [];
+  for (const link of links) {
+    const name = `${link.chapter ? `#${link.chapter}` : "?"} → ${link.href}`;
+    const res = { ...link, tabs: 0 };
+    results.push(res);
+    const before = await skipLinkState(page, link.href);
+    res.hiddenBefore = Boolean(before && !before.focused && before.width <= 1 && before.height <= 1);
+    if (!res.hiddenBefore) problems.push(`${name}: visible before it has focus (${before?.width}x${before?.height} px)`);
+
+    // Tab until this link has focus. Another Skip link first means the tab order skipped this one.
+    let at = null;
+    while (res.tabs < MAX_TABS) {
+      await page.keyboard.press("Tab");
+      res.tabs++;
+      at = await page.evaluate(() => {
+        const a = document.activeElement;
+        return a && a.classList.contains("skip-link") ? a.getAttribute("href") : null;
+      });
+      if (at) break;
+    }
+    res.reached = at === link.href;
+    if (!res.reached) {
+      problems.push(at ? `${name}: Tab reached ${at} first` : `${name}: not reached in ${MAX_TABS} Tab presses`);
+      break; // the rest of the walk would start from the wrong place
+    }
+
+    // Measured at once, in the frame focus arrived: it must already be fully shown.
+    const shown = await skipLinkState(page, link.href);
+    res.shown = shown;
+    const shownProblems = [];
+    if (shown.clipped || shown.width <= 1 || shown.height < 44) shownProblems.push(`not shown on focus (${shown.width}x${shown.height} px)`);
+    if (!shown.instant) shownProblems.push("animates in (transition or animation)");
+    if (!shown.inView) shownProblems.push(`out of view (top ${shown.top} px)`);
+    // PinnedChapter brings the chapter's first screen into view on focus, so the link sits just below the header.
+    else if (Math.abs(shown.top - shown.expectedFromStageTop) > 2) shownProblems.push(`not at the top of the window (top ${shown.top} px, expected ${shown.expectedFromStageTop})`);
+    if (!shown.onTop) shownProblems.push("covered by another element");
+    if (shown.fromStageTop === null || Math.abs(shown.fromStageTop - shown.expectedFromStageTop) > 2)
+      shownProblems.push(`not at the top of its stage (${shown.fromStageTop} px from it, expected ${shown.expectedFromStageTop})`);
+    problems.push(...shownProblems.map((p) => `${name}: ${p}`));
+
+    // Enter: an instant jump to the target, which takes focus just below the fixed header (html's scroll-padding-top).
     await page.keyboard.press("Enter");
     await page.waitForTimeout(800);
-    // The target lands just below the fixed header: html's scroll-padding-top (header height + 16 px).
-    out.skip = await page.evaluate((id) => {
+    res.landed = await page.evaluate((id) => {
       const t = document.getElementById(id);
       const top = t ? t.getBoundingClientRect().top : null;
       const pad = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
       return { targetTop: top === null ? null : Math.round(top), expectedTop: Math.round(pad), focused: document.activeElement?.id === id };
-    }, href.slice(1));
-    out.skip.ok = out.skip.focused && out.skip.targetTop !== null && Math.abs(out.skip.targetTop - out.skip.expectedTop) < 40;
+    }, link.href.slice(1));
+    const { targetTop, expectedTop, focused } = res.landed;
+    if (!focused) problems.push(`${name}: Enter did not move focus to the target`);
+    if (targetTop === null || Math.abs(targetTop - expectedTop) >= 40) problems.push(`${name}: target landed at ${targetTop} px, expected ${expectedTop}`);
+
+    const after = await skipLinkState(page, link.href);
+    res.hiddenAfter = Boolean(after && !after.focused && after.width <= 1 && after.height <= 1);
+    if (!res.hiddenAfter) problems.push(`${name}: still visible after focus moved on`);
   }
+  out.skip = { ok: problems.length === 0, links: results, problems };
   return out;
 }
 
@@ -683,7 +828,8 @@ function evaluate(results) {
     if (r.clsAfterScroll > BUDGET.cls) failures.push(`${r.id}: CLS ${r.clsAfterScroll} > ${BUDGET.cls}`);
     if (r.viewport === "phone" && r.lcpMs > BUDGET.lcpMs) failures.push(`${r.id}: LCP ${r.lcpMs} ms > ${BUDGET.lcpMs} ms`);
     if (r.sceneState === "webgl" && r.sceneStd !== null && r.sceneStd < 2) failures.push(`${r.id}: 3D scene looks blank`);
-    if (r.interactions?.skip && !r.interactions.skip.ok) failures.push(`${r.id}: Skip link did not land on its target with focus`);
+    if (r.interactions?.skip && !r.interactions.skip.ok) failures.push(`${r.id}: Skip links: ${r.interactions.skip.problems.join("; ")}`);
+    if (r.interactions?.sweet && !r.interactions.sweet.ok) failures.push(`${r.id}: sweet-spot ‡ by Tab: ${r.interactions.sweet.problems.join("; ")}`);
     if (r.interactions?.gate && !r.interactions.gate.ok) failures.push(`${r.id}: gate: ${r.interactions.gate.problems.join("; ")}`);
     if (r.fillSteps.length) failures.push(`${r.id}: fill rule broken at ${r.fillSteps.join("; ")}`);
   }
@@ -693,7 +839,7 @@ function evaluate(results) {
 function markdown(results, failures, server = []) {
   const rows = results.map(
     (r) =>
-      `| ${r.id} | ${r.lcpMs} (${r.lcpElement || "?"}) | ${r.clsAfterScroll} | ${r.longFrames}/${r.frames} (worst ${r.worstFrameMs} ms) | ${r.sceneState ?? "-"} (${r.sceneStd ?? "-"}) | ${r.interactions?.skip ? (r.interactions.skip.ok ? "ok" : "FAIL") : r.interactions?.gate ? (r.interactions.gate.ok ? "gate ok" : "gate FAIL") : "-"} | ${r.consoleErrors.length} | ${r.blankSteps.length ? r.blankSteps.join(",") : "none"} | ${r.fillSteps.length ? r.fillSteps.length : "ok"} |`,
+      `| ${r.id} | ${r.lcpMs} (${r.lcpElement || "?"}) | ${r.clsAfterScroll} | ${r.longFrames}/${r.frames} (worst ${r.worstFrameMs} ms) | ${r.sceneState ?? "-"} (${r.sceneStd ?? "-"}) | ${r.interactions?.skip ? (r.interactions.skip.ok ? `ok (${r.interactions.skip.links.length}, by Tab)` : "FAIL") : r.interactions?.gate ? (r.interactions.gate.ok ? "gate ok" : "gate FAIL") : "-"}${r.interactions?.sweet ? (r.interactions.sweet.ok ? `; ‡ ok (${r.interactions.sweet.reached}, by Tab)` : "; ‡ FAIL") : ""} | ${r.consoleErrors.length} | ${r.blankSteps.length ? r.blankSteps.join(",") : "none"} | ${r.fillSteps.length ? r.fillSteps.length : "ok"} |`,
   );
   return [
     `# Check report: ${targetUrl}`,

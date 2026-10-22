@@ -1,25 +1,26 @@
 // G05 fibre flow field: streamlines of potential flow around the 42 real holes of the racket face.
-// Uniform flow plus one doublet per hole (racket-shape.ts HOLES, HOLE_RADIUS), integrated with RK4
+// Uniform flow plus one doublet per hole (racket-shape.ts HOLES, each at its own radius), integrated with RK4
 // along the normalised velocity so every line keeps its spacing far from the holes, parts around each
 // bore and rejoins behind it. Pure and deterministic: the same inputs give the same lines everywhere.
 // World units are racket units (1 = 10 cm, y up); output is in CSS pixels of the target box (y down).
 
-import { HOLES, HOLE_RADIUS, type Pt } from "./racket-shape";
+import { HOLES, type Pt } from "./racket-shape";
 
 /** A world rectangle: x0, y0, x1, y1 (racket units, y up). */
 export type Rect = [number, number, number, number];
 
 /** Named framings of the hole field. */
 export const FRAMES = {
-  /** All 42 holes with a little air around them. */
-  field: [-0.97, -0.56, 0.97, 1.4] as Rect,
-  /** The centre of the face: three rows either side of the sweet spot. */
-  centre: [-0.62, -0.08, 0.62, 0.92] as Rect,
+  /** All 42 holes, the crown of 8 included, with a little air around them. */
+  field: [-1.04, -0.72, 1.04, 1.36] as Rect,
+  /** The centre of the face: the lattice from its top row down to the row at the head centre. */
+  centre: [-0.62, -0.0955, 0.62, 0.92] as Rect,
   /**
-   * The phone strip: three whole rows (6, 7, 6 holes) centred on the sweet-spot row, with the edges
-   * falling between rows so no bore is cut in half by the top or bottom fade.
+   * The phone strip (3:2): five whole rows of the lattice (3, 2, 3, 2, 3 holes) across the sweet spot, with
+   * a hole radius of air above and below; only slivers of the next rows reach into the top and bottom fades
+   * (the lattice leaves 1.9 mm between rows, so no edge can fall clear of every bore).
    */
-  strip: [-0.57, -0.08, 0.57, 0.68] as Rect,
+  strip: [-0.58, -0.124, 0.58, 0.648] as Rect,
 } as const;
 
 export type FrameName = keyof typeof FRAMES;
@@ -67,9 +68,9 @@ export type FlowField = {
   height: number;
   /** px per world unit. */
   scale: number;
-  /** Hole centres in px, interleaved, and the hole radius in px. */
+  /** Hole centres in px, interleaved, and each hole's radius in px (the crown's are larger). */
   holes: Float32Array;
-  holeR: number;
+  holeRs: Float32Array;
   /** The framed world rect in px: x0, y0, x1, y1 (y down). */
   frameBox: [number, number, number, number];
   lines: FlowLine[];
@@ -87,12 +88,16 @@ export function prng(seed: number) {
   };
 }
 
-const A2 = HOLE_RADIUS * HOLE_RADIUS;
-const HX = new Float64Array(HOLES.map((h: Pt) => h[0]));
-const HY = new Float64Array(HOLES.map((h: Pt) => h[1]));
+const HX = new Float64Array(HOLES.map((h) => h[0]));
+const HY = new Float64Array(HOLES.map((h) => h[1]));
+const HR = new Float64Array(HOLES.map((h) => h[2]));
+const A2 = HR.map((r) => r * r);
 const NH = HOLES.length;
-/** Doublet window: full strength inside R1, zero beyond R2 (the nearest neighbour bore is 0.208 away). */
-const R1 = HOLE_RADIUS * 1.45;
+/**
+ * Doublet window: full strength inside R1 (per hole), zero beyond R2. Centres are at least 0.278 apart
+ * (a crown hole and its lattice neighbour), so R2 stays clear of the nearest neighbouring bore (0.208 away).
+ */
+const R1 = HR.map((r) => r * 1.45);
 const R2 = 0.2;
 
 /**
@@ -145,11 +150,16 @@ export function createFlowBuilder(opts: FlowOptions) {
     let gx = -s;
     let gy = c;
     let near = Infinity;
+    let nearK = 0;
+    let nearSurf = Infinity;
     for (let k = 0; k < NH; k++) {
       const dx = x - HX[k];
       const dy = y - HY[k];
       const r2 = dx * dx + dy * dy;
-      if (r2 < near) near = r2;
+      if (r2 < near) {
+        near = r2;
+        nearK = k;
+      }
       if (r2 >= R2 * R2) continue;
       const r = Math.sqrt(r2);
       const g = s * dx - c * dy;
@@ -159,18 +169,22 @@ export function createFlowBuilder(opts: FlowOptions) {
       const py = -c / r2 - (2 * dy * g) / r4;
       let w = 1;
       let dw = 0;
-      if (r > R1) {
-        const t = (r - R1) / (R2 - R1);
+      const r1 = R1[k];
+      if (r > r1) {
+        const t = (r - r1) / (R2 - r1);
         w = 1 - t * t * t * (t * (6 * t - 15) + 10);
-        dw = (-30 * t * t * (1 - t) * (1 - t)) / (R2 - R1);
+        dw = (-30 * t * t * (1 - t) * (1 - t)) / (R2 - r1);
       }
-      psi += A2 * P * w;
-      gx += A2 * (w * px + (P * dw * dx) / r);
-      gy += A2 * (w * py + (P * dw * dy) / r);
+      const a2 = A2[k];
+      psi += a2 * P * w;
+      gx += a2 * (w * px + (P * dw * dx) / r);
+      gy += a2 * (w * py + (P * dw * dy) / r);
+      const surf = r - HR[k];
+      if (surf < nearSurf) nearSurf = surf;
     }
     out[0] = gy;
     out[1] = -gx;
-    out[2] = Math.sqrt(near) - HOLE_RADIUS;
+    out[2] = Math.min(nearSurf, Math.sqrt(near) - HR[nearK]);
     out[3] = psi;
   };
 
@@ -293,13 +307,15 @@ export function createFlowBuilder(opts: FlowOptions) {
   }
 
   const holes = new Float32Array(NH * 2);
+  const holeRs = new Float32Array(NH);
   for (let k = 0; k < NH; k++) {
     holes[2 * k] = ox + HX[k] * scale;
     holes[2 * k + 1] = oy - HY[k] * scale;
+    holeRs[k] = HR[k] * scale;
   }
 
   const frameBox: FlowField["frameBox"] = [ox + frame[0] * scale, oy - frame[3] * scale, ox + frame[2] * scale, oy - frame[1] * scale];
-  const field: FlowField = { width: W, height: H, scale, holes, holeR: HOLE_RADIUS * scale, frameBox, lines };
+  const field: FlowField = { width: W, height: H, scale, holes, holeRs, frameBox, lines };
 
   return {
     field,

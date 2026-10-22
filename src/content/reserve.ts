@@ -15,7 +15,18 @@ const feelLines: Record<FeelId, string> = {
 
 export const reserveCopy = {
   pageTitle: "Reserve",
-  includedWith: (edition: string) => `Included with ${edition}`,
+  /**
+   * The options column's h1. It names the racket, never the edition: the edition cards below name each one, and the
+   * KINETIQ edition carries the brand's name, so the chrome around it varies instead of repeating it.
+   */
+  columnTitle: `Reserve your ${site.name}`,
+  /** The sticky bar's first line, by the number of rackets: "One racket", "Two rackets", "Three rackets". */
+  barCount: (rackets: number) => {
+    const w = countWord(rackets);
+    return `${w.charAt(0).toUpperCase()}${w.slice(1)} racket${rackets > 1 ? "s" : ""}`;
+  },
+  /** Over each card's includes. The card already names its edition, so the head never repeats it. */
+  included: "Included",
   galleryLabel: "Edition gallery",
   previousImage: "Previous image",
   nextImage: "Next image",

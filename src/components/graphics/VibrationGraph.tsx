@@ -12,7 +12,7 @@ import styles from "./VibrationGraph.module.css";
 export const LABELS = {
   yAxis: "Vibration",
   xAxis: "Time after impact",
-  summary: `Illustrative graph. After impact, the ${feel.graph.glued.toLowerCase()} keeps ringing and only settles at the end of the window. KINETIQ settles under 5% of its starting vibration in about a third of the time, with the same response from edge to centre.`,
+  summary: `Illustrative graph. After impact, the ${feel.graph.glued.toLowerCase()} keeps ringing and only settles at the end of the window. KINETIQ settles under 5% of its starting vibration in about a third of the time.`,
   tableCaption: `Vibration left after impact, as a share of the ${feel.graph.glued.toLowerCase()}'s starting vibration`,
   tableTime: "Time after impact, share of the window",
 };

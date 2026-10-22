@@ -11,7 +11,7 @@
 // Durability (owner, 2026-10-22): "Built to last five years" always travels with its usage profile: a footnote
 // marker (lifetime.mark) links the hero and finale lines to the fine print (lifetime.fine) in the durability
 // section. Never "lifetime guarantee", never "sustainable", and never a guarantee for every racket (only
-// InviQtus carries one). Until the independent fatigue report exists the testing is promised, never claimed
+// One of Ten carries one). Until the independent fatigue report exists the testing is promised, never claimed
 // as done (CLAIMS.md rows 26 and 28).
 // Sealed core (owner, 2026-10-22; CLAIMS.md rows 30 to 34): the carbon shell closes around the whole EVA core
 // and lines every hole, so the core never touches the air. It is told once per place: the reveal in the
@@ -19,6 +19,9 @@
 // Durability ("three times longer", only against an open core and only with its fine print, durability.coreFine).
 // The seal keeps out sweat, humidity and UV; never heat (the shell does not insulate), never "airtight",
 // "waterproof" or "first". "Swiss-made EVA" stays at country level: never the factory, a supplier or a town.
+// Voice (owner, 2026-10-22; batch 3 names-copy-final): whole, plain sentences that say what we made and what it does
+// for the player, as Jony Ive would say them. No two-beat slogans, no stacked fragments, no "Not X. Y." pairs, and
+// no "premium", "simply", "incredibly", "monolithic" or other lofty words. The owner's hero sentence stays verbatim.
 
 import { lifetime } from "./lineup";
 import { site } from "./site";
@@ -33,27 +36,107 @@ export const hero = {
   lead: "One single piece of space-grade carbon. No tube, no joints. Ultra-precision moulded to 15 microns and 1 gram. Every racket plays exactly the same.",
   /** Set after the lead in brighter type, with a marker to its usage profile (CLAIMS.md row 26). */
   life: `${lifetime.line}.`,
-  ctaNote: `From €410. Refundable. ${site.shipLabel}.`,
+  /** Under Reserve Now: "From €410, fully refundable, and shipping in January 2027." */
+  ctaNote: site.priceNote,
 };
 
-// In page order: the unibody chapter, Precision, Holes, then Durability.
-export const specStrip = [
-  { value: "0", unit: "", label: "seams, one unibody shell" },
-  { value: "15", unit: "µm", label: "max deviation, any surface" },
-  { value: "0", unit: "", label: "drilled holes of 42" },
-  { value: "5", unit: "years", label: "design life, twice a week" },
-];
+// The landing page runs in three movements, one idea per screen (batch 3 deck, section 1):
+// Meet it (hero, sweet spot, Unibody, Feel), Prove it (Born whole, Precision, Holes, Durability, then the
+// Specifications as the recap) and Choose it (Identical, Choose your feel, Editions, Finale). The four-number
+// strip under the hero (0 seams, 15 µm, 0 drilled, 5 years) is retired: each number has its own chapter.
 
+/**
+ * Sweet spot, the first idea after the hero (CLAIMS.md row 6b): Apple's edge-to-edge display claim, told of the
+ * face. The owner's assumption (2026-10-22): the sweet spot is as big as it can theoretically be, the whole flat
+ * face. The numbers are never typed here: graphics-sweetspot.ts computes them from racket-shape.ts (SWEET) and
+ * rounds them as Apple rounds a display (SWEET_CLAIM), and the words below take them as arguments. The flat face
+ * ends 4 mm in from the edge (the 1.5 mm edge radius plus 2.5 mm) and 4 mm above the throat, and covers 498.7 of
+ * the 531.5 cm² of face above the bridge, 93.8%, said "Nearly 94%" (Apple Watch Series 7: "nearly 20 percent";
+ * a 5.85-inch iPhone X display was sold as 5.8-inch, so Apple never rounds up without a word). A design ceiling,
+ * not a measurement: the fine print says so, and the graphic says "Illustrative" until the independent rebound
+ * map exists. Line 1 is about the face only: the cause (the frame tube we left out) is told once, in Unibody.
+ * Never "all sweet spot", "zero", "no dead zones", "100%", "bezel", "twice the sweet spot", a comparison with a
+ * tubular racket or another brand, or "largest".
+ */
+export type SweetNumbers = { share: string; nearly: boolean; exact: string; inset: string; field: string; face: string };
+
+export const sweetSpot = {
+  eyebrow: "Sweet spot",
+  headline: "Edge to edge.",
+  lines: [
+    "The face stays flat right out to where the edge begins to curve.",
+    "That matters most on the shots you can't set up, when you meet the ball late, high or off the glass.",
+  ],
+  /**
+   * The lockup, each item read as a sentence: "Nearly 94% of the face is sweet spot." and "4 mm from the sweet spot
+   * to the edge." Both carry the fine-print marker. `nearly` shows only when the numeral is rounded up.
+   */
+  share: { nearly: "Nearly", unit: "%", label: "of the face is sweet spot" },
+  inset: { unit: "mm", label: "from the sweet spot to the edge" },
+  fine: (n: SweetNumbers) =>
+    `Sweet spot as designed: the flat face inside the rounded edge, ${n.field} of the ${n.face}\u00a0cm² of face above the bridge (${n.exact}%), ending ${n.inset}\u00a0mm from the edge. We count the whole flat face as sweet spot, the most the shape allows. Rebound across it to be mapped in independent tests before we ship.`,
+  /** Under the image, the K12 still or G15, which stands in for it until K12 is exported. */
+  caption: "Illustrative. The sweet spot as designed.",
+  /** K12 (K12-base, then K12-full): a face-on white Command racket whose face lights up to 4 mm from the edge. */
+  imageAlt: (n: SweetNumbers) =>
+    `A white KINETIQ Command racket face-on. Its face lights up evenly to within ${n.inset}\u00a0mm of the edge: the sweet spot as designed.`,
+  graphic: {
+    /** G15's detail: the edge magnified, with the band between the light and the edge dimensioned. */
+    detail: (n: SweetNumbers) => `${n.inset} mm`,
+    alt: (n: SweetNumbers) =>
+      `Face-on KINETIQ Command racket in white 3K carbon twill. Warm light fills its face to within ${n.inset}\u00a0mm of the edge, ${n.nearly ? "nearly " : ""}${n.share}% of the face above the bridge, and the 42 moulded holes stay dark. A magnified detail of the edge measures the ${n.inset}\u00a0mm band. Illustrative.`,
+  },
+};
+
+/** The marker on the sweet-spot numbers, linking to sweetSpot.fine (which carries the same marker). */
+export const sweetNote = {
+  mark: "‡",
+  id: "sweet-spot-fine",
+  label: "Sweet spot as designed: what it counts and how it will be tested",
+};
+
+/**
+ * Specifications, the recap before the buy (CLAIMS.md row 6c): six cells, then G01 whole. The outer dimensions
+ * sit at the FIP limits (length 45.5 cm, width 26 cm, thickness 38 mm; `racket-shape.ts` peaks at exactly
+ * 260.0 mm). Never "the largest face the rules allow": head length is free under the rules. The tolerances
+ * (±1.0 g, ±1.0 mm) are told by Identical, which follows.
+ */
+export const specifications = {
+  eyebrow: "Specifications",
+  headline: "As large as the rules allow.",
+  lead: "Its length, width and thickness each sit at the limit the rules of padel allow, and no further. The drawing below is to scale.",
+  cells: [
+    { value: "455", unit: "mm", label: "length" },
+    { value: "260", unit: "mm", label: "width" },
+    { value: "38.0", unit: "mm", label: "thickness" },
+    { value: "355.0", unit: "g", label: "weight" },
+    { value: "250", unit: "mm", label: "balance" },
+    { value: "42", unit: "", label: "holes, moulded" },
+  ],
+};
+
+/**
+ * Unibody, pinned on wide screens: beat A (K02 edge-on), beat B (the cut-through and G07), then the sealed core.
+ * Beat A says what one shell means in your hand, then what we left out (CLAIMS.md row 8c): "frame tube" is said here,
+ * once, and the sweet-spot line above it speaks only of the face. Its three callouts sit beside
+ * the parts they name, rim, bridge and handle, in that order (top to bottom on phones, where K02 stands upright).
+ * Beat C (the three proofs) is retired: "One structure." is said by beat A, "A wider sweet spot." by the sweet-spot
+ * section, and "The head twists less." by Feel.
+ */
 export const unibody = {
   edge: {
     eyebrow: "Unibody",
-    headline: "Zero seams. No joint to work loose.",
-    body: "Face, bridge and handle, one carbon shell. Carbon is strongest when nothing breaks its path. In KINETIQ, nothing does.",
-    callouts: ["38.0 mm, one continuous wall", "No frame tube", "One weave, face to edge"],
+    headline: "It feels like one thing in your hand.",
+    body: "We left out the frame tube. The face, the bridge and the handle are one carbon shell, and we took as much care over the inside as the outside, so your attention stays on the ball.",
+    callouts: [
+      { at: "rim", text: "More of the face is in play." },
+      { at: "bridge", text: "Zero seams, so there is no joint to work loose." },
+      { at: "handle", text: "The balance is set in the mould, to within 1.0\u00a0mm." },
+    ] as { at: "rim" | "bridge" | "handle"; text: string }[],
   },
   section: {
     eyebrow: "Construction",
-    headline: "No tube. The shell is the frame.",
+    headline: "The shell is the frame.",
     body: "Most padel rackets are built around a carbon tube. In KINETIQ, the faces close around the edge into one shell, and the grams a tube spends on structure go to the sides, where they widen the sweet spot.",
     // Only the frame tube's joints are marked: both constructions bond their faces to a core (CLAIMS.md row 4).
     // The tubular core is open to the air where the drilled hole cuts it; the KINETIQ shell lines the hole
@@ -61,14 +144,9 @@ export const unibody = {
     left: { title: "Tubular racket", parts: ["Frame tube", "Face", "Core", "Face"], glue: "joint", core: "Open core" },
     right: {
       title: "KINETIQ",
-      lines: ["One shell. No tube.", "Fibre continuous around the edge", "Balance set in the mould"],
+      lines: ["One continuous shell", "Fibre continuous around the edge", "Balance set in the mould"],
       core: "Sealed core",
     },
-    proofs: [
-      { title: "One structure.", body: "One carbon shell, face to handle. The skin carries every load, from the rim to the grip." },
-      { title: "A wider sweet spot.", body: "Weight moulded in at the sides, exactly where a tube would have spent it on holding the frame together." },
-      { title: "Stiffer in twist.", body: "The bridge is part of the same shell. Off-centre shots twist the head less, so the ball leaves where you aimed." },
-    ],
   },
   /**
    * The sealed core, over the K03 cut-through: the reveal. Durability carries the result (CLAIMS.md rows 30 to 33).
@@ -85,8 +163,8 @@ export const unibody = {
 
 export const bornWhole = {
   eyebrow: "Born whole",
-  headline: "Swiss Made. Down to the core.",
-  body: "The two words found on the finest watch dials, now on the throat of your racket. One patented process. One mould. No exceptions.",
+  headline: "Swiss Made, right down to the core.",
+  body: "The two words you find on the dial of a Swiss watch are etched into the side of every KINETIQ. Every racket is made in Switzerland, in one mould, by one patented process.",
   lockup: { value: "100%", label: "Swiss Made" },
   badges: ["100% Swiss Made", "Patented one-mould process"],
 };
@@ -95,7 +173,7 @@ export const precision = {
   record: { from: 500, to: 15, unit: "µm" },
   recordLine: "A fifth of a human hair.",
   headline: "Measured in microns.",
-  body: "15 microns. The furthest any surface may stray from its design. Not on a sample. On every racket. Whatever decides the point, it won't be your racket.",
+  body: "We hold every surface to within 15 microns of its design, and we measure every racket, not a sample, so each one plays the way it was designed to.",
   graph: {
     caption: "Illustrative. Surface deviation along the racket, against the ±15 µm limit.",
     limitLabel: "15 µm",
@@ -107,8 +185,8 @@ export const precision = {
 };
 
 export const holes = {
-  headline: "42 holes. Not one drilled.",
-  body: "Drill a racket and you cut the very fibres that carry the shot, and open its core to the air. So we don't. All 42 holes are formed in the mould, with carbon wrapped around every edge.",
+  headline: "All 42 holes are formed in the mould.",
+  body: "Drilling a racket cuts the fibres that carry the shot and opens its core to the air. We mould each hole instead, and wrap carbon around its edge.",
   stats: [
     { value: "42", label: "holes, moulded" },
     { value: "0", label: "drilled" },
@@ -176,16 +254,22 @@ export const lifeNote = {
   label: "Five-year design life: usage profile and terms",
 };
 
+// Feel follows the Unibody chapter, its cause (CLAIMS.md row 14). Unibody has just told the cause, so Feel names the
+// joint once (point 1) and otherwise speaks of the hand. Point 3 is the twist proof moved from the retired Unibody
+// beat C (CLAIMS.md row 7); it replaced "The same, edge to centre.", which the sweet-spot section now says.
 export const feel = {
-  headline: "Feel the ball. Not the racket.",
-  body: "Joints blur every impact. A tube echoes it back. KINETIQ has neither. You feel exactly where you met the ball, the same from edge to centre. Pure contact. Then calm.",
+  headline: "You feel exactly where you met the ball.",
+  body: "Because the racket is one carbon shell, what reaches your hand is the contact itself, and it settles quickly.",
   points: [
-    { title: "Nothing blurs the impact.", body: "No joint between face and frame to soften the signal. You feel exactly where the ball met the face." },
-    { title: "Nothing echoes it back.", body: "Vibration reflects at every joint. With no joints, the shock spreads through one structure and settles fast." },
-    { title: "The same, edge to centre.", body: "Walls held to the same thickness mean the same stiffness everywhere, and weight at the sides widens the sweet spot. Off-centre shots answer like centre shots." },
+    { title: "No joint to soften the impact.", body: "The face carries straight into the frame, so nothing blurs the moment the ball meets the face." },
+    { title: "Vibration settles quickly.", body: "It spreads through one structure and fades, so your hand is ready for the next shot." },
+    {
+      title: "The head twists less.",
+      body: "Because the bridge is part of the same shell, the head twists less on an off-centre shot, so the ball goes closer to where you aimed.",
+    },
   ],
   graph: {
-    caption: "Illustrative. How vibration fades after impact, edge to centre.",
+    caption: "Illustrative. How vibration fades after impact.",
     glued: "Tubular racket",
     kinetiq: "KINETIQ, unibody",
     settled: "Settled",
@@ -193,8 +277,8 @@ export const feel = {
 };
 
 export const identical = {
-  headline: "Buy two. It's the same racket.",
-  body: "Within 1.0 g of the reference weight. Within 1.0 mm of its balance point, set inside the mould. Swap rackets mid-match. Your hand will never know.",
+  headline: "Every KINETIQ is made to the same weight and balance.",
+  body: "Each racket is within 1.0\u00a0g of the reference weight, and its balance is set in the mould to within 1.0\u00a0mm, so you can change rackets in the middle of a match and the new one feels like the one you put down.",
   stats: [
     { value: "±1.0", unit: "g", label: "weight, every racket" },
     { value: "±1.0", unit: "mm", label: "balance, set in the mould" },
@@ -213,7 +297,7 @@ export const identical = {
       ["Max surface deviation", "0.012 mm"],
     ] as [string, string][],
     swiss: "Swiss Made",
-    /** The other card of a VanQuish sample set: the second racket, measured on its own (CLAIMS.md row 15). */
+    /** The other card of a First\u00a0500 sample set: the second racket, measured on its own (CLAIMS.md row 15). */
     second: {
       serial: "KQ-000428",
       values: { Weight: "354.9 g", Balance: "250.6 mm", "Max surface deviation": "0.011 mm" } as Record<string, string>,
@@ -221,23 +305,52 @@ export const identical = {
   },
 };
 
+/**
+ * Choose your feel, under the K08 pair (CLAIMS.md row 16; batch 3 names-copy-final, section 3). The two character
+ * lines follow one pattern, what we made and then what it does for you, so read side by side only the feel changes.
+ * The rows are labels: no full stops. "Suits" is guidance, not a result. No stiffness numbers until measured; never
+ * "Made in Europe" or "Easy on the arm". The closing line says plainly that only the core and the face differ.
+ */
 export const feelChoice = {
-  eyebrow: "Two feels. One standard.",
-  headline: "Choose your feel. Then we mould it.",
+  eyebrow: "Two feels",
+  headline: "We mould each racket in the feel you choose.",
+  /** Before each feel's purpose: "Built for control", "Built for power". */
+  builtFor: "Built for",
   feels: [
-    { id: "command", name: "Command", sub: "Control", line: "You choose the spot. The ball lands there.", spec: "Soft core, 3K face" },
-    { id: "pace", name: "Pace", sub: "Power", line: "You accelerate. It is already there.", spec: "Two-density core, 12K face" },
-  ],
-};
-
-export const editions = {
-  headline: "Three editions. One racket.",
+    {
+      id: "command",
+      name: "Command",
+      sub: "Control",
+      line: "We made Command to give a little as it meets the ball, so you can place it where you meant to.",
+      rows: [
+        ["Feel", "Soft and easy to handle"],
+        ["Face", "White 3K carbon, the finer weave"],
+        ["Core", "Soft EVA"],
+        ["Suits", "A game built on placement: the lob, the chiquita, the bandeja"],
+      ],
+    },
+    {
+      id: "pace",
+      name: "Pace",
+      sub: "Power",
+      line: "We made Pace stiffer and quicker, so it gives you more power when you swing through the ball.",
+      rows: [
+        ["Feel", "Quick and reactive"],
+        ["Face", "Black 12K carbon, the bolder weave"],
+        ["Core", "Two-density EVA, soft under the face and firmer in the centre"],
+        ["Suits", "A game built on pressure: the first volley, a change of tempo, the smash"],
+      ],
+    },
+  ] as { id: "command" | "pace"; name: string; sub: string; line: string; rows: [string, string][] }[],
+  /** One bar across both columns (CLAIMS.md rows 12 and 16). */
+  closing:
+    "Command and Pace differ only in the core and the face. Both weigh 355.0\u00a0g, balance at 250\u00a0mm and measure 38.0\u00a0mm, with the same 42 moulded holes.",
 };
 
 export const finale = {
-  /** "Five years." carries the footnote marker to the usage profile (CLAIMS.md row 26). */
-  headline: "Zero seams. Fifteen microns. Five years.",
-  sub: `From €410. ${site.refundLabel} in ${site.shipMonth}.`,
+  /** "five years." carries the footnote marker to the usage profile (CLAIMS.md row 26). */
+  headline: "Zero seams, held to fifteen microns, and built to last five years.",
+  sub: site.priceNote,
 };
 
 export const meta = {

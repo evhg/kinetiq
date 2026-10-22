@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 import { Icon, TierGlyph } from "@/components/graphics/Icons";
 import { Still } from "@/components/media/Still";
 import { Hyphens } from "@/components/text/Hyphens";
@@ -48,7 +48,13 @@ export function Editions() {
     <section id="editions" className={styles.section} aria-labelledby="editions-title">
       <div className={styles.intro}>
         <h2 id="editions-title" className={`t-h2 ${styles.title}`}>
-          {editionsIntro.headline}
+          {/* each clause keeps its words together: "We make one racket, / in three editions." */}
+          {editionsIntro.headline.split(/(?<=,) /).map((clause, n) => (
+            <Fragment key={clause}>
+              {n ? " " : null}
+              <span className={styles.clause}>{clause}</span>
+            </Fragment>
+          ))}
         </h2>
         <p className={`t-lead ${styles.lead}`}>{editionsIntro.lead}</p>
       </div>

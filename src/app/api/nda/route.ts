@@ -1,11 +1,10 @@
-import { NextResponse, after, type NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { NDA_COOKIE, NDA_MAX_AGE, encodeNda, isEmail, normaliseEmail } from "@/lib/nda";
-import { notifyNdaSignIn } from "@/lib/nda-notify";
 
 // The NDA gate's one endpoint (src/proxy.ts lets it through without the cookie). It checks the email, sets the
-// kq_nda cookie (src/lib/nda.ts) and, after the response, emails the owner (src/lib/nda-notify.ts). No database and
-// no log line with the address. A malformed address is an answer, not a failure: 200 with ok: false (no console
-// error), as in /api/invite. Malformed or cross-site requests get 400 / 403.
+// kq_nda cookie (src/lib/nda.ts) and stores nothing else: no database, no log line, the email lives only in
+// the visitor's cookie. A malformed address is an answer, not a failure: 200 with ok: false (no console error),
+// as in /api/invite. Malformed or cross-site requests get 400 / 403.
 
 const MAX_BODY = 2048;
 
@@ -38,20 +37,5 @@ export async function POST(request: NextRequest) {
     path: "/",
     maxAge: NDA_MAX_AGE,
   });
-  const origin = request.nextUrl.origin;
-  let page = "/";
-  try {
-    const ref = new URL(request.headers.get("referer") ?? "", origin);
-    if (ref.origin === origin) page = `${ref.pathname}${ref.search}`.slice(0, 200);
-  } catch {}
-  const signIn = {
-    email,
-    at: new Date().toISOString(),
-    page,
-    origin,
-    country: request.headers.get("x-vercel-ip-country") ?? undefined,
-    browser: request.headers.get("user-agent")?.slice(0, 200) ?? undefined,
-  };
-  after(() => notifyNdaSignIn(signIn));
   return res;
 }

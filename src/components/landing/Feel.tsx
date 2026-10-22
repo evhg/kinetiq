@@ -3,10 +3,13 @@ import { feel } from "@/content/copy";
 import { Reveal } from "./Reveal";
 import styles from "./Feel.module.css";
 
-/** Feel: the vibration graph, with the three reasons it settles. */
+/**
+ * Feel, right after its cause (the Unibody chapter, whose Skip link lands here, so it takes focus): the vibration
+ * graph, with three reasons the racket feels as it does.
+ */
 export function Feel() {
   return (
-    <section id="feel" className={`lift ${styles.section}`} aria-labelledby="feel-title">
+    <section id="feel" tabIndex={-1} className={`lift ${styles.section}`} aria-labelledby="feel-title">
       <Reveal className={styles.head}>
         <h2 id="feel-title" className="t-h2">
           {feel.headline}

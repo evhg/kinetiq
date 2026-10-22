@@ -385,6 +385,10 @@ html[data-arrive]:has([data-reserve-shell])::after {
 .pin-stage {
   position: relative;
 }
+/* The Skip link is for keyboard users only: visually hidden (still in the tab order and the accessibility tree) until
+   it takes focus, then shown at once at the top of the pinned stage, just below the header (PinnedChapter brings the
+   chapter's first screen into view on focus). No transition: it answers a keypress, so it jumps. Mouse and touch
+   visitors never see it; every pin ends on its own. scripts/check.mjs reaches each one by Tab. */
 .skip-link {
   position: absolute;
   z-index: 5;
@@ -394,20 +398,23 @@ html[data-arrive]:has([data-reserve-shell])::after {
   align-items: center;
   min-height: 44px;
   padding: 0 16px;
-  border: 1px solid var(--hairline);
+  border: 1px solid var(--edge);
   border-radius: 4px;
-  background: rgb(6 6 7 / 0.6);
-  color: var(--steel);
+  background: rgb(6 6 7 / 0.85);
+  color: var(--text);
   font-family: var(--font-data);
   font-size: 1rem;
   text-decoration: none;
-  transition: border-color 200ms ease, color 200ms ease;
 }
-@media (hover: hover) and (pointer: fine) {
-  .skip-link:hover {
-    color: var(--text);
-    border-color: var(--edge);
-  }
+.skip-link:not(:focus) {
+  width: 1px;
+  height: 1px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 .beat {
   position: relative;

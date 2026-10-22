@@ -456,7 +456,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
       {/* wide screens: the column's text fades out under the header instead of being sliced by it */}
       <div className={styles.topFade} aria-hidden="true" />
       <div className={styles.columnHead}>
-        <h1 className={styles.columnTitle}>{tier.name}</h1>
+        <h1 className={styles.columnTitle}>{reserveCopy.columnTitle}</h1>
         <p className={styles.ships}>{site.shipLabel}</p>
       </div>
 
@@ -474,7 +474,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
               const status = !can ? reserveCopy.soldOut : t.id === "invite" && inviteCode ? INV.acceptedStatus : t.availability;
               const extras = (
                 <span className={styles.extras} data-quiet={!checked || undefined}>
-                  <span className={styles.extrasHead}>{reserveCopy.includedWith(t.name)}</span>
+                  <span className={styles.extrasHead}>{reserveCopy.included}</span>
                   {t.includes.map((x, n) => (
                     <span key={x} className={styles.extra}>
                       <Icon name={includeIcons[t.id][n] ?? "shieldCheck"} size={20} className={styles.extraIcon} />
@@ -731,7 +731,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
       {stage === "choose" ? (
         <div className={styles.bar} data-hidden={payVisible} inert={payVisible} data-reserve-bar="">
           <span className={styles.barText}>
-            <span className={styles.barTier}>{tier.name}</span>
+            <span className={styles.barTier}>{reserveCopy.barCount(tier.rackets)}</span>
             <span className="t-num">
               {reserveCopy.dueTodayLabel} {priceLabel(tier.priceEur)}
             </span>
@@ -771,18 +771,24 @@ function Confirmation({ tier, feel, email, paymentId }: { tier: TierId; feel: Fe
   );
 }
 
-/** A woven-carbon swatch: fine 3K twill for Command, wide 12K spread tow for Pace. */
+/** A woven-carbon swatch: fine white 3K twill for Command, wide black 12K spread tow for Pace (owner, 2026-10-22). */
+const SWATCH: Record<FeelId, { ground: string; tow: string; line: string; edge: string }> = {
+  command: { ground: "#b9b6b1", tow: "#e4e1dc", line: "#f3f1ed", edge: "#c9ccd1" },
+  pace: { ground: "#0d0d0f", tow: "#26262b", line: "#3a3a41", edge: "#6b6e76" },
+};
+
 function Swatch({ weave }: { weave: FeelId }) {
   const id = useId();
   const cell = weave === "command" ? 5 : 12;
+  const c = SWATCH[weave];
   return (
     <svg viewBox="0 0 56 56" className={styles.swatch} aria-hidden="true">
       <defs>
         <pattern id={id} width={cell * 2} height={cell * 2} patternUnits="userSpaceOnUse" patternTransform="rotate(45 28 28)">
-          <rect width={cell * 2} height={cell * 2} fill="#0d0d0f" />
-          <rect width={cell} height={cell} fill="#26262b" />
-          <rect x={cell} y={cell} width={cell} height={cell} fill="#26262b" />
-          <path d={`M0 ${cell / 2}h${cell}M${cell} ${cell * 1.5}h${cell}`} stroke="#3a3a41" strokeWidth={cell / 5} />
+          <rect width={cell * 2} height={cell * 2} fill={c.ground} />
+          <rect width={cell} height={cell} fill={c.tow} />
+          <rect x={cell} y={cell} width={cell} height={cell} fill={c.tow} />
+          <path d={`M0 ${cell / 2}h${cell}M${cell} ${cell * 1.5}h${cell}`} stroke={c.line} strokeWidth={cell / 5} />
         </pattern>
         <radialGradient id={`${id}-g`} cx="30%" cy="25%" r="80%">
           <stop offset="0" stopColor="#fff" stopOpacity="0.22" />
@@ -791,7 +797,7 @@ function Swatch({ weave }: { weave: FeelId }) {
       </defs>
       <circle cx="28" cy="28" r="27" fill={`url(#${id})`} />
       <circle cx="28" cy="28" r="27" fill={`url(#${id}-g)`} />
-      <circle cx="28" cy="28" r="27.5" fill="none" stroke="#6b6e76" strokeWidth="1" />
+      <circle cx="28" cy="28" r="27.5" fill="none" stroke={c.edge} strokeWidth="1" />
     </svg>
   );
 }

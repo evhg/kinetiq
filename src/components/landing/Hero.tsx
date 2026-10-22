@@ -46,6 +46,15 @@ export function Hero() {
           live = false;
         };
       });
+      // Wide screens: the sweet spot's racket rises beside where this one stands, so this one fades out first (between
+      // 10% and 32% of the hero scrolled) and the two only cross at low light (SweetSpot.tsx starts its racket late).
+      mm.add("(prefers-reduced-motion: no-preference) and (min-width: 1000px)", () => {
+        gsap.fromTo(
+          `.${styles.drift}`,
+          { opacity: 1 },
+          { opacity: 0, ease: "none", scrollTrigger: { trigger: root.current, start: "top -10%", end: "top -32%", scrub: 0.4 } },
+        );
+      });
       return () => mm.revert();
     },
     { scope: root, dependencies: [motionOn], revertOnUpdate: true },

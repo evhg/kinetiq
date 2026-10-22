@@ -1,0 +1,110 @@
+/* Specifications: the graphite floor with two lifts, one behind the claim and the numbers, one centred on G01, so
+   the drawing's hairlines sit on light (fill rule). The drawing's lift reaches luma 40 over its middle quarter: at
+   2560 the sheet's foot shares the screen with K07's dark top before Identical's words rise, and measured 5% lit
+   with a plain --lift centre. The light line opens the recap after Durability. */
+.section {
+  position: relative;
+  display: grid;
+  gap: clamp(48px, 4vw, 120px);
+  padding: clamp(96px, 7vw, 200px) var(--margin) clamp(80px, 6vw, 160px);
+  background:
+    radial-gradient(ellipse 80% 30% at 50% 14%, rgb(56 56 62 / 0.9), rgb(43 43 49 / 0.7) 35%, transparent 80%),
+    radial-gradient(ellipse 85% 52% at 50% 68%, rgb(50 50 56 / 0.9), var(--lift) 25%, rgb(34 34 39 / 0.6) 50%, transparent 80%),
+    var(--stage);
+}
+.line {
+  position: absolute;
+  inset: 0 0 auto;
+}
+.head {
+  display: grid;
+  gap: 24px;
+}
+.claim {
+  display: grid;
+  gap: clamp(14px, 1vw + 6px, 28px);
+}
+.claim :global(.t-h2) {
+  max-width: 14ch;
+}
+/* six cells, ruled like a spec sheet: a hairline above each row and one under the last; three by two from 900 px */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin: 0;
+  border-bottom: 1px solid var(--hairline);
+}
+.cell {
+  display: grid;
+  align-content: start;
+  gap: clamp(10px, 0.5vw + 6px, 20px);
+  padding: 24px 16px;
+  border-top: 1px solid var(--hairline);
+}
+/* two by three on phones: a hairline between the columns */
+.cell:nth-child(odd) {
+  padding-left: 0;
+}
+.cell:nth-child(even) {
+  border-left: 1px solid var(--hairline);
+}
+/* The label is the term (dt) and comes first in the markup; the number still reads first. */
+.value {
+  order: -1;
+  margin: 0;
+  font-size: clamp(3rem, 5.2vw, 10rem);
+  white-space: nowrap;
+}
+.value :global(.t-unit) {
+  font-size: max(0.9375rem, 0.28em);
+}
+.label {
+  font-size: clamp(1rem, 0.45vw + 0.8rem, 1.375rem);
+  color: var(--steel);
+}
+/* The drawing at full contrast, centred; on very wide screens it stops at 2000 px so the sheet stays
+   about one screen tall. */
+.drawing {
+  justify-self: center;
+  width: min(100%, 2000px);
+}
+.narrow {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .cell,
+  .cell:nth-child(odd),
+  .cell:nth-child(even) {
+    padding: clamp(24px, 2.2vw, 64px) clamp(16px, 2vw, 56px);
+    border-left: 1px solid var(--hairline);
+  }
+  .cell:nth-child(3n + 1) {
+    padding-left: 0;
+    border-left: 0;
+  }
+  .head {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--gutter);
+    align-items: end;
+  }
+  .head :global(.t-lead) {
+    max-width: 46ch;
+  }
+}
+
+/* Below the width where the full sheet lays out as one wide sheet (its 1100 px container), the
+   dimensioned front view stands in for it. */
+@media (max-width: 1239px) {
+  .wide {
+    display: none;
+  }
+  .narrow {
+    display: block;
+    width: min(100%, 560px);
+    margin-inline: auto;
+  }
+}

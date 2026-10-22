@@ -57,6 +57,18 @@
   /* keep the floor: any crop comes off the empty backdrop above the racket */
   object-position: 50% 100%;
 }
+/* The floor ends on the sweet-spot section's first colour (SweetSpot.module.css), painted over the scroll-away veil,
+   so the hand-off reads as one room at every scroll position (the veil would otherwise darken the floor's last row
+   and leave a step). Under the words and Reserve Now. */
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  z-index: -1;
+  height: 12%;
+  background: linear-gradient(rgb(26 25 25 / 0), rgb(26 25 25 / 0.7) 55%, rgb(26 25 25));
+  pointer-events: none;
+}
 /* The lit layer waits for the reveal when motion is on; otherwise it shows at once. */
 :global(html[data-motion="on"]) .full {
   opacity: 0;
@@ -119,9 +131,15 @@
   .cta {
     width: 100%;
   }
+  /* the price note is one sentence: on phones it wraps into two even lines under the button */
+  .note {
+    white-space: normal;
+    text-align: center;
+    text-wrap: balance;
+  }
 }
-/* Short phones: the headline and Reserve Now, as on Tesla's phone page; the spec strip that follows
-   carries the lead's facts. */
+/* Short phones: the headline and Reserve Now, as on Tesla's phone page; the chapters that follow carry the
+   lead's facts. */
 @media (max-width: 699px) and (max-height: 740px) {
   .lead {
     display: none;
@@ -160,6 +178,10 @@
     width: 62%;
     height: auto;
     background: linear-gradient(to right, rgb(21 21 22 / 0.55), transparent);
+  }
+  /* Wide, the floor's fade is taller, so the beam on the floor never ends on a hard line. */
+  .hero::after {
+    height: 22%;
   }
   .top,
   .bottom {

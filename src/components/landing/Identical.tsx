@@ -27,16 +27,14 @@ export function Identical() {
           <div className={styles.graph}>
             <ConsistencySpikes />
           </div>
-          {/* The certificate, then the payoff of "Buy two": the second Reserve Now, right under it. */}
+          {/* The certificate, then the payoff of the same weight and balance: the second Reserve Now, right under it. */}
           <div className={styles.card}>
             <MeasurementCard rotate />
             <Reveal className={styles.cta}>
               <Link href="/reserve" className="btn btn-primary">
                 {site.ctaLabel}
               </Link>
-              <p className="t-label">
-                {site.fromPriceLabel}. {site.refundLabel}.
-              </p>
+              <p className="t-label">{site.priceNote}</p>
             </Reveal>
           </div>
         </div>

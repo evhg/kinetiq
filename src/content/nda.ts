@@ -20,7 +20,7 @@ export const ndaCopy = {
     label: "Email",
     submit: "Open the presentation",
     busy: "Opening",
-    note: "We note your email for our NDA records and keep it in a cookie on this device, so you only do this once.",
+    note: "Your email is kept in a cookie on this device, so you only do this once.",
     invalid: "Enter a valid email address.",
     failed: "The presentation did not open. Please try again.",
     blocked: "This browser did not keep the cookie. Allow cookies for this site, then try again.",

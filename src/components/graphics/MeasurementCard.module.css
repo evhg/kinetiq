@@ -353,6 +353,15 @@
   .side {
     gap: 0.35em;
   }
+  /* dense (the /reserve gallery's set of two on phones): a little tighter again, so the front card stays near A6 */
+  .root[data-dense] .card {
+    --pad: 5.2cqw;
+    --title-gap: 0.35em;
+    --meta-gap: 0.2em;
+    --rows-gap: 0.45em;
+    --row-pad: 0.1em;
+    --foot-gap: 0.4em;
+  }
 }
 
 /* ---------- thumb: no text, structure only ----------

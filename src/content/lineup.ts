@@ -5,7 +5,7 @@
 // One racket, three editions (owner, 2026-10-22). Every edition holds the same KINETIQ, in the feel the buyer
 // chooses: the editions differ only in how many rackets come, when they ship and what comes with them. So the names
 // never describe the racket; each is a number you can read on it (its serial; its set number, 001 to 500; its set
-// number, 01 to 10). Command and Pace stay the only words about play. Write "First 500" and "One of Ten"
+// number, 01 to 10). Command and Pace stay the only words about play. Write "First 500" and "One of Ten"
 // in full, with no-break spaces, never shortened ("500", "The Ten") and never with ™ (CLAIMS.md row 35). ConQuer,
 // VanQuish and InviQtus are retired.
 
@@ -146,9 +146,9 @@ export const tiers: Tier[] = [
     availability: "Limited",
     priceEur: 990,
     // "First" is a production promise (CLAIMS.md row 19): sets 001 to 500 leave the mould before any other
-    // edition and ship first. Every line says "sets": 500 sets are 1,000 rackets.
-    cardLine:
-      "The first 500 sets we make are numbered 001\u00a0to\u00a0500, and they ship first. Each set is two identical rackets in one\u00a0feel.",
+    // edition and ship first. Every line says "sets": 500 sets are 1,000 rackets. "First to ship" is said once, by
+    // the includes; the card line says what the set is.
+    cardLine: "The first 500 sets we make are numbered 001\u00a0to\u00a0500. Each set is two identical rackets in one\u00a0feel.",
     includes: [
       "Two identical KINETIQ rackets, both Command or both\u00a0Pace",
       "Your set number, 001\u00a0to\u00a0500, laser-marked on both throats",

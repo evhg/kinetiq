@@ -5,12 +5,19 @@
 }
 .beatA,
 .beatB,
-.beatS,
-.beatC {
+.beatS {
   display: grid;
   overflow: hidden;
   isolation: isolate;
   background:
+    radial-gradient(ellipse 90% 55% at 50% 30%, rgb(43 43 49 / 0.7), transparent 75%),
+    var(--stage);
+}
+/* Beat A's top starts on the sweet spot's last colour, rgb(19 20 22), and feathers into its lift, so the hand-off is
+   not a line across the screen (pinned, the chapter's own floor is that colour). */
+.beatA {
+  background:
+    linear-gradient(rgb(19 20 22), rgb(19 20 22 / 0) 160px),
     radial-gradient(ellipse 90% 55% at 50% 30%, rgb(43 43 49 / 0.7), transparent 75%),
     var(--stage);
 }
@@ -40,17 +47,27 @@
 .copy :global(.t-h2) {
   max-width: 18ch;
 }
-/* Beats A and B: two-sentence headlines, one sentence per line where each fits; a sentence that must wrap
-   (phones) wraps evenly inside itself, never leaving a word alone. */
+/* One-sentence headlines: beat A's and beat B's keep one line wherever the screen allows; on phones (and in the
+   sealed core's left column) they wrap evenly (t-h2 balances), never leaving a word alone. */
 .copy .title {
-  max-width: 24ch;
-}
-.sentence {
-  display: inline-block;
-  text-wrap: balance;
+  max-width: 30ch;
 }
 .copy :global(.t-lead) {
   max-width: 56ch;
+}
+/* Beat A's words come in two parts: the eyebrow and headline, then the lead. On phones K02 stands between them, so
+   the chapter opens on its own heading, never on a bare image straight after the sweet spot's fine print. */
+.headA {
+  padding-bottom: 20px;
+}
+.ledeA {
+  padding-top: 20px;
+}
+/* K02's top and bottom feather into the stage (its own backdrop is the same graphite), so the image has no hard
+   edge where the words begin and end. */
+.beatA .still img {
+  -webkit-mask-image: linear-gradient(transparent, #000 14%, #000 86%, transparent);
+  mask-image: linear-gradient(transparent, #000 14%, #000 86%, transparent);
 }
 .callouts {
   display: grid;
@@ -62,6 +79,7 @@
   padding-left: 22px;
   color: var(--steel);
   font-size: clamp(1rem, 0.4vw + 0.85rem, 1.375rem);
+  text-wrap: balance;
 }
 .callout::before {
   content: "";
@@ -76,6 +94,13 @@
 /* The sealed core: words and three callouts, centred when stacked, a left column beside the shell when pinned. */
 .beatS {
   padding-bottom: 48px;
+  /* Stacked, the sealed core is words only: a lift that reaches luma 40 behind the headline, so the screen that
+     holds G07's foot and this beat never reads as flat graphite (2560 reduced motion measured 7% lit without it).
+     It fades out before the beat's top and bottom edges, so it meets G07's floor and Feel with no seam. Pinned, the
+     beat paints no floor (below). */
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 50%, rgb(58 58 64 / 0.9), rgb(50 50 56 / 0.88) 35%, transparent 95%),
+    var(--stage);
 }
 .sealedCopy :global(.t-lead) {
   max-width: 44ch;
@@ -98,48 +123,64 @@
 .side {
   min-width: 0;
 }
-.proofs {
-  display: grid;
-  gap: 28px;
-  padding: 40px var(--margin) 80px;
-}
-/* align-content: start, so in the stretched row every body starts the same distance below its title */
-.proof {
-  display: grid;
-  align-content: start;
-  gap: 8px;
-  border-top: 1px solid var(--hairline);
-  padding-top: 20px;
-}
-.proofTitle {
-  color: var(--text);
-}
 
-/* Stacked on wide screens (reduced motion): K02 is edge-on, so its frame is cropped to the racket's band. */
+/* Stacked on wide screens (reduced motion): the words first, then K02 edge-on, its frame cropped to the racket's band
+   (18:5), and the callouts under it. */
 @media (min-width: 700px) {
+  .headA {
+    order: 1;
+    padding-bottom: 0;
+  }
+  .ledeA {
+    order: 2;
+    padding-top: clamp(14px, 1vw + 6px, 28px);
+  }
+  .beatA .media {
+    order: 3;
+    margin-top: clamp(16px, 2vw, 48px);
+  }
+  .callouts {
+    order: 4;
+  }
+  /* the band holds the racket (y 40% to 61% of the still, 33% to 72% of the band) with graphite above and below,
+     feathered over a fifth of the band at each end */
   .beatA .still img {
-    aspect-ratio: 21 / 8;
+    aspect-ratio: 18 / 5;
     object-fit: cover;
+    -webkit-mask-image: linear-gradient(transparent, #000 20%, #000 78%, transparent);
+    mask-image: linear-gradient(transparent, #000 20%, #000 78%, transparent);
   }
 }
 
+/* Stacked on wide screens (reduced motion): K02 spans the full width, so each callout sits under the part it names,
+   in K02's own x coordinates: the handle runs from 11.7% to 36.6% of the still, the head from there to 88.3%. */
 @media (min-width: 900px) {
   .callouts {
-    grid-template-columns: repeat(3, auto);
-    justify-content: center;
-    gap: clamp(32px, 4vw, 120px);
+    grid-template-columns: 24.9fr 25.85fr 25.85fr;
+    column-gap: 0;
+    padding-inline: 11.7%;
   }
-  .proofs {
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--gutter);
+  .callouts .callout {
+    padding-right: 24px;
+  }
+  .handle {
+    order: 1;
+  }
+  .bridge {
+    order: 2;
+  }
+  .callouts .rim {
+    order: 3;
+    justify-self: end;
+    padding-right: 0;
+    text-align: right;
   }
 }
 
 @media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
   :global(html[data-motion="on"]) .beatA,
   :global(html[data-motion="on"]) .beatB,
-  :global(html[data-motion="on"]) .beatS,
-  :global(html[data-motion="on"]) .beatC {
+  :global(html[data-motion="on"]) .beatS {
     padding-top: calc(var(--chrome-h) + clamp(24px, 3vh, 64px));
   }
   /* The sealed core sits over beat B's shell, which the timeline moves right: the words take the left
@@ -165,28 +206,53 @@
     gap: clamp(10px, 1.4vh, 22px);
     margin-top: clamp(4px, 1vh, 20px);
   }
-  /* Layered: beat A is covered by K02 and beat C sits over beat B's shell, so neither paints a floor;
-     between beats the chapter shows its lit graphite. */
+  /* Layered: the beats paint no floor of their own (beat A's K02 feathers into it); the chapter shows its lit graphite,
+     flat rgb(19 20 22) at its top, where the sweet spot's foot ends. */
   :global(html[data-motion="on"]) .chapter {
     background:
       radial-gradient(ellipse 70% 60% at 50% 55%, rgb(43 43 49 / 0.8), transparent 75%),
       rgb(19 20 22);
   }
-  :global(html[data-motion="on"]) .beatA,
-  :global(html[data-motion="on"]) .beatC {
-    background: none;
-  }
+  /* Beat A, pinned: the eyebrow and headline, the lead, the racket and its callouts are one block, centred in the
+     stage below the header, so the screen is balanced. K02 is sized as if it covered the stage (16:9, centred:
+     --img-w x --img-h) and hangs from its band: the racket spans y 40% to 61% of the still, so the band (row 3) is
+     0.21 of its height and the still starts 0.4 of its height above it. Above and below the band the still feathers
+     into the chapter's graphite, so wherever the band sits the stage shows no edge. */
   :global(html[data-motion="on"]) .beatA {
-    grid-template-rows: auto 1fr auto;
+    --img-w: max(100vw, 177.78svh);
+    --img-h: max(100svh, 56.25vw);
+    --handle-x: max(var(--margin), calc(50vw - 0.383 * var(--img-w)));
+    --bridge-x: calc(50vw - 0.134 * var(--img-w));
+    --rim-r: max(var(--margin), calc(50vw - 0.383 * var(--img-w)));
+    background: none;
+    align-content: center;
+    padding: var(--chrome-h) 0 0;
   }
-  /* Beat B: heading and the two G07 drawings only; the proofs have their own beat. */
+  :global(html[data-motion="on"]) .beatA .media {
+    position: relative;
+    inset: auto;
+    height: calc(0.21 * var(--img-h));
+    margin-top: clamp(28px, 5svh, 88px);
+  }
+  :global(html[data-motion="on"]) .beatA .still {
+    position: absolute;
+    display: block;
+    left: calc(50% - var(--img-w) / 2);
+    top: calc(-0.4 * var(--img-h));
+    width: var(--img-w);
+    height: var(--img-h);
+    -webkit-mask-image: linear-gradient(transparent, #000 24%, #000 80%, transparent);
+    mask-image: linear-gradient(transparent, #000 24%, #000 80%, transparent);
+  }
+  :global(html[data-motion="on"]) .beatA .still img {
+    aspect-ratio: auto;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  /* Beat B: heading and the two G07 drawings. */
   :global(html[data-motion="on"]) .beatB {
     grid-template-rows: auto minmax(0, 1fr);
     padding-bottom: clamp(32px, 6vh, 112px);
-  }
-  /* Beat C sits over beat B's shell still: the proofs along the foot of the stage. */
-  :global(html[data-motion="on"]) .beatC {
-    align-content: end;
   }
   :global(html[data-motion="on"]) .media {
     position: absolute;
@@ -196,8 +262,8 @@
     height: 100%;
     object-fit: cover;
   }
-  /* Beat B: K03 sits lower and smaller, between the G07 drawings and under the heading, then grows back
-     to full frame for beat C. The stage colour matches the render's flat graphite border. */
+  /* Beat B: K03 sits lower and smaller, between the G07 drawings and under the heading, then moves right for the
+     sealed core. The stage colour matches the render's flat graphite border. */
   :global(html[data-motion="on"]) .beatB {
     background: rgb(19 20 22);
   }
@@ -227,16 +293,14 @@
     height: 100%;
     visibility: hidden;
   }
-  /* The light line traces K02's top edge: the racket spans x 11.5-88.5% and its top edge sits at
-     y 46.5% of the 16:9 still, which is covered over the 100svh x 100vw stage. */
+  /* The light line traces K02's top edge: the racket spans x 11.5-88.5% and its top edge sits at y 46.5% of the 16:9
+     still, which is 0.065 of its height below the band's top. */
   :global(html[data-motion="on"]) .edgeLight {
-    --img-w: max(100vw, 177.78svh);
-    --img-h: max(100svh, 56.25vw);
     display: block;
     position: absolute;
-    left: calc(50vw - 0.385 * var(--img-w));
+    left: calc(50% - 0.385 * var(--img-w));
     width: calc(0.77 * var(--img-w));
-    top: calc(50svh - 0.035 * var(--img-h));
+    top: calc(0.065 * var(--img-h));
     height: 1px;
     transform-origin: 0 50%;
     background: linear-gradient(90deg, transparent, var(--amber) 8%, var(--amber-hot) 50%, var(--amber) 92%, transparent);
@@ -253,9 +317,46 @@
   :global(html[data-motion="on"]) .copy :global(.t-lead) {
     font-size: max(1.0625rem, min(var(--fs-lead), 2.7svh));
   }
+  /* Beat A's lead runs wider, so it keeps to two or three lines. */
+  :global(html[data-motion="on"]) .beatA .copy :global(.t-lead) {
+    max-width: 72ch;
+  }
+  :global(html[data-motion="on"]) .beatA .copy {
+    padding-bottom: 0;
+  }
+  :global(html[data-motion="on"]) .beatA .ledeA {
+    padding-top: clamp(14px, 1vw + 6px, 28px);
+  }
+  /* The callouts, a row just under the racket (its underside is at y 60.3% of K02), each under the part it names:
+     the handle's from the butt cap (x 11.7%, kept inside the margin on narrow windows) to short of the bridge, the
+     bridge's from the bridge (x 36.6%), the rim's ending at the head's far end (x 88.3%). The bridge's and the rim's
+     share the second column; on narrow windows, where K02's ends are cropped, they share what is left. */
   :global(html[data-motion="on"]) .callouts {
-    grid-row: 3;
-    padding-bottom: clamp(48px, 8vh, 120px);
+    position: relative;
+    display: grid;
+    grid-template-columns: calc(var(--bridge-x) - var(--handle-x)) minmax(0, 1fr);
+    column-gap: 0;
+    margin-top: clamp(20px, 3.5svh, 56px);
+    padding: 0 var(--rim-r) 0 var(--handle-x);
+    pointer-events: none;
+  }
+  :global(html[data-motion="on"]) .beatA .callout {
+    grid-row: 1;
+    padding-right: 0;
+  }
+  :global(html[data-motion="on"]) .beatA .handle {
+    grid-column: 1;
+    max-width: calc(var(--bridge-x) - var(--handle-x) - 32px);
+  }
+  :global(html[data-motion="on"]) .beatA .bridge {
+    grid-column: 2;
+    justify-self: start;
+    max-width: min(0.24 * var(--img-w), (100vw - var(--margin) - var(--bridge-x)) / 2);
+  }
+  :global(html[data-motion="on"]) .beatA .rim {
+    grid-column: 2;
+    justify-self: end;
+    max-width: min(0.22 * var(--img-w), (100vw - var(--margin) - var(--bridge-x)) / 2 - 32px);
   }
   :global(html[data-motion="on"]) .compare {
     grid-row: 2;
@@ -265,13 +366,5 @@
     grid-template-columns: repeat(2, minmax(0, clamp(340px, 30%, 50svh)));
     justify-content: space-between;
     padding-top: 0;
-  }
-  /* layered, the proofs sit over K03's lit shell: no pool behind them */
-  :global(html[data-motion="on"]) .proofs::before {
-    content: none;
-  }
-  :global(html[data-motion="on"]) .proofs {
-    padding-top: 0;
-    padding-bottom: clamp(48px, 8vh, 120px);
   }
 }

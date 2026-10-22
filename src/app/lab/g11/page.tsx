@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import { ICON_NAMES, Icon, TierGlyph } from "@/components/graphics/Icons";
-import { tiers } from "@/content/lineup";
+import { editionsIntro, tiers } from "@/content/lineup";
 import { reserveCopy } from "@/content/reserve";
 
 // Saira's hinted advances round badly on Linux and Windows Chromium; the components set the same.
@@ -63,7 +63,7 @@ export default function LabG11() {
       <div className="wrap" style={{ display: "grid", gap: "clamp(48px, 4vw, 120px)" }}>
         <div style={{ display: "grid", gap: 12 }}>
           <p className="t-eyebrow">G11 Icons and tier glyphs</p>
-          <h2 className="t-h2">Three editions. One standard.</h2>
+          <h2 className="t-h2">{editionsIntro.headline}</h2>
         </div>
 
         <div style={{ display: "grid", gap: 16 }}>

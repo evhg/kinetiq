@@ -12,7 +12,7 @@
   padding: clamp(96px, 8vw, 200px) var(--margin) clamp(32px, 3vw, 72px);
 }
 /* The pool light reaches down behind the mould, never up past the section's top edge: there it would lie
-   over the end of the Unibody chapter (its proofs) and grey them out. */
+   over the end of the section before it (Feel's three points) and grey them out. */
 .section .copy::before {
   inset: 0 0 -45%;
 }

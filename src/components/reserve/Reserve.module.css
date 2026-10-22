@@ -63,9 +63,10 @@
   width: min(100%, calc(100cqh / 1.46));
 }
 /* First 500: the set's two cards. B rests behind A and only its top shows above A (header, serial and "Set No. 027 /
-   500 B"; MeasurementCard's peek renders nothing below that), under one soft shadow and no mount plates. The pair is
-   never narrower than the card's full layout (340 px): phones show it full width from the top, and the slide crops
-   A's foot under a fade, so the header, set number and every measured row stay legible (never the text-free thumb). */
+   500 B"; MeasurementCard's peek renders nothing below that), under one soft shadow and no mount plates. Phones and
+   tablets (below 1024 px) show the pair whole in the 4:5 frame, its text at the 16 px floor: A at the single card's
+   width (18.75 times the card's font size, 300 px on a phone) in the dense rhythm, and above it only B's set number
+   ("Set No. 027 / 500 B"), never a card cut off by the frame. */
 .cardPair {
   --pair-w: 100cqw;
   position: relative;
@@ -92,16 +93,35 @@
   filter: drop-shadow(0 18px 34px rgb(0 0 0 / 0.55));
 }
 @media (max-width: 1023px) {
+  /* each card fits the frame whole, so nothing fades under its foot */
   .slideCard {
-    place-items: start center;
-    -webkit-mask-image: linear-gradient(#000 86%, transparent 100%);
-    mask-image: linear-gradient(#000 86%, transparent 100%);
-  }
-  /* a single card fits the frame whole, so nothing fades under its foot */
-  .slideCard:has(.cardSingle) {
     place-items: center;
-    -webkit-mask-image: none;
-    mask-image: none;
+  }
+  .slideCard:has(.cardPair) {
+    --card-pad-top: 8px;
+    --card-pad-bottom: 8px;
+    --card-fs: clamp(16px, 4.1cqw, 64px);
+  }
+  .cardPair {
+    --pair-w: min(100cqw, calc(18.75 * var(--card-fs)));
+    padding-top: calc(2.75 * var(--card-fs));
+  }
+  .cardBack header {
+    display: none;
+  }
+  .cardBack header + p {
+    margin-top: 0;
+  }
+}
+/* The smallest phones (a 4:5 frame under 488 px tall): the pair at 94%, so its text stays at 15 px or more. */
+@media (max-width: 389px) {
+  .slideCard:has(.cardPair) {
+    --card-pad-top: 4px;
+    --card-pad-bottom: 4px;
+  }
+  .cardPair {
+    transform: scale(0.94);
+    transform-origin: 50% 0;
   }
 }
 /* K12: the base render, then the lit variant fading in over it once its slide shows (exits faster than it enters).
@@ -396,7 +416,7 @@
   display: grid;
   gap: 6px;
 }
-/* The column names the chosen edition (the header already carries the wordmark). */
+/* The column's title names the racket ("Reserve your KINETIQ"); the cards below name the editions. */
 .columnTitle {
   font-family: var(--font-display);
   font-variation-settings: "wdth" 112;
@@ -504,6 +524,8 @@
   color: var(--muted);
   white-space: nowrap;
 }
+/* every availability tag in the amber family, so none of them reads as a control */
+.tierStatus[data-tier="reserve"],
 .tierStatus[data-tier="limited"] {
   color: var(--amber);
 }

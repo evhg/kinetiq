@@ -4,15 +4,35 @@
 // or shell edge plus the outermost hole) and shortens the middle with an ISO break zone.
 // Deterministic output: server and client render identical path strings.
 
-import { HOLE_RADIUS, THICKNESS } from "@/lib/racket-shape";
+import { HEAD_CURVES, HOLES, THICKNESS } from "@/lib/racket-shape";
+
+/** The hole nearest the side edge (the crown's lowest pair) and the head's half width at its height. */
+const OUTER = HOLES.reduce((a, h) => (h[0] > a[0] ? h : a));
+const OUTER_HALF = (() => {
+  // the right side of the head above its widest point is the first curve, from the top centre to the side
+  const [c1, c2, e] = HEAD_CURVES[0];
+  const at = (t: number): [number, number] => {
+    const u = 1 - t;
+    const f = (j: 0 | 1, p0: number) => u * u * u * p0 + 3 * u * u * t * c1[j] + 3 * u * t * t * c2[j] + t * t * t * e[j];
+    return [f(0, 0), f(1, 1.55)];
+  };
+  let prev = at(0);
+  for (let i = 1; i <= 2000; i++) {
+    const p = at(i / 2000);
+    if ((prev[1] - OUTER[1]) * (p[1] - OUTER[1]) <= 0) return prev[0] + ((p[0] - prev[0]) * (OUTER[1] - prev[1])) / (p[1] - prev[1]);
+    prev = p;
+  }
+  return e[0];
+})();
 
 export const T = THICKNESS * 100; // 38 mm
 export const SKIN = 2.4; // face skin, drawn a touch thicker than life so it reads at 170 px
 export const EDGE_R = 11; // outer edge radius
 export const TUBE_W = 20; // frame tube width
 export const TUBE_WALL = 2.2;
-export const HOLE_R = HOLE_RADIUS * 100; // 6.2 mm
-export const HOLE_C = 35.5; // outermost hole centre, from the edge (racket-shape: 130 - 94.5)
+export const HOLE_R = OUTER[2] * 100; // 7.0 mm, a crown hole
+/** Outermost hole centre, from the edge at its height (racket-shape: 124.0 - 91.05 = 32.9 mm). */
+export const HOLE_C = Math.round((OUTER_HALF - OUTER[0]) * 1000) / 10;
 export const PIECE = 52; // mm kept at each edge
 export const BREAK = 8; // break zone between the two pieces
 export const W = PIECE * 2 + BREAK; // 112

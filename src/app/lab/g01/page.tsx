@@ -1,5 +1,5 @@
 import { GhostContour, TechnicalDrawing } from "@/components/graphics/TechnicalDrawing";
-import { precision, specStrip } from "@/content/copy";
+import { precision, specifications } from "@/content/copy";
 
 const section = { paddingBlock: "clamp(64px, 8vw, 200px)" } as const;
 const head = { marginBottom: "clamp(32px, 3vw, 72px)", display: "grid", gap: "12px" } as const;
@@ -20,7 +20,7 @@ export default function LabG01() {
       <section className="lift tech-grid" style={section}>
         <div className="wrap">
           <div style={head}>
-            <p className="t-eyebrow">G01 Quiet tone, behind the spec strip</p>
+            <p className="t-eyebrow">G01 Quiet tone, without the title block</p>
           </div>
           <TechnicalDrawing tone="quiet" titleBlock={false} />
         </div>
@@ -29,7 +29,7 @@ export default function LabG01() {
       <section className="lift tech-grid" style={section}>
         <div className="wrap">
           <div style={head}>
-            <p className="t-eyebrow">G01 Front view only (phones, Specifications disclosure)</p>
+            <p className="t-eyebrow">G01 Front view only (below 1240 px), with the Specifications numbers</p>
           </div>
           <div
             style={{
@@ -42,7 +42,7 @@ export default function LabG01() {
             <TechnicalDrawing variant="front" />
             <TechnicalDrawing variant="front" annotate={false} />
             <dl style={{ display: "grid", gap: "20px", alignSelf: "center" }}>
-              {specStrip.map((s) => (
+              {specifications.cells.map((s) => (
                 <div key={s.label} style={{ borderTop: "1px solid var(--hairline)", paddingTop: "14px" }}>
                   <dt className="t-stat" style={{ fontSize: "clamp(2.5rem, 3vw, 4.5rem)" }}>
                     {s.value}

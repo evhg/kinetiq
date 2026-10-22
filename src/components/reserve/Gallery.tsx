@@ -38,9 +38,9 @@ type Slide =
   | { kind: "court"; alt: string };
 
 /**
- * K12, the sweet spot lit to 4 mm from the edge (a face-on Command racket with its own serial on the throat): only
- * once it is exported, and only for a single Command racket, as the render shows one. A set's throats carry its set
- * number instead, and Pace has a different weave.
+ * K12, the sweet spot lit to 4 mm from the edge (a face-on Command racket, white 3K twill, with its own serial on the
+ * throat): only once it is exported, and only for a single Command racket, as the render shows one. A set's throats
+ * carry its set number instead, and Pace is black 12K.
  */
 const SWEET_SPOT: Slide | null =
   hasStill("K12-base") && hasStill("K12-full")
@@ -49,7 +49,7 @@ const SWEET_SPOT: Slide | null =
         base: "K12-base",
         full: "K12-full",
         phoneCrop: "portrait",
-        alt: "A KINETIQ Command racket face-on, its face lit almost to the edge: the sweet spot as designed",
+        alt: "A white KINETIQ Command racket face-on, its face lit almost to the edge: the sweet spot as designed",
       }
     : null;
 
@@ -61,7 +61,7 @@ function slidesFor(tier: TierId, feel: FeelId): Slide[] {
       return [
         { kind: "still", id: "K01-full", phoneCrop: "card", alt: "A KINETIQ racket standing in a single beam of light" },
         ...(feel === "command" && SWEET_SPOT ? [SWEET_SPOT] : []),
-        { kind: "still", id: "K02", phoneCrop: "portrait", fit: "contain", alt: "The racket edge-on: one unbroken 38.0 mm carbon wall from handle to tip" },
+        { kind: "still", id: "K02", phoneCrop: "portrait", fit: "contain", alt: "The racket edge-on: one carbon shell from the tip into the handle" },
         { kind: "still", id: "K04-full", phoneCrop: "card", alt: "Close-up of a moulded hole, the carbon weave flowing around its rim" },
         {
           kind: "still",
@@ -69,7 +69,7 @@ function slidesFor(tier: TierId, feel: FeelId): Slide[] {
           // The chosen feel's racket alone (the pair's other racket would be cut by the frame).
           crop: feel === "command" ? "left" : "right",
           fit: "portrait",
-          alt: feel === "command" ? "Command: a fine 3K carbon twill face" : "Pace: a wide 12K spread-tow carbon face",
+          alt: feel === "command" ? "Command: a white 3K carbon twill face, the finer weave" : "Pace: a black 12K spread-tow carbon face, the bolder weave",
         },
         {
           kind: "card",
@@ -208,13 +208,13 @@ export function Gallery({ tierId, feel }: { tierId: TierId; feel: FeelId }) {
             ) : s.kind === "card" ? (
               <div className={`${styles.slideGraphic} ${styles.slideCard}`} role="img" aria-label={s.alt}>
                 {/* A set's two cards, numbered to match: B rests behind A with only its header and set number showing
-                    above it, both in the buyer's feel, under one soft shadow. A single racket's card carries its own
-                    serial. */}
+                    above it (phones: its set number alone, so A fits the frame whole), both in the buyer's feel, under
+                    one soft shadow. A single racket's card carries its own serial. */}
                 {hydrated ? (
                   s.set ? (
                     <div className={`${styles.cardFit} ${styles.cardPair}`}>
-                      <MeasurementCard className={styles.cardBack} set="B" feel={feels[s.feel].name} peek plate={false} enter={false} />
-                      <MeasurementCard className={styles.cardFront} set="A" feel={feels[s.feel].name} plate={false} enter={false} />
+                      <MeasurementCard className={styles.cardBack} set="B" feel={feels[s.feel].name} peek plate={false} enter={false} dense />
+                      <MeasurementCard className={styles.cardFront} set="A" feel={feels[s.feel].name} plate={false} enter={false} dense />
                     </div>
                   ) : (
                     <div className={`${styles.cardFit} ${styles.cardSingle}`}>
