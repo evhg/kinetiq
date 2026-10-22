@@ -7,7 +7,7 @@
 export const hero = {
   eyebrow: "100% Swiss Made",
   headline: "The most precise padel racket ever made.",
-  lead: "One piece of space-grade carbon. No tube, no joints. Held to 15 microns. Every racket plays exactly the same.",
+  lead: "One single piece of space-grade carbon. No tube, no joints. Ultra-precision moulded to 15 microns and 1 gram. Every racket plays exactly the same.",
   ctaNote: "From €410. Refundable. Ships January 2027.",
 };
 

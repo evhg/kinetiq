@@ -109,6 +109,9 @@ Lenis · Playwright (dev only). No real-time 3D: product imagery is Blender stil
 - Stripe: `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `INVITE_CODES` (see `.env.example`).
   Server and Stripe.js are pinned to API version `2026-09-30.endive` (`allowed_payment_method_types`).
   Without keys, /reserve runs in preview (Place Reservation disabled). Invite Only fails closed without codes.
+- Hero lead is the owner's own sentence (2026-10-22); keep it verbatim, even while "one piece" is retired as a
+  marketing phrase elsewhere: "One single piece of space-grade carbon. No tube, no joints. Ultra-precision
+  moulded to 15 microns and 1 gram. Every racket plays exactly the same."
 - One landing CTA label: "Reserve Now" (`site.ctaLabel`); then "Pay with Card" and "Place Reservation".
 - An edition that sells out: set `available: false` in `lineup.ts` (shows "Sold out", blocks payment).
 - The ambassador (Invite Only extras) stays neutral until `ambassador.confirmed` is true (`lineup.ts`).
