@@ -91,7 +91,7 @@ type Props = {
   onTier: (id: TierId) => void;
   feel: FeelId | null;
   onFeel: (id: FeelId) => void;
-  /** Invitation codes exist (decided on the server). InviQtus still needs a valid one from the buyer. */
+  /** Invitation codes exist (decided on the server). One of Ten still needs a valid one from the buyer. */
   invitesOpen: boolean;
   /** ?invite= from the link: a code to check on load, "" to open the code field, null without it. */
   initialInvite?: string | null;
@@ -115,7 +115,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
   const [instantForm, setInstantForm] = useState(false);
   const [paid, setPaid] = useState<{ tier: TierId; feel: FeelId; email: string; secret: string } | null>(null);
   const [payVisible, setPayVisible] = useState(true);
-  // InviQtus: locked for everyone until a valid invitation code unlocks (and selects) it.
+  // One of Ten: locked for everyone until a valid invitation code unlocks (and selects) it.
   const [inviteCode, setInviteCode] = useState<string | null>(null);
   const [inviteFieldOpen, setInviteFieldOpen] = useState(invitesOpen && initialInvite === "");
   const [inviteDraft, setInviteDraft] = useState(initialInvite ?? "");
@@ -126,7 +126,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
   const inviteWrapRef = useRef<HTMLDivElement>(null);
   const inviteInputRef = useRef<HTMLInputElement>(null);
   const inviteRadioRef = useRef<HTMLInputElement>(null);
-  // Set when a typed code is accepted: focus moves on to the InviQtus option once it is a real radio.
+  // Set when a typed code is accepted: focus moves on to the One of Ten option once it is a real radio.
   const focusInviteRef = useRef(false);
   const formRef = useRef<HTMLFormElement>(null);
   const tiersRef = useRef<HTMLFieldSetElement>(null);
@@ -141,7 +141,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
   const secretRef = useRef<{ secret: string; tier: TierId; feel: FeelId; email: string } | null>(null);
   const uid = useId();
   const tier = tierById(tierId)!;
-  // On sale and not sold out. InviQtus also needs an accepted invitation code before it can be chosen.
+  // On sale and not sold out. One of Ten also needs an accepted invitation code before it can be chosen.
   const isSelectable = (id: TierId) => tierById(id)!.available && !soldOut.includes(id);
   const isLocked = (id: TierId) => id === "invite" && (!invitesOpen || !inviteCode);
   const isAvailable = (id: TierId) => isSelectable(id) && !isLocked(id);
@@ -174,7 +174,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
   };
 
   // A link with ?invite: a bare one brings the code field into view; one with a code checks it, and a
-  // valid code unlocks and selects InviQtus, while a wrong one brings the field and its message into view.
+  // valid code unlocks and selects One of Ten, while a wrong one brings the field and its message into view.
   // Closed invitations show the card's "open soon" note. A checked code leaves the address bar (and so
   // the history), as the page's own state now holds it.
   useEffect(() => {
@@ -444,7 +444,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
     onTier("invite");
   };
 
-  // The InviQtus option is a real radio once unlocked: focus continues from it.
+  // The One of Ten option is a real radio once unlocked: focus continues from it.
   useEffect(() => {
     if (!inviteCode || !focusInviteRef.current) return;
     focusInviteRef.current = false;
@@ -469,7 +469,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
             {tiers.map((t) => {
               const checked = tierId === t.id;
               const can = isSelectable(t.id);
-              // InviQtus reads "Invite Only" whatever the state of the invitations (the note below the
+              // One of Ten reads "Invite Only" whatever the state of the invitations (the note below the
               // includes says when they open); an accepted code makes it "Invited".
               const status = !can ? reserveCopy.soldOut : t.id === "invite" && inviteCode ? INV.acceptedStatus : t.availability;
               const extras = (
@@ -502,7 +502,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
                 </>
               );
 
-              // InviQtus without an accepted invitation: shown whole (price and what it includes), but
+              // One of Ten without an accepted invitation: shown whole (price and what it includes), but
               // not an option. No hover, press or selected state; its radio stays disabled.
               if (isLocked(t.id)) {
                 return (
@@ -589,7 +589,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
                       onChange={() => onTier(t.id)}
                     />
                     {head}
-                    {/* InviQtus keeps its includes in view; the others show theirs when chosen */}
+                    {/* One of Ten keeps its includes in view; the others show theirs when chosen */}
                     {checked || t.id === "invite" ? extras : null}
                   </label>
                   {t.id === "invite" && inviteCode ? (
@@ -620,12 +620,17 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
                   />
                   <Swatch weave={id} />
                   <span className={styles.feelText}>
-                    <span className={styles.feelName}>{feels[id].name}</span>
-                    <span className={styles.feelSub}>{feels[id].sub}</span>
+                    <span className={styles.feelTitle}>
+                      <span className={styles.feelName}>{feels[id].name}</span>
+                      <span className={styles.feelSub}>{feels[id].sub}</span>
+                    </span>
+                    <span className={styles.feelSpec}>{feels[id].spec}</span>
+                    <span className={styles.feelLine}>{reserveCopy.feelLines[id]}</span>
                   </span>
                 </label>
               ))}
             </div>
+            <p className={styles.feelHelper}>{reserveCopy.feelHelper}</p>
             <p className={styles.hint} aria-live="polite">
               {feelMissing && !feel ? reserveCopy.feelRequired : reserveCopy.feelHint(tier.rackets)}
             </p>

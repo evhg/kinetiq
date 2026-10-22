@@ -3,9 +3,10 @@
 import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type KeyboardEvent } from "react";
 import { CourtPlan } from "@/components/graphics/CourtPlan";
 import { MeasurementCard } from "@/components/graphics/MeasurementCard";
-import { Still } from "@/components/media/Still";
+import { Still, hasStill } from "@/components/media/Still";
 import { useMotion } from "@/components/motion/MotionProvider";
-import { tierById, type TierId } from "@/content/lineup";
+import { identical } from "@/content/copy";
+import { sampleSet, tierById, type TierId } from "@/content/lineup";
 import { reserveCopy } from "@/content/reserve";
 import { feels, type FeelId } from "@/content/site";
 import styles from "./Reserve.module.css";
@@ -24,14 +25,42 @@ type Slide =
       fit?: "contain" | "portrait";
       alt: string;
     }
-  | { kind: "card"; alt: string; feel: FeelId }
+  | {
+      /** Two registered renders of one camera: the base, then the full variant crossfading in once the slide shows. */
+      kind: "reveal";
+      base: string;
+      full: string;
+      phoneCrop?: string;
+      alt: string;
+    }
+  /** The measurement card: one for a single racket (its own serial), or a set's two, numbered A and B. */
+  | { kind: "card"; alt: string; feel: FeelId; set: boolean }
   | { kind: "court"; alt: string };
 
+/**
+ * K12, the sweet spot lit to 4 mm from the edge (a face-on Command racket with its own serial on the throat): only
+ * once it is exported, and only for a single Command racket, as the render shows one. A set's throats carry its set
+ * number instead, and Pace has a different weave.
+ */
+const SWEET_SPOT: Slide | null =
+  hasStill("K12-base") && hasStill("K12-full")
+    ? {
+        kind: "reveal",
+        base: "K12-base",
+        full: "K12-full",
+        phoneCrop: "portrait",
+        alt: "A KINETIQ Command racket face-on, its face lit almost to the edge: the sweet spot as designed",
+      }
+    : null;
+
 function slidesFor(tier: TierId, feel: FeelId): Slide[] {
+  const name = tierById(tier)!.name;
+  const feelName = feels[feel].name;
   switch (tier) {
     case "reserve":
       return [
         { kind: "still", id: "K01-full", phoneCrop: "card", alt: "A KINETIQ racket standing in a single beam of light" },
+        ...(feel === "command" && SWEET_SPOT ? [SWEET_SPOT] : []),
         { kind: "still", id: "K02", phoneCrop: "portrait", fit: "contain", alt: "The racket edge-on: one unbroken 38.0 mm carbon wall from handle to tip" },
         { kind: "still", id: "K04-full", phoneCrop: "card", alt: "Close-up of a moulded hole, the carbon weave flowing around its rim" },
         {
@@ -42,29 +71,41 @@ function slidesFor(tier: TierId, feel: FeelId): Slide[] {
           fit: "portrait",
           alt: feel === "command" ? "Command: a fine 3K carbon twill face" : "Pace: a wide 12K spread-tow carbon face",
         },
+        {
+          kind: "card",
+          feel,
+          set: false,
+          alt: `The measurement card for a ${feelName} racket, serial ${identical.card.serial}: its measured weight, balance, thickness and surface deviation, and a flatness map of the head`,
+        },
       ];
     case "limited":
-      // The set first: two rackets of the chosen feel, both throats marked 027/500; then the mark up close.
+      // The set first, in the chosen feel, with its set number on both throats; then the mark up close.
       return [
         {
           kind: "still",
           id: `K11-${feel}`,
           phoneCrop: "card",
-          alt: `A matched pair of KINETIQ ${feels[feel].name} rackets, both throats laser-marked 027/500`,
+          alt: `A ${name} set: two identical ${feelName} rackets, ${sampleSet.words}, the set number laser-marked on both throats`,
         },
-        { kind: "still", id: "K10", phoneCrop: "card", alt: "Close-up of a throat laser-marked 027/500 above the KINETIQ wordmark" },
+        {
+          kind: "still",
+          id: "K10",
+          phoneCrop: "card",
+          alt: `Close-up of a ${name} throat, laser-marked ${sampleSet.mark} above the KINETIQ wordmark`,
+        },
         { kind: "still", id: "K07", phoneCrop: "trio", fit: "contain", alt: "Identical KINETIQ rackets, each in its own shaft of light" },
         { kind: "still", id: "K06-full", phoneCrop: "card", alt: "The precision steel mould, its cavity glowing warm" },
         { kind: "still", id: "K03", phoneCrop: "card", alt: "The head cut through: one carbon shell closed around the core, lining every hole" },
         {
           kind: "card",
           feel,
-          alt: `Two certificates of measurement for set 027 of 500, one for each ${feels[feel].name} racket, numbered A and B`,
+          set: true,
+          alt: `The set's two measurement cards, ${sampleSet.card("A")} and ${sampleSet.card("B")}, one for each ${feelName} racket`,
         },
       ];
     case "invite":
       return [
-        { kind: "still", id: "K09", phoneCrop: "card", alt: "Three KINETIQ rackets in a machined, felt-lined case" },
+        { kind: "still", id: "K09", phoneCrop: "card", alt: `The three rackets of a ${name} set in their machined, felt-lined case` },
         { kind: "court", alt: "A plan of a padel court marking the exclusive coaching session" },
         { kind: "still", id: "K07", phoneCrop: "trio", fit: "contain", alt: "Identical KINETIQ rackets, each in its own shaft of light" },
         { kind: "still", id: "K01-finale", phoneCrop: "card", alt: "A KINETIQ racket in its beam, above a lit horizon" },
@@ -152,23 +193,34 @@ export function Gallery({ tierId, feel }: { tierId: TierId; feel: FeelId }) {
                 className={styles.slideStill}
                 priority={i === 0}
               />
+            ) : s.kind === "reveal" ? (
+              // The base render, then the lit variant fading in over it (pixel for pixel the same camera).
+              <div className={styles.reveal}>
+                <Still id={s.base} phoneCrop={s.phoneCrop} alt="" sizes="(max-width: 1023px) 100vw, 66vw" className={styles.slideStill} />
+                <Still
+                  id={s.full}
+                  phoneCrop={s.phoneCrop}
+                  alt={s.alt}
+                  sizes="(max-width: 1023px) 100vw, 66vw"
+                  className={`${styles.slideStill} ${styles.revealFull}`}
+                />
+              </div>
             ) : s.kind === "card" ? (
               <div className={`${styles.slideGraphic} ${styles.slideCard}`} role="img" aria-label={s.alt}>
-                {/* The set's two cards, numbered to match: B rests behind A with only its header and set number
-                    showing above it, both in the buyer's feel, under one soft shadow. */}
+                {/* A set's two cards, numbered to match: B rests behind A with only its header and set number showing
+                    above it, both in the buyer's feel, under one soft shadow. A single racket's card carries its own
+                    serial. */}
                 {hydrated ? (
-                  <div className={`${styles.cardFit} ${styles.cardPair}`}>
-                    <MeasurementCard
-                      className={styles.cardBack}
-                      edition="Set No. 027 / 500 B"
-                      feel={feels[s.feel].name}
-                      second
-                      peek
-                      plate={false}
-                      enter={false}
-                    />
-                    <MeasurementCard className={styles.cardFront} edition="Set No. 027 / 500 A" feel={feels[s.feel].name} plate={false} enter={false} />
-                  </div>
+                  s.set ? (
+                    <div className={`${styles.cardFit} ${styles.cardPair}`}>
+                      <MeasurementCard className={styles.cardBack} set="B" feel={feels[s.feel].name} peek plate={false} enter={false} />
+                      <MeasurementCard className={styles.cardFront} set="A" feel={feels[s.feel].name} plate={false} enter={false} />
+                    </div>
+                  ) : (
+                    <div className={`${styles.cardFit} ${styles.cardSingle}`}>
+                      <MeasurementCard feel={feels[s.feel].name} plate={false} enter={false} />
+                    </div>
+                  )
                 ) : null}
               </div>
             ) : (

@@ -14,8 +14,8 @@ type Search = Promise<Record<string, string | string[] | undefined>>;
 
 // Tesla's structure: wordmark only, no footer. The last element is Pay with Card, then Place Reservation.
 // The shell (header and an empty stage) is static; the experience streams in behind Suspense with ?tier=, ?feel= and
-// ?invite already applied, so a VanQuish link never paints ConQuer or its price first (the fallback shows no
-// edition at all). InviQtus is never chosen from the link: ?tier=invite shows the default edition, and only a valid
+// ?invite already applied, so a First 500 link never paints KINETIQ or its price first (the fallback shows no
+// edition at all). One of Ten is never chosen from the link: ?tier=invite shows the default edition, and only a valid
 // invitation code unlocks it (?invite=CODE checks one on load; a bare ?invite opens the code field).
 export default function ReservePage({ searchParams }: { searchParams: Search }) {
   return (

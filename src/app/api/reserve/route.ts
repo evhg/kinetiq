@@ -1,4 +1,4 @@
-import { deliveryCountryCodes, invitesOpen, orderLine, tierById } from "@/content/lineup";
+import { deliveryCountryCodes, invitesOpen, orderLine, plainText, tierById } from "@/content/lineup";
 import { feels, isFeelId } from "@/content/site";
 import { STRIPE_API, STRIPE_VERSION, cleanCode, countPaid, inviteCodes, inviteUses, logStripeError } from "@/lib/stripe-server";
 
@@ -9,7 +9,7 @@ import { STRIPE_API, STRIPE_VERSION, cleanCode, countPaid, inviteCodes, inviteUs
 // Env: STRIPE_SECRET_KEY (server) and NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY (browser).
 // INVITE_CODES (comma-separated): the Invite Only tier needs one of them, checked here again whatever
 // the page unlocked (/api/invite). Without codes, or before INVITE_TERMS_READY (lineup.ts), that tier
-// stays closed (403). A code reserves one set only, and InviQtus is never sold when Stripe cannot count
+// stays closed (403). A code reserves one set only, and One of Ten is never sold when Stripe cannot count
 // (its ten sets and ten coaching sessions are a fixed commitment).
 // Without STRIPE_SECRET_KEY the route answers 503 { preview: true }.
 //
@@ -89,7 +89,7 @@ export async function POST(request: Request) {
   }
 
   // Numbered editions stop at their limit: one PaymentIntent per set, plus the sets promised off the site.
-  // If Stripe cannot count, VanQuish still sells (an outage must not block sales); InviQtus never does.
+  // If Stripe cannot count, First 500 still sells (an outage must not block sales); One of Ten never does.
   if (tier.limit !== null) {
     const paid = await countPaid(key, `metadata["tier"]:"${tier.id}"`);
     if (paid === null) {
@@ -113,14 +113,17 @@ export async function POST(request: Request) {
     currency: "eur",
     "allowed_payment_method_types[0]": "card",
     receipt_email: email,
-    // "KINETIQ reservation: VanQuish, two Command rackets": a set is one feel, never a mixed pair.
-    description: `KINETIQ reservation: ${orderLine(tier, feels[feel].name)}`,
+    // "Reservation: First 500, two Command rackets" (Stripe takes plain text: the names' no-break spaces become
+    // spaces). A set is one feel, never a mixed pair.
+    description: `Reservation: ${plainText(orderLine(tier, feels[feel].name))}`,
     "shipping[name]": name,
     "shipping[address][line1]": address.line1,
     "shipping[address][postal_code]": address.postal_code,
     "shipping[address][city]": address.city,
     "shipping[address][country]": address.country,
+    // The tier id is the stable key (the edition caps count by it); the edition name is for people reading Stripe.
     "metadata[tier]": tier.id,
+    "metadata[edition]": plainText(tier.name),
     "metadata[feel]": feel,
     "metadata[rackets]": String(tier.rackets),
   });

@@ -1,10 +1,10 @@
 import { invitesOpen } from "@/content/lineup";
 import { cleanCode, inviteCodes, inviteUses } from "@/lib/stripe-server";
 
-// Checks an InviQtus invitation code: a valid one unlocks InviQtus on /reserve ("Have an invitation?" or
+// Checks a One of Ten invitation code: a valid one unlocks One of Ten on /reserve ("Have an invitation?" or
 // ?invite=CODE). The same checks run again in /api/reserve when the reservation is placed; this one only
 // answers yes or no. A wrong or used code is an answer, not a failure: 200 with ok: false (no console error).
-// A code reserves one set: once Stripe holds a paid reservation with it, it no longer unlocks InviQtus.
+// A code reserves one set: once Stripe holds a paid reservation with it, it no longer unlocks One of Ten.
 
 export async function POST(request: Request) {
   let code = "";

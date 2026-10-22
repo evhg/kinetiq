@@ -8,18 +8,31 @@
   gap: clamp(40px, 4vw, 112px);
   padding: clamp(56px, 5vw, 160px) var(--margin) clamp(96px, 8vw, 220px);
 }
-/* a soft light behind the title, fading out inside its own box, so the band above the cards is lit */
-.title {
+/* The headline and its lead, centred over the cards, with a soft light behind them that fades out inside its own
+   box, so the band above the cards is lit. */
+.intro {
   position: relative;
+  display: grid;
+  justify-items: center;
+  gap: clamp(16px, 1.2vw, 32px);
   text-align: center;
 }
-.title::before {
+.intro::before {
   content: "";
   position: absolute;
   z-index: -1;
-  inset: -140% 0%;
+  inset: -70% 0%;
   background: radial-gradient(closest-side, rgb(60 60 66), rgb(48 48 54 / 0.9) 45%, rgb(34 34 39 / 0.4) 75%, transparent);
   pointer-events: none;
+}
+.title {
+  max-width: 22ch;
+  text-wrap: balance;
+}
+.lead {
+  max-width: 50ch;
+  color: var(--steel);
+  text-wrap: pretty;
 }
 .cards {
   display: grid;
@@ -144,7 +157,7 @@ a.card:active {
 .mark {
   color: var(--amber-hot);
 }
-/* a double dagger reads as a stray glyph at full size: raised, tight to the word, still 15 px or more */
+/* the guarantee's section mark reads as a stray glyph at full size: raised, tight to the word, still 15 px or more */
 .raised {
   margin-left: 0.04em;
   font-size: max(15px, 0.78em);
@@ -155,7 +168,7 @@ a.card:active {
   margin-top: 0.15em;
   color: var(--amber);
 }
-/* InviQtus: by invitation, not a link. It says so where the arrow sits on the other two cards. */
+/* One of Ten: by invitation, not a link. It says so where the arrow sits on the other two cards. */
 .byInvite {
   font-size: clamp(1rem, 0.3vw + 0.9rem, 1.25rem);
   color: var(--text);
@@ -179,7 +192,8 @@ a.card:active {
   font-family: var(--font-data);
   font-size: clamp(1rem, 0.25vw + 0.95rem, 1.25rem);
 }
-/* the fine print, once under the three cards: the design life, then the InviQtus guarantee, one line each */
+/* the fine print, once under the three cards: the design life, what "identical" means, then the One of Ten guarantee,
+   one line each */
 .notes {
   position: relative;
   display: grid;

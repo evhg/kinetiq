@@ -182,7 +182,7 @@ export const tiers: Tier[] = [
 
 /** One icon per line of `includes`, in order (edition cards and the reserve options). */
 export const includeIcons: Record<TierId, IconName[]> = {
-  reserve: ["mould", "measurementCard", "fiveYears"],
+  reserve: ["racket", "measurementCard", "fiveYears"],
   limited: ["rackets2", "numberedTag", "measurementCard", "deliveryBox", "fiveYears"],
   invite: ["fittedCase", ...(ambassador.signs ? (["penNib"] as IconName[]) : []), "court", "shieldCheck"],
 };

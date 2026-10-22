@@ -62,7 +62,7 @@
 .cardFit {
   width: min(100%, calc(100cqh / 1.46));
 }
-/* VanQuish: the set's two cards. B rests behind A and only its top shows above A (header, serial and "Set No. 027 /
+/* First 500: the set's two cards. B rests behind A and only its top shows above A (header, serial and "Set No. 027 /
    500 B"; MeasurementCard's peek renders nothing below that), under one soft shadow and no mount plates. The pair is
    never narrower than the card's full layout (340 px): phones show it full width from the top, and the slide crops
    A's foot under a fade, so the header, set number and every measured row stay legible (never the text-free thumb). */
@@ -86,11 +86,49 @@
   position: relative;
   filter: drop-shadow(0 -3px 12px rgb(0 0 0 / 0.3));
 }
+/* KINETIQ: the racket's own card (serial KQ-000427), whole in the frame, under the same soft shadow (no plate: A6) */
+.cardSingle {
+  width: min(100%, calc(100cqh / 1.42));
+  filter: drop-shadow(0 18px 34px rgb(0 0 0 / 0.55));
+}
 @media (max-width: 1023px) {
   .slideCard {
     place-items: start center;
     -webkit-mask-image: linear-gradient(#000 86%, transparent 100%);
     mask-image: linear-gradient(#000 86%, transparent 100%);
+  }
+  /* a single card fits the frame whole, so nothing fades under its foot */
+  .slideCard:has(.cardSingle) {
+    place-items: center;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+}
+/* K12: the base render, then the lit variant fading in over it once its slide shows (exits faster than it enters).
+   The wide master keeps its words' side on the left, with the racket 66% across: these positions centre it. */
+.reveal {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+.reveal > .slideStill {
+  position: absolute;
+  inset: 0;
+}
+.reveal img {
+  object-position: 79% 50%;
+}
+.revealFull {
+  opacity: 0;
+  transition: opacity 200ms var(--ease-out);
+}
+.slide[data-active="true"] .revealFull {
+  opacity: 1;
+  transition: opacity 900ms var(--ease-out) 350ms;
+}
+@media (min-width: 1024px) {
+  .reveal img {
+    object-position: 94% 50%;
   }
 }
 /* /reserve's 16 px minimum for the card's text too (the card grows a little taller where it must) */
@@ -401,7 +439,7 @@
 .tier:not([data-locked]):active {
   transform: scale(0.99);
 }
-/* InviQtus before an invitation: shown whole, but not an option (no pointer, hover, press or selection) */
+/* One of Ten before an invitation: shown whole, but not an option (no pointer, hover, press or selection) */
 .tier[data-locked="true"] {
   cursor: default;
 }
@@ -469,7 +507,7 @@
 .tierStatus[data-tier="limited"] {
   color: var(--amber);
 }
-/* InviQtus: "Invite Only" in a warm, static tone (rank, not a state: no hover, press or glow) */
+/* One of Ten: "Invite Only" in a warm, static tone (rank, not a state: no hover, press or glow) */
 .tierStatus[data-tier="invite"] {
   color: var(--amber-hot);
 }
@@ -496,7 +534,7 @@
   font-size: 1rem;
   color: var(--amber);
 }
-/* an edition's includes shown without choosing it (InviQtus): hairline rule, no entrance */
+/* an edition's includes shown without choosing it (One of Ten): hairline rule, no entrance */
 .extras[data-quiet] {
   border-top-color: var(--hairline);
   animation: none;
@@ -629,7 +667,7 @@
   font-size: clamp(1.0625rem, 0.2vw + 1rem, 1.25rem);
   text-wrap: pretty;
 }
-/* InviQtus before an invitation: its includes stay in view, but quieter than a chosen edition's */
+/* One of Ten before an invitation: its includes stay in view, but quieter than a chosen edition's */
 .tier[data-locked="true"] .extra {
   color: var(--steel);
 }
@@ -665,17 +703,18 @@
   font-weight: 560;
   font-size: clamp(1.25rem, 0.4vw + 1.05rem, 1.75rem);
 }
+/* Each feel names its core and face and says what it does: one per row in the column, side by side once two fit. */
 .feelOptions {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
   gap: 12px;
 }
 .feelOption {
   display: flex;
-  align-items: center;
-  gap: 14px;
+  align-items: flex-start;
+  gap: 16px;
   min-height: clamp(80px, 0.4vw + 74px, 88px);
-  padding: 12px 16px;
+  padding: 16px 18px;
   border: 1px solid var(--hairline);
   border-radius: 4px;
   background: var(--graphite);
@@ -705,7 +744,14 @@
 }
 .feelText {
   display: grid;
-  gap: 2px;
+  gap: 4px;
+  min-width: 0;
+}
+.feelTitle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 10px;
 }
 .feelName {
   font-size: clamp(1.25rem, 0.2vw + 1.15rem, 1.375rem);
@@ -715,6 +761,23 @@
   font-family: var(--font-data);
   font-size: 1rem;
   color: var(--muted);
+}
+.feelSpec {
+  font-family: var(--font-data);
+  font-size: 1rem;
+  color: var(--steel);
+}
+.feelLine {
+  margin-top: 4px;
+  font-size: clamp(1rem, 0.15vw + 0.95rem, 1.125rem);
+  line-height: 1.45;
+  color: var(--steel);
+  text-wrap: pretty;
+}
+.feelHelper {
+  font-size: clamp(1.0625rem, 0.2vw + 1rem, 1.25rem);
+  color: var(--text);
+  text-wrap: pretty;
 }
 .hint {
   font-family: var(--font-data);
@@ -1116,14 +1179,14 @@
   }
 }
 @media (max-width: 479px) {
-  /* the two feels share a 350 px row: a smaller swatch keeps both inside the column */
+  /* one feel per row: a smaller swatch leaves the words most of the width */
   .feelOption {
-    gap: 10px;
-    padding: 12px;
+    gap: 14px;
+    padding: 14px;
   }
   .swatch {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
   }
   /* the status sits above the name as an eyebrow, so the header stays one composed block */
   .tierHead {

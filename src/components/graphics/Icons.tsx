@@ -9,6 +9,7 @@ import styles from "./Icons.module.css";
 
 /** Accessible names for the icons (used only when a title is not given and the icon is not decorative). */
 export const LABELS = {
+  racket: "One racket",
   rackets3: "Three rackets",
   rackets2: "Two rackets",
   fiveYears: "Five years",
@@ -22,7 +23,11 @@ export const LABELS = {
   shieldCheck: "Secure",
   swissCross: "Swiss Made",
   mould: "One mould",
-  tiers: { reserve: "One racket", limited: "A numbered pair", invite: "Three rackets" } as Record<TierId, string>,
+  // The editions only count the same racket: KINETIQ, First 500 (a numbered set of two), One of Ten (a set of three).
+  tiers: { reserve: "One racket", limited: "Two rackets, numbered as a set", invite: "Three rackets, numbered as a set" } as Record<
+    TierId,
+    string
+  >,
 };
 
 /* ---------- geometry (computed once, at module load) ---------- */
@@ -62,6 +67,7 @@ function StackArt({ s }: { s: Stack }) {
 }
 
 // 24 px icons: no holes (they would be sub-pixel noise), the throat only on the front racket
+const RACKET24 = stack(1, 20, 1.0, 24, 0, 0, 1.1, false);
 const RACKETS24 = stack(3, 17.6, 1.0, 24, 4.7, 1.2, 1.1, false);
 const PAIR24 = stack(2, 18.2, 1.0, 24, 5.8, 1.3, 1.1, false);
 
@@ -84,7 +90,7 @@ const MOULD_PARTING = (() => {
 const GLYPH_LEN = 42;
 const G_RESERVE = stack(1, GLYPH_LEN, 2.05, 48, 0, 0, 1.8, true);
 const G_INVITE = stack(3, 34.5, 1.8, 48, 8.4, 2.4, 1.9, true);
-// Limited: a matched pair (the back racket knocked out behind the front one) with the set's numbered
+// First 500: the set of two (the back racket knocked out behind the front one) with the set's numbered
 // tag tied to the front grip
 const PAIR = (() => {
   const len = 37;
@@ -110,6 +116,7 @@ const TAG_DIGITS = zero(30.6) + zero(35.05) + one(39.5);
 /* ---------- icons (24 x 24 grid) ---------- */
 
 export type IconName =
+  | "racket"
   | "rackets3"
   | "rackets2"
   | "fiveYears"
@@ -125,6 +132,7 @@ export type IconName =
   | "mould";
 
 export const ICON_NAMES: IconName[] = [
+  "racket",
   "rackets3",
   "rackets2",
   "fiveYears",
@@ -141,6 +149,7 @@ export const ICON_NAMES: IconName[] = [
 ];
 
 const ICONS: Record<IconName, ReactNode> = {
+  racket: <StackArt s={RACKET24} />,
   rackets3: <StackArt s={RACKETS24} />,
   rackets2: <StackArt s={PAIR24} />,
   // a dial open at the top (time) around a squarish 5 that echoes Saira's numerals

@@ -3,6 +3,7 @@
 import { useId, useRef } from "react";
 import { useMotion } from "@/components/motion/MotionProvider";
 import { identical } from "@/content/copy";
+import { sampleSet } from "@/content/lineup";
 import { gsap, useGSAP } from "@/lib/gsap";
 import {
   flatness,
@@ -32,11 +33,17 @@ export const LABELS = {
 
 type Props = {
   className?: string;
-  /** Limited edition line, e.g. "Set No. 027 / 500 A" (VanQuish: one card per racket, numbered to match). */
+  /**
+   * A First 500 sample card, one per racket of set 027 of 500, numbered to match: "Set No. 027 / 500 A" under the
+   * serial, and B is the set's second racket (its own serial and measured values). Without it the card is a single
+   * racket's: its own serial (KQ-000427) and no set line.
+   */
+  set?: "A" | "B";
+  /** Any other edition line under the serial (lab pages); `set` takes precedence. */
   edition?: string;
   /** The buyer's feel (e.g. "Pace") in place of the sample's. */
   feel?: string;
-  /** The second racket of a set: its own serial and measured values (identical.pairCard). */
+  /** The second racket of a set: its own serial and measured values (identical.card.second). Implied by set "B". */
   second?: boolean;
   /** Rest the card at −3° on wide screens (flat on phones). */
   rotate?: boolean;
@@ -108,9 +115,10 @@ function Rosette({ className }: { className?: string }) {
  */
 export function MeasurementCard({
   className,
-  edition,
+  set,
+  edition: editionLine,
   feel,
-  second = false,
+  second: secondRacket = false,
   rotate = false,
   variant = "full",
   enter = true,
@@ -139,6 +147,8 @@ export function MeasurementCard({
     { scope: root, dependencies: [motionOn, enter], revertOnUpdate: true },
   );
 
+  const second = secondRacket || set === "B";
+  const edition = set ? sampleSet.card(set) : editionLine;
   const sample = second ? card.second : null;
   const serial = sample?.serial ?? card.serial;
   const rows = card.rows.map(([k, v]): [string, string] => [k, k === "Feel" && feel ? feel : (sample?.values[k] ?? v)]);
