@@ -7,14 +7,13 @@ import { precision } from "@/content/copy";
 import styles from "./Precision.module.css";
 
 /**
- * Precision: the record numeral counts down to 15 µm while the laser-scan still (K05) settles, then the graph. The
- * line under the numeral fades in as the count lands, so it never sits under a number it does not describe.
+ * Precision: the record "15 µm" and its line, then the graph. The numeral never counts: a count can be paused on a
+ * value that is not the claim. Pinned, the scrub settles the laser-scan still (K05, scale 1.08 to 1) and brings the
+ * numeral and its line in together near the start, so from then on they always read as a pair. The server render and
+ * reduced motion show the final state.
  */
 export function Precision() {
   const { record } = precision;
-  // While pinned, the numeral sits in a box as wide as its longest value, so the count never shifts it; a
-  // matching ghost after the unit keeps the final reading centred (Precision.module.css).
-  const digits = String(Math.max(record.from, record.to)).length;
   return (
     <>
       <PinnedChapter
@@ -24,27 +23,9 @@ export function Precision() {
         className={styles.chapter}
         length={1.2}
         build={(tl) => {
-          const out = document.querySelector<HTMLElement>(`.${styles.digits}`);
-          const counter = { v: record.from };
-          tl.fromTo(
-            counter,
-            { v: record.from },
-            {
-              v: record.to,
-              duration: 0.85,
-              ease: "power2.out",
-              onUpdate: () => {
-                if (out) out.textContent = String(Math.round(counter.v));
-              },
-            },
-            0,
-          )
-            .fromTo(`.${styles.media}`, { scale: 1.08 }, { scale: 1, duration: 0.85, ease: "power2.out" }, 0)
-            .from(`.${styles.line}`, { opacity: 0, y: 12, duration: 0.23 }, 0.62)
+          tl.fromTo(`.${styles.media}`, { scale: 1.08 }, { scale: 1, duration: 0.85, ease: "power2.out" }, 0)
+            .from(`.${styles.number}, .${styles.line}`, { opacity: 0, y: 16, duration: 0.16, ease: "power2.out" }, 0.02)
             .to({}, { duration: 0.1 }, 0.92);
-          return () => {
-            if (out) out.textContent = String(record.to);
-          };
         }}
       >
         <div className={styles.stage}>
@@ -53,12 +34,8 @@ export function Precision() {
           </div>
           <h2 id="precision-record" className={styles.record}>
             <span className={`t-record ${styles.number}`} aria-hidden="true">
-              <span className={styles.value}>
-                <span className={styles.ghost}>{"0".repeat(digits)}</span>
-                <span className={styles.digits}>{record.to}</span>
-              </span>
+              {record.to}
               <span className={`t-unit ${styles.unit}`}>{record.unit}</span>
-              <span className={styles.ghost}>{"0".repeat(digits - String(record.to).length)}</span>
             </span>
             {/* Spoken once and in words: the graph section's own h2 says the headline. */}
             <span className="visually-hidden">{`${record.to} ${record.spokenUnit}`}</span>

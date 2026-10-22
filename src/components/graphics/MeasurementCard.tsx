@@ -28,7 +28,7 @@ export const LABELS = {
   mapScaleTo: "12 µm",
   signature: "Signature",
   summary:
-    "Sample measurement card: every KINETIQ ships with its own certificate, with the measured weight, balance, thickness and surface deviation, a flatness map of the head and a blank signature line.",
+    "Sample measurement card. Every KINETIQ ships with its own card, giving that racket's measured weight, balance, thickness and surface deviation and a flatness map of its head.",
 };
 
 type Props = {

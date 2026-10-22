@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { orderLine, priceLabel, tierById, tiers, type Tier } from "@/content/lineup";
 import { reserveCopy } from "@/content/reserve";
 import { feels, isFeelId, site } from "@/content/site";
-import { loadStripe } from "@/lib/stripe-client";
+import { loadStripe, type PaymentIntentStatus } from "@/lib/stripe-client";
 import styles from "./Reserved.module.css";
 
 type Status = "checking" | "succeeded" | "processing" | "failed" | "unknown";
@@ -16,6 +16,14 @@ const R = reserveCopy.reserved;
 /** What Stripe's redirect_status says, before it is checked. */
 function fromRedirect(s: string | undefined): Exclude<Status, "checking"> {
   return s === "succeeded" || s === "processing" || s === "failed" ? s : "unknown";
+}
+
+/**
+ * The reference /api/reserve wrote into the payment's description ("Reservation KQ-1A2B3C4D: ..."), which a
+ * publishable-key retrieve returns (metadata it does not); null for a payment without one.
+ */
+function referenceOf(pi: PaymentIntentStatus & { description?: string | null }): string | null {
+  return /^Reservation (KQ-[0-9A-F]{8})\b/.exec(pi.description ?? "")?.[1] ?? null;
 }
 
 /** What a PaymentIntent's status means for the buyer. */
@@ -44,7 +52,7 @@ export function ReservedStatus({ pending = false, redirect, hasSecret = false, t
   const initial: Status = pending || (redirect && PK && hasSecret) ? "checking" : "unknown";
   const [status, setStatus] = useState<Status>(initial);
   const [paidTier, setPaidTier] = useState<Tier | undefined>(undefined);
-  const [paymentId, setPaymentId] = useState<string | null>(null);
+  const [reference, setReference] = useState<string | null>(null);
 
   useEffect(() => {
     if (pending || !redirect || !PK || !hasSecret) return;
@@ -59,7 +67,7 @@ export function ReservedStatus({ pending = false, redirect, hasSecret = false, t
         // rejects (edited or foreign link) confirms nothing.
         if (!pi) return setStatus(r?.error && r.error.type !== "api_connection_error" ? "unknown" : fromRedirect(redirect));
         setPaidTier(tiers.find((t) => t.priceEur * 100 === pi.amount));
-        setPaymentId(pi.id);
+        setReference(referenceOf(pi));
         setStatus(fromIntent(pi.status));
       })
       .catch(() => {
@@ -91,7 +99,7 @@ export function ReservedStatus({ pending = false, redirect, hasSecret = false, t
             </p>
           ) : null}
           <p className="t-lead">{reserveCopy.confirmationBody(t?.id)}</p>
-          {paymentId ? <p className={`t-num ${styles.ref}`}>{reserveCopy.reference(paymentId)}</p> : null}
+          {reference ? <p className={`t-num ${styles.ref}`}>{reserveCopy.reference(reference)}</p> : null}
           <Link href="/" className="btn btn-secondary">
             {R.back}
           </Link>

@@ -159,6 +159,12 @@
     -webkit-mask-image: linear-gradient(transparent, #000 20%, #000 78%, transparent);
     mask-image: linear-gradient(transparent, #000 20%, #000 78%, transparent);
   }
+  /* K03, stacked: its lit floor feathers into the beat's stage at both ends, so it never stops on a line above the
+     words (the shell spans y 32% to 82% of the frame, its base shadow included) */
+  .beatB .still img {
+    -webkit-mask-image: linear-gradient(transparent, #000 8%, #000 86%, transparent);
+    mask-image: linear-gradient(transparent, #000 8%, #000 86%, transparent);
+  }
 }
 
 /* Stacked on wide screens (reduced motion): K02 spans the full width, so each callout sits under the part it names,
@@ -278,15 +284,22 @@
   }
   :global(html[data-motion="on"]) .beatB .media {
     transform: translateY(15%) scale(0.76);
-    /* Feather the outer edges into the stage (the render's border is a flat graphite, luma 17-21). */
+    /* Feather the outer edges into the stage (the render's border is a flat graphite, luma 17-21). The left feather is
+       the long one (24%, ending before the shell's left face at about 31%): when the frame moves right for the sealed
+       core, its lit floor falls off over about 320 px behind the words instead of standing as a soft wall. */
     -webkit-mask-image:
-      linear-gradient(to right, transparent, #000 8%, #000 92%, transparent),
+      linear-gradient(to right, transparent, #000 24%, #000 92%, transparent),
       linear-gradient(transparent, #000 8%, #000 92%, transparent);
     -webkit-mask-composite: source-in;
     mask-image:
-      linear-gradient(to right, transparent, #000 8%, #000 92%, transparent),
+      linear-gradient(to right, transparent, #000 24%, #000 92%, transparent),
       linear-gradient(transparent, #000 8%, #000 92%, transparent);
     mask-composite: intersect;
+  }
+  /* pinned, the frame's own mask above is the only one */
+  :global(html[data-motion="on"]) .beatB .still img {
+    -webkit-mask-image: none;
+    mask-image: none;
   }
   :global(html[data-motion="on"]) .tubular {
     display: block;

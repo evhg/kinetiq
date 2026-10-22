@@ -1,10 +1,10 @@
-import { invitesOpen } from "@/content/lineup";
-import { cleanCode, inviteCodes, inviteUses } from "@/lib/stripe-server";
+import { cleanCode, inviteCodes, invitationsOpen, inviteUses } from "@/lib/stripe-server";
 
 // Checks a One of Ten invitation code: a valid one unlocks One of Ten on /reserve ("Have an invitation?" or
 // ?invite=CODE). The same checks run again in /api/reserve when the reservation is placed; this one only
 // answers yes or no. A wrong or used code is an answer, not a failure: 200 with ok: false (no console error).
-// A code reserves one set: once Stripe holds a paid reservation with it, it no longer unlocks One of Ten.
+// A code reserves one set: once Stripe holds a paid reservation with it, it no longer unlocks One of Ten. Nothing
+// unlocks while One of Ten cannot take payment (invitationsOpen: paperwork, valid codes and the one-use check).
 
 export async function POST(request: Request) {
   let code = "";
@@ -14,7 +14,7 @@ export async function POST(request: Request) {
   } catch {
     return Response.json({ error: "Invalid request." }, { status: 400 });
   }
-  if (!invitesOpen(process.env.INVITE_CODES)) {
+  if (!invitationsOpen()) {
     return Response.json({ ok: false, error: "Invitations open soon." });
   }
   if (!code || !inviteCodes().includes(code)) {

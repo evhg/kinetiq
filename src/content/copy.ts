@@ -74,10 +74,11 @@ export const sweetSpot = {
   ],
   /**
    * The lockup, each item read as a sentence: "Nearly 94% of the face is sweet spot." and "4 mm from the sweet spot
-   * to the edge." `nearly` shows only when the numeral is rounded up.
+   * to the edge." `nearly` shows only when the numeral is rounded up. A no-break space keeps "sweet spot", the
+   * section's own term, on one line wherever a label wraps.
    */
-  share: { nearly: "Nearly", unit: "%", label: "of the face is sweet spot" },
-  inset: { unit: "mm", label: "from the sweet spot to the edge" },
+  share: { nearly: "Nearly", unit: "%", label: "of the face is sweet\u00a0spot" },
+  inset: { unit: "mm", label: "from the sweet\u00a0spot to the edge" },
   /** Under the image, the K12 still or G15, which stands in for it until K12 is exported. */
   caption: "Illustrative. The sweet spot as designed.",
   /** K12 (K12-base, then K12-full): a face-on white Command racket whose face lights up to 4 mm from the edge. */
@@ -117,7 +118,8 @@ export const specifications = {
  * once, and the sweet-spot line above it speaks only of the face. Its three callouts sit beside
  * the parts they name, rim, bridge and handle, in that order (top to bottom on phones, where K02 stands upright).
  * Beat C (the three proofs) is retired: "One structure." is said by beat A, "A wider sweet spot." by the sweet-spot
- * section, and "The head twists less." by Feel.
+ * section, and "The head twists less." by Feel. The chapter makes no sweet-spot claim of its own: the section above is
+ * the only one (CLAIMS.md row 6b), so nothing here ties the sweet spot to the tube or says "more" against it.
  */
 export const unibody = {
   edge: {
@@ -126,7 +128,7 @@ export const unibody = {
     body: "We left out the frame tube. The face, the bridge and the handle are one carbon shell.",
     // The handle callout gives no number: Identical tells the tolerances (±1.0 g, ±1.0 mm).
     callouts: [
-      { at: "rim", text: "More of the face is in play." },
+      { at: "rim", text: "The face is in play almost to the rim." },
       { at: "bridge", text: "Zero seams, so there is no joint to work loose." },
       { at: "handle", text: "The balance is set in the mould." },
     ] as { at: "rim" | "bridge" | "handle"; text: string }[],
@@ -134,7 +136,7 @@ export const unibody = {
   section: {
     eyebrow: "Construction",
     headline: "The shell is the frame.",
-    body: "Most padel rackets are built around a carbon tube. In KINETIQ, the faces close around the edge into one shell, and the grams a tube spends on structure go to the sides, where they widen the sweet spot.",
+    body: "Most padel rackets are built around a carbon tube. In KINETIQ, the faces close around the edge into one shell.",
     // G07 labels only the contrast it draws: the tube, its joints and the open core against one shell and a sealed
     // core. Only the frame tube's joints are marked: both constructions bond their faces to a core (CLAIMS.md row 4).
     // The tubular core is open to the air where the drilled hole cuts it; the KINETIQ shell lines the hole
@@ -216,7 +218,7 @@ export const durability = {
     },
     {
       title: "No seam to open.",
-      body: "The face and the frame are moulded as one carbon shell, so there is no joint between them to loosen over the years.",
+      body: "The face and the frame are moulded as one, so there is no joint between them to loosen over the years.",
     },
     { title: "No drilled hole to crack.", body: "Cracks often start at a drilled hole. All 42 of ours are moulded, with carbon wrapped around every edge." },
     {
@@ -236,11 +238,12 @@ export const durability = {
 };
 
 // Feel follows the Unibody chapter, its cause (CLAIMS.md row 14). Unibody has just told the cause, so Feel names the
-// joint once (point 1) and otherwise speaks of the hand. Point 3 is the twist proof moved from the retired Unibody
+// joint once (point 1) and otherwise speaks of the hand: its body does not say "one carbon shell" again (the phrase is
+// Unibody's and the finale's). Point 3 is the twist proof moved from the retired Unibody
 // beat C (CLAIMS.md row 7); it replaced "The same, edge to centre.", which the sweet-spot section now says.
 export const feel = {
   headline: "You feel exactly where you met the ball.",
-  body: "Because the racket is one carbon shell, what reaches your hand is the contact itself.",
+  body: "What reaches your hand is the contact itself.",
   // Point 1 says "dull", never "soften": a softer hit is what Command sells (feelChoice), so the joint we left out must
   // never read as a cushion we took away. Each title states its claim once; its body gives the reason.
   points: [
@@ -341,8 +344,11 @@ export const finale = {
    * The page's last line, one whole sentence that answers the hero's "moulded to 15 microns": it sums up Born whole,
    * Unibody and Precision. No five years (said once, in Durability) and no marker (owner, 2026-10-22); never "the
    * feel you choose", which Two feels and Editions say. "Each", because Identical's h2 opens "Every KINETIQ is made".
+   * No-break spaces keep "in Switzerland", "one carbon shell" and "15 microns" whole, so from 768 px it sets as four
+   * whole phrases ("Each KINETIQ is / moulded in Switzerland / as one carbon shell, / to within 15 microns."). Never
+   * glue "moulded in Switzerland" or "as one carbon shell": either is wider than a phone's measure.
    */
-  headline: "Each KINETIQ is moulded in Switzerland as one carbon shell, to within 15 microns.",
+  headline: "Each KINETIQ is moulded in\u00a0Switzerland as one\u00a0carbon\u00a0shell, to within 15\u00a0microns.",
   sub: site.priceNote,
 };
 

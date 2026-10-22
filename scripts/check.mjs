@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Check harness: builds and serves the production site (or targets --url),
-// then screenshots every 10% of the page at phone, desktop and wide (2560) sizes,
-// with motion on and with reduced motion. Records console errors, LCP, CLS,
+// then screenshots every 10% of the page at phone (390x844, and 390x664 as Safari shows it), tablet (768x1024),
+// desktop and wide (2560) sizes, with motion on and with reduced motion. Records console errors, LCP, CLS,
 // horizontal overflow, long frames while scrolling, blank frames and the fill
 // rule (no mostly-black viewport, no dead black strip). By keyboard: every Skip
 // link. And no footnote markers or small print anywhere in the page's text (owner, 2026-10-22).
@@ -11,7 +11,9 @@
 //   node scripts/check.mjs --skip-build         reuse the last .next build
 //   node scripts/check.mjs --url=https://x.app  test a deployed URL
 //   node scripts/check.mjs --path=/reserve      test another page
-//   node scripts/check.mjs --only=wide          one viewport (phone|desktop|wide)
+//   node scripts/check.mjs --only=wide          one viewport, or several: --only=phone,phone-short
+//                                               (phone|phone-short|tablet|desktop|wide)
+//   node scripts/check.mjs --mode=reduced       one mode (motion|reduced)
 //   node scripts/check.mjs --url=... --study    reference mode: also detect
 //                                               animation libraries and pins
 //   node scripts/check.mjs --gate               the NDA gate: loads the page WITHOUT the
@@ -63,10 +65,16 @@ const label =
 const outDir = join(process.cwd(), ".checks", label);
 
 const BUDGET = { lcpMs: 2500, cls: 0.1 };
+// Browser viewports, not screens. "phone" is the iPhone's whole 390x844 screen; Safari's toolbars take about 180 px
+// of it, so "phone-short" (390x664) is what a visitor on an iPhone actually sees (others: 393x659, 375x667). "tablet"
+// is an iPad in portrait in Safari. `throttled` cases run PHONE_THROTTLE, settle longer and are held to the LCP
+// budget; every case is held to the CLS budget.
 const VIEWPORTS = [
-  { name: "phone", width: 390, height: 844, isMobile: true, hasTouch: true, deviceScaleFactor: 2 },
-  { name: "desktop", width: 1440, height: 900, isMobile: false, hasTouch: false, deviceScaleFactor: 1 },
-  { name: "wide", width: 2560, height: 1440, isMobile: false, hasTouch: false, deviceScaleFactor: 1 },
+  { name: "phone", width: 390, height: 844, isMobile: true, hasTouch: true, deviceScaleFactor: 2, throttled: true },
+  { name: "phone-short", width: 390, height: 664, isMobile: true, hasTouch: true, deviceScaleFactor: 2, throttled: true },
+  { name: "tablet", width: 768, height: 1024, isMobile: true, hasTouch: true, deviceScaleFactor: 2, throttled: false },
+  { name: "desktop", width: 1440, height: 900, isMobile: false, hasTouch: false, deviceScaleFactor: 1, throttled: false },
+  { name: "wide", width: 2560, height: 1440, isMobile: false, hasTouch: false, deviceScaleFactor: 1, throttled: false },
 ];
 // Fill rule (DESIGN.md): no viewport may read as mostly black, at any width.
 // - at most 40% of pixels at luma <= 12 (flat black)
@@ -77,7 +85,20 @@ const MODES = [
   { name: "motion", reducedMotion: "no-preference" },
   { name: "reduced", reducedMotion: "reduce" },
 ];
-// Lighthouse-style mobile profile, applied to the phone runs.
+// --only and --mode take one name or a comma list. An unknown name stops the run, so a typo never passes with no cases.
+function pick(list, arg, flag) {
+  if (arg === undefined) return list;
+  const names = String(arg).split(",");
+  const unknown = names.filter((n) => !list.some((x) => x.name === n));
+  if (unknown.length) {
+    console.error(`[check] --${flag}: unknown ${unknown.join(", ")} (one of ${list.map((x) => x.name).join("|")})`);
+    process.exit(2);
+  }
+  return list.filter((x) => names.includes(x.name));
+}
+const RUN_VIEWPORTS = pick(VIEWPORTS, args.only, "only");
+const RUN_MODES = pick(MODES, args.mode, "mode");
+// Lighthouse-style mobile profile, applied to the throttled (phone) viewports.
 const PHONE_THROTTLE = { cpuRate: 4, latency: 150, down: (1.6 * 1024 * 1024) / 8, up: (750 * 1024) / 8 };
 
 const ANIMATION_LIB_SIGNATURES = {
@@ -363,7 +384,7 @@ async function runCase(browser, statsPage, vp, mode) {
     });
   }
 
-  if (vp.name === "phone") await throttle(context, page);
+  if (vp.throttled) await throttle(context, page);
 
   const id = `${vp.name}-${mode.name}`;
   log(`${id}: loading ${targetUrl}`);
@@ -391,7 +412,7 @@ async function runCase(browser, statsPage, vp, mode) {
   for (let i = 0; i <= 10; i++) {
     const max = await page.evaluate(() => document.documentElement.scrollHeight - window.innerHeight);
     await scrollTo(page, Math.round((max * i) / 10));
-    await page.waitForTimeout(vp.name === "phone" ? 1200 : 800);
+    await page.waitForTimeout(vp.throttled ? 1200 : 800);
     const file = `${id}-${String(i * 10).padStart(3, "0")}.png`;
     const shotStart = Date.now();
     const png = await capture(page, join(outDir, file));
@@ -408,6 +429,8 @@ async function runCase(browser, statsPage, vp, mode) {
   return {
     id,
     viewport: vp.name,
+    size: `${vp.width}x${vp.height}`,
+    throttled: vp.throttled,
     mode: mode.name,
     lcpMs: Math.round(load.lcp),
     lcpElement: load.lcpEl,
@@ -596,7 +619,7 @@ async function runGateCase(browser, statsPage, vp, mode) {
   page.on("pageerror", (e) => consoleErrors.push(`pageerror: ${e.message}`));
   page.on("requestfailed", (r) => failedRequests.push(`${r.failure()?.errorText} ${r.url()}`));
   page.on("request", (r) => !opening && new URL(r.url()).pathname.startsWith("/stills/") && stillsRequested.push(r.url()));
-  if (vp.name === "phone") await throttle(context, page);
+  if (vp.throttled) await throttle(context, page);
 
   const id = `gate-${vp.name}-${mode.name}`;
   log(`${id}: loading ${targetUrl} without the NDA cookie`);
@@ -625,7 +648,7 @@ async function runGateCase(browser, statsPage, vp, mode) {
     steps.push(fillStep(await imageStats(statsPage, png), pct, file));
   };
   const active = () => page.evaluate(() => document.activeElement?.getAttribute("data-nda") ?? document.activeElement?.id ?? "");
-  const settle = () => page.waitForTimeout(vp.name === "phone" ? 900 : 500);
+  const settle = () => page.waitForTimeout(vp.throttled ? 900 : 500);
 
   await shoot("1-ask", 0);
   // Keyboard only from here: Tab to Yes, then Not yet, its message, Back, and back to Yes.
@@ -715,6 +738,8 @@ async function runGateCase(browser, statsPage, vp, mode) {
   return {
     id,
     viewport: vp.name,
+    size: `${vp.width}x${vp.height}`,
+    throttled: vp.throttled,
     mode: mode.name,
     lcpMs: Math.round(load.lcp),
     lcpElement: load.lcpEl,
@@ -795,7 +820,7 @@ function evaluate(results) {
     if (r.blankSteps.length) failures.push(`${r.id}: blank frames at ${r.blankSteps.join(", ")}%`);
     if (r.overflowX) failures.push(`${r.id}: horizontal overflow`);
     if (r.clsAfterScroll > BUDGET.cls) failures.push(`${r.id}: CLS ${r.clsAfterScroll} > ${BUDGET.cls}`);
-    if (r.viewport === "phone" && r.lcpMs > BUDGET.lcpMs) failures.push(`${r.id}: LCP ${r.lcpMs} ms > ${BUDGET.lcpMs} ms`);
+    if (r.throttled && r.lcpMs > BUDGET.lcpMs) failures.push(`${r.id}: LCP ${r.lcpMs} ms > ${BUDGET.lcpMs} ms`);
     if (r.sceneState === "webgl" && r.sceneStd !== null && r.sceneStd < 2) failures.push(`${r.id}: 3D scene looks blank`);
     if (r.interactions?.skip && !r.interactions.skip.ok) failures.push(`${r.id}: Skip links: ${r.interactions.skip.problems.join("; ")}`);
     if (r.interactions?.marks && !r.interactions.marks.ok) failures.push(`${r.id}: footnote markers: ${r.interactions.marks.problems.join("; ")}`);
@@ -813,7 +838,8 @@ function markdown(results, failures, server = []) {
   return [
     `# Check report: ${targetUrl}`,
     "",
-    `Run at ${new Date().toISOString()}. Phone runs use 4x CPU slowdown, 150 ms RTT, 1.6 Mbps.`,
+    `Run at ${new Date().toISOString()}. Viewports: ${[...new Set(results.map((r) => `${r.viewport} ${r.size}`))].join(", ")}.`,
+    `Throttled runs (${VIEWPORTS.filter((v) => v.throttled).map((v) => v.name).join(", ")}) use 4x CPU slowdown, 150 ms RTT, 1.6 Mbps and are held to the ${BUDGET.lcpMs} ms LCP budget; every run to CLS ${BUDGET.cls}.`,
     "Long frames are measured in headless Chromium with software WebGL, so treat them as a smoke signal, not a device measurement.",
     "",
     "| Case | LCP ms (element) | CLS | Long frames >50 ms | Scene (contrast) | Skip link / gate | Console errors | Blank steps | Fill rule |",
@@ -847,8 +873,8 @@ async function main() {
   const results = [];
   let serverChecks = [];
   try {
-    for (const vp of VIEWPORTS.filter((v) => !args.only || v.name === args.only)) {
-      for (const mode of MODES.filter((m) => !args.mode || m.name === args.mode)) {
+    for (const vp of RUN_VIEWPORTS) {
+      for (const mode of RUN_MODES) {
         const browser = await launchBrowser();
         try {
           const statsPage = await (await browser.newContext()).newPage();

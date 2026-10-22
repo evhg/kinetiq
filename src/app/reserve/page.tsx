@@ -3,10 +3,11 @@ import { Suspense } from "react";
 import { SiteHeader } from "@/components/chrome/Chrome";
 import { ReserveExperience } from "@/components/reserve/ReserveExperience";
 import styles from "@/components/reserve/Reserve.module.css";
-import { invitesOpen, tierById } from "@/content/lineup";
+import { tierById } from "@/content/lineup";
 import { reserveCopy } from "@/content/reserve";
 import { isFeelId } from "@/content/site";
 import { productMetadata } from "@/lib/product-metadata";
+import { invitationsOpen } from "@/lib/stripe-server";
 
 export const metadata: Metadata = productMetadata(reserveCopy.pageTitle);
 
@@ -65,7 +66,7 @@ async function Preselected({ searchParams }: { searchParams: Search }) {
       initialTier={initialTier}
       initialFeel={initialFeel}
       initialInvite={initialInvite}
-      invitesOpen={invitesOpen(process.env.INVITE_CODES)}
+      invitesOpen={invitationsOpen()}
     />
   );
 }

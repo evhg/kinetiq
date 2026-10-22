@@ -36,7 +36,9 @@
   gap: 12px;
   align-content: start;
   padding-top: 24px;
-  border-top: 1px solid var(--hairline);
+  /* translucent, so the rule always reads about 20 levels above whatever is under it, the pool's peak included
+     (an opaque --hairline matches the pool's light and the middle rule vanishes) */
+  border-top: 1px solid rgb(255 255 255 / 0.1);
 }
 .point :global(.t-h3) {
   text-wrap: balance;

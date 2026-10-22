@@ -122,6 +122,11 @@
       radial-gradient(ellipse 110% 38% at 50% 24%, rgb(43 43 49 / 0.85), rgb(30 30 34 / 0.5) 55%, transparent 100%),
       var(--stage);
   }
+  /* full measure, like the hero's and the finale's Reserve Now: the card centres its items, which would shrink this
+     block to its price line; the line stays centred under the button (.cta's own justify-items) */
+  .cta {
+    justify-self: stretch;
+  }
   .cta :global(.btn) {
     width: 100%;
   }

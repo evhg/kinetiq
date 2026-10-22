@@ -13,7 +13,8 @@ export function Finale() {
   return (
     <section id="finale" className={styles.section} aria-labelledby="finale-title">
       <div className={styles.media} aria-hidden="true">
-        <Still id="K01-finale" phoneCrop="card" alt="" phoneSizes="100vw" className={styles.still} />
+        {/* the 4:5 card crop on phones taller than 740 px; short phones keep the wide crop (Finale.module.css) */}
+        <Still id="K01-finale" phoneCrop="card" phoneMedia="(max-width: 699px) and (min-height: 741px)" alt="" phoneSizes="100vw" className={styles.still} />
       </div>
       <Reveal className={styles.copy}>
         <h2 id="finale-title" className="t-h2">

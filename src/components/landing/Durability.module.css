@@ -39,7 +39,8 @@
   gap: 12px;
   align-content: start;
   padding-top: 24px;
-  border-top: 1px solid var(--hairline);
+  /* translucent, so it stays visible over the pool's light as well as the floor (Feel.module.css .point) */
+  border-top: 1px solid rgb(255 255 255 / 0.1);
 }
 /* four across, a title that wraps splits evenly instead of leaving one word on its own line */
 .point :global(.t-h3) {

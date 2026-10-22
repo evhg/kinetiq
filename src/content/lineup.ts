@@ -161,7 +161,8 @@ export const tiers: Tier[] = [
     priceEur: 2900,
     // The tag, and "Invitations open soon." or (once they open) the foot, already say "invitation": the card line
     // does not. The set number is on the case plate (K09, "No. 01 / 10"); each racket has its own serial (row 15).
-    cardLine: "We make ten sets of three identical rackets, numbered 01\u00a0to\u00a010.",
+    // The card line says what a set is, as First 500's does (one feel per set); the set number is the include's to say.
+    cardLine: "We make ten sets. Each set is three identical rackets in one\u00a0feel.",
     includes: [
       "Three identical KINETIQ rackets in a fitted case marked with your set number, 01\u00a0to\u00a010",
       "Three measurement cards, numbered to\u00a0match",

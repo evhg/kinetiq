@@ -5,7 +5,8 @@ import { mayNotify, ndaNotifyConfigured, notifyNdaSignIn } from "@/lib/nda-notif
 
 // The NDA gate's one endpoint (src/proxy.ts lets it through without the cookie). It checks the email, sets the
 // kq_nda cookie (src/lib/nda.ts) and, after the response, emails the owner (src/lib/nda-notify.ts): for a same-origin
-// request only, once per address a day and at most 20 an hour. No database and no log line with the address. A
+// request only, once per address a day and at most 20 an hour and 40 a day per server instance; a sign-in over those
+// caps is listed in the next email. No database and no log line with the address. A
 // malformed address is an answer, not a failure: 200 with ok: false (no console error), as in /api/invite. Malformed
 // or cross-site requests get 400 / 403.
 

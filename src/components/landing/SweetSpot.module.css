@@ -215,6 +215,19 @@
     margin-bottom: calc(var(--fs-fine) * 1.55 + clamp(16px, 2vh, 32px));
   }
 }
+/* Where it clears the grip (from 1200 px and 3:2: the grip ends at least 28 px to its left, measured 1200x800 to
+   2560x1440), the caption stands with the racket it describes, at the right margin by the butt cap, so it never
+   reads as fine print under the numbers. Narrower or taller windows keep it under the lockup, off the racket. */
+@media (min-width: 1200px) and (min-aspect-ratio: 3/2) {
+  .section[data-media="still"] .caption {
+    left: auto;
+    right: var(--margin);
+    text-align: right;
+  }
+  .section[data-media="still"] .lockup {
+    margin-bottom: 0;
+  }
+}
 
 /* Below 1000 px K12's own backdrop is the lift (its pool of light behind the racket): a lift under it would only
    show as a lighter rim around the frame. */

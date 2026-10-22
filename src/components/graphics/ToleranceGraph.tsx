@@ -136,15 +136,13 @@ export function ToleranceGraph({ className, caption = true }: Props) {
             <line className={styles.axis} x1="0" x2={VB} y1={VB} y2={VB} />
           </svg>
 
-          {/* Scale references, mirrored: a hair's (or a sheet's) thickness away from the design
-              surface in either direction. Labelled once, on the upper line, with ± for the pair. */}
+          {/* Scale references: one line each, a hair's (or a sheet's) thickness above the design
+              surface, labelled with that thickness. Never mirrored below zero: an unlabelled line
+              there reads as data, and the pair as a "±70 µm" hair. */}
           {refs.map((r) => (
             <div key={r.label} className={styles.ref} style={{ top: pct(Y(r.um)) }} data-ref>
-              <span className={styles.refLabel}>{`${r.label}, ±${r.um} µm`}</span>
+              <span className={styles.refLabel}>{`${r.label}, ${r.um} µm thick`}</span>
             </div>
-          ))}
-          {refs.map((r) => (
-            <div key={`${r.label}-low`} className={styles.ref} style={{ top: pct(Y(-r.um)) }} data-ref />
           ))}
 
           <div

@@ -11,6 +11,7 @@ import styles from "./SweetSpot.module.css";
 
 /** K12 takes the image's place once scripts/stills.mjs has exported both its passes; until then, G15. */
 const K12 = hasStill("K12-base") && hasStill("K12-full");
+const SIZES = "(min-width: 1000px) 100vw, (min-width: 700px) 1250px, 100vw";
 
 /** Already at or past a reveal's line when the page hydrates (a reload mid-page, a hash link): leave it be. */
 const past = (el: Element, pct: number) => el.getBoundingClientRect().top < (window.innerHeight * pct) / 100;
@@ -105,8 +106,9 @@ export function SweetSpot() {
       <div className={styles.media}>
         {K12 ? (
           <div className={styles.still}>
-            <Still id="K12-base" phoneCrop="portrait" alt={sweetSpot.imageAlt(SWEET_CLAIM)} className={styles.base} sizes="100vw" phoneSizes="100vw" />
-            <Still id="K12-full" phoneCrop="portrait" alt="" className={styles.full} sizes="100vw" phoneSizes="100vw" />
+            {/* 700 to 999 px draw the wide master about 1250 px wide (cover in the 560 px 4:5 box, SweetSpot.module.css) */}
+            <Still id="K12-base" phoneCrop="portrait" alt={sweetSpot.imageAlt(SWEET_CLAIM)} className={styles.base} sizes={SIZES} phoneSizes="100vw" />
+            <Still id="K12-full" phoneCrop="portrait" alt="" className={styles.full} sizes={SIZES} phoneSizes="100vw" />
           </div>
         ) : (
           <SweetSpotField className={styles.graphic} />

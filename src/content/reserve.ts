@@ -51,12 +51,13 @@ export const reserveCopy = {
   feelLines,
   /** Under the two feels: guidance, not a result (CLAIMS.md row 16). */
   feelHelper: "Command suits a game built on placement, and Pace suits a game built on pressure.",
+  /** Under the helper, by the number of rackets. No-break spaces keep "in the feel you choose." on one line. */
   feelHint: (rackets: number) =>
     rackets === 1
-      ? "Chosen before your racket is moulded."
+      ? "Your racket is moulded in\u00a0the\u00a0feel\u00a0you\u00a0choose."
       : rackets === 2
-        ? "Both rackets are moulded in the feel you choose."
-        : `All ${countWord(rackets)} rackets are moulded in the feel you choose.`,
+        ? "Both rackets are moulded in\u00a0the\u00a0feel\u00a0you\u00a0choose."
+        : `All ${countWord(rackets)} rackets are moulded in\u00a0the\u00a0feel\u00a0you\u00a0choose.`,
   dueTodayLabel: "Due Today",
   trustLines: [
     site.refundLabel,
@@ -100,10 +101,11 @@ export const reserveCopy = {
         : "Thank you. Your racket is reserved.",
   /**
    * After payment, by edition: what ships, when, and what comes with it; unknown when /reserved cannot tell the
-   * edition. "Until then" is the shipping date it follows (CLAIMS.md row 23).
+   * edition. "Until then" is the shipping date it follows (CLAIMS.md row 23). The receipt is said once, here: with the
+   * address when the page has it (the in-place confirmation), "your inbox" when it does not (/reserved).
    */
-  confirmationBody: (tierId?: TierId) => {
-    const receipt = "Your receipt is on its way to your inbox.";
+  confirmationBody: (tierId?: TierId, email?: string) => {
+    const receipt = email ? `Your receipt is on its way to ${email}.` : "Your receipt is on its way to your inbox.";
     const tier = tierById(tierId);
     switch (tier?.id) {
       case "reserve":
@@ -116,9 +118,17 @@ export const reserveCopy = {
         return `${receipt} We ship in ${site.shipMonth}, and your reservation is fully refundable until then.`;
     }
   },
+  /**
+   * @deprecated Retired (round 2): `confirmationBody` now names the address, so the receipt is said once. Delete it
+   * with its last use, ReservePanel.tsx's `styles.sent` line.
+   */
   receiptSent: (email: string) => `Receipt sent to ${email}.`,
-  /** A short reference the buyer can quote: KQ- and the last 8 characters of the payment's id. */
-  reference: (paymentId: string) => `Reservation KQ-${paymentId.slice(-8).toUpperCase()}`,
+  /**
+   * The reference the buyer can quote, "Reservation KQ-1A2B3C4D". /api/reserve makes it (KQ- and 8 hex characters)
+   * and stores it in the payment's description and `metadata[reference]`, so it prints on Stripe's receipt and the
+   * owner can look it up. Pass that reference, never the payment's id.
+   */
+  reference: (ref: string) => `Reservation ${ref}`,
   reserved: {
     pageTitle: "Reserved",
     checking: "Checking your reservation.",

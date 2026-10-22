@@ -23,16 +23,24 @@ type Slide =
        * "contain" for wide shots (letterboxed), "portrait" for a tall crop (pillarboxed).
        */
       fit?: "contain" | "portrait";
+      /**
+       * Below 1024 px: the phone crop is taller than the frame (K02 edge-on), so it is contained, never cropped. It
+       * fills the frame's height and its sides feather into the slide.
+       */
+      phoneFit?: "portrait";
       /** The racket in the buyer's feel (K08's crop, K11's set): the slide a change of feel shows. */
       feel?: FeelId;
       alt: string;
     }
   | {
-      /** Two registered renders of one camera: the base, then the full variant crossfading in once the slide shows. */
+      /**
+       * Two registered renders of one camera: the base, then the full variant crossfading in once the slide shows.
+       * One crop at every size, contained and centred (Reserve.module.css .reveal).
+       */
       kind: "reveal";
       base: string;
       full: string;
-      phoneCrop?: string;
+      crop: string;
       alt: string;
     }
   /**
@@ -45,15 +53,16 @@ type Slide =
 /**
  * K12, the sweet spot lit to 4 mm from the edge (a face-on Command racket, white 3K twill, with its own serial on the
  * throat): only once it is exported, and only for a single Command racket, as the render shows one. A set's throats
- * carry its set number instead, and Pace is black 12K.
+ * carry its set number instead, and Pace is black 12K. Its 4:5 portrait crop at every size, so the whole racket shows,
+ * from the crown to the engraved cap, clear of the arrows and dots.
  */
 const SWEET_SPOT: Slide | null =
-  hasStill("K12-base") && hasStill("K12-full")
+  hasStill("K12-base", "portrait") && hasStill("K12-full", "portrait")
     ? {
         kind: "reveal",
         base: "K12-base",
         full: "K12-full",
-        phoneCrop: "portrait",
+        crop: "portrait",
         alt: "A white KINETIQ Command racket face-on, its face lit almost to the edge: the sweet spot as designed",
       }
     : null;
@@ -71,12 +80,14 @@ function slidesFor(tier: TierId, feel: FeelId): Slide[] {
         feel,
         crop: feel === "command" ? "left" : "right",
         fit: "portrait",
+        // phones and tablets: the racket stays whole and centred in a frame shorter than the crop (4:5 to square)
+        position: "50% 25%",
         alt: feel === "command" ? "Command: a white 3K carbon twill face, the finer weave" : "Pace: a black 12K spread-tow carbon face, the bolder weave",
       };
       const shots: Slide[] = [
         { kind: "still", id: "K01-full", phoneCrop: "card", alt: "A KINETIQ racket standing in a single beam of light" },
         ...(feel === "command" && SWEET_SPOT ? [SWEET_SPOT] : []),
-        { kind: "still", id: "K02", phoneCrop: "portrait", fit: "contain", alt: "The racket edge-on: one carbon shell from the tip into the handle" },
+        { kind: "still", id: "K02", phoneCrop: "portrait", fit: "contain", phoneFit: "portrait", alt: "The racket edge-on: one carbon shell from the tip into the handle" },
         { kind: "still", id: "K04-full", phoneCrop: "card", alt: "Close-up of a moulded hole, the carbon weave flowing around its rim" },
       ];
       const card: Slide = {
@@ -96,6 +107,8 @@ function slidesFor(tier: TierId, feel: FeelId): Slide[] {
           id: `K11-${feel}`,
           feel,
           phoneCrop: "card",
+          // phones and tablets: both crowns stay in a frame shorter than the crop (4:5 to square)
+          position: "50% 30%",
           alt: `A ${name} set: two identical ${feelName} rackets, ${sampleSet.words}, the set number laser-marked on both throats`,
         },
         ...(feel === "command"
@@ -109,7 +122,7 @@ function slidesFor(tier: TierId, feel: FeelId): Slide[] {
             ]
           : []),
         { kind: "still", id: "K07", phoneCrop: "trio", fit: "contain", alt: "Identical KINETIQ rackets, each in its own shaft of light" },
-        { kind: "still", id: "K06-full", phoneCrop: "card", alt: "The precision steel mould, its cavity glowing warm" },
+        { kind: "still", id: "K06-full", phoneCrop: "card", alt: "The mould, its cavity glowing warm" },
         { kind: "still", id: "K03", phoneCrop: "card", alt: "The head cut through: one carbon shell closed around the core, lining every hole" },
         {
           kind: "card",
@@ -120,7 +133,14 @@ function slidesFor(tier: TierId, feel: FeelId): Slide[] {
       ];
     case "invite":
       return [
-        { kind: "still", id: "K09", phoneCrop: "card", alt: `The three rackets of a ${name} set in their machined, felt-lined case` },
+        {
+          kind: "still",
+          id: "K09",
+          phoneCrop: "card",
+          // phones and tablets: the open lid stays in a frame shorter than the crop (4:5 to square)
+          position: "50% 27%",
+          alt: `The three rackets of a ${name} set in their fitted case`,
+        },
         {
           kind: "court",
           alt: `A plan of a padel court marking the exclusive coaching session${ambassador.named ? ` with ${ambassador.name}` : ""}`,
@@ -230,6 +250,7 @@ export function Gallery({ tierId, feel }: { tierId: TierId; feel: FeelId }) {
             data-key={slideKey(s)}
             data-active={i === index}
             data-fit={s.kind === "still" ? s.fit : undefined}
+            data-phone-fit={s.kind === "still" ? s.phoneFit : undefined}
             role="group"
             aria-roledescription="slide"
             aria-label={`${i + 1} of ${slides.length}`}
@@ -237,10 +258,12 @@ export function Gallery({ tierId, feel }: { tierId: TierId; feel: FeelId }) {
             style={"position" in s && s.position ? ({ "--pos": s.position } as CSSProperties) : undefined}
           >
             {s.kind === "still" ? (
+              // Below 1024 px the frame is full width, 4:5 to square: phones and tablets get the 4:5 crops.
               <Still
                 id={s.id}
                 crop={s.crop}
                 phoneCrop={s.phoneCrop}
+                phoneMedia="(max-width: 1023px)"
                 alt={s.alt}
                 sizes="(max-width: 1023px) 100vw, 66vw"
                 className={styles.slideStill}
@@ -249,10 +272,10 @@ export function Gallery({ tierId, feel }: { tierId: TierId; feel: FeelId }) {
             ) : s.kind === "reveal" ? (
               // The base render, then the lit variant fading in over it (pixel for pixel the same camera).
               <div className={styles.reveal}>
-                <Still id={s.base} phoneCrop={s.phoneCrop} alt="" sizes="(max-width: 1023px) 100vw, 66vw" className={styles.slideStill} />
+                <Still id={s.base} crop={s.crop} alt="" sizes="(max-width: 1023px) 100vw, 66vw" className={styles.slideStill} />
                 <Still
                   id={s.full}
-                  phoneCrop={s.phoneCrop}
+                  crop={s.crop}
                   alt={s.alt}
                   sizes="(max-width: 1023px) 100vw, 66vw"
                   className={`${styles.slideStill} ${styles.revealFull}`}

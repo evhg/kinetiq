@@ -200,8 +200,10 @@ a.card:active {
     text-decoration-color: var(--steel);
   }
 }
-/* Phones: the status sits above the name as an eyebrow, so the header stays one composed block. */
-@media (max-width: 479px) {
+/* Phones, and three narrow cards (900 to 1279 px, where the glyph, "One of Ten" and "Invite Only" no longer fit on one
+   line and the head overflowed its card): the status sits above the name as an eyebrow, so the header stays one
+   composed block. */
+@media (max-width: 479px), (min-width: 900px) and (max-width: 1279px) {
   .head {
     grid-template-columns: auto 1fr;
     grid-template-areas: "glyph status" "glyph name";
@@ -215,6 +217,50 @@ a.card:active {
   }
   .status {
     grid-area: status;
+  }
+}
+/* Three across: the cards share six rows through subgrid (the image, the name, the card line, the includes, One of
+   Ten's invitation note, the price foot), so each card's includes start on one line across the row and the feet stay
+   level, however many lines a card line takes. The body keeps its padding as a subgrid (it adds to the edge rows of
+   every card alike). */
+@media (min-width: 900px) {
+  .cards {
+    grid-template-rows: auto auto auto auto 1fr auto;
+    row-gap: 0;
+  }
+  .item,
+  .card {
+    grid-row: 1 / -1;
+    grid-template-rows: subgrid;
+  }
+  .card {
+    row-gap: 0;
+  }
+  .body {
+    grid-row: 2 / -1;
+    display: grid;
+    grid-template-rows: subgrid;
+    row-gap: clamp(12px, 0.8vw, 20px);
+  }
+  .head {
+    grid-row: 1;
+  }
+  .line {
+    grid-row: 2;
+  }
+  .includes {
+    grid-row: 3;
+    align-self: start;
+  }
+  .inviteLink,
+  .inviteSoon {
+    grid-row: 4;
+    align-self: start;
+    justify-self: start;
+  }
+  .foot {
+    grid-row: 5;
+    margin-top: 0;
   }
 }
 @media (max-width: 899px) {
@@ -233,10 +279,12 @@ a.card:active {
     scroll-snap-align: start;
   }
 }
-/* Phones: square frames, so a card's image and its price fit on one screen together. The First 500 pair (K11, 10
-   to 85% of its 4:5 render) and the One of Ten case (K09, 16 to 82%) stay whole in the window this keeps (7.5 to
-   87.5%). KINETIQ's K12 racket fills 6 to 93% of its render, more than a square holds, so it is shown whole instead,
-   its sides feathered into the frame's --stage (the racket spans 18 to 84% of the render's width). */
+/* Phones: square frames, and the price right under the name (image, name, price and arrow, then the line and the
+   includes), so a card's image and its price are on one screen together; the spare height of the equal cards falls
+   at their foot. The One of Ten case (K09, 16 to 82% of its 4:5 render) stays whole in the window the square keeps
+   (7.5 to 87.5%). KINETIQ's K12 racket (6 to 93% of its render) and the First 500 pair (10 to 85%, which a square
+   would crop to its crown and cap) are shown whole instead, with air above and below, their sides feathered into the
+   frame's --stage (KINETIQ's racket spans 18 to 84% of the render's width, the pair about 21 to 79% of the frame). */
 @media (max-width: 599px) {
   .media {
     aspect-ratio: 1 / 1;
@@ -248,5 +296,19 @@ a.card:active {
     object-fit: contain;
     -webkit-mask-image: linear-gradient(90deg, transparent 10%, #000 20%, #000 80%, transparent 90%);
     mask-image: linear-gradient(90deg, transparent 10%, #000 20%, #000 80%, transparent 90%);
+  }
+  .card[data-tier="limited"] .still img {
+    object-fit: contain;
+    -webkit-mask-image: linear-gradient(90deg, transparent 10%, #000 18%, #000 82%, transparent 90%);
+    mask-image: linear-gradient(90deg, transparent 10%, #000 18%, #000 82%, transparent 90%);
+  }
+  .head {
+    order: -2;
+  }
+  .foot {
+    order: -1;
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
   }
 }

@@ -12,6 +12,8 @@ import { isPaid, loadStripe, type Stripe, type StripeElement, type StripeElement
 import styles from "./Reserve.module.css";
 
 type Stage = "choose" | "details" | "processing" | "done";
+/** A PaymentIntent this page started: its client secret, its reference (from /api/reserve) and what it is for. */
+type Started = { secret: string; reference: string; tier: TierId; feel: FeelId; email: string };
 type Fields = {
   name: string;
   email: string;
@@ -113,7 +115,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
   const [cardReady, setCardReady] = useState(false);
   const [soldOut, setSoldOut] = useState<TierId[]>([]);
   const [instantForm, setInstantForm] = useState(false);
-  const [paid, setPaid] = useState<{ tier: TierId; feel: FeelId; email: string; secret: string } | null>(null);
+  const [paid, setPaid] = useState<Started | null>(null);
   const [payVisible, setPayVisible] = useState(true);
   // One of Ten: locked for everyone until a valid invitation code unlocks (and selects) it.
   const [inviteCode, setInviteCode] = useState<string | null>(null);
@@ -138,7 +140,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
   const paymentRef = useRef<StripeElement | null>(null);
   const attemptRef = useRef<string>("");
   // The last PaymentIntent this page started, with what it was for.
-  const secretRef = useRef<{ secret: string; tier: TierId; feel: FeelId; email: string } | null>(null);
+  const secretRef = useRef<Started | null>(null);
   const uid = useId();
   const tier = tierById(tierId)!;
   // On sale and not sold out. One of Ten also needs an accepted invitation code before it can be chosen.
@@ -349,7 +351,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
     const paidEarlier = async () => {
       const last = secretRef.current;
       if (!last || !(await isPaid(stripe, last.secret))) return false;
-      setPaid({ tier: last.tier, feel: last.feel, email: last.email, secret: last.secret });
+      setPaid(last);
       setStage("done");
       return true;
     };
@@ -373,7 +375,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
           attempt: attemptRef.current,
         }),
       });
-      let data: { clientSecret?: string; error?: string; fields?: string[]; soldOut?: boolean } = {};
+      let data: { clientSecret?: string; reference?: string; error?: string; fields?: string[]; soldOut?: boolean } = {};
       try {
         data = await res.json();
       } catch {
@@ -384,7 +386,8 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
         setBadFields(data.fields ?? []);
         throw new Shown(data.error ?? E.generic);
       }
-      secretRef.current = { secret: data.clientSecret, tier: tier.id, feel, email: fields.email };
+      const started: Started = { secret: data.clientSecret, reference: data.reference ?? "", tier: tier.id, feel, email: fields.email };
+      secretRef.current = started;
       const result = await stripe.confirmPayment({
         elements,
         clientSecret: data.clientSecret,
@@ -396,7 +399,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
       });
       const status = result.paymentIntent?.status;
       if (status === "succeeded" || status === "processing") {
-        setPaid({ tier: tier.id, feel, email: fields.email, secret: data.clientSecret });
+        setPaid(started);
         setStage("done");
         return;
       }
@@ -461,7 +464,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
       </div>
 
       {stage === "done" && paid ? (
-        <Confirmation tier={paid.tier} feel={paid.feel} email={paid.email} paymentId={paid.secret.split("_secret_")[0]} />
+        <Confirmation tier={paid.tier} feel={paid.feel} email={paid.email} reference={paid.reference} />
       ) : (
         <>
           <fieldset ref={tiersRef} className={styles.tiers} disabled={open}>
@@ -743,8 +746,11 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
   );
 }
 
-/** The confirmation, in place of the options. Focus moves to its heading so it is announced. */
-function Confirmation({ tier, feel, email, paymentId }: { tier: TierId; feel: FeelId; email: string; paymentId: string }) {
+/**
+ * The confirmation, in place of the options. Focus moves to its heading so it is announced. The receipt is said once,
+ * with the buyer's address; the reference is the one /api/reserve put on the payment (and so on Stripe's receipt).
+ */
+function Confirmation({ tier, feel, email, reference }: { tier: TierId; feel: FeelId; email: string; reference: string }) {
   const t = tierById(tier)!;
   const box = useRef<HTMLDivElement>(null);
   const heading = useRef<HTMLHeadingElement>(null);
@@ -762,9 +768,8 @@ function Confirmation({ tier, feel, email, paymentId }: { tier: TierId; feel: Fe
       <p className={styles.doneTier}>
         {orderLine(t, feels[feel].name)}. <span className="t-num">{priceLabel(t.priceEur)}</span>
       </p>
-      <p className="t-body">{reserveCopy.confirmationBody(t.id)}</p>
-      <p className={`t-num ${styles.doneRef}`}>{reserveCopy.reference(paymentId)}</p>
-      {email ? <p className={styles.sent}>{reserveCopy.receiptSent(email)}</p> : null}
+      <p className="t-body">{reserveCopy.confirmationBody(t.id, email || undefined)}</p>
+      {reference ? <p className={`t-num ${styles.doneRef}`}>{reserveCopy.reference(reference)}</p> : null}
     </div>
   );
 }

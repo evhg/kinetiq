@@ -39,11 +39,11 @@ import styles from "./TechnicalDrawing.module.css";
 /** New strings used by G01 (not yet in copy.ts). Claims restate existing copy (CLAIMS.md rows). */
 export const LABELS = {
   summary:
-    "Technical drawing of the KINETIQ racket. Overall length 455.0 mm, head width 260.0 mm, thickness 38.0 mm. 42 moulded holes: 34 of 12.4 mm diameter and a row of 8 of 14.0 mm along the top. Every surface within plus or minus 0.015 mm. The head narrows into the handle, which carries a wrapped overgrip and a black butt cap engraved with a Q, the KINETIQ logo. Section A-A shows one continuous shell sealed around the core; section B-B shows the shell running unbroken down the wall of a moulded hole.",
+    "Technical drawing of the KINETIQ racket. Overall length at most 455.0 mm, head width at most 260.0 mm, thickness at most 38.0 mm. 42 moulded holes: 34 of 12.4 mm diameter and a row of 8 of 14.0 mm along the top. Every surface within plus or minus 0.015 mm. The head narrows into the handle, which carries a wrapped overgrip and a black butt cap engraved with a Q, the KINETIQ logo. Section A-A shows one continuous shell sealed around the core; section B-B shows the shell running unbroken down the wall of a moulded hole.",
   holeNote: "0 drilled",
   grip: ["Overgrip,", "helical wrap"],
   cap: ["Black cap,", "engraved Q"],
-  shell: "One shell. No tube.",
+  shell: "Carbon shell",
   core: "Core",
   fibre: ["Fibre continuous", "around the edge"],
   weave: ["One weave,", "face to edge"],
@@ -240,8 +240,9 @@ function frontView(D: Draft, t: Xf, o: FrontOpts = {}) {
     cutPlane(D, t, BORE[1], -wb, wb, 13, "B");
   }
   if (o.dims) {
-    dimV(D, at(t, [0, top]), at(t, [-10, butt]), at(t, [-174, 0])[0], DIM.length.toFixed(1));
-    dimH(D, at(t, [-HEAD_MAX[0], HEAD_MAX[1]]), at(t, [HEAD_MAX[0], HEAD_MAX[1]]), at(t, [0, top + 32])[1], DIM.width.toFixed(1));
+    // the envelope as one-sided limits ("max"), so the general ±0.015 never takes a racket past the rules (row 6c)
+    dimV(D, at(t, [0, top]), at(t, [-10, butt]), at(t, [-174, 0])[0], `${DIM.length.toFixed(1)} max`);
+    dimH(D, at(t, [-HEAD_MAX[0], HEAD_MAX[1]]), at(t, [HEAD_MAX[0], HEAD_MAX[1]]), at(t, [0, top + 32])[1], `${DIM.width.toFixed(1)} max`);
   }
   if (o.callout) {
     // the 34 lattice holes, from the lowest row; the 8 of the crown, from above the head
@@ -274,7 +275,7 @@ function sideView(D: Draft, t: Xf, o: { dims?: boolean; balance?: boolean; handl
   D.add("hidden", "hidden", sideHidden(t));
   D.add("hidden", "centre", line(at(t, [0, DIM.headTop + 16]), at(t, [0, DIM.buttY - 16])));
   if (o.dims) {
-    dimH(D, at(t, [-h, DIM.headTop - 7]), at(t, [h, DIM.headTop - 7]), at(t, [0, DIM.headTop + 32])[1], DIM.thickness.toFixed(1), {
+    dimH(D, at(t, [-h, DIM.headTop - 7]), at(t, [h, DIM.headTop - 7]), at(t, [0, DIM.headTop + 32])[1], `${DIM.thickness.toFixed(1)} max`, {
       outside: true,
     });
   }
