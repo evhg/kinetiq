@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useRef, type CSSProperties, type RefObject } from "react";
+import { Fragment, useId, useRef, type CSSProperties, type RefObject } from "react";
 import { useMotion } from "@/components/motion/MotionProvider";
 import { unibody } from "@/content/copy";
 import { gsap, useGSAP } from "@/lib/gsap";
@@ -23,13 +23,11 @@ import {
 import styles from "./SectionComparison.module.css";
 
 const { left, right } = unibody.section;
-const [partTube, partFace] = left.parts;
-const [lineShell, lineEdge, lineBalance] = right.lines;
 
 /** Strings this graphic adds on top of unibody.section (copy.ts). */
 export const LABELS = {
   tubularSummary:
-    "Section through a tubular racket: a separate frame tube at each edge, joined to the faces and the core at a bond line on each side. The drilled hole cuts through the core and leaves it open to the air.",
+    "Section through a tubular racket: a separate frame tube at each edge, joined to the faces at a joint on each side. The drilled hole cuts through the core and leaves it open to the air.",
   kinetiqSummary:
     "Section through KINETIQ at the same scale: no frame tube. One continuous carbon shell runs around both edges and lines every hole wall, sealing the core inside it.",
 };
@@ -44,35 +42,30 @@ type Set = { full: Callout[]; half: Callout[] };
 
 const TUBULAR: Set = {
   full: [
-    { key: "tube", text: partTube, at: [8, 1.1], anchor: [0, ROW.top1], side: "left", band: "top" },
-    { key: "face-top", text: partFace, at: [66, -0.6], anchor: [62, ROW.top1], side: "left", band: "top" },
-    { key: "bond-right", text: left.glue, at: [92.9, 10], anchor: [99, ROW.top1], side: "left", band: "top", tone: "bond" },
-    { key: "bond-left", text: left.glue, at: [19.1, 28], anchor: [13.5, ROW.bottom1], side: "right", band: "bottom", tone: "bond" },
+    { key: "tube", text: left.tube, at: [8, 1.1], anchor: [0, ROW.top1], side: "left", band: "top" },
+    // one label over the break for both of the tube's joints, a leader to each
+    { key: "joint", text: left.joints, at: [19.1, 10], also: [92.9, 10], anchor: [56, ROW.top1], side: "centre", band: "top", tone: "bond" },
     // the core's bare wall, where the drilled hole cuts it open
     { key: "core", text: left.core, at: [28.7, 25], anchor: [24, ROW.bottom1], side: "left", band: "bottom" },
-    { key: "face-bottom", text: partFace, at: [66, 38.6], anchor: [62, ROW.bottom1], side: "left", band: "bottom" },
   ],
   half: [
-    { key: "tube", text: partTube, at: [8, 1.1], anchor: [-3, ROW.top2], side: "left", band: "top" },
-    { key: "face-top", text: partFace, at: [47, -0.6], anchor: [57, ROW.top1], side: "right", band: "top" },
-    { key: "bond-left", text: left.glue, at: [19.1, 30], anchor: [10.5, ROW.bottom1], side: "right", band: "bottom", tone: "bond" },
+    { key: "tube", text: left.tube, at: [8, 1.1], anchor: [-3, ROW.top2], side: "left", band: "top" },
+    { key: "joint", text: left.joint, at: [19.1, 30], anchor: [10.5, ROW.bottom1], side: "right", band: "bottom", tone: "bond" },
     { key: "core", text: left.core, at: [28.7, 25], anchor: [21.5, ROW.bottom1], side: "left", band: "bottom" },
   ],
 };
 
 const KINETIQ: Set = {
   full: [
-    { key: "shell", text: lineShell, at: [66, 0], anchor: [58, ROW.top1], side: "right", band: "top", tone: "shell" },
-    { key: "edge", text: lineEdge, at: [108.78, 3.22], anchor: [115, ROW.top1], side: "right", band: "top", tone: "shell", wrap: true },
-    { key: "balance", text: lineBalance, at: [2.2, 24], anchor: [-1.5, ROW.bottom1], side: "left", band: "bottom", tone: "shell" },
+    { key: "shell", text: right.shell, at: [66, 0], anchor: [58, ROW.top1], side: "right", band: "top", tone: "shell" },
     { key: "core", text: right.core, at: [95, 22], anchor: [80, ROW.bottom1], side: "left", band: "bottom", tone: "shell" },
   ],
   half: [
-    { key: "shell", text: lineShell, at: [91, 0], anchor: [86.5, ROW.top1], side: "right", band: "top", tone: "shell", wrap: true },
-    // One edge has room for three callouts: the sealed core takes the balance line's place (beat B's body
-    // still says where the grams go).
-    { key: "core", text: right.core, at: [101, 21], anchor: [116.5, ROW.top2], side: "right", band: "top", tone: "shell" },
-    { key: "edge", text: lineEdge, at: [108.78, 34.78], anchor: [114.5, ROW.bottom1], side: "right", band: "bottom", tone: "shell", wrap: true },
+    // At 150 px (15 px labels, 2.27 px/mm) "One continuous" is 111 px, 49 mm: it ends at 104 so it starts at 55,
+    // inside the window's 52. The leader runs out to where the shell wraps the edge.
+    { key: "shell", text: right.shell, at: [108.78, 3.22], anchor: [104, ROW.top1], side: "right", band: "top", tone: "shell", wrap: true },
+    // across from the tubular "Open core", on the same shelf (82 px, 36 mm at 150 px: from 55)
+    { key: "core", text: right.core, at: [95, 22], anchor: [91, ROW.bottom1], side: "right", band: "bottom", tone: "shell" },
   ],
 };
 
@@ -102,8 +95,12 @@ function frameVars(variant: Variant): CSSProperties {
 function Leaders({ set }: { set: Set }) {
   const draw = (c: Callout) => (
     <g key={c.key} className={c.tone === "shell" ? styles.leaderShell : c.tone === "bond" ? styles.leaderBond : styles.leaderPart}>
-      <path d={`M${c.anchor[0]} ${c.anchor[1]}L${c.at[0]} ${c.at[1]}`} vectorEffect="non-scaling-stroke" />
-      <path className={styles.dot} d={`M${c.at[0]} ${c.at[1]}h0.001`} vectorEffect="non-scaling-stroke" />
+      {(c.also ? [c.at, c.also] : [c.at]).map(([x, y]) => (
+        <Fragment key={x}>
+          <path d={`M${c.anchor[0]} ${c.anchor[1]}L${x} ${y}`} vectorEffect="non-scaling-stroke" />
+          <path className={styles.dot} d={`M${x} ${y}h0.001`} vectorEffect="non-scaling-stroke" />
+        </Fragment>
+      ))}
     </g>
   );
   return (
@@ -343,7 +340,7 @@ function Section({ variant, className, title = true, play = false }: SectionProp
             {isK ? right.title : left.title}
           </span>
         ) : null}
-        <span className="visually-hidden">{isK ? `${right.title}. ${LABELS.kinetiqSummary} ${[...right.lines, right.core].map((l) => (/[.!?]$/.test(l) ? l : `${l}.`)).join(" ")}` : `${left.title}. ${LABELS.tubularSummary}`}</span>
+        <span className="visually-hidden">{`${isK ? right.title : left.title}. ${isK ? LABELS.kinetiqSummary : LABELS.tubularSummary}`}</span>
       </figcaption>
       <div className={styles.frame} style={frameVars(variant)}>
         <div className={styles.canvas}>

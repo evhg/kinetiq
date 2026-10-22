@@ -44,8 +44,8 @@ export const DIM = {
   faceInset: FACE_INSET * MM, // 4
   shell: 2, // drawn shell wall in sections (mm)
   rimShell: 3,
-  /** Balance point from the butt (mm): the sample card's 250.4. Drawn as a symbol only, never printed. */
-  balance: 250.4,
+  /** Balance point from the butt (mm): the 250.0 nominal (the sample card measures 250.4). Drawn as a symbol only, never printed. */
+  balance: 250,
 };
 
 /** The canonical handle in drawing mm (racket-shape.ts NECK, NECK_TAPER, GRIP, CAP). */

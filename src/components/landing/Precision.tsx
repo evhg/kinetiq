@@ -6,7 +6,10 @@ import { PinnedChapter } from "@/components/motion/PinnedChapter";
 import { precision } from "@/content/copy";
 import styles from "./Precision.module.css";
 
-/** Precision: the record numeral counts down to 15 µm while the laser-scan still (K05) settles, then the graph. */
+/**
+ * Precision: the record numeral counts down to 15 µm while the laser-scan still (K05) settles, then the graph. The
+ * line under the numeral fades in as the count lands, so it never sits under a number it does not describe.
+ */
 export function Precision() {
   const { record } = precision;
   // While pinned, the numeral sits in a box as wide as its longest value, so the count never shifts it; a
@@ -37,8 +40,8 @@ export function Precision() {
             0,
           )
             .fromTo(`.${styles.media}`, { scale: 1.08 }, { scale: 1, duration: 0.85, ease: "power2.out" }, 0)
-            .from(`.${styles.line}`, { opacity: 0, y: 12, duration: 0.1 }, 0.82)
-            .to({}, { duration: 0.1 });
+            .from(`.${styles.line}`, { opacity: 0, y: 12, duration: 0.23 }, 0.62)
+            .to({}, { duration: 0.1 }, 0.92);
           return () => {
             if (out) out.textContent = String(record.to);
           };
@@ -57,7 +60,8 @@ export function Precision() {
               <span className={`t-unit ${styles.unit}`}>{record.unit}</span>
               <span className={styles.ghost}>{"0".repeat(digits - String(record.to).length)}</span>
             </span>
-            <span className="visually-hidden">{`${record.to} ${record.unit}: ${precision.headline}`}</span>
+            {/* Spoken once and in words: the graph section's own h2 says the headline. */}
+            <span className="visually-hidden">{`${record.to} ${record.spokenUnit}`}</span>
           </h2>
           <p className={`t-lead ${styles.line}`}>{precision.recordLine}</p>
         </div>

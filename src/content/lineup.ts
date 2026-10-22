@@ -4,10 +4,10 @@
 //
 // One racket, three editions (owner, 2026-10-22). Every edition holds the same KINETIQ, in the feel the buyer
 // chooses: the editions differ only in how many rackets come, when they ship and what comes with them. So the names
-// never describe the racket; each is a number you can read on it (its serial; its set number, 001 to 500; its set
-// number, 01 to 10). Command and Pace stay the only words about play. Write "First 500" and "One of Ten"
-// in full, with no-break spaces, never shortened ("500", "The Ten") and never with ™ (CLAIMS.md row 35). ConQuer,
-// VanQuish and InviQtus are retired.
+// never describe the racket; each is a number you can read (its serial; its set number, 001 to 500, on both throats;
+// its set number, 01 to 10, on the case). Command and Pace stay the only words about play. Write "First 500" and
+// "One of Ten" in full, with no-break spaces, never shortened ("500", "The Ten") and never with ™ (CLAIMS.md row 35).
+// ConQuer, VanQuish and InviQtus are retired.
 
 import type { IconName } from "@/components/graphics/Icons";
 
@@ -16,7 +16,8 @@ export type TierId = "reserve" | "limited" | "invite";
 export type Tier = {
   id: TierId;
   name: string;
-  availability: "Reserve" | "Limited" | "Invite Only";
+  /** A state, never a verb: "Reserve" read as a second button beside Reserve Now. */
+  availability: "Available" | "Limited" | "Invite Only";
   priceEur: number;
   /** One line on the option card. */
   cardLine: string;
@@ -53,7 +54,8 @@ export const lifetime = {
 /**
  * The sample set number shown for First 500: on both throats in K10 and K11 ("027/500") and on the two sample
  * measurement cards ("Set No. 027 / 500 A" and "B"). Never reissued; a single racket shows its serial instead
- * (KQ-000427, `identical.card.serial` in copy.ts).
+ * (KQ-000427, `identical.card.serial` in copy.ts). The set's two cards carry serials of their own, KQ-000053 and
+ * KQ-000054 (`identical.card.setSerials`), never the single racket's.
  */
 export const sampleSet = {
   /** As laser-marked on the throats. */
@@ -103,7 +105,9 @@ const coaching = ambassador.named
 /** The editions section on the landing page: one racket, three editions. */
 export const editionsIntro = {
   headline: "We make one racket, in three editions.",
-  lead: "Each edition holds the same KINETIQ, moulded in the feel you choose. The editions differ only in how many rackets you receive, when they ship and what comes with them.",
+  // The h2 says one racket; the KINETIQ card line says it is the same in every edition (the one line /reserve shows),
+  // and Two feels has just said "the feel you choose", so the lead says neither again.
+  lead: "They differ only in how many rackets you receive, when they ship and what comes with them.",
   /** The invitation edition's card says so where the other two cards carry their arrow. */
   byInvitation: "By invitation",
 };
@@ -112,17 +116,18 @@ export const tiers: Tier[] = [
   {
     id: "reserve",
     name: "KINETIQ",
-    availability: "Reserve",
+    availability: "Available",
     priceEur: 410,
-    cardLine: "One racket, moulded in the feel you choose. It is the same racket you will find in every edition.",
+    cardLine: "It is the same racket you will find in every edition.",
     // Four includes, in the First 500 card's order (racket, number, card, shipping), so this card has no empty band
     // above its price. The serial on the throat is the canon mark (CLAIMS.md row 15); the ship month is the same as
-    // `site.shipMonth` (typed here: site.ts imports this file). Never the five years (Durability only).
+    // `site.shipMonth` (typed here: site.ts imports this file). It ships after the First 500 sets, which keeps their
+    // "first to ship" true in the same month (CLAIMS.md rows 19 and 22). Never the five years (Durability only).
     includes: [
       "One KINETIQ racket, Command\u00a0or\u00a0Pace",
       "Its own serial number, laser-marked on the\u00a0throat",
       "A measurement card, numbered to\u00a0match",
-      "Ships in January\u00a02027",
+      "Ships in January\u00a02027, after the First\u00a0500\u00a0sets",
     ],
     limit: null,
     offSite: 0,
@@ -142,7 +147,7 @@ export const tiers: Tier[] = [
       "Two identical KINETIQ rackets, both Command or both\u00a0Pace",
       "Your set number, 001\u00a0to\u00a0500, laser-marked on both throats",
       "Two measurement cards, numbered to\u00a0match",
-      "First out of the mould and first to ship, in January\u00a02027",
+      "First out of the mould and first to ship, in\u00a0January\u00a02027",
     ],
     limit: 500,
     offSite: 0,
@@ -154,9 +159,12 @@ export const tiers: Tier[] = [
     name: "One\u00a0of\u00a0Ten",
     availability: "Invite Only",
     priceEur: 2900,
-    cardLine: "We make ten sets of three identical rackets, numbered 01\u00a0to\u00a010, and offer them only by invitation.",
+    // The tag, and "Invitations open soon." or (once they open) the foot, already say "invitation": the card line
+    // does not. The set number is on the case plate (K09, "No. 01 / 10"); each racket has its own serial (row 15).
+    cardLine: "We make ten sets of three identical rackets, numbered 01\u00a0to\u00a010.",
     includes: [
-      "Three identical KINETIQ rackets, laser-marked 01\u00a0to\u00a010, in a fitted case",
+      "Three identical KINETIQ rackets in a fitted case marked with your set number, 01\u00a0to\u00a010",
+      "Three measurement cards, numbered to\u00a0match",
       ...(ambassador.signs ? [`Each racket signed by ${ambassador.name}`] : []),
       coaching,
       lifetime.guarantee,
@@ -172,7 +180,7 @@ export const tiers: Tier[] = [
 export const includeIcons: Record<TierId, IconName[]> = {
   reserve: ["racket", "numberedTag", "measurementCard", "deliveryBox"],
   limited: ["rackets2", "numberedTag", "measurementCard", "deliveryBox"],
-  invite: ["fittedCase", ...(ambassador.signs ? (["penNib"] as IconName[]) : []), "court", "shieldCheck"],
+  invite: ["fittedCase", "measurementCard", ...(ambassador.signs ? (["penNib"] as IconName[]) : []), "court", "shieldCheck"],
 };
 
 /**

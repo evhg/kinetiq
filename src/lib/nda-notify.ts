@@ -4,18 +4,43 @@
  * RESEND_API_KEY, NDA_NOTIFY_TO (the owner's inbox) and NDA_NOTIFY_FROM (a sender on that account's verified domain).
  * Without all three nothing is sent, and the gate's note does not mention it (ndaNotifyConfigured). It runs after the
  * response (`after` in /api/nda), so a slow or failed email never holds up the gate; a failure is logged without the
- * visitor's address.
+ * visitor's address. It says only the address, the time and the page (its path and edition, no other parameter).
  */
 export type NdaSignIn = {
   email: string;
   at: string;
   page: string;
   origin: string;
-  country?: string;
-  browser?: string;
 };
 
 const TIMEOUT_MS = 8000;
+const DAY_MS = 86_400_000;
+const HOUR_MS = 3_600_000;
+const MAX_PER_HOUR = 20;
+
+/**
+ * The addresses emailed in the last day, oldest first, in this server instance's memory. At most 20 an hour, so it
+ * holds at most 480; a new instance starts empty.
+ */
+const sent = new Map<string, number>();
+
+/**
+ * Whether this sign-in may email the owner: once per address a day, and at most 20 an hour, so a script posting to
+ * the gate cannot flood the inbox or spend the Resend account's quota. The cookie is set either way.
+ */
+export function mayNotify(email: string, now = Date.now()): boolean {
+  for (const [address, at] of sent) {
+    if (at > now - DAY_MS) break;
+    sent.delete(address);
+  }
+  const key = email.toLowerCase();
+  if (sent.has(key)) return false;
+  let lastHour = 0;
+  for (const at of sent.values()) if (at > now - HOUR_MS) lastHour++;
+  if (lastHour >= MAX_PER_HOUR) return false;
+  sent.set(key, now);
+  return true;
+}
 
 export function ndaNotifyConfigured(): boolean {
   return Boolean(process.env.RESEND_API_KEY?.trim() && process.env.NDA_NOTIFY_TO?.trim() && process.env.NDA_NOTIFY_FROM?.trim());
@@ -28,11 +53,7 @@ export async function notifyNdaSignIn(s: NdaSignIn): Promise<void> {
     "",
     `When: ${s.at}`,
     `Page: ${s.origin}${s.page}`,
-    s.country ? `Country: ${s.country}` : "",
-    s.browser ? `Browser: ${s.browser}` : "",
-  ]
-    .filter(Boolean)
-    .join("\n");
+  ].join("\n");
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",

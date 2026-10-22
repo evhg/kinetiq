@@ -31,11 +31,20 @@
 .graphic {
   width: 100%;
 }
-/* K12: the base render, the lit pass over it (both 4:5 portrait crops on phones) */
+/* K12: the base render, the lit pass over it (both 4:5 portrait crops on phones). Its edges feather into the
+   floor, so its darker backdrop never shows as a box; the racket spans x 18 to 84% and y 6 to 94% of the crop. */
 .still {
   position: relative;
   aspect-ratio: 4 / 5;
   overflow: hidden;
+  -webkit-mask-image:
+    linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent),
+    linear-gradient(transparent, #000 4%, #000 96%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent),
+    linear-gradient(transparent, #000 4%, #000 96%, transparent);
+  mask-composite: intersect;
 }
 .base,
 .full {
@@ -162,24 +171,56 @@
     margin: 0;
     text-align: right;
   }
+  /* K12 full bleed: grid-area auto makes the section's padding box the containing block (an absolutely placed grid
+     child with a grid area would fill only that area). Below the header, so the head never sits under it. */
   .section[data-media="still"] .media {
     position: absolute;
-    inset: 0;
+    grid-area: auto;
+    inset: var(--chrome-h) 0 0;
     z-index: -1;
     margin: 0;
   }
+  /* The whole 16:9 frame, never cropped by a wider screen: as tall as the space below the header, centred, and no
+     taller than keeps the rim (x 0.81 of the frame) inside the right margin on a tall screen. Screens narrower than
+     16:9 crop its sides only (x 0 to 0.45 is backdrop). The racket spans y 0.056 to 0.936 of the frame, so the
+     feathers stop short of it and blend the frame into the floor on every side (fill rule, the hero's hand-off). */
   .section[data-media="still"] .still {
     position: absolute;
-    inset: 0;
-    aspect-ratio: auto;
+    top: 50%;
+    left: 50%;
+    height: min(100%, (50vw - var(--margin)) * 1.8);
+    aspect-ratio: 16 / 9;
+    translate: -50% -50%;
+    -webkit-mask-image:
+      linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent),
+      linear-gradient(transparent, #000 5%, #000 94%, transparent);
+    -webkit-mask-composite: source-in;
+    mask-image:
+      linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent),
+      linear-gradient(transparent, #000 5%, #000 94%, transparent);
+    mask-composite: intersect;
   }
   .section[data-media="still"] .base img,
   .section[data-media="still"] .full img {
     object-position: 50% 50%;
   }
+  /* The caption under the lockup in columns 1 to 5, off the racket; the lockup keeps a line clear for it. */
   .section[data-media="still"] .caption {
-    right: var(--margin);
+    left: var(--margin);
+    right: auto;
     bottom: clamp(32px, 5vh, 96px);
+    text-align: left;
+  }
+  .section[data-media="still"] .lockup {
+    margin-bottom: calc(var(--fs-fine) * 1.55 + clamp(16px, 2vh, 32px));
+  }
+}
+
+/* Below 1000 px K12's own backdrop is the lift (its pool of light behind the racket): a lift under it would only
+   show as a lighter rim around the frame. */
+@media (max-width: 999px) {
+  .section[data-media="still"] {
+    background: linear-gradient(180deg, rgb(26 25 25), rgb(19 19 21) 40%, var(--stage) 80%, rgb(19 20 22));
   }
 }
 

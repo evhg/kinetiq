@@ -31,7 +31,8 @@ export function Identical() {
           <div className={styles.card}>
             <MeasurementCard rotate />
             <Reveal className={styles.cta}>
-              <Link href="/reserve" className="btn btn-primary">
+              {/* data-cta: the header's compact Reserve Now hides while this one is on screen (HeaderClient) */}
+              <Link href="/reserve" className="btn btn-primary" data-cta="">
                 {site.ctaLabel}
               </Link>
               <p className="t-label">{site.priceNote}</p>

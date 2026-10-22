@@ -1,5 +1,6 @@
 // All landing-page words, in one place. Every claim here has a row in CLAIMS.md.
-// House rules: weights always carry a decimal (355.0 g, ±1.0 g), never a range.
+// House rules: weights always carry a decimal (355.0 g, ±1.0 g), never a range. The spec figures share one
+// precision (owner, 2026-10-22): 455.0, 260.0 and 38.0 mm, 355.0 g, 250.0 mm.
 // No middle-dot strings, no workshop, town or supply-chain talk.
 // Banned (owner, 2026-10-21): "The world's first one-piece padel racket." as a headline, and any line like
 // "Moulded, measured and finished in [town], by a carbon workshop that already builds full-carbon golf clubs."
@@ -10,8 +11,9 @@
 // "first unibody" (the word is already used in other racket sports, row 3).
 // Durability (owner, 2026-10-22): "Built to last five years" is said in one place only, the Durability section,
 // where its usage profile and the promised fatigue tests are told in its own sentences (owner: the five years in
-// three places was too much). Never in the hero, the finale, the editions or the meta. Never "lifetime guarantee",
-// never "sustainable", and never a guarantee for every racket (only One of Ten carries one). Until the independent
+// three places was too much). Never in the hero, the finale or the meta; the one edition line that names five years
+// is One of Ten's guarantee, which the owner asked for. Never "lifetime guarantee", never "sustainable", and never a
+// guarantee for every racket (only One of Ten carries one). Until the independent
 // fatigue report exists the testing is promised, never claimed as done (CLAIMS.md rows 26 and 28).
 // No small print (owner, 2026-10-22): no footnote markers (*, \u2020, \u2021, \u00a7) and no fine-print lines. Where a
 // qualifier keeps a claim honest, it is part of a plain sentence in the body copy ("as designed", "made to last",
@@ -98,13 +100,13 @@ export const sweetSpot = {
 export const specifications = {
   eyebrow: "Specifications",
   headline: "As large as the rules allow.",
-  lead: "Its length, width and thickness each sit at the limit the rules of padel allow, and no further. The drawing below is to scale.",
+  lead: "Its length, width and thickness each sit at the limit set by the rules of padel, and no further. The drawing below is to scale.",
   cells: [
-    { value: "455", unit: "mm", label: "length" },
-    { value: "260", unit: "mm", label: "width" },
+    { value: "455.0", unit: "mm", label: "length" },
+    { value: "260.0", unit: "mm", label: "width" },
     { value: "38.0", unit: "mm", label: "thickness" },
     { value: "355.0", unit: "g", label: "weight" },
-    { value: "250", unit: "mm", label: "balance" },
+    { value: "250.0", unit: "mm", label: "balance" },
     { value: "42", unit: "", label: "holes, moulded" },
   ],
 };
@@ -121,26 +123,25 @@ export const unibody = {
   edge: {
     eyebrow: "Unibody",
     headline: "It feels like one thing in your hand.",
-    body: "We left out the frame tube. The face, the bridge and the handle are one carbon shell, and we took as much care over the inside as the outside, so your attention stays on the ball.",
+    body: "We left out the frame tube. The face, the bridge and the handle are one carbon shell.",
+    // The handle callout gives no number: Identical tells the tolerances (±1.0 g, ±1.0 mm).
     callouts: [
       { at: "rim", text: "More of the face is in play." },
       { at: "bridge", text: "Zero seams, so there is no joint to work loose." },
-      { at: "handle", text: "The balance is set in the mould, to within 1.0\u00a0mm." },
+      { at: "handle", text: "The balance is set in the mould." },
     ] as { at: "rim" | "bridge" | "handle"; text: string }[],
   },
   section: {
     eyebrow: "Construction",
     headline: "The shell is the frame.",
     body: "Most padel rackets are built around a carbon tube. In KINETIQ, the faces close around the edge into one shell, and the grams a tube spends on structure go to the sides, where they widen the sweet spot.",
-    // Only the frame tube's joints are marked: both constructions bond their faces to a core (CLAIMS.md row 4).
+    // G07 labels only the contrast it draws: the tube, its joints and the open core against one shell and a sealed
+    // core. Only the frame tube's joints are marked: both constructions bond their faces to a core (CLAIMS.md row 4).
     // The tubular core is open to the air where the drilled hole cuts it; the KINETIQ shell lines the hole
     // and closes around the core (CLAIMS.md rows 30 and 31).
-    left: { title: "Tubular racket", parts: ["Frame tube", "Face", "Core", "Face"], glue: "joint", core: "Open core" },
-    right: {
-      title: "KINETIQ",
-      lines: ["One continuous shell", "Fibre continuous around the edge", "Balance set in the mould"],
-      core: "Sealed core",
-    },
+    // "Joints": one label led to both of the tube's joints (full section); "Joint": the one joint a phone's half shows.
+    left: { title: "Tubular racket", tube: "Frame tube", joints: "Joints", joint: "Joint", core: "Open core" },
+    right: { title: "KINETIQ", shell: "One continuous shell", core: "Sealed core" },
   },
   /**
    * The sealed core, over the K03 cut-through: the reveal. Durability carries the result (CLAIMS.md rows 30 to 33).
@@ -158,16 +159,18 @@ export const unibody = {
 export const bornWhole = {
   eyebrow: "Born whole",
   headline: "Swiss Made, right down to the core.",
-  body: "The two words you find on the dial of a Swiss watch are etched into the side of every KINETIQ. Every racket is made in Switzerland, in one mould, by one patented process.",
+  body: "The two words you find on the dial of a Swiss watch are etched into the side of every KINETIQ. We make each one in Switzerland, in one mould, by one patented process.",
   lockup: { value: "100%", label: "Swiss Made" },
   badges: ["100% Swiss Made", "Patented one-mould process"],
 };
 
 export const precision = {
-  record: { from: 500, to: 15, unit: "µm" },
-  recordLine: "A fifth of a human hair.",
+  /** `spokenUnit`: the record's h2 says "15 microns" to screen readers (the graph section's h2 says the headline). */
+  record: { from: 500, to: 15, unit: "µm", spokenUnit: "microns" },
+  /** "About": 15 µm is 21% of the 70 µm hair G03 prints, so "a fifth" alone would round in our favour. */
+  recordLine: "About a fifth of a human hair.",
   headline: "Measured in microns.",
-  body: "We hold every surface to within 15 microns of its design, and we measure every racket, not a sample, so each one plays the way it was designed to.",
+  body: "We hold every surface to within 15 microns of its design, and we measure every racket, not a sample, so each one plays the way we drew it.",
   graph: {
     caption: "Illustrative. Surface deviation along the racket, against the ±15 µm limit.",
     limitLabel: "15 µm",
@@ -201,8 +204,8 @@ export const durability = {
   // names the difference ("sealed, not open"), never "nothing to break down" (absolute, rows 8b and 30).
   // Point 4 carries what the fine print used to: the usage profile and the promised fatigue tests (future tense); it
   // never reads as a test already passed, and never repeats the five years the headline states (row 26). Its body is a
-  // whole sentence that stands without its title; no "design life" (the page no longer defines it), "ball strikes"
-  // never "of play" (row 27).
+  // whole sentence that stands without its title; no "design life" (the page no longer defines it). It counts ball
+  // strikes, the figure row 26's fatigue protocol tests (160,000+), never hours "of play" (row 27).
   // "Three times longer" compares the sealed core with the same EVA left open ("the same core left open"), never with
   // other brands' rackets, and never becomes a racket lifespan ("three to six years"): the five years rest on row 26's
   // own test. "Made to last" keeps it a design until the independent test exists (row 34).
@@ -211,11 +214,14 @@ export const durability = {
       title: "A sealed core, not an open one.",
       body: "In a padel racket, the foam core usually gives out first. Sealed in carbon, ours is made to last three times longer than the same core left open.",
     },
-    { title: "No seam to open.", body: "Face, bridge and handle are one carbon shell. No joint between face and frame to work loose." },
+    {
+      title: "No seam to open.",
+      body: "The face and the frame are moulded as one carbon shell, so there is no joint between them to loosen over the years.",
+    },
     { title: "No drilled hole to crack.", body: "Cracks often start at a drilled hole. All 42 of ours are moulded, with carbon wrapped around every edge." },
     {
-      title: "Designed for regular play.",
-      body: "We designed it for two 90-minute sessions a week, about 780 hours of ball strikes in all. Independent fatigue tests will confirm that before the first racket ships.",
+      title: "Made for regular play.",
+      body: "We designed it for two 90-minute sessions a week, about 160,000 ball strikes in all. Independent fatigue tests will confirm that before the first racket ships.",
     },
   ],
   graph: {
@@ -223,7 +229,7 @@ export const durability = {
     typicalSpan: { value: "1 to 2", unit: "years" },
     kinetiq: "KINETIQ",
     kinetiqSpan: { value: "5", unit: "years" },
-    kinetiqNote: "About 780 hours of ball strikes",
+    kinetiqNote: "About 160,000 ball strikes",
     xAxis: "Years, at two 90-minute sessions a week",
     caption: "Illustrative. KINETIQ as designed, against brand and retailer guidance for most padel rackets.",
   },
@@ -234,13 +240,15 @@ export const durability = {
 // beat C (CLAIMS.md row 7); it replaced "The same, edge to centre.", which the sweet-spot section now says.
 export const feel = {
   headline: "You feel exactly where you met the ball.",
-  body: "Because the racket is one carbon shell, what reaches your hand is the contact itself, and it settles quickly.",
+  body: "Because the racket is one carbon shell, what reaches your hand is the contact itself.",
+  // Point 1 says "dull", never "soften": a softer hit is what Command sells (feelChoice), so the joint we left out must
+  // never read as a cushion we took away. Each title states its claim once; its body gives the reason.
   points: [
-    { title: "No joint to soften the impact.", body: "The face carries straight into the frame, so nothing blurs the moment the ball meets the face." },
+    { title: "No joint to dull the impact.", body: "The face carries straight into the frame, so nothing blurs the moment of contact." },
     { title: "Vibration settles quickly.", body: "It spreads through one structure and fades, so your hand is ready for the next shot." },
     {
       title: "The head twists less.",
-      body: "Because the bridge is part of the same shell, the head twists less on an off-centre shot, so the ball goes closer to where you aimed.",
+      body: "Because the bridge is part of the same shell, the head stays steadier on an off-centre shot, so the ball goes closer to where you aimed.",
     },
   ],
   graph: {
@@ -262,7 +270,10 @@ export const identical = {
   card: {
     title: "Certificate of measurement",
     tag: "Sample card",
+    /** A single racket's serial, as on the K12 throat. */
     serial: "KQ-000427",
+    /** The two rackets of First\u00a0500 sample set 027: their own serials, never the single racket's (CLAIMS.md row 15). */
+    setSerials: { A: "KQ-000053", B: "KQ-000054" },
     rows: [
       ["Feel", "Command"],
       ["Weight", "355.2 g"],
@@ -272,7 +283,10 @@ export const identical = {
       ["Max surface deviation", "0.012 mm"],
     ] as [string, string][],
     swiss: "Swiss Made",
-    /** The other card of a First\u00a0500 sample set: the second racket, measured on its own (CLAIMS.md row 15). */
+    /**
+     * A second sample racket, measured on its own: a single Pace racket's card, with this serial, and the B card of
+     * the First\u00a0500 sample set, with `setSerials.B` (CLAIMS.md row 15).
+     */
     second: {
       serial: "KQ-000428",
       values: { Weight: "354.9 g", Balance: "250.6 mm", "Max surface deviation": "0.011 mm" } as Record<string, string>,
@@ -298,7 +312,7 @@ export const feelChoice = {
       sub: "Control",
       line: "We made Command to give a little as it meets the ball, so you can place it where you meant to.",
       rows: [
-        ["Feel", "Soft and easy to handle"],
+        ["Feel", "Soft and controlled"],
         ["Face", "White 3K carbon, the finer weave"],
         ["Core", "Soft EVA"],
         ["Suits", "A game built on placement: the lob, the chiquita, the bandeja"],
@@ -319,20 +333,22 @@ export const feelChoice = {
   ] as { id: "command" | "pace"; name: string; sub: string; line: string; rows: [string, string][] }[],
   /** One bar across both columns (CLAIMS.md rows 12 and 16). */
   closing:
-    "Command and Pace differ only in the core and the face. Both weigh 355.0\u00a0g, balance at 250\u00a0mm and measure 38.0\u00a0mm, with the same 42 moulded holes.",
+    "Command and Pace differ only in the core and the face. Both weigh 355.0\u00a0g, balance at 250.0\u00a0mm and are 38.0\u00a0mm thick, with the same 42 moulded holes.",
 };
 
 export const finale = {
   /**
-   * The page's last line: no five years (said once, in Durability) and no marker (owner, 2026-10-22). Its three
-   * clauses sum up Unibody, Precision and Born whole; never "the feel you choose", which Two feels and Editions say.
+   * The page's last line, one whole sentence that answers the hero's "moulded to 15 microns": it sums up Born whole,
+   * Unibody and Precision. No five years (said once, in Durability) and no marker (owner, 2026-10-22); never "the
+   * feel you choose", which Two feels and Editions say. "Each", because Identical's h2 opens "Every KINETIQ is made".
    */
-  headline: "Zero seams, held to fifteen microns, and made in Switzerland.",
+  headline: "Each KINETIQ is moulded in Switzerland as one carbon shell, to within 15 microns.",
   sub: site.priceNote,
 };
 
+/** The link-preview text, in whole sentences like the page. No five years (Durability only). */
 export const meta = {
   title: "KINETIQ | The most precise padel racket ever made",
   description:
-    "Unibody, in space-grade carbon. Zero seams, no frame tube, a sealed core, held to 15 microns. 100% Swiss Made. Reserve now, fully refundable.",
+    "KINETIQ is a unibody padel racket in space-grade carbon, with no frame tube and a sealed core, made in Switzerland to within 15 microns. Reserve yours now, fully refundable.",
 };

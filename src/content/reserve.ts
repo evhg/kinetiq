@@ -80,9 +80,10 @@ export const reserveCopy = {
   cardPreview: "Card payments open at launch. Nothing can be charged yet.",
   /**
    * The order and its total, stated directly above Place Reservation: "KINETIQ, one Command racket. Due today €410.",
-   * "First 500, two Command rackets. Due today €990.", "One of Ten, three Pace rackets. Due today €2,900."
+   * "First 500, two Command rackets. Due today €990.", "One of Ten, three Pace rackets. Due today €2,900.". No-break
+   * spaces keep "Due today" and the price on one line.
    */
-  placeDue: (order: string, price: string) => `${order}. Due today ${price}.`,
+  placeDue: (order: string, price: string) => `${order}. Due\u00a0today\u00a0${price}.`,
   errors: {
     checkCard: "Please check your card details.",
     generic: "Something went wrong. Nothing was charged.",
@@ -106,11 +107,11 @@ export const reserveCopy = {
     const tier = tierById(tierId);
     switch (tier?.id) {
       case "reserve":
-        return `${receipt} Your ${site.name} ships in ${site.shipMonth} with its serial number and measurement card. It is fully refundable until then.`;
+        return `${receipt} Your ${site.name} ships in ${site.shipMonth}, after the ${name("limited")} sets, with its serial number and measurement card. It is fully refundable until then.`;
       case "limited":
         return `${receipt} Your set is one of the ${tier.name}, and it ships first, in ${site.shipMonth}, with its number on both throats and two measurement cards to match. It is fully refundable until then.`;
       case "invite":
-        return `${receipt} Your ${countWord(tier.rackets)} rackets ship in ${site.shipMonth} in their fitted case, marked with your set number, and we will write to you about your coaching session. They are fully refundable until then.`;
+        return `${receipt} Your ${countWord(tier.rackets)} rackets ship in ${site.shipMonth} with ${countWord(tier.rackets)} measurement cards, in a fitted case marked with your set number, and we will write to you about your coaching session. They are fully refundable until then.`;
       default:
         return `${receipt} We ship in ${site.shipMonth}, and your reservation is fully refundable until then.`;
     }

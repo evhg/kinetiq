@@ -39,7 +39,7 @@ import styles from "./TechnicalDrawing.module.css";
 /** New strings used by G01 (not yet in copy.ts). Claims restate existing copy (CLAIMS.md rows). */
 export const LABELS = {
   summary:
-    "Technical drawing of the KINETIQ racket. Overall length 455 mm, head width 260 mm, thickness 38.0 mm. 42 moulded holes: 34 of 12.4 mm diameter and a row of 8 of 14.0 mm along the top. Every surface within plus or minus 0.015 mm. The head narrows into the handle, which carries a wrapped overgrip and a black butt cap engraved with a Q, the KINETIQ logo. Section A-A shows one continuous shell sealed around the core; section B-B shows the shell running unbroken down the wall of a moulded hole.",
+    "Technical drawing of the KINETIQ racket. Overall length 455.0 mm, head width 260.0 mm, thickness 38.0 mm. 42 moulded holes: 34 of 12.4 mm diameter and a row of 8 of 14.0 mm along the top. Every surface within plus or minus 0.015 mm. The head narrows into the handle, which carries a wrapped overgrip and a black butt cap engraved with a Q, the KINETIQ logo. Section A-A shows one continuous shell sealed around the core; section B-B shows the shell running unbroken down the wall of a moulded hole.",
   holeNote: "0 drilled",
   grip: ["Overgrip,", "helical wrap"],
   cap: ["Black cap,", "engraved Q"],
@@ -58,7 +58,7 @@ export const LABELS = {
     "No frame tube. Zero seams.",
     "42 holes moulded. 0 drilled.",
     "Every surface within ±0.015 of design.",
-    "Mass within ±1.0 g of reference.",
+    "Weight within ±1.0 g of reference.",
     "Balance within ±1.0 mm, set in the mould.",
   ],
   balance: "Balance ±1.0 mm",
@@ -240,8 +240,8 @@ function frontView(D: Draft, t: Xf, o: FrontOpts = {}) {
     cutPlane(D, t, BORE[1], -wb, wb, 13, "B");
   }
   if (o.dims) {
-    dimV(D, at(t, [0, top]), at(t, [-10, butt]), at(t, [-174, 0])[0], String(DIM.length));
-    dimH(D, at(t, [-HEAD_MAX[0], HEAD_MAX[1]]), at(t, [HEAD_MAX[0], HEAD_MAX[1]]), at(t, [0, top + 32])[1], String(Math.round(DIM.width)));
+    dimV(D, at(t, [0, top]), at(t, [-10, butt]), at(t, [-174, 0])[0], DIM.length.toFixed(1));
+    dimH(D, at(t, [-HEAD_MAX[0], HEAD_MAX[1]]), at(t, [HEAD_MAX[0], HEAD_MAX[1]]), at(t, [0, top + 32])[1], DIM.width.toFixed(1));
   }
   if (o.callout) {
     // the 34 lattice holes, from the lowest row; the 8 of the crown, from above the head

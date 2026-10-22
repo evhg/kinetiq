@@ -64,6 +64,30 @@
   padding: clamp(80px, 7vw, 200px) var(--margin) clamp(8px, 1vw, 32px);
 }
 
+/* The band's top and foot fade from its own --stage, the floor of the sections around it, so the bright weave
+   never ends on a line. The fades are fixed to the band, over the parallaxed media (z-index -2) and under the words:
+   the scrub moves the image under them but can never move its edge into view. */
+@media (min-width: 700px) {
+  .band::before,
+  .band::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: -1;
+    height: 15%;
+    pointer-events: none;
+  }
+  .band::before {
+    top: 0;
+    background: linear-gradient(var(--stage), transparent);
+  }
+  .band::after {
+    bottom: 0;
+    background: linear-gradient(transparent, var(--stage));
+  }
+}
+
 @media (max-width: 699px) {
   .band {
     display: flex;

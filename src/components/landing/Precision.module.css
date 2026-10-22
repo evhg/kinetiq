@@ -80,6 +80,10 @@
     gap: var(--gutter);
     align-items: end;
   }
+  /* two lines at every width, as at 1440 ("Measured / in microns."), never one line run up against the lead */
+  .head :global(.t-h2) {
+    max-width: 12ch;
+  }
   .head :global(.t-lead) {
     max-width: 48ch;
   }

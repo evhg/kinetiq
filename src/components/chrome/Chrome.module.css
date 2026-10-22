@@ -18,7 +18,11 @@
   backdrop-filter: blur(14px);
   border-bottom-color: var(--hairline);
 }
+/* The home link: a 44 px tap target like every other control (the drawn wordmark is unchanged). */
 .wordmark {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   font-family: var(--font-display);
   font-variation-settings: "wdth" 125;
   font-weight: 600;

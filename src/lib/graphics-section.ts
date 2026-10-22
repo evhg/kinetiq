@@ -238,16 +238,18 @@ export const hatchBox = hatch(-2, -2, W + 2, T + 2, 2.1);
 
 // ---------------------------------------------------------------- labels
 
-export type Side = "left" | "right";
+export type Side = "left" | "right" | "centre";
 export type Band = "top" | "bottom";
 export type Callout = {
   key: string;
   text: string;
   /** Target point on the drawing. */
   at: [number, number];
-  /** Shelf end the leader leaves from. */
+  /** A second target, led from the same anchor: one label for two features. */
+  also?: [number, number];
+  /** Shelf point the leader leaves from. */
   anchor: [number, number];
-  /** Which end of the label the anchor is: the text runs away from it. */
+  /** Which end of the label the anchor is, the text running away from it; or its middle ("centre"). */
   side: Side;
   band: Band;
   /** Break onto two balanced lines. */

@@ -12,9 +12,9 @@ const MINUS = "−";
 
 /** Strings this graphic adds on top of identical.stats and identical.graphCaption (copy.ts). */
 export const LABELS = {
-  axis: { mass: "Mass", balance: "Balance" },
+  axis: { mass: "Weight", balance: "Balance" },
   summary:
-    "Illustrative graph. Every racket's mass sits within 1.0 g of the 355.0 g reference, and its balance within 1.0 mm of 250.4 mm: a tall, narrow spike well inside each tolerance window.",
+    "Illustrative graph. Every racket's weight sits within 1.0 g of the 355.0 g reference, and its balance within 1.0 mm of the 250.0 mm reference: a tall, narrow spike well inside each tolerance window.",
 };
 
 type Props = {

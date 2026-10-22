@@ -27,7 +27,7 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
 - `src/components/`: `motion/` (`MotionProvider`, `SmoothScroll` for Lenis, `PinnedChapter`), `landing/` (a component
   and CSS module per section; `Reveal`, `Scrub`), `graphics/` (G01–G15, each with a review page at `/lab/<id>`, dev
   only; `KQ_LAB=1` serves them in production), `media/Still.tsx`, `reserve/`, `chrome/` (`SiteHeader`, `SiteFooter`;
-  `HeaderClient.tsx`: scroll state and the compact Reserve Now after the hero, its label passed in). No preview banner.
+  `HeaderClient.tsx`: the compact Reserve Now, label passed in, hidden over hero and `data-cta`). No preview banner.
 - `src/content/`: all words; change them there. `copy.ts` (landing), `lineup.ts` (editions, prices, limits, `lifetime`,
   `sampleSet`, the coach, invitation gate, delivery countries), `reserve.ts`, `site.ts` (CTA labels,
   price note, ship date, refund, feels), `stills.json` (crops).
@@ -36,17 +36,17 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
   via REST, amount from `lineup.ts`) and confirms the card with Stripe's Payment Element in place → confirmation in
   place, or `/reserved` after 3-D Secure. One of Ten: never chosen from a link (`?tier=invite` shows KINETIQ), never
   interactive until a valid code (POST /api/invite, or `?invite=CODE`) unlocks it; /api/reserve checks it again.
-- Data minimisation: name, email, delivery address and card only. No phone, accounts or opt-ins. The NDA gate's
-  email goes only to the owner's inbox (see NDA gate).
+- Data minimisation: name, email, delivery address and card only; no phone, accounts or opt-ins. NDA emails: below.
 - `public/`: assets and `CREDITS.md`. `scripts/`: harness. `docs/`: research. `.claude/skills/`: reference skills.
 
 ## NDA gate (owner, 2026-10-22: investors declare the NDA, then give an email, once per device)
 - `src/proxy.ts` (Next 16 "proxy", formerly middleware) rewrites every page to `/nda` without a valid `kq_nda` cookie
   (`src/lib/nda.ts`) and answers assets, `/api/*` and other `/_next/*` paths with an empty 403; only `/_next/static/`,
   the HMR socket, the two icon files and `POST /api/nda` pass. Exclusions, cookie and arrival: DESIGN.md "NDA gate".
-- A declaration, not a login (unsigned cookie, public format; CLAIMS.md row 25b). Each sign-in is emailed to the owner
-  through Resend (`src/lib/nda-notify.ts`, after the response) when RESEND_API_KEY, NDA_NOTIFY_TO and NDA_NOTIFY_FROM
-  are set on Vercel (never in the repo; the owner's address is private). Nothing else is stored or logged.
+- A declaration, not a login (unsigned cookie, public format; CLAIMS.md row 25b). With RESEND_API_KEY, NDA_NOTIFY_TO
+  and NDA_NOTIFY_FROM on Vercel (never in the repo), a same-origin sign-in emails the owner only the address, time and
+  page (its path and edition; no country, browser or other parameter) via Resend (`nda-notify.ts`), at most once per
+  address a day and 20 an hour per server instance. Nothing else is stored or logged.
 - The root layout's metadata is neutral (title "KINETIQ", noindex): the product's title, description and og:image live
   in `src/lib/product-metadata.ts`, used by `/` and `/reserve` only. Never put product metadata back in `layout.tsx`.
 - Stills are `Cache-Control: private` with `Vary: Cookie` (`next.config.ts`). After each deploy, check production
@@ -96,9 +96,8 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
   satin black cap engraved Q (the company logo, owner 2026-10-22), the head flowing into it with no collar or joint; no
   wrist cord. Only the face follows the feel: Command is white 3K twill (the default in any image that names no feel),
   Pace black 12K (owner, 2026-10-22). Throats: a single racket's serial (KQ-000427), a First 500 set's number (027/500)
-  on both. Change it and G01, G15, K12 and the sweet-spot numbers change with it. Ship the graphics and the stills
-  together: the canon graphics and the white-Command copy go to `main` only with the canon re-exports of every still
-  the page shows (K01, K02, K05 to K11; K12 when ready), so no screen shows two different rackets.
+  on both. Change it and G01, G15, K12 and the sweet-spot numbers change with it. Ship the canon graphics and the
+  white-Command copy to `main` only with the canon re-exports of K01 to K12, so no screen shows two different rackets.
 
 ## Performance and accessibility
 - Phone profile (4× CPU, 150 ms RTT, 1.6 Mbps): LCP ≤ 2.5 s, CLS ≤ 0.1, INP ≤ 200 ms, no dropped frames while
@@ -129,10 +128,10 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
   first 500 sets, numbered 001 to 500, first to ship, €990; One of Ten, ten sets of three, €2,900, each with an
   exclusive coaching session. "First 500" and "One of Ten" in full (no-break spaces in code), never shortened or with
   ™ (row 35). Every edition holds the same racket, and the copy says so; never compare the pair's price with KINETIQ's.
-- The five-year claim is said in one place only, the Durability section (owner, 2026-10-22): its h2 (`lifetime.line`),
-  lead, G14 and point 4, which gives the usage profile and the promised fatigue tests in a plain sentence. Never in
-  the hero, finale, edition includes, meta or confirmation. Only One of Ten has a guarantee ("five-year guarantee",
-  never "lifetime guarantee"); "first" only in the Durability lead.
+- Five years is said in the Durability section only (owner, 2026-10-22): its h2 (`lifetime.line`), lead, G14 and
+  point 4 (usage profile and promised fatigue tests in a plain sentence); never the hero, finale, meta or confirmation.
+  The one edition include allowed to name it is One of Ten's "A five-year KINETIQ guarantee on all three rackets",
+  because the owner asked for that guarantee (never "lifetime guarantee"). "First" only in the Durability lead.
 - No small print (owner, 2026-10-22, risk accepted in CLAIMS.md): no footnote markers (*, †, ‡, §) and no fine-print
   lines, on the landing page, the edition cards or /reserve. A qualifier that keeps a claim honest goes in a plain
   sentence of the body copy ("as designed", "made to last"), or is dropped. Graphics with unmeasured data keep their

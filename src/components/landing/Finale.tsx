@@ -20,7 +20,8 @@ export function Finale() {
           {finale.headline}
         </h2>
         <p className="t-lead">{finale.sub}</p>
-        <Link href="/reserve" className={`btn btn-primary ${styles.cta}`}>
+        {/* data-cta: the header's compact Reserve Now hides while this one is on screen (HeaderClient) */}
+        <Link href="/reserve" className={`btn btn-primary ${styles.cta}`} data-cta="">
           {site.ctaLabel}
         </Link>
       </Reveal>

@@ -40,7 +40,8 @@ type Props = {
  * says so: with a publishable key the PaymentIntent is read back from the client secret in the URL.
  */
 export function ReservedStatus({ pending = false, redirect, hasSecret = false, tier, feel }: Props) {
-  const initial: Status = pending ? "checking" : !redirect ? "unknown" : PK ? (hasSecret ? "checking" : "unknown") : fromRedirect(redirect);
+  // Without a publishable key no payment can exist, so a redirect_status in the URL confirms nothing.
+  const initial: Status = pending || (redirect && PK && hasSecret) ? "checking" : "unknown";
   const [status, setStatus] = useState<Status>(initial);
   const [paidTier, setPaidTier] = useState<Tier | undefined>(undefined);
   const [paymentId, setPaymentId] = useState<string | null>(null);
@@ -71,8 +72,10 @@ export function ReservedStatus({ pending = false, redirect, hasSecret = false, t
 
   const t = paidTier ?? tierById(tier);
   const reserved = status === "succeeded" || status === "processing";
-  // Try again returns to the same edition and feel.
-  const retry = t ? `/reserve?tier=${t.id}${isFeelId(feel) ? `&feel=${feel}` : ""}` : "/reserve";
+  // Try again returns to the same edition and feel. ?tier=invite never chooses One of Ten, so its buyer returns to the
+  // invitation field (the page removed the code from the address after checking it).
+  const feelQuery = isFeelId(feel) ? `&feel=${feel}` : "";
+  const retry = t?.id === "invite" ? `/reserve?invite${feelQuery}` : t ? `/reserve?tier=${t.id}${feelQuery}` : "/reserve";
 
   return (
     <div className={styles.box} aria-live="polite">

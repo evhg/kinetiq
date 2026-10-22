@@ -91,6 +91,15 @@
   background: var(--amber);
   box-shadow: 0 0 6px var(--amber);
 }
+/* Phones: under the centred headline and lead, the list is a left-aligned block centred on the screen, as the sealed
+   core's callouts are, at a measure the longest callout fills in two even lines. */
+@media (max-width: 699px) {
+  .callouts {
+    box-sizing: content-box;
+    max-width: 26ch;
+    margin-inline: auto;
+  }
+}
 /* The sealed core: words and three callouts, centred when stacked, a left column beside the shell when pinned. */
 .beatS {
   padding-bottom: 48px;

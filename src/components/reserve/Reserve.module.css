@@ -823,6 +823,16 @@
 .badges {
   margin-top: -8px;
 }
+/* Phones: the two badges full width, one above the other, their mark cells aligned, like the rules below them. */
+@media (max-width: 699px) {
+  ul.badges {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  ul.badges > li {
+    grid-template-columns: auto 1fr;
+  }
+}
 
 /* due today */
 .due {
@@ -1025,6 +1035,7 @@
   color: var(--steel);
   line-height: 1.5;
   font-variant-numeric: tabular-nums;
+  text-wrap: balance;
 }
 .place {
   position: relative;

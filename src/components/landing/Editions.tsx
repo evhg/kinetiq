@@ -9,8 +9,9 @@ import { Reveal } from "./Reveal";
 import styles from "./Editions.module.css";
 
 const IMAGE: Record<TierId, { id: string; crop: string }> = {
-  // KINETIQ: one racket, three-quarter (the hero and the finale already show the beam camera).
-  reserve: { id: "K08", crop: "left" },
+  // KINETIQ: one racket face-on, K12's base render (the hero and the finale show the beam camera, and Choose your feel
+  // shows K08 just before).
+  reserve: { id: "K12-base", crop: "portrait" },
   // First 500: the set of two, both throats laser-marked with the set number (027/500). Command: the K11 Pace render's
   // 12K face reads as a flat checkerboard at this size (art review, 2026-10-22).
   limited: { id: "K11-command", crop: "card" },
@@ -20,10 +21,11 @@ const IMAGE: Record<TierId, { id: string; crop: string }> = {
 
 /**
  * One racket, in three editions. KINETIQ and First 500 are whole-card links into the reservation page; One of Ten is
- * by invitation only, so its card is not a link (no hover, no arrow): it says so where the arrow would be, and a quiet
- * "Have an invitation?" opens the code field on /reserve. Every card lists what it includes and ends on the same price
- * line. The lead says plainly that every edition holds the same racket. No footnote markers and no fine print under
- * the cards (owner, 2026-10-22): what "identical" means is told by the Identical section's own body.
+ * by invitation only, so its card is not a link (no hover, no arrow). While invitations are open it says so where the
+ * arrow would be, and a quiet "Have an invitation?" opens the code field on /reserve; while they are closed, its
+ * "open soon" note says it once. Every card lists what it includes and ends on the same price line. The lead says
+ * plainly that every edition holds the same racket. No footnote markers and no fine print under the cards (owner,
+ * 2026-10-22): what "identical" means is told by the Identical section's own body.
  */
 export function Editions() {
   // Read at build: Vercel rebuilds when INVITE_CODES changes.
@@ -58,7 +60,7 @@ export function Editions() {
                       <p className={styles.inviteSoon}>{reserveCopy.invitesClosedNote}</p>
                     )
                   }
-                  end={<span className={`t-label ${styles.byInvite}`}>{editionsIntro.byInvitation}</span>}
+                  end={open ? <span className={`t-label ${styles.byInvite}`}>{editionsIntro.byInvitation}</span> : null}
                 />
               </div>
             ) : (

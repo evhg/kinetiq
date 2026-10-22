@@ -771,23 +771,37 @@ function Confirmation({ tier, feel, email, paymentId }: { tier: TierId; feel: Fe
 
 /** A woven-carbon swatch: fine white 3K twill for Command, wide black 12K spread tow for Pace (owner, 2026-10-22). */
 const SWATCH: Record<FeelId, { ground: string; tow: string; line: string; edge: string }> = {
-  command: { ground: "#b9b6b1", tow: "#e4e1dc", line: "#f3f1ed", edge: "#c9ccd1" },
+  command: { ground: "#d6d2cb", tow: "#ebe8e2", line: "#f6f4f0", edge: "#c9ccd1" },
   pace: { ground: "#0d0d0f", tow: "#26262b", line: "#3a3a41", edge: "#6b6e76" },
 };
 
+/** Command's 2/2 twill: each row's two-cell float steps one cell along, so the weave reads as diagonal ribs. */
+const TWILL = [0, 1, 2, 3].flatMap((row) => [0, 1].map((k) => ({ row, col: (row + k) % 4 })));
+
 function Swatch({ weave }: { weave: FeelId }) {
   const id = useId();
-  const cell = weave === "command" ? 5 : 12;
   const c = SWATCH[weave];
+  const cell = weave === "command" ? 3 : 12;
   return (
     <svg viewBox="0 0 56 56" className={styles.swatch} aria-hidden="true">
       <defs>
-        <pattern id={id} width={cell * 2} height={cell * 2} patternUnits="userSpaceOnUse" patternTransform="rotate(45 28 28)">
-          <rect width={cell * 2} height={cell * 2} fill={c.ground} />
-          <rect width={cell} height={cell} fill={c.tow} />
-          <rect x={cell} y={cell} width={cell} height={cell} fill={c.tow} />
-          <path d={`M0 ${cell / 2}h${cell}M${cell} ${cell * 1.5}h${cell}`} stroke={c.line} strokeWidth={cell / 5} />
-        </pattern>
+        {weave === "command" ? (
+          <pattern id={id} width={cell * 4} height={cell * 4} patternUnits="userSpaceOnUse">
+            <rect width={cell * 4} height={cell * 4} fill={c.ground} />
+            {TWILL.map(({ row, col }) => (
+              <rect key={`${row}-${col}`} x={col * cell} y={row * cell} width={cell} height={cell} fill={c.tow} />
+            ))}
+            {/* the sheen along each float, in the tow's direction */}
+            <path d={TWILL.map(({ row, col }) => `M${(col + 0.5) * cell} ${row * cell}v${cell}`).join("")} stroke={c.line} strokeWidth={cell / 5} />
+          </pattern>
+        ) : (
+          <pattern id={id} width={cell * 2} height={cell * 2} patternUnits="userSpaceOnUse" patternTransform="rotate(45 28 28)">
+            <rect width={cell * 2} height={cell * 2} fill={c.ground} />
+            <rect width={cell} height={cell} fill={c.tow} />
+            <rect x={cell} y={cell} width={cell} height={cell} fill={c.tow} />
+            <path d={`M0 ${cell / 2}h${cell}M${cell} ${cell * 1.5}h${cell}`} stroke={c.line} strokeWidth={cell / 5} />
+          </pattern>
+        )}
         <radialGradient id={`${id}-g`} cx="30%" cy="25%" r="80%">
           <stop offset="0" stopColor="#fff" stopOpacity="0.22" />
           <stop offset="0.5" stopColor="#fff" stopOpacity="0" />

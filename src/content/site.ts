@@ -9,7 +9,8 @@ export const site = {
   name: "KINETIQ",
   fromPriceLabel,
   shipMonth,
-  shipLabel: `Ships ${shipMonth}`,
+  /** Under the /reserve h1, worded as the KINETIQ include says it: "Ships in January 2027". */
+  shipLabel: `Ships in ${shipMonth}`,
   refundLabel: "Fully refundable until we ship",
   /** The price note under a Reserve Now button, as one sentence: "From €410, fully refundable, and shipping in January 2027." */
   priceNote: `${fromPriceLabel}, fully refundable, and shipping in ${shipMonth}.`,

@@ -35,15 +35,19 @@ type Props = {
   className?: string;
   /**
    * A First 500 sample card, one per racket of set 027 of 500, numbered to match: "Set No. 027 / 500 A" under the
-   * serial, and B is the set's second racket (its own serial and measured values). Without it the card is a single
-   * racket's: its own serial (KQ-000427) and no set line.
+   * serial, and B is the set's second racket (its own measured values). Each carries its own serial
+   * (identical.card.setSerials), never a single racket's. Without it the card is a single racket's: its own serial
+   * (KQ-000427) and no set line.
    */
   set?: "A" | "B";
   /** Any other edition line under the serial (lab pages); `set` takes precedence. */
   edition?: string;
   /** The buyer's feel (e.g. "Pace") in place of the sample's. */
   feel?: string;
-  /** The second racket of a set: its own serial and measured values (identical.card.second). Implied by set "B". */
+  /**
+   * Another racket's measured values (identical.card.second): a single Pace racket's card, with its serial, or with
+   * set "B" (which implies it), the set's second card.
+   */
   second?: boolean;
   /** Rest the card at −3° on wide screens (flat on phones). */
   rotate?: boolean;
@@ -156,7 +160,7 @@ export function MeasurementCard({
   const second = secondRacket || set === "B";
   const edition = set ? sampleSet.card(set) : editionLine;
   const sample = second ? card.second : null;
-  const serial = sample?.serial ?? card.serial;
+  const serial = set ? card.setSerials[set] : (sample?.serial ?? card.serial);
   const rows = card.rows.map(([k, v]): [string, string] => [k, k === "Feel" && feel ? feel : (sample?.values[k] ?? v)]);
   const deviationKey = rows[rows.length - 1][0];
 
