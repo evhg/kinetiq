@@ -3,32 +3,6 @@
   inset: 0 0 auto;
   z-index: 30;
 }
-/* First-paint estimate of the banner for --chrome-h (globals.css): one line at every width (phones get
-   the short wording). SiteHeader then measures the real height. */
-:global(html):has(.banner) {
-  --banner-h: calc(2 * clamp(7px, 0.3vw + 5px, 11px) + 1.55rem + 1px);
-}
-.bannerShort {
-  display: none;
-}
-@media (max-width: 489px) {
-  .bannerLong {
-    display: none;
-  }
-  .bannerShort {
-    display: inline;
-  }
-}
-.banner {
-  margin: 0;
-  padding: clamp(7px, 0.3vw + 5px, 11px) var(--margin);
-  background: var(--graphite);
-  border-bottom: 1px solid var(--hairline);
-  color: var(--steel);
-  font-family: var(--font-data);
-  font-size: 1rem;
-  text-align: center;
-}
 .row {
   display: flex;
   align-items: center;

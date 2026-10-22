@@ -2,7 +2,7 @@
 
 Every marketing and commercial claim on the site, where it appears, and what is needed before launch.
 Owner decision (2026-10-21): claim boldly now, verify before launch. Assume pending patents are granted.
-**Launch gate:** keep `NEXT_PUBLIC_LAUNCHED` unset (preview banner on, noindex) until every row is ✅.
+**Launch gate:** keep `NEXT_PUBLIC_LAUNCHED` unset (noindex) until every row is ✅. There is no preview banner (owner, 2026-10-22), so the site itself no longer says that claims are pending: clear the rows before the site goes on a public domain or takes payments.
 Words live in `src/content/copy.ts` (landing), `src/content/lineup.ts` (editions), `src/content/reserve.ts`
 and `src/content/site.ts`. Research behind rows 3 to 7: `docs/research/non-tubular.md`.
 

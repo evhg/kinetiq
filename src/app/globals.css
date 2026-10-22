@@ -33,10 +33,9 @@
   --margin: clamp(20px, 5vw - 4px, 128px);
   --gutter: clamp(16px, 1.1vw + 8px, 40px);
   --header-h: clamp(56px, 2.5vw + 36px, 88px);
-  /* Fixed chrome: preview banner + header row. SiteHeader measures the real height into --chrome-h;
-     this calc is the first-paint estimate (the banner sets --banner-h in Chrome.module.css). */
-  --banner-h: 0px;
-  --chrome-h: calc(var(--header-h) + var(--banner-h));
+  /* Fixed chrome: the header row. SiteHeader measures the real height into --chrome-h;
+     this is the first-paint estimate. */
+  --chrome-h: var(--header-h);
 
   /* Type scale (fluid up to 2560) */
   --fs-record: clamp(7rem, 14vw, 22.5rem);

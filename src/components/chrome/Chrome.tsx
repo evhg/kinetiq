@@ -5,16 +5,6 @@ import { useEffect, useRef, useState } from "react";
 import { site } from "@/content/site";
 import styles from "./Chrome.module.css";
 
-export function PreviewBanner() {
-  if (process.env.NEXT_PUBLIC_LAUNCHED === "true") return null;
-  return (
-    <p className={styles.banner} role="note">
-      <span className={styles.bannerLong}>Preview: claims pending verification. Not open for orders yet.</span>
-      <span className={styles.bannerShort}>Preview. Claims pending. No orders yet.</span>
-    </p>
-  );
-}
-
 /**
  * Wordmark only. On the landing page a compact Reserve Now appears once the hero has
  * left the viewport (sentinel = the element with id "hero").
@@ -24,7 +14,7 @@ export function SiteHeader({ compactCta = false }: { compactCta?: boolean }) {
   const [scrolled, setScrolled] = useState(false);
   const [pastHero, setPastHero] = useState(false);
 
-  // The fixed chrome's real height (the banner wraps on phones) replaces the CSS estimate in --chrome-h.
+  // The fixed chrome's real height replaces the CSS estimate in --chrome-h.
   useEffect(() => {
     const header = ref.current;
     if (!header) return;
@@ -58,7 +48,6 @@ export function SiteHeader({ compactCta = false }: { compactCta?: boolean }) {
 
   return (
     <header ref={ref} className={styles.header} data-scrolled={scrolled}>
-      <PreviewBanner />
       <div className={styles.row}>
         <Link href="/" className={styles.wordmark} aria-label="KINETIQ home">
           KINETIQ

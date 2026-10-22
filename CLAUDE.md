@@ -37,7 +37,7 @@ Lenis · Playwright (dev only). No real-time 3D: product imagery is Blender stil
 - `src/components/graphics/`: data graphics G01–G13 (SVG/canvas), each with a review page at `/lab/<id>` (dev only;
   `KQ_LAB=1` serves them in production).
 - `src/components/media/Still.tsx`: product stills with phone art direction. `src/components/reserve/`: /reserve.
-- `src/components/chrome/`: preview banner, header (compact Reserve Now after the hero), footer.
+- `src/components/chrome/`: header (compact Reserve Now after the hero), footer. No preview banner (owner, 2026-10-22).
 - `src/lib/gsap.ts`: the only place GSAP plugins are registered. Import gsap from here.
 - `src/content/`: all words. `copy.ts` (landing), `lineup.ts` (editions, prices, limits, ambassador gate,
   delivery countries), `reserve.ts`, `site.ts` (CTA labels, ship date, refund, feels). Change words there.
@@ -102,9 +102,10 @@ Lenis · Playwright (dev only). No real-time 3D: product imagery is Blender stil
 - Decorative canvases get `aria-hidden`; fallbacks get real `alt` text.
 
 ## Content and claims
-- No placeholder text in a finished build. The preview banner is deliberate, not a placeholder.
+- No placeholder text in a finished build.
 - Every claim is listed in `CLAIMS.md`. A new claim gets a row there in the same commit.
-- Launch gate: `NEXT_PUBLIC_LAUNCHED=true` (removes banner and noindex) only when CLAIMS.md is cleared.
+- Launch gate: `NEXT_PUBLIC_LAUNCHED=true` (removes noindex) only when CLAIMS.md is cleared. Unverified claims
+  stay off the live domain until then; the site shows no preview banner (owner: not appropriate).
 - Stripe: `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `INVITE_CODES` (see `.env.example`).
   Server and Stripe.js are pinned to API version `2026-09-30.endive` (`allowed_payment_method_types`).
   Without keys, /reserve runs in preview (Place Reservation disabled). Invite Only fails closed without codes.
