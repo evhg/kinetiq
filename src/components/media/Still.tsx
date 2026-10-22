@@ -13,6 +13,8 @@ type Props = {
   phoneCrop?: string;
   /** A separate still for phones (its own camera framing), used with phoneCrop. Defaults to id. */
   phoneId?: string;
+  /** When the phone crop applies (default below 700 px), e.g. "(max-width: 1023px)" for a 4:5 slot on tablets. */
+  phoneMedia?: string;
   alt: string;
   /** The rendered width, as a sizes attribute. */
   sizes?: string;
@@ -39,6 +41,7 @@ export function Still({
   crop = "wide",
   phoneCrop,
   phoneId,
+  phoneMedia = PHONE,
   alt,
   sizes: sz = "100vw",
   phoneSizes = "100vw",
@@ -57,8 +60,8 @@ export function Still({
     <picture className={className}>
       {phone && phoneKey && (
         <>
-          <source media={PHONE} type="image/avif" srcSet={srcset(phoneKey, phone, "avif")} sizes={phoneSizes} width={phone.w} height={phone.h} />
-          <source media={PHONE} type="image/webp" srcSet={srcset(phoneKey, phone, "webp")} sizes={phoneSizes} width={phone.w} height={phone.h} />
+          <source media={phoneMedia} type="image/avif" srcSet={srcset(phoneKey, phone, "avif")} sizes={phoneSizes} width={phone.w} height={phone.h} />
+          <source media={phoneMedia} type="image/webp" srcSet={srcset(phoneKey, phone, "webp")} sizes={phoneSizes} width={phone.w} height={phone.h} />
         </>
       )}
       <source type="image/avif" srcSet={srcset(key, main, "avif")} sizes={sz} />
