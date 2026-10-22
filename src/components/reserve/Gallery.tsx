@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type KeyboardEvent } from "react";
 import { CourtPlan } from "@/components/graphics/CourtPlan";
 import { MeasurementCard } from "@/components/graphics/MeasurementCard";
 import { Still } from "@/components/media/Still";
 import { useMotion } from "@/components/motion/MotionProvider";
 import { tierById, type TierId } from "@/content/lineup";
 import { reserveCopy } from "@/content/reserve";
-import type { FeelId } from "@/content/site";
+import { feels, type FeelId } from "@/content/site";
 import styles from "./Reserve.module.css";
 
 type Slide =
@@ -24,7 +24,7 @@ type Slide =
       fit?: "contain" | "portrait";
       alt: string;
     }
-  | { kind: "card"; alt: string }
+  | { kind: "card"; alt: string; feel: FeelId }
   | { kind: "court"; alt: string };
 
 function slidesFor(tier: TierId, feel: FeelId): Slide[] {
@@ -44,25 +44,42 @@ function slidesFor(tier: TierId, feel: FeelId): Slide[] {
         },
       ];
     case "limited":
+      // The set first: two rackets of the chosen feel, both throats marked 027/500; then the mark up close.
       return [
-        { kind: "still", id: "K06-full", phoneCrop: "card", alt: "The precision steel mould, its cavity glowing warm" },
+        {
+          kind: "still",
+          id: `K11-${feel}`,
+          phoneCrop: "card",
+          alt: `A matched pair of KINETIQ ${feels[feel].name} rackets, both throats laser-marked 027/500`,
+        },
+        { kind: "still", id: "K10", phoneCrop: "card", alt: "Close-up of a throat laser-marked 027/500 above the KINETIQ wordmark" },
         { kind: "still", id: "K07", phoneCrop: "trio", fit: "contain", alt: "Identical KINETIQ rackets, each in its own shaft of light" },
-        { kind: "still", id: "K03", phoneCrop: "card", alt: "The head cut through: one continuous carbon shell around the core" },
-        { kind: "card", alt: "A numbered certificate of measurement, Edition No. 017 of 500" },
+        { kind: "still", id: "K06-full", phoneCrop: "card", alt: "The precision steel mould, its cavity glowing warm" },
+        { kind: "still", id: "K03", phoneCrop: "card", alt: "The head cut through: one carbon shell closed around the core, lining every hole" },
+        {
+          kind: "card",
+          feel,
+          alt: `Two certificates of measurement for set 027 of 500, one for each ${feels[feel].name} racket, numbered A and B`,
+        },
       ];
     case "invite":
       return [
         { kind: "still", id: "K09", phoneCrop: "card", alt: "Three KINETIQ rackets in a machined, felt-lined case" },
-        { kind: "court", alt: "A plan of a padel court marking the one-on-one session" },
+        { kind: "court", alt: "A plan of a padel court marking the exclusive coaching session" },
         { kind: "still", id: "K07", phoneCrop: "trio", fit: "contain", alt: "Identical KINETIQ rackets, each in its own shaft of light" },
         { kind: "still", id: "K01-finale", phoneCrop: "card", alt: "A KINETIQ racket in its beam, above a lit horizon" },
       ];
   }
 }
 
+const noSubscribe = () => () => {};
+
 /** Tesla-style gallery: crossfading slides with prev and next, dots and a counter; swipe on phones. */
 export function Gallery({ tierId, feel }: { tierId: TierId; feel: FeelId }) {
   const slides = slidesFor(tierId, feel);
+  // The two measurement cards are about 160 KB of markup and sit on the last slide: they render after hydration, so
+  // the server HTML (and the edition a link asked for) reaches the screen sooner.
+  const hydrated = useSyncExternalStore(noSubscribe, () => true, () => false);
   const [index, setIndex] = useState(0);
   const track = useRef<HTMLDivElement>(null);
   const tier = tierById(tierId)!;
@@ -137,9 +154,22 @@ export function Gallery({ tierId, feel }: { tierId: TierId; feel: FeelId }) {
               />
             ) : s.kind === "card" ? (
               <div className={`${styles.slideGraphic} ${styles.slideCard}`} role="img" aria-label={s.alt}>
-                <div className={styles.cardFit}>
-                  <MeasurementCard edition="Edition No. 017 / 500" enter={false} />
-                </div>
+                {/* The set's two cards, numbered to match: B rests behind A with only its header and set number
+                    showing above it, both in the buyer's feel, under one soft shadow. */}
+                {hydrated ? (
+                  <div className={`${styles.cardFit} ${styles.cardPair}`}>
+                    <MeasurementCard
+                      className={styles.cardBack}
+                      edition="Set No. 027 / 500 B"
+                      feel={feels[s.feel].name}
+                      second
+                      peek
+                      plate={false}
+                      enter={false}
+                    />
+                    <MeasurementCard className={styles.cardFront} edition="Set No. 027 / 500 A" feel={feels[s.feel].name} plate={false} enter={false} />
+                  </div>
+                ) : null}
               </div>
             ) : (
               <div className={`${styles.slideGraphic} ${styles.slideCourt}`} role="img" aria-label={s.alt}>

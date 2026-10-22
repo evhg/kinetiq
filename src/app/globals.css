@@ -113,6 +113,61 @@ img {
   outline-offset: 4px;
   border-radius: 2px;
 }
+/* Footnote marker: a five-year line's link to its usage profile (CLAIMS.md row 26), at its line's size. */
+.footmark {
+  margin-left: 0.04em;
+  color: var(--amber-hot);
+  text-decoration: none;
+}
+/* a dagger in running text reads as a stray glyph at full size: raised and tight to the full stop, like the hero's
+   asterisk, and never below 15 px */
+.footmark-raised {
+  margin-left: 0.02em;
+  font-size: max(15px, 0.78em);
+  line-height: 0;
+  vertical-align: 0.38em;
+}
+/* in a headline, a raised half-size mark (still well above 15 px) */
+h2 .footmark {
+  margin-left: 0.06em;
+  font-size: 0.5em;
+  line-height: 0;
+  vertical-align: 0.8em;
+}
+@media (hover: hover) and (pointer: fine) {
+  .footmark:hover {
+    color: var(--text);
+  }
+}
+/* Arriving from the NDA gate (html[data-arrive], head script in lib/motion-preference.ts): the first frame is painted
+   under the same void the gate faded into, which then lifts, so leaving and arriving read as one move. It sits under
+   the fixed header (z-index 30), whose wordmark holds the place the gate's did. /reserve holds the veil while its
+   neutral shell waits for the edition the link asked for, then lifts it (the animation starts when the shell goes).
+   Reduced motion: no veil (the head script never sets the attribute). */
+html[data-arrive]::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 25;
+  background: var(--void);
+  pointer-events: none;
+  /* a gentle ease-out (the UI curve front-loads a full-screen fade so hard that it reads as a cut) */
+  animation: kq-arrive 600ms cubic-bezier(0.25, 0.1, 0.25, 1) 60ms both;
+}
+html[data-arrive]:has([data-reserve-shell])::after {
+  animation: none;
+}
+@keyframes kq-arrive {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-arrive]::after {
+    display: none;
+  }
+}
 /* Sections focused by script (Skip link targets) are not controls: no page-wide ring. */
 [tabindex="-1"]:focus {
   outline: none;
@@ -290,11 +345,12 @@ img {
     var(--stage);
 }
 
-/* G10 pool: a soft graphite light behind a text-only block (headlines, proofs), fading out inside the
-   block's own box so it never leaves a seam. The block needs position: relative; its section isolates. */
+/* G10 pool: a soft graphite light behind a text-only block (headlines, proofs). The block is positioned but
+   not isolated, so the light joins its section's stacking context (the section isolates) at z-index -1: above
+   the section's floor and under all of its content, including the text and graphs before and after the
+   block, which it never greys out. The light must stay inside its section (see each section's CSS). */
 .pool {
   position: relative;
-  isolation: isolate;
 }
 .pool::before {
   content: "";

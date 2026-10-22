@@ -1,78 +1,22 @@
-"use client";
-
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
 import { site } from "@/content/site";
+import { HeaderClient } from "./HeaderClient";
 import styles from "./Chrome.module.css";
 
-/**
- * Wordmark only. On the landing page a compact Reserve Now appears once the hero has
- * left the viewport (sentinel = the element with id "hero").
- */
+// Server side of the chrome. The words stay here and reach the client only where a page renders them: the root
+// not-found (header without CTA, footer without the brand line) is serialised into every page, the NDA gate
+// included, so nothing it renders may carry product copy or claims.
+
+/** Wordmark only; `compactCta` adds the compact Reserve Now that appears after the hero (landing page). */
 export function SiteHeader({ compactCta = false }: { compactCta?: boolean }) {
-  const ref = useRef<HTMLElement>(null);
-  const [scrolled, setScrolled] = useState(false);
-  const [pastHero, setPastHero] = useState(false);
-
-  // The fixed chrome's real height replaces the CSS estimate in --chrome-h.
-  useEffect(() => {
-    const header = ref.current;
-    if (!header) return;
-    const root = document.documentElement.style;
-    const ro = new ResizeObserver(([entry]) => {
-      const h = entry.borderBoxSize?.[0]?.blockSize ?? header.getBoundingClientRect().height;
-      root.setProperty("--chrome-h", `${h}px`);
-    });
-    ro.observe(header);
-    return () => {
-      ro.disconnect();
-      root.removeProperty("--chrome-h");
-    };
-  }, []);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 40);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    const hero = document.getElementById("hero");
-    let io: IntersectionObserver | null = null;
-    if (compactCta && hero) {
-      io = new IntersectionObserver(([e]) => setPastHero(!e.isIntersecting), { threshold: 0 });
-      io.observe(hero);
-    }
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      io?.disconnect();
-    };
-  }, [compactCta]);
-
-  return (
-    <header ref={ref} className={styles.header} data-scrolled={scrolled}>
-      <div className={styles.row}>
-        <Link href="/" className={styles.wordmark} aria-label="KINETIQ home">
-          KINETIQ
-        </Link>
-        {compactCta ? (
-          <Link
-            href="/reserve"
-            prefetch={false}
-            className={`btn btn-primary ${styles.compact}`}
-            data-visible={pastHero}
-            tabIndex={pastHero ? 0 : -1}
-            aria-hidden={!pastHero}
-          >
-            {site.ctaLabel}
-          </Link>
-        ) : null}
-      </div>
-    </header>
-  );
+  return <HeaderClient ctaLabel={compactCta ? site.ctaLabel : undefined} />;
 }
 
-export function SiteFooter() {
+/** `brandLine={false}` drops "100% Swiss Made." (a claim, CLAIMS.md row 10): the root not-found uses it. */
+export function SiteFooter({ brandLine = true }: { brandLine?: boolean }) {
   return (
     <footer className={styles.footer}>
-      <p>© 2026 KINETIQ. 100% Swiss Made.</p>
+      <p>{brandLine ? "© 2026 KINETIQ. 100% Swiss Made." : "© 2026 KINETIQ."}</p>
       <Link href="/credits">Credits</Link>
     </footer>
   );

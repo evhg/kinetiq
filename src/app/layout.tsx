@@ -1,9 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo, Saira } from "next/font/google";
-import { hasStill } from "@/components/media/Still";
 import { MotionProvider } from "@/components/motion/MotionProvider";
+import { Arrival } from "@/components/nda/Arrival";
 import { SmoothScroll } from "@/components/motion/SmoothScroll";
-import { meta } from "@/content/copy";
 import { motionInitScript } from "@/lib/motion-preference";
 import "./globals.css";
 
@@ -34,29 +33,12 @@ function siteUrl() {
   }
 }
 
-// scripts/stills.mjs writes /stills/og.jpg (1200 x 630) together with the K01-full "og" crop.
-const ogImages = hasStill("K01-full", "og")
-  ? [{ url: "/stills/og.jpg", width: 1200, height: 630, alt: "The KINETIQ padel racket in a single beam of light" }]
-  : undefined;
-
+// Neutral on purpose (NDA gate): every route inherits this, including a 404 for a path the proxy lets through, so it
+// carries no claim, description or og:image. The pages that sell the product add theirs (src/lib/product-metadata.ts).
 export const metadata: Metadata = {
   metadataBase: siteUrl(),
-  title: { default: meta.title, template: "%s | KINETIQ" },
-  description: meta.description,
+  title: { default: "KINETIQ", template: "%s | KINETIQ" },
   robots: launched ? undefined : { index: false, follow: false },
-  openGraph: {
-    type: "website",
-    siteName: "KINETIQ",
-    title: meta.title,
-    description: meta.description,
-    images: ogImages,
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: meta.title,
-    description: meta.description,
-    images: ogImages,
-  },
 };
 
 export const viewport: Viewport = {
@@ -72,6 +54,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body>
         <MotionProvider>
           <SmoothScroll />
+          <Arrival />
           {children}
         </MotionProvider>
       </body>

@@ -4,7 +4,8 @@ import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { Badges } from "@/components/graphics/Badges";
 import { Icon, TierGlyph, type IconName } from "@/components/graphics/Icons";
 import { useMotion } from "@/components/motion/MotionProvider";
-import { deliveryCountries, includeIcons, priceLabel, tiers, tierById, type TierId } from "@/content/lineup";
+import { Hyphens } from "@/components/text/Hyphens";
+import { deliveryCountries, includeIcons, includesFine, orderLine, priceLabel, tiers, tierById, type TierId } from "@/content/lineup";
 import { reserveCopy } from "@/content/reserve";
 import { feels, site, type FeelId } from "@/content/site";
 import { isPaid, loadStripe, type Stripe, type StripeElement, type StripeElements } from "@/lib/stripe-client";
@@ -19,21 +20,37 @@ type Fields = {
   postal_code: string;
   city: string;
   country: string;
-  invite: string;
 };
 
 // Icons for the trust lines, in the order of their strings.
 const TRUST_ICONS: IconName[] = ["refundArrow", "deliveryBox", "measurementCard"];
 
-const EMPTY: Fields = { name: "", email: "", line1: "", line2: "", postal_code: "", city: "", country: "", invite: "" };
+const EMPTY: Fields = { name: "", email: "", line1: "", line2: "", postal_code: "", city: "", country: "" };
 const PK = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 const F = reserveCopy.fields;
 const E = reserveCopy.errors;
+const INV = reserveCopy.invite;
 // The card field runs in Stripe's iframe: system fonts, so no buyer's browser is sent to a font host.
 const CARD_FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
 
 /** An error whose message is written for the buyer. */
 class Shown extends Error {}
+
+/** Asks the server whether an invitation code is valid: true, or the message to show. */
+async function checkInvite(code: string): Promise<true | string> {
+  try {
+    const res = await fetch("/api/invite", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code }),
+    });
+    const data = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string };
+    if (res.ok && data.ok === true) return true;
+    return data.error ?? INV.invalid;
+  } catch {
+    return INV.offline;
+  }
+}
 
 /** A random attempt id. crypto.randomUUID needs a secure context, which a phone on http://<lan-ip> is not. */
 function attemptId() {
@@ -42,15 +59,21 @@ function attemptId() {
 }
 
 /**
- * The scroll position that puts `el` just below the fixed header. Pages kept by Next's Activity stay
+ * The scroll position that puts `el` `gutter` px below the fixed header. Pages kept by Next's Activity stay
  * in the DOM with display: none (their header measures 0), and graphics use <header> too.
  */
-function topBelowHeader(el: HTMLElement) {
+function topBelowHeader(el: HTMLElement, gutter = 24) {
   const chrome = Array.from(document.querySelectorAll("header"))
     .filter((h) => getComputedStyle(h).position === "fixed")
     .map((h) => h.getBoundingClientRect().bottom);
-  return el.getBoundingClientRect().top + window.scrollY - Math.max(0, ...chrome) - 24;
+  return el.getBoundingClientRect().top + window.scrollY - Math.max(0, ...chrome) - gutter;
 }
+
+/**
+ * Where a preselected edition's card lands: a clean gutter below the header, small enough that the card above it
+ * (14 px higher) ends inside the column's top fade (Reserve.module.css .topFade), so no sliver of it shows.
+ */
+const PRESELECT_GUTTER = 20;
 
 function scrollToY(top: number, smooth: boolean) {
   const lenis = window.__lenis;
@@ -68,8 +91,10 @@ type Props = {
   onTier: (id: TierId) => void;
   feel: FeelId | null;
   onFeel: (id: FeelId) => void;
-  /** InviQtus can be paid for (codes configured and the ambassador signed; decided on the server). */
+  /** Invitation codes exist (decided on the server). InviQtus still needs a valid one from the buyer. */
   invitesOpen: boolean;
+  /** ?invite= from the link: a code to check on load, "" to open the code field, null without it. */
+  initialInvite?: string | null;
   /** The edition came from the link (?tier=): bring its card into view on wide screens. */
   preselected?: boolean;
 };
@@ -78,7 +103,7 @@ type Props = {
  * The options column: edition, feel, Due Today and Pay with Card. Pay with Card opens the delivery
  * and card form in place, ending in one Place Reservation button that charges the card right here.
  */
-export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, preselected = false }: Props) {
+export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initialInvite = null, preselected = false }: Props) {
   const { motionOn } = useMotion();
   const [stage, setStage] = useState<Stage>("choose");
   const [fields, setFields] = useState<Fields>(EMPTY);
@@ -90,6 +115,19 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, presel
   const [instantForm, setInstantForm] = useState(false);
   const [paid, setPaid] = useState<{ tier: TierId; feel: FeelId; email: string; secret: string } | null>(null);
   const [payVisible, setPayVisible] = useState(true);
+  // InviQtus: locked for everyone until a valid invitation code unlocks (and selects) it.
+  const [inviteCode, setInviteCode] = useState<string | null>(null);
+  const [inviteFieldOpen, setInviteFieldOpen] = useState(invitesOpen && initialInvite === "");
+  const [inviteDraft, setInviteDraft] = useState(initialInvite ?? "");
+  const [inviteBusy, setInviteBusy] = useState(invitesOpen && Boolean(initialInvite));
+  const [inviteError, setInviteError] = useState<string | null>(null);
+  const [inviteInstant, setInviteInstant] = useState(false);
+  const [revealInvite, setRevealInvite] = useState(0);
+  const inviteWrapRef = useRef<HTMLDivElement>(null);
+  const inviteInputRef = useRef<HTMLInputElement>(null);
+  const inviteRadioRef = useRef<HTMLInputElement>(null);
+  // Set when a typed code is accepted: focus moves on to the InviQtus option once it is a real radio.
+  const focusInviteRef = useRef(false);
   const formRef = useRef<HTMLFormElement>(null);
   const tiersRef = useRef<HTMLFieldSetElement>(null);
   const payRef = useRef<HTMLButtonElement>(null);
@@ -103,9 +141,10 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, presel
   const secretRef = useRef<{ secret: string; tier: TierId; feel: FeelId; email: string } | null>(null);
   const uid = useId();
   const tier = tierById(tierId)!;
-  // Selectable: on sale and not sold out. Payable: also open (InviQtus waits for its invitations).
+  // On sale and not sold out. InviQtus also needs an accepted invitation code before it can be chosen.
   const isSelectable = (id: TierId) => tierById(id)!.available && !soldOut.includes(id);
-  const isAvailable = (id: TierId) => isSelectable(id) && (id !== "invite" || invitesOpen);
+  const isLocked = (id: TierId) => id === "invite" && (!invitesOpen || !inviteCode);
+  const isAvailable = (id: TierId) => isSelectable(id) && !isLocked(id);
   const available = isAvailable(tier.id);
   const open = stage !== "choose";
   const formOpen = stage === "details" || stage === "processing";
@@ -119,8 +158,59 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, presel
   useEffect(() => {
     if (!preselected || !window.matchMedia("(min-width: 1024px)").matches) return;
     const card = tiersRef.current?.querySelector<HTMLElement>('[data-checked="true"]');
-    if (card && card.getBoundingClientRect().bottom > window.innerHeight - 120) scrollToY(topBelowHeader(card), false);
+    if (card && card.getBoundingClientRect().bottom > window.innerHeight - 120) scrollToY(topBelowHeader(card, PRESELECT_GUTTER), false);
   }, [preselected]);
+
+  // Brings the code field and its message into view (centred, clear of the phone's Pay with Card bar), or
+  // the invitation card while the field is closed, and focuses the field.
+  const revealInviteField = () => {
+    const wrap = inviteWrapRef.current;
+    const form = inviteInputRef.current?.closest("form");
+    if (form) {
+      const r = form.getBoundingClientRect();
+      scrollToY(Math.max(0, r.top + window.scrollY - (window.innerHeight - r.height) / 2), false);
+    } else if (wrap) scrollToY(topBelowHeader(wrap), false);
+    inviteInputRef.current?.focus({ preventScroll: true });
+  };
+
+  // A link with ?invite: a bare one brings the code field into view; one with a code checks it, and a
+  // valid code unlocks and selects InviQtus, while a wrong one brings the field and its message into view.
+  // Closed invitations show the card's "open soon" note. A checked code leaves the address bar (and so
+  // the history), as the page's own state now holds it.
+  useEffect(() => {
+    if (initialInvite === null) return;
+    const code = initialInvite;
+    if (!code || !invitesOpen) {
+      revealInviteField();
+      return;
+    }
+    let cancelled = false;
+    void checkInvite(code).then((ok) => {
+      if (cancelled) return;
+      setInviteBusy(false);
+      const url = new URL(window.location.href);
+      url.searchParams.delete("invite");
+      window.history.replaceState(window.history.state, "", url);
+      if (ok === true) {
+        setInviteCode(code);
+        onTier("invite");
+      } else {
+        setInviteError(ok);
+        setInviteFieldOpen(true);
+        setRevealInvite((n) => n + 1);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+    // Once, for the link the page was opened with (the page keys this panel by it).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // A wrong code from the link: reveal the field and its message once the render that shows them is in.
+  useEffect(() => {
+    if (revealInvite) revealInviteField();
+  }, [revealInvite]);
 
   // Keep the card element's amount in step with the chosen edition.
   useEffect(() => {
@@ -276,7 +366,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, presel
         body: JSON.stringify({
           tier: tier.id,
           feel,
-          invite: fields.invite,
+          invite: inviteCode ?? "",
           name: fields.name,
           email: fields.email,
           address: { line1: fields.line1, line2: fields.line2, postal_code: fields.postal_code, city: fields.city, country: fields.country },
@@ -321,31 +411,50 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, presel
 
   const bad = (k: string) => badFields.some((b) => b.startsWith(k));
 
-  // The invitation code is checked as soon as it is typed, before the buyer reaches the card field.
-  const checkInvite = async () => {
-    const code = fields.invite.trim();
-    if (!code) return;
-    try {
-      const res = await fetch("/api/invite", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code }),
-      });
-      if (res.ok) {
-        setBadFields((b) => b.filter((x) => x !== "invite"));
-        setError(null);
-        return;
-      }
-      const data = (await res.json().catch(() => ({}))) as { error?: string };
-      setBadFields((b) => (b.includes("invite") ? b : [...b, "invite"]));
-      setError(data.error ?? E.generic);
-    } catch {
-      // Offline or blocked: Place Reservation checks the code again.
-    }
+  // "Have an invitation?": opens the code field in place (keyboard opens jump; pointer opens rise 8 px).
+  const toggleInviteField = (viaKeyboard: boolean) => {
+    const next = !inviteFieldOpen;
+    setInviteFieldOpen(next);
+    setInviteInstant(viaKeyboard);
+    setInviteError(null);
+    if (next) requestAnimationFrame(() => inviteInputRef.current?.focus({ preventScroll: true }));
   };
+
+  const submitInvite = async (e: FormEvent) => {
+    e.preventDefault();
+    const code = inviteDraft.trim();
+    if (inviteBusy) return;
+    if (!code) {
+      setInviteError(INV.invalid);
+      inviteInputRef.current?.focus();
+      return;
+    }
+    setInviteBusy(true);
+    setInviteError(null);
+    const ok = await checkInvite(code);
+    setInviteBusy(false);
+    if (ok !== true) {
+      setInviteError(ok);
+      inviteInputRef.current?.focus();
+      return;
+    }
+    focusInviteRef.current = true;
+    setInviteCode(code);
+    setInviteFieldOpen(false);
+    onTier("invite");
+  };
+
+  // The InviQtus option is a real radio once unlocked: focus continues from it.
+  useEffect(() => {
+    if (!inviteCode || !focusInviteRef.current) return;
+    focusInviteRef.current = false;
+    inviteRadioRef.current?.focus({ preventScroll: true });
+  }, [inviteCode]);
 
   return (
     <div className={styles.options} data-open={open}>
+      {/* wide screens: the column's text fades out under the header instead of being sliced by it */}
+      <div className={styles.topFade} aria-hidden="true" />
       <div className={styles.columnHead}>
         <h1 className={styles.columnTitle}>{tier.name}</h1>
         <p className={styles.ships}>{site.shipLabel}</p>
@@ -360,11 +469,117 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, presel
             {tiers.map((t) => {
               const checked = tierId === t.id;
               const can = isSelectable(t.id);
-              const status = !can ? reserveCopy.soldOut : isAvailable(t.id) ? t.availability : reserveCopy.invitesClosedStatus;
+              // InviQtus reads "Invite Only" whatever the state of the invitations (the note below the
+              // includes says when they open); an accepted code makes it "Invited".
+              const status = !can ? reserveCopy.soldOut : t.id === "invite" && inviteCode ? INV.acceptedStatus : t.availability;
+              const extras = (
+                <span className={styles.extras} data-quiet={!checked || undefined}>
+                  <span className={styles.extrasHead}>{reserveCopy.includedWith(t.name)}</span>
+                  {t.includes.map((x, n) => (
+                    <span key={x} className={styles.extra}>
+                      <Icon name={includeIcons[t.id][n] ?? "shieldCheck"} size={20} className={styles.extraIcon} />
+                      <span>
+                        <Hyphens text={x} />
+                      </span>
+                    </span>
+                  ))}
+                  <span className={styles.extrasFine}>{includesFine(t.id)}</span>
+                </span>
+              );
+              const head = (
+                <>
+                  <span className={styles.tierHead}>
+                    <TierGlyph tier={t.id} selected={checked} className={styles.tierGlyph} />
+                    <span className={styles.tierName} id={`${uid}-${t.id}-name`}>
+                      {t.name}
+                    </span>
+                    <span className={styles.tierStatus} data-tier={t.id} id={`${uid}-${t.id}-status`}>
+                      {status}
+                    </span>
+                  </span>
+                  <span className={styles.tierLine}>{t.cardLine}</span>
+                  <span className={`t-num ${styles.tierPrice}`}>{priceLabel(t.priceEur)}</span>
+                </>
+              );
+
+              // InviQtus without an accepted invitation: shown whole (price and what it includes), but
+              // not an option. No hover, press or selected state; its radio stays disabled.
+              if (isLocked(t.id)) {
+                return (
+                  <div key={t.id} ref={inviteWrapRef} className={styles.tierWrap}>
+                    <div className={styles.tier} data-tier={t.id} data-locked="true" aria-disabled="true">
+                      <input
+                        type="radio"
+                        className="visually-hidden"
+                        name={`${uid}-tier`}
+                        value={t.id}
+                        disabled
+                        aria-labelledby={`${uid}-${t.id}-name`}
+                        aria-describedby={`${uid}-${t.id}-status`}
+                      />
+                      {head}
+                      {extras}
+                      {!invitesOpen ? <span className={styles.lockedNote}>{reserveCopy.invitesClosedNote}</span> : null}
+                    </div>
+                    {invitesOpen ? (
+                      <div className={styles.invite}>
+                        <button
+                          type="button"
+                          className={styles.inviteAsk}
+                          aria-expanded={inviteFieldOpen}
+                          aria-controls={inviteFieldOpen ? `${uid}-invite` : undefined}
+                          onClick={(e) => toggleInviteField(e.detail === 0)}
+                        >
+                          {INV.ask}
+                        </button>
+                        {inviteFieldOpen || inviteBusy ? (
+                          <form
+                            id={`${uid}-invite`}
+                            className={styles.inviteForm}
+                            data-instant={inviteInstant || undefined}
+                            onSubmit={submitInvite}
+                            noValidate
+                          >
+                            <label htmlFor={`${uid}-invite-code`} className={styles.inviteLabel}>
+                              {INV.label}
+                            </label>
+                            <div className={styles.inviteRow} data-invalid={inviteError ? true : undefined}>
+                              <input
+                                ref={inviteInputRef}
+                                id={`${uid}-invite-code`}
+                                name="invite"
+                                value={inviteDraft}
+                                onChange={(e) => {
+                                  setInviteDraft(e.target.value);
+                                  setInviteError(null);
+                                }}
+                                autoComplete="off"
+                                autoCapitalize="characters"
+                                spellCheck={false}
+                                maxLength={40}
+                                aria-invalid={inviteError ? true : undefined}
+                                aria-describedby={`${uid}-invite-msg`}
+                              />
+                              <button type="submit" className={styles.inviteUnlock} disabled={inviteBusy} data-busy={inviteBusy}>
+                                {inviteBusy ? INV.checking : INV.unlock}
+                              </button>
+                            </div>
+                            <p id={`${uid}-invite-msg`} className={styles.inviteError} role="alert">
+                              {inviteError}
+                            </p>
+                          </form>
+                        ) : null}
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              }
+
               return (
                 <div key={t.id} className={styles.tierWrap}>
                   <label className={styles.tier} data-checked={checked} data-tier={t.id} data-disabled={!can}>
                     <input
+                      ref={t.id === "invite" ? inviteRadioRef : undefined}
                       type="radio"
                       className="visually-hidden"
                       name={`${uid}-tier`}
@@ -373,34 +588,22 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, presel
                       disabled={!can}
                       onChange={() => onTier(t.id)}
                     />
-                    <span className={styles.tierHead}>
-                      <TierGlyph tier={t.id} selected={checked} className={styles.tierGlyph} />
-                      <span className={styles.tierName}>{t.name}</span>
-                      <span className={styles.tierStatus} data-tier={t.id}>
-                        {status}
-                      </span>
-                    </span>
-                    <span className={styles.tierLine}>{t.cardLine}</span>
-                    <span className={`t-num ${styles.tierPrice}`}>{priceLabel(t.priceEur)}</span>
-                    {checked && t.includes.length ? (
-                      <span className={styles.extras}>
-                        <span className={styles.extrasHead}>{reserveCopy.includedWith(t.name)}</span>
-                        {t.includes.map((x, n) => (
-                          <span key={x} className={styles.extra}>
-                            <Icon name={includeIcons[t.id][n] ?? "shieldCheck"} size={20} className={styles.extraIcon} />
-                            {x}
-                          </span>
-                        ))}
-                      </span>
-                    ) : null}
+                    {head}
+                    {/* InviQtus keeps its includes in view; the others show theirs when chosen */}
+                    {checked || t.id === "invite" ? extras : null}
                   </label>
+                  {t.id === "invite" && inviteCode ? (
+                    <p className="visually-hidden" aria-live="polite">
+                      {INV.accepted}
+                    </p>
+                  ) : null}
                 </div>
               );
             })}
           </fieldset>
 
           <fieldset ref={feelRef} className={styles.feel} disabled={open} data-missing={feelMissing && !feel}>
-            <legend className={styles.feelLegend}>{reserveCopy.feelLegend}</legend>
+            <legend className={styles.feelLegend}>{reserveCopy.feelLegend(tier.rackets)}</legend>
             <div className={styles.feelOptions}>
               {(Object.keys(feels) as FeelId[]).map((id) => (
                 <label key={id} className={styles.feelOption} data-checked={feel === id}>
@@ -424,11 +627,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, presel
               ))}
             </div>
             <p className={styles.hint} aria-live="polite">
-              {feelMissing && !feel
-                ? reserveCopy.feelRequired
-                : tier.rackets > 1
-                  ? `${reserveCopy.feelHint} ${reserveCopy.feelAll(tier.rackets)}`
-                  : reserveCopy.feelHint}
+              {feelMissing && !feel ? reserveCopy.feelRequired : reserveCopy.feelHint(tier.rackets)}
             </p>
           </fieldset>
 
@@ -447,9 +646,6 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, presel
               <span className={styles.dueLabel}>{reserveCopy.dueTodayLabel}</span>
               <span className={`t-num ${styles.dueAmount}`}>{priceLabel(tier.priceEur)}</span>
             </div>
-            {tier.id === "invite" ? (
-              <p className={styles.dueNote}>{invitesOpen ? reserveCopy.inviteNote : reserveCopy.invitesClosedNote}</p>
-            ) : null}
             <p className={styles.fine}>{PK ? reserveCopy.fineprint : reserveCopy.previewLine}</p>
           </div>
 
@@ -478,17 +674,6 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, presel
               noValidate
             >
               <h2 className="visually-hidden">{reserveCopy.formHeading}</h2>
-              {tier.id === "invite" ? (
-                <Field
-                  label={F.invite}
-                  name="invite"
-                  value={fields.invite}
-                  onChange={set("invite")}
-                  onBlur={() => void checkInvite()}
-                  autoComplete="off"
-                  invalid={bad("invite")}
-                />
-              ) : null}
               <Field label={F.name} name="name" value={fields.name} onChange={set("name")} autoComplete="name" invalid={bad("name")} />
               <Field label={F.email} name="email" type="email" value={fields.email} onChange={set("email")} autoComplete="email" invalid={bad("email")} />
               <Field label={F.line1} name="line1" value={fields.line1} onChange={set("line1")} autoComplete="shipping address-line1" invalid={bad("address")} />
@@ -522,7 +707,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, presel
                 {error}
               </p>
               <p id={`${uid}-due`} className={styles.placeDue}>
-                {reserveCopy.placeDue(tier.name, feel ? feels[feel].name : "", priceLabel(tier.priceEur))}
+                {reserveCopy.placeDue(orderLine(tier, feel ? feels[feel].name : ""), priceLabel(tier.priceEur))}
               </p>
               <button
                 type="submit"
@@ -572,9 +757,9 @@ function Confirmation({ tier, feel, email, paymentId }: { tier: TierId; feel: Fe
         {reserveCopy.confirmationHeadline}
       </h2>
       <p className={styles.doneTier}>
-        {t.name}, {feels[feel].name}. <span className="t-num">{priceLabel(t.priceEur)}</span>
+        {orderLine(t, feels[feel].name)}. <span className="t-num">{priceLabel(t.priceEur)}</span>
       </p>
-      <p className="t-body">{reserveCopy.confirmationBody}</p>
+      <p className="t-body">{reserveCopy.confirmationBody(t.rackets)}</p>
       <p className={`t-num ${styles.doneRef}`}>{reserveCopy.reference(paymentId)}</p>
       {email ? <p className={styles.fine}>{reserveCopy.receiptSent(email)}</p> : null}
     </div>

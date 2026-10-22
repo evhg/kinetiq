@@ -21,7 +21,6 @@
   --c-hatch-quiet: color-mix(in srgb, var(--steel) 22%, transparent);
   --c-rim: color-mix(in srgb, var(--steel) 34%, transparent);
   --c-bore: color-mix(in srgb, var(--steel) 16%, transparent);
-  --c-break: color-mix(in srgb, var(--steel) 42%, transparent);
   --c-centre: color-mix(in srgb, var(--edge) 60%, transparent);
   --cl-long: clamp(8px, 2.4cqw, 18px);
   --cl-gap: clamp(2.5px, 0.6cqw, 4.5px);
@@ -176,10 +175,6 @@
   stroke: var(--c-bore);
   stroke-width: var(--w-hair);
 }
-.breakLine {
-  stroke: var(--c-break);
-  stroke-width: var(--w-hair);
-}
 .centre {
   stroke: var(--c-centre);
   stroke-width: var(--w-hair);
@@ -201,6 +196,12 @@
   stroke-width: calc(var(--w-bond) * 3);
 }
 
+/* KINETIQ's hole walls: the same skin, but quiet hairlines, so they never read as joints or bulkheads */
+.walls {
+  stroke: var(--amber);
+  stroke-opacity: 0.38;
+  stroke-width: var(--w-hair);
+}
 .shell {
   stroke: var(--amber);
   stroke-width: var(--w-shell);

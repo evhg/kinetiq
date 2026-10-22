@@ -6,7 +6,9 @@ import { reserveCopy } from "@/content/reserve";
 // Saira's hinted advances round badly on Linux and Windows Chromium; the components set the same.
 const section: CSSProperties = { paddingBlock: "clamp(64px, 8vw, 200px)", textRendering: "geometricPrecision" };
 const hair = "1px solid var(--hairline)";
-// 12 cells (11 icons and a legend) and 6 glyph cells divide evenly into 2, 3, 4 and 6 columns
+// The legend cell spans what is left of the last icon row, so the icon grid ends level at 2, 3, 4 and
+// 6 columns whatever the icon count; the 6 glyph cells divide evenly into 2, 3 and 6
+const legendSpan = (cols: number) => cols - (ICON_NAMES.length % cols);
 const grid = (cols: string): CSSProperties => ({
   display: "grid",
   gridTemplateColumns: cols,
@@ -39,9 +41,19 @@ const trustIcons = ["refundArrow", "deliveryBox", "measurementCard"] as const;
 const css = `
 .g11-icons { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .g11-glyphs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-@media (min-width: 700px) { .g11-icons, .g11-glyphs { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@media (min-width: 1024px) { .g11-icons { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-@media (min-width: 1400px) { .g11-icons, .g11-glyphs { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+.g11-legend { grid-column: span ${legendSpan(2)}; }
+@media (min-width: 700px) {
+  .g11-icons, .g11-glyphs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .g11-legend { grid-column: span ${legendSpan(3)}; }
+}
+@media (min-width: 1024px) {
+  .g11-icons { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .g11-legend { grid-column: span ${legendSpan(4)}; }
+}
+@media (min-width: 1400px) {
+  .g11-icons, .g11-glyphs { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .g11-legend { grid-column: span ${legendSpan(6)}; }
+}
 `;
 
 export default function LabG11() {
@@ -68,7 +80,10 @@ export default function LabG11() {
                 <span className="t-label">{n}</span>
               </div>
             ))}
-            <div style={{ ...cell, justifyItems: "start", textAlign: "left", alignContent: "center", color: "var(--steel)" }}>
+            <div
+              className="g11-legend"
+              style={{ ...cell, justifyItems: "start", textAlign: "left", alignContent: "center", color: "var(--steel)" }}
+            >
               <span className="t-label" style={{ color: "var(--steel)" }}>
                 24 px grid
                 <br />

@@ -7,7 +7,10 @@ export const metadata: Metadata = {
   title: "Page not found",
 };
 
-/** Unknown URLs (and /lab in production): on brand, not Next's default white page. */
+/**
+ * Unknown URLs (and /lab in production): on brand, not Next's default white page. Its tree is serialised into
+ * every page, the NDA gate included, so it shows no product copy or claims (the footer drops its brand line).
+ */
 export default function NotFound() {
   return (
     <>
@@ -21,7 +24,7 @@ export default function NotFound() {
           Back to KINETIQ
         </Link>
       </main>
-      <SiteFooter />
+      <SiteFooter brandLine={false} />
     </>
   );
 }

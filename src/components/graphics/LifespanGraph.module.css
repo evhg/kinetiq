@@ -1,0 +1,393 @@
+/* G14 lifespan comparison. Normalised viewBox stretched to the plot, non-scaling strokes, HTML labels at
+   percentage positions so nothing shrinks below the type floor (G03's construction). */
+.root {
+  --core: clamp(2px, 0.09vw + 1.2px, 3.6px);
+  --typical: clamp(1.5px, 0.06vw + 1.1px, 2.6px);
+  --glow-blur: clamp(5px, 0.32vw + 3.4px, 12px);
+  --halo-blur: clamp(14px, 1vw + 6px, 34px);
+  --head: clamp(26px, 1.8vw + 4px, 56px);
+  --dot: clamp(10px, 0.4vw + 6px, 18px);
+  --ring: clamp(10px, 0.3vw + 7px, 16px);
+  --plot-h: clamp(300px, 14vw + 160px, 560px);
+  /* Lane labels and the KINETIQ note: one step above the axis labels (16 / 19 / 26 px). */
+  --fs-line: clamp(1rem, 0.625vw + 0.625rem, 1.625rem);
+  /* The two spans: KINETIQ's five years as the record of the graph, the typical span a step down. */
+  --fs-big: clamp(3.25rem, 4.4vw + 0.75rem, 9.5rem);
+  --fs-mid: clamp(1.75rem, 1.7vw + 0.9rem, 4.25rem);
+  --gap: clamp(10px, 0.7vw + 4px, 24px);
+  width: 100%;
+  margin: 0;
+  color: var(--muted);
+  /* Hinting opens gaps after Saira's "t" at 15px; unhinted outlines keep the spacing true. */
+  text-rendering: geometricPrecision;
+}
+
+.chart {
+  display: grid;
+}
+
+.plot {
+  position: relative;
+  height: var(--plot-h);
+}
+
+.layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.layer path,
+.layer line {
+  vector-effect: non-scaling-stroke;
+  fill: none;
+}
+
+/* Grid: a rule at every year, a fainter one at every half year on wide screens. */
+.rule {
+  stroke: var(--grid);
+  stroke-width: 1px;
+  shape-rendering: crispEdges;
+}
+
+.half {
+  stroke-opacity: 0.6;
+}
+
+.axis {
+  stroke: var(--edge);
+  stroke-opacity: 0.7;
+  stroke-width: 1px;
+  shape-rendering: crispEdges;
+}
+
+/* One to two years: where most padel rackets are spent. A steel window with hairline edges, never amber
+   (amber is KINETIQ's data). */
+.window {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, transparent, rgb(201 204 209 / 0.075) 22%, rgb(201 204 209 / 0.04) 70%, rgb(201 204 209 / 0.07));
+}
+/* Hairline edges that rise out of the floor and fade before the top, like a lit slot. */
+.window::before,
+.window::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: linear-gradient(180deg, transparent, rgb(201 204 209 / 0.5) 26%, rgb(201 204 209 / 0.42));
+}
+.window::before {
+  left: 0;
+}
+.window::after {
+  right: 0;
+}
+
+/* The rules and the window's edges break under the lane labels and the KINETIQ note: a band from just
+   below each lane to the foot of its label line (the labels hang --gap below their lane, 1.2 lines tall). */
+.rules,
+.window::before,
+.window::after {
+  --cut-t0: calc(var(--lane-t) + var(--gap) - 4px);
+  --cut-t1: calc(var(--lane-t) + var(--gap) + 1.2 * var(--fs-line) + 4px);
+  --cut-k0: calc(var(--lane-k) + var(--gap) - 4px);
+  --cut-k1: calc(var(--lane-k) + var(--gap) + 1.2 * var(--fs-line) + 4px);
+  -webkit-mask-image: linear-gradient(
+    #000 var(--cut-t0),
+    transparent var(--cut-t0) var(--cut-t1),
+    #000 var(--cut-t1) var(--cut-k0),
+    transparent var(--cut-k0) var(--cut-k1),
+    #000 var(--cut-k1)
+  );
+  mask-image: linear-gradient(
+    #000 var(--cut-t0),
+    transparent var(--cut-t0) var(--cut-t1),
+    #000 var(--cut-t1) var(--cut-k0),
+    transparent var(--cut-k0) var(--cut-k1),
+    #000 var(--cut-k1)
+  );
+}
+
+/* Lanes */
+.typical {
+  stroke: var(--steel);
+  stroke-width: var(--typical);
+  stroke-linecap: round;
+}
+
+.wipe {
+  position: absolute;
+  inset: 0;
+  overflow-x: clip;
+}
+
+.wipeInner {
+  position: absolute;
+  inset: 0;
+}
+
+.halo {
+  filter: blur(var(--halo-blur));
+  opacity: 0.32;
+}
+
+.halo path {
+  stroke: var(--amber);
+  stroke-width: calc(var(--core) * 4);
+  stroke-linecap: round;
+}
+
+.glow {
+  filter: blur(var(--glow-blur));
+  opacity: 0.65;
+}
+
+.glow path {
+  stroke: var(--amber);
+  stroke-width: calc(var(--core) * 2.6);
+  stroke-linecap: round;
+}
+
+.core {
+  stroke-width: var(--core);
+  stroke-linecap: round;
+}
+
+.spill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, rgb(227 164 103 / 0.14), rgb(227 164 103 / 0.05) 45%, transparent);
+}
+
+/* Start rings on the y axis, open like a drawing's datum marks. */
+.ring {
+  position: absolute;
+  left: 0;
+  width: var(--ring);
+  height: var(--ring);
+  margin: calc(var(--ring) / -2) 0 0 calc(var(--ring) / -2);
+  border-radius: 50%;
+  background: var(--stage);
+}
+
+.ringTypical {
+  border: 1.5px solid var(--steel);
+}
+
+.ringKinetiq {
+  border: 1.5px solid var(--amber);
+  box-shadow: 0 0 8px rgb(227 164 103 / 0.45);
+}
+
+/* KINETIQ's five-year mark: a lit point at the end of the trace. */
+.end {
+  position: absolute;
+  left: 100%;
+  width: var(--dot);
+  height: var(--dot);
+  margin: calc(var(--dot) / -2) 0 0 calc(var(--dot) / -2);
+  border-radius: 50%;
+  background: var(--amber-hot);
+  box-shadow:
+    0 0 0 4px rgb(227 164 103 / 0.18),
+    0 0 18px 4px rgb(227 164 103 / 0.55),
+    0 0 46px 10px rgb(227 164 103 / 0.22);
+}
+
+.laneLabel,
+.note,
+.xTick,
+.xTitle,
+.captionText {
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+/* Lane names sit under their lines, clear of the spans above them. */
+.laneLabel {
+  position: absolute;
+  left: calc(var(--ring) / 2 + var(--gap));
+  margin-top: var(--gap);
+  font-size: var(--fs-line);
+  /* Grid rules and the window's edges pass behind the words without striking through them. */
+  text-shadow:
+    0 0 3px var(--stage),
+    0 0 8px var(--stage);
+}
+
+.typicalLabel {
+  color: var(--steel);
+}
+
+.kinetiqLabel {
+  color: var(--text);
+}
+
+.note {
+  position: absolute;
+  right: 0;
+  margin-top: var(--gap);
+  font-size: var(--fs-line);
+  color: var(--steel);
+}
+
+/* The spans: numerals in the record weight, resting on their lane. */
+.span {
+  position: absolute;
+  display: flex;
+  align-items: baseline;
+  gap: 0.18em;
+  margin: 0 0 var(--gap);
+  font-family: var(--font-display);
+  font-variation-settings: "wdth" 100;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-weight: 220;
+  letter-spacing: -0.03em;
+  line-height: 0.9;
+  white-space: nowrap;
+}
+
+.spanUnit {
+  font-family: var(--font-data);
+  font-weight: 300;
+  letter-spacing: 0;
+}
+
+.spanTypical {
+  margin-left: var(--gap);
+  font-size: var(--fs-mid);
+  color: var(--steel);
+}
+
+.spanTypical .spanUnit {
+  font-size: max(0.9375rem, 0.42em);
+  color: var(--muted);
+}
+
+.spanKinetiq {
+  right: 0;
+  font-size: var(--fs-big);
+  color: var(--text);
+}
+
+.spanKinetiq .spanUnit {
+  font-size: max(0.9375rem, 0.3em);
+  color: var(--steel);
+}
+
+/* The glow head that draws the trace (motion only). */
+.headTrack {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.head {
+  position: absolute;
+  left: 100%;
+  top: 0;
+  width: var(--head);
+  height: var(--head);
+  margin: calc(var(--head) / -2) 0 0 calc(var(--head) / -2);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    var(--amber-hot) 0,
+    rgb(255 226 191 / 0.85) 12%,
+    rgb(227 164 103 / 0.35) 34%,
+    rgb(227 164 103 / 0.1) 55%,
+    transparent 70%
+  );
+  opacity: 0;
+}
+
+/* A month ruler hanging from the axis, a longer mark at every year. */
+.marks {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 0;
+}
+
+.marks i {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: clamp(4px, 0.2vw + 2px, 8px);
+  background: var(--edge);
+  opacity: 0.7;
+}
+
+.marks i.major {
+  height: clamp(9px, 0.45vw + 3px, 16px);
+  opacity: 1;
+}
+
+.xTicks {
+  position: relative;
+  height: 1.2em;
+  margin-top: clamp(18px, 0.9vw + 6px, 32px);
+  font-family: var(--font-data);
+  font-size: var(--fs-label);
+}
+
+.xTick {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  font-size: var(--fs-label);
+  color: var(--muted);
+}
+
+.xTick.first {
+  transform: none;
+}
+
+.xTick.last {
+  transform: translateX(-100%);
+}
+
+.xTitle {
+  justify-self: center;
+  margin-top: clamp(12px, 0.8vw + 4px, 28px);
+  font-size: var(--fs-label);
+  color: var(--muted);
+}
+
+.caption {
+  margin-top: clamp(20px, 1.4vw + 8px, 48px);
+}
+
+.captionText {
+  display: block;
+  font-size: var(--fs-label);
+  color: var(--muted);
+  white-space: normal;
+}
+
+@media (max-width: 639px) {
+  .root {
+    --plot-h: 300px;
+    --gap: 8px;
+  }
+  .deskOnly {
+    display: none;
+  }
+  .xTitle {
+    white-space: normal;
+    text-align: center;
+  }
+}

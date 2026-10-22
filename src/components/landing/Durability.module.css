@@ -1,0 +1,95 @@
+/* Durability: graphite floor with the G10 lift centred on G14, so its hairlines sit on light (fill rule). */
+.section {
+  position: relative;
+  display: grid;
+  gap: clamp(56px, 4.4vw, 128px);
+  overflow: hidden;
+  isolation: isolate;
+  padding: clamp(96px, 7vw, 200px) var(--margin) clamp(72px, 5vw, 140px);
+  background:
+    radial-gradient(ellipse 70% 58% at 62% 36%, rgb(56 56 63), rgb(40 40 46 / 0.75) 45%, transparent 80%),
+    radial-gradient(ellipse 90% 70% at 50% 60%, rgb(34 34 39 / 0.6), transparent 80%),
+    var(--stage);
+}
+.grid {
+  display: grid;
+  gap: clamp(48px, 4vw, 96px);
+  align-items: center;
+}
+.head {
+  display: grid;
+  gap: clamp(14px, 1vw + 6px, 28px);
+  align-content: center;
+}
+.head :global(.t-h2) {
+  max-width: 12ch;
+}
+.head :global(.t-lead) {
+  max-width: 34ch;
+}
+.graph {
+  min-width: 0;
+}
+.points {
+  display: grid;
+  gap: 32px;
+}
+.point {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  padding-top: 24px;
+  border-top: 1px solid var(--hairline);
+}
+/* four across, a title that wraps splits evenly instead of leaving one word on its own line */
+.point :global(.t-h3) {
+  text-wrap: balance;
+}
+.notes {
+  display: grid;
+  gap: 10px;
+}
+.fine {
+  max-width: 96ch;
+  text-wrap: pretty;
+}
+.mark {
+  margin-right: 0.2em;
+  color: var(--amber-hot);
+}
+/* the claim a note qualifies, first and brighter: "*Built to last five years." */
+.claim {
+  color: var(--steel);
+}
+
+@media (min-width: 1000px) {
+  .grid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+  }
+  .head {
+    grid-column: 1 / span 4;
+  }
+  .graph {
+    grid-column: 6 / span 7;
+  }
+}
+/* Four reasons: two by two on small laptops, one row from 1200 px. Each point spans a title row and a body row
+   of the list's grid (subgrid), so a title that wraps to two lines moves every body in its row down with it: the
+   bodies always share one top line. */
+@media (min-width: 900px) {
+  .points {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 40px var(--gutter);
+  }
+  .point {
+    grid-row: span 2;
+    grid-template-rows: subgrid;
+    row-gap: 12px;
+  }
+}
+@media (min-width: 1200px) {
+  .points {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}

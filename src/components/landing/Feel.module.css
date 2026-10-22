@@ -1,4 +1,6 @@
+/* isolates, so the points' pool light stays under the section's own content (globals .pool) */
 .section {
+  isolation: isolate;
   display: grid;
   gap: clamp(48px, 4vw, 120px);
   padding: clamp(80px, 5vw, 140px) var(--margin) clamp(96px, 8vw, 220px);

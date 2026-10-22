@@ -1,6 +1,5 @@
+import { countWord } from "@/content/lineup";
 import { site } from "@/content/site";
-
-const COUNT_WORDS: Record<number, string> = { 2: "two", 3: "three", 4: "four", 5: "five" };
 
 // Words on /reserve and /reserved. The structure follows a car-maker reservation page.
 export const reserveCopy = {
@@ -11,22 +10,35 @@ export const reserveCopy = {
   nextImage: "Next image",
   chooseLegend: "Choose your edition",
   soldOut: "Sold out",
-  /** InviQtus while invitations are closed (no codes yet, or the ambassador is not signed). */
-  invitesClosedStatus: "Opens soon",
-  invitesClosedNote: "Invitations open soon. Nothing can be reserved yet.",
-  feelLegend: "Your feel",
-  feelHint: "Chosen before your racket is moulded.",
-  feelAll: (rackets: number) => `Applies to all ${COUNT_WORDS[rackets] ?? rackets} rackets.`,
+  /** Under InviQtus's includes while no invitations exist (its status still reads "Invite Only"). */
+  invitesClosedNote: "Invitations open soon.",
+  /** InviQtus is shown to everyone but chosen only with an invitation code. */
+  invite: {
+    ask: "Have an invitation?",
+    label: "Invitation code",
+    unlock: "Unlock",
+    checking: "Checking",
+    accepted: "Invitation accepted. InviQtus is yours to reserve.",
+    acceptedStatus: "Invited",
+    invalid: "That invitation code is not valid.",
+    offline: "The code could not be checked. Please try again.",
+  },
+  feelLegend: (rackets: number) =>
+    rackets === 1 ? "Your feel" : rackets === 2 ? "Your feel, for both rackets" : `Your feel, for all ${countWord(rackets)} rackets`,
+  feelHint: (rackets: number) =>
+    rackets === 1
+      ? "Chosen before your racket is moulded."
+      : rackets === 2
+        ? "Both rackets are moulded in the feel you choose."
+        : `All ${countWord(rackets)} rackets are moulded in the feel you choose.`,
   dueTodayLabel: "Due Today",
   trustLines: [
     site.refundLabel,
     "Free delivery in Europe, duties included",
     "Serial number and measurement card with every racket",
   ],
-  inviteNote: "By invitation. Enter your code with your details.",
   formHeading: "Your details",
   fields: {
-    invite: "Invitation code",
     name: "Full name",
     email: "Email",
     line1: "Address",
@@ -40,8 +52,8 @@ export const reserveCopy = {
   feelRequired: "Choose Command or Pace.",
   processing: "Placing reservation…",
   cardPreview: "Card payments open at launch. Nothing can be charged yet.",
-  /** The order and its total, stated directly above Place Reservation. */
-  placeDue: (edition: string, feel: string, price: string) => `${edition}, ${feel}. Due today ${price}.`,
+  /** The order and its total, stated directly above Place Reservation ("VanQuish, two Command rackets."). */
+  placeDue: (order: string, price: string) => `${order}. Due today ${price}.`,
   fineprint: "Charged in full today. Payments by Stripe.",
   /** Shown instead of the fine print while card payments are off (no Stripe key: the preview). */
   previewLine: "Reservations open at launch. Nothing is charged in this preview.",
@@ -53,7 +65,11 @@ export const reserveCopy = {
   },
   stickyPay: site.payLabel,
   confirmationHeadline: "Reserved. Now we make it.",
-  confirmationBody: `Your receipt is on its way to your inbox. Your KINETIQ ships in ${site.shipMonth} with its serial number and measurement card. Fully refundable until then.`,
+  /** After payment; `rackets` is unknown when /reserved cannot tell the edition. */
+  confirmationBody: (rackets?: number) =>
+    rackets && rackets > 1
+      ? `Your receipt is on its way to your inbox. Your ${countWord(rackets)} rackets ship in ${site.shipMonth}, each with its serial number and measurement card. Fully refundable until then.`
+      : `Your receipt is on its way to your inbox. Your KINETIQ ships in ${site.shipMonth} with its serial number and measurement card. Fully refundable until then.`,
   receiptSent: (email: string) => `Receipt sent to ${email}.`,
   /** A short reference the buyer can quote: KQ- and the last 8 characters of the payment's id. */
   reference: (paymentId: string) => `Reservation KQ-${paymentId.slice(-8).toUpperCase()}`,

@@ -1,0 +1,31 @@
+/* Lab layout for G14: the graphic at the full content width, then on columns 6 to 12 as in Durability. */
+.full {
+  display: grid;
+  gap: clamp(40px, 4vw, 112px);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+  row-gap: 56px;
+  align-items: center;
+  margin-top: clamp(96px, 8vw, 220px);
+}
+
+.copy {
+  grid-column: 1 / span 4;
+  display: grid;
+  gap: clamp(20px, 1.5vw, 40px);
+}
+
+.graphic {
+  grid-column: 6 / span 7;
+}
+
+@media (max-width: 999px) {
+  .copy,
+  .graphic {
+    grid-column: 1 / -1;
+  }
+}

@@ -29,6 +29,26 @@
   border: 1px solid var(--hairline);
   border-radius: 2px;
   background: var(--plate);
+  /* the bore's radius and the plate's height in px (R = 172 of the 1100-unit width; phones fit the height, below) */
+  --bore-r: calc(100cqw * 172 / 1100);
+  --plate-h: calc(100cqw * 7 / 11);
+  /* A soft light table around the bore (fill rule: the pair band read 5% lit at 1440); the bore itself stays dark.
+     A plain gradient, painted once (a blend layer here cost scroll frames under the header's backdrop blur). */
+  --plate-light: radial-gradient(
+    circle at 50% 50%,
+    var(--stage) calc(var(--bore-r) - 1px),
+    rgb(46 46 52) calc(var(--bore-r) + 2px),
+    rgb(36 36 41) calc(var(--bore-r) * 1.7),
+    rgb(24 24 28) calc(var(--bore-r) * 2.5),
+    var(--stage) calc(var(--bore-r) * 3.3)
+  );
+}
+.plate::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--plate-light);
+  pointer-events: none;
 }
 
 .svg {
@@ -144,7 +164,12 @@
   top: calc(50% + var(--y) * var(--u));
   padding: 0.3em 0.2em 0.32em 0.5em;
   border-bottom: 1px solid var(--edge);
-  background: var(--plate);
+  /* the knockout repeats the plate's light, registered to the plate: the note's bottom-right corner sits on its
+     elbow (translate -100%), at (x, y) plate units from the centre */
+  background:
+    var(--plate-light) right calc(var(--x) * var(--u) - 50cqw) bottom calc(var(--y) * var(--u) - var(--plate-h) / 2) /
+      100cqw var(--plate-h) no-repeat,
+    var(--plate);
   font-family: var(--font-data);
   font-size: clamp(16px, 0.357vw + 14.86px, 24px);
   line-height: 1.2;
@@ -221,6 +246,8 @@
   }
   .plate {
     aspect-ratio: 4 / 3;
+    --bore-r: calc(75cqw * 172 / 700);
+    --plate-h: 75cqw;
   }
   .note,
   .target {

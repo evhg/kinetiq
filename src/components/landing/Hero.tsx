@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useRef } from "react";
 import { Still } from "@/components/media/Still";
 import { useMotion } from "@/components/motion/MotionProvider";
-import { hero } from "@/content/copy";
+import { Hyphens } from "@/components/text/Hyphens";
+import { hero, lifeNote } from "@/content/copy";
 import { site } from "@/content/site";
 import { gsap, useGSAP } from "@/lib/gsap";
 import styles from "./Hero.module.css";
@@ -66,7 +67,15 @@ export function Hero() {
         <h1 id="hero-title" className={`t-h1 ${styles.title}`}>
           {hero.headline}
         </h1>
-        <p className={`t-lead ${styles.lead}`}>{hero.lead}</p>
+        <p className={`t-lead ${styles.lead}`}>
+          <Hyphens text={hero.lead} />{" "}
+          <span className={styles.life}>
+            {hero.life}
+            <a href={`#${lifeNote.id}`} className="footmark" aria-label={lifeNote.label}>
+              {lifeNote.mark}
+            </a>
+          </span>
+        </p>
       </div>
       <div className={styles.bottom}>
         <Link href="/reserve" className={`btn btn-primary ${styles.cta}`}>

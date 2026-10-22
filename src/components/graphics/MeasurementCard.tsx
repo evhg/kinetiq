@@ -32,8 +32,12 @@ export const LABELS = {
 
 type Props = {
   className?: string;
-  /** Limited edition line, e.g. "Edition No. 017 / 500" (Tier 2). */
+  /** Limited edition line, e.g. "Set No. 027 / 500 A" (VanQuish: one card per racket, numbered to match). */
   edition?: string;
+  /** The buyer's feel (e.g. "Pace") in place of the sample's. */
+  feel?: string;
+  /** The second racket of a set: its own serial and measured values (identical.pairCard). */
+  second?: boolean;
   /** Rest the card at −3° on wide screens (flat on phones). */
   rotate?: boolean;
   /**
@@ -43,6 +47,13 @@ type Props = {
   variant?: "full" | "thumb";
   /** Slide up 24 px with a fade when it scrolls into view. Default true. */
   enter?: boolean;
+  /** The graphite mount plate behind the card. Default true; a set of cards shares one soft shadow instead. */
+  plate?: boolean;
+  /**
+   * The back card of a set, of which only the top shows: header and serial with the set number, and nothing below
+   * (no title, rows or map), so the strip beside the front card is clean paper, never clipped values.
+   */
+  peek?: boolean;
 };
 
 function SwissCross({ className }: { className?: string }) {
@@ -95,7 +106,17 @@ function Rosette({ className }: { className?: string }) {
  * a blank signature line. Server render and reduced motion show it in place; motion slides it up
  * 24 px with a fade on entry; fine pointers straighten and lift it on hover (CSS).
  */
-export function MeasurementCard({ className, edition, rotate = false, variant = "full", enter = true }: Props) {
+export function MeasurementCard({
+  className,
+  edition,
+  feel,
+  second = false,
+  rotate = false,
+  variant = "full",
+  enter = true,
+  plate = true,
+  peek = false,
+}: Props) {
   const root = useRef<HTMLElement>(null);
   const { motionOn } = useMotion();
   const uid = `g08${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
@@ -118,7 +139,9 @@ export function MeasurementCard({ className, edition, rotate = false, variant = 
     { scope: root, dependencies: [motionOn, enter], revertOnUpdate: true },
   );
 
-  const rows = card.rows;
+  const sample = second ? card.second : null;
+  const serial = sample?.serial ?? card.serial;
+  const rows = card.rows.map(([k, v]): [string, string] => [k, k === "Feel" && feel ? feel : (sample?.values[k] ?? v)]);
   const deviationKey = rows[rows.length - 1][0];
 
   return (
@@ -127,44 +150,61 @@ export function MeasurementCard({ className, edition, rotate = false, variant = 
       className={`${styles.root}${className ? ` ${className}` : ""}`}
       data-rotate={rotate ? "" : undefined}
       data-variant={variant}
+      data-plate={plate ? undefined : "none"}
+      data-peek={peek ? "" : undefined}
       aria-hidden={thumb ? true : undefined}
     >
       <div className={styles.mover} data-g08-mover="">
         {/* the tilt carries card and plate together, so the plate always sits square behind the card */}
         <div className={styles.tilt}>
-          <div className={styles.plate} aria-hidden="true" />
+          {plate ? <div className={styles.plate} aria-hidden="true" /> : null}
           <div className={styles.card}>
             <div className={styles.rosetteClip} aria-hidden="true">
               <Rosette className={styles.rosette} />
             </div>
 
             {/* text-free miniature: the card's structure as fine strokes, never solid redaction bars */}
-            <div className={styles.thumbBody} aria-hidden="true">
-              <span className={styles.thumbHead}>
-                <span className={styles.thumbMark} />
-                <span className={styles.thumbTag} />
-              </span>
-              <span className={styles.thumbTitle} />
-              <span className={styles.thumbTitle2} />
-              <span className={styles.thumbRows}>
-                {rows.map(([k]) => (
-                  <span key={k} className={styles.thumbRow}>
-                    <span className={styles.thumbKey} />
-                    <span className={styles.thumbValue} />
+            {peek ? null : (
+              <div className={styles.thumbBody} aria-hidden="true">
+                <span className={styles.thumbHead}>
+                  <span className={styles.thumbMark} />
+                  <span className={styles.thumbTag} />
+                </span>
+                <span className={styles.thumbTitle} />
+                <span className={styles.thumbTitle2} />
+                <span className={styles.thumbRows}>
+                  {rows.map(([k]) => (
+                    <span key={k} className={styles.thumbRow}>
+                      <span className={styles.thumbKey} />
+                      <span className={styles.thumbValue} />
+                    </span>
+                  ))}
+                </span>
+                <span className={styles.thumbFoot}>
+                  <span className={styles.thumbMap}>
+                    <FlatnessMap uid={`${uid}t`} />
                   </span>
-                ))}
-              </span>
-              <span className={styles.thumbFoot}>
-                <span className={styles.thumbMap}>
-                  <FlatnessMap uid={`${uid}t`} />
+                  <span className={styles.thumbSide}>
+                    <SwissCross className={styles.thumbCross} />
+                    <span className={styles.thumbSign} />
+                  </span>
                 </span>
-                <span className={styles.thumbSide}>
-                  <SwissCross className={styles.thumbCross} />
-                  <span className={styles.thumbSign} />
-                </span>
-              </span>
-            </div>
-            {thumb ? null : (
+              </div>
+            )}
+            {thumb ? null : peek ? (
+              <div className={styles.fullBody}>
+                <header className={styles.top}>
+                  <span className={styles.wordmark}>{LABELS.wordmark}</span>
+                  <span className={styles.tag}>{card.tag}</span>
+                </header>
+                <p className={`${styles.meta} ${styles.peekMeta}`}>
+                  <span>
+                    <span className={styles.metaKey}>{LABELS.serial}</span> <span className={styles.metaValue}>{serial}</span>
+                  </span>
+                  {edition ? <span className={styles.edition}>{edition}</span> : null}
+                </p>
+              </div>
+            ) : (
               <div className={styles.fullBody}>
                 <header className={styles.top}>
                   <span className={styles.wordmark}>{LABELS.wordmark}</span>
@@ -173,7 +213,7 @@ export function MeasurementCard({ className, edition, rotate = false, variant = 
                 <p className={styles.title}>{card.title}</p>
                 <p className={styles.meta}>
                   <span>
-                    <span className={styles.metaKey}>{LABELS.serial}</span> <span className={styles.metaValue}>{card.serial}</span>
+                    <span className={styles.metaKey}>{LABELS.serial}</span> <span className={styles.metaValue}>{serial}</span>
                   </span>
                   {edition ? <span className={styles.edition}>{edition}</span> : null}
                 </p>

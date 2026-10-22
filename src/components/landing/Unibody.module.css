@@ -1,0 +1,277 @@
+/* Stacked by default (phones, reduced motion); layered and pinned on wide screens (see globals .pin-layered).
+   The floor is graphite with a lift behind each beat, never the near-black void (fill rule). */
+.chapter {
+  background: var(--stage);
+}
+.beatA,
+.beatB,
+.beatS,
+.beatC {
+  display: grid;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(ellipse 90% 55% at 50% 30%, rgb(43 43 49 / 0.7), transparent 75%),
+    var(--stage);
+}
+.media {
+  position: relative;
+  z-index: -1;
+}
+.still img {
+  width: 100%;
+  height: auto;
+}
+.edgeLight {
+  display: none;
+}
+/* Only the pinned version plays the tubular-to-shell dissolve, and traces the sealed core over the shell. */
+.tubular,
+.trace {
+  display: none;
+}
+.copy {
+  display: grid;
+  justify-items: center;
+  gap: clamp(14px, 1vw + 6px, 28px);
+  text-align: center;
+  padding: 40px var(--margin) 8px;
+}
+.copy :global(.t-h2) {
+  max-width: 18ch;
+}
+/* Beats A and B: two-sentence headlines, one sentence per line where each fits; a sentence that must wrap
+   (phones) wraps evenly inside itself, never leaving a word alone. */
+.copy .title {
+  max-width: 24ch;
+}
+.sentence {
+  display: inline-block;
+  text-wrap: balance;
+}
+.copy :global(.t-lead) {
+  max-width: 56ch;
+}
+.callouts {
+  display: grid;
+  gap: 14px;
+  padding: 24px var(--margin) 64px;
+}
+.callout {
+  position: relative;
+  padding-left: 22px;
+  color: var(--steel);
+  font-size: clamp(1rem, 0.4vw + 0.85rem, 1.375rem);
+}
+.callout::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.65em;
+  width: 12px;
+  height: 1px;
+  background: var(--amber);
+  box-shadow: 0 0 6px var(--amber);
+}
+/* The sealed core: words and three callouts, centred when stacked, a left column beside the shell when pinned. */
+.beatS {
+  padding-bottom: 48px;
+}
+.sealedCopy :global(.t-lead) {
+  max-width: 44ch;
+}
+/* stacked: one left-aligned list, centred as a block, so the amber dashes line up */
+.sealedCallouts {
+  display: grid;
+  justify-self: center;
+  justify-items: start;
+  gap: 12px;
+  margin: 4px 0 0;
+  padding: 0;
+}
+.compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 32px var(--margin) 0;
+}
+.side {
+  min-width: 0;
+}
+.proofs {
+  display: grid;
+  gap: 28px;
+  padding: 40px var(--margin) 80px;
+}
+/* align-content: start, so in the stretched row every body starts the same distance below its title */
+.proof {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  border-top: 1px solid var(--hairline);
+  padding-top: 20px;
+}
+.proofTitle {
+  color: var(--text);
+}
+
+/* Stacked on wide screens (reduced motion): K02 is edge-on, so its frame is cropped to the racket's band. */
+@media (min-width: 700px) {
+  .beatA .still img {
+    aspect-ratio: 21 / 8;
+    object-fit: cover;
+  }
+}
+
+@media (min-width: 900px) {
+  .callouts {
+    grid-template-columns: repeat(3, auto);
+    justify-content: center;
+    gap: clamp(32px, 4vw, 120px);
+  }
+  .proofs {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--gutter);
+  }
+}
+
+@media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
+  :global(html[data-motion="on"]) .beatA,
+  :global(html[data-motion="on"]) .beatB,
+  :global(html[data-motion="on"]) .beatS,
+  :global(html[data-motion="on"]) .beatC {
+    padding-top: calc(var(--chrome-h) + clamp(24px, 3vh, 64px));
+  }
+  /* The sealed core sits over beat B's shell, which the timeline moves right: the words take the left
+     columns, vertically centred, with the callouts listed under the lead. */
+  :global(html[data-motion="on"]) .beatS {
+    background: none;
+    align-content: center;
+    padding-bottom: clamp(32px, 6vh, 112px);
+  }
+  /* no right padding: the column ends short of the shell, and the headline keeps two lines up to 2560 */
+  :global(html[data-motion="on"]) .beatS .copy {
+    justify-items: start;
+    width: min(48vw, 1240px);
+    text-align: left;
+    padding-right: 0;
+    padding-bottom: 0;
+  }
+  :global(html[data-motion="on"]) .sealedCopy :global(.t-lead) {
+    max-width: 36ch;
+  }
+  :global(html[data-motion="on"]) .sealedCallouts {
+    justify-self: start;
+    gap: clamp(10px, 1.4vh, 22px);
+    margin-top: clamp(4px, 1vh, 20px);
+  }
+  /* Layered: beat A is covered by K02 and beat C sits over beat B's shell, so neither paints a floor;
+     between beats the chapter shows its lit graphite. */
+  :global(html[data-motion="on"]) .chapter {
+    background:
+      radial-gradient(ellipse 70% 60% at 50% 55%, rgb(43 43 49 / 0.8), transparent 75%),
+      rgb(19 20 22);
+  }
+  :global(html[data-motion="on"]) .beatA,
+  :global(html[data-motion="on"]) .beatC {
+    background: none;
+  }
+  :global(html[data-motion="on"]) .beatA {
+    grid-template-rows: auto 1fr auto;
+  }
+  /* Beat B: heading and the two G07 drawings only; the proofs have their own beat. */
+  :global(html[data-motion="on"]) .beatB {
+    grid-template-rows: auto minmax(0, 1fr);
+    padding-bottom: clamp(32px, 6vh, 112px);
+  }
+  /* Beat C sits over beat B's shell still: the proofs along the foot of the stage. */
+  :global(html[data-motion="on"]) .beatC {
+    align-content: end;
+  }
+  :global(html[data-motion="on"]) .media {
+    position: absolute;
+    inset: 0;
+  }
+  :global(html[data-motion="on"]) .still img {
+    height: 100%;
+    object-fit: cover;
+  }
+  /* Beat B: K03 sits lower and smaller, between the G07 drawings and under the heading, then grows back
+     to full frame for beat C. The stage colour matches the render's flat graphite border. */
+  :global(html[data-motion="on"]) .beatB {
+    background: rgb(19 20 22);
+  }
+  :global(html[data-motion="on"]) .beatB .media {
+    transform: translateY(15%) scale(0.76);
+    /* Feather the outer edges into the stage (the render's border is a flat graphite, luma 17-21). */
+    -webkit-mask-image:
+      linear-gradient(to right, transparent, #000 8%, #000 92%, transparent),
+      linear-gradient(transparent, #000 8%, #000 92%, transparent);
+    -webkit-mask-composite: source-in;
+    mask-image:
+      linear-gradient(to right, transparent, #000 8%, #000 92%, transparent),
+      linear-gradient(transparent, #000 8%, #000 92%, transparent);
+    mask-composite: intersect;
+  }
+  :global(html[data-motion="on"]) .tubular {
+    display: block;
+    position: absolute;
+    inset: 0;
+  }
+  /* drawn in K03's own pixel space and fitted like the image (cover, centred), so it sits on the render */
+  :global(html[data-motion="on"]) .trace {
+    display: block;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    visibility: hidden;
+  }
+  /* The light line traces K02's top edge: the racket spans x 11.5-88.5% and its top edge sits at
+     y 46.5% of the 16:9 still, which is covered over the 100svh x 100vw stage. */
+  :global(html[data-motion="on"]) .edgeLight {
+    --img-w: max(100vw, 177.78svh);
+    --img-h: max(100svh, 56.25vw);
+    display: block;
+    position: absolute;
+    left: calc(50vw - 0.385 * var(--img-w));
+    width: calc(0.77 * var(--img-w));
+    top: calc(50svh - 0.035 * var(--img-h));
+    height: 1px;
+    transform-origin: 0 50%;
+    background: linear-gradient(90deg, transparent, var(--amber) 8%, var(--amber-hot) 50%, var(--amber) 92%, transparent);
+    box-shadow: 0 0 10px rgb(227 164 103 / 0.55);
+  }
+  :global(html[data-motion="on"]) .copy {
+    padding-top: 0;
+  }
+  /* Short laptop windows: the pinned heading and lead scale with the stage height so they keep
+     clear of the G07 drawings (they fit unscaled from about 800 px tall). */
+  :global(html[data-motion="on"]) .copy :global(.t-h2) {
+    font-size: min(var(--fs-h2), 7.2svh);
+  }
+  :global(html[data-motion="on"]) .copy :global(.t-lead) {
+    font-size: max(1.0625rem, min(var(--fs-lead), 2.7svh));
+  }
+  :global(html[data-motion="on"]) .callouts {
+    grid-row: 3;
+    padding-bottom: clamp(48px, 8vh, 120px);
+  }
+  :global(html[data-motion="on"]) .compare {
+    grid-row: 2;
+    align-self: center;
+    /* At least 340 px, so G07 keeps its whole-section layout (the cropped half is too tall here),
+       and capped by height on wide, short screens. */
+    grid-template-columns: repeat(2, minmax(0, clamp(340px, 30%, 50svh)));
+    justify-content: space-between;
+    padding-top: 0;
+  }
+  /* layered, the proofs sit over K03's lit shell: no pool behind them */
+  :global(html[data-motion="on"]) .proofs::before {
+    content: none;
+  }
+  :global(html[data-motion="on"]) .proofs {
+    padding-top: 0;
+    padding-bottom: clamp(48px, 8vh, 120px);
+  }
+}

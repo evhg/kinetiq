@@ -10,6 +10,8 @@ import styles from "./Icons.module.css";
 /** Accessible names for the icons (used only when a title is not given and the icon is not decorative). */
 export const LABELS = {
   rackets3: "Three rackets",
+  rackets2: "Two rackets",
+  fiveYears: "Five years",
   penNib: "Autographed",
   court: "Court session",
   numberedTag: "Numbered",
@@ -20,7 +22,7 @@ export const LABELS = {
   shieldCheck: "Secure",
   swissCross: "Swiss Made",
   mould: "One mould",
-  tiers: { reserve: "One racket", limited: "One numbered racket", invite: "Three rackets" } as Record<TierId, string>,
+  tiers: { reserve: "One racket", limited: "A numbered pair", invite: "Three rackets" } as Record<TierId, string>,
 };
 
 /* ---------- geometry (computed once, at module load) ---------- */
@@ -61,6 +63,7 @@ function StackArt({ s }: { s: Stack }) {
 
 // 24 px icons: no holes (they would be sub-pixel noise), the throat only on the front racket
 const RACKETS24 = stack(3, 17.6, 1.0, 24, 4.7, 1.2, 1.1, false);
+const PAIR24 = stack(2, 18.2, 1.0, 24, 5.8, 1.3, 1.1, false);
 
 /** A racket lying on its side (head to the left), centred on (cx, cy). */
 const lying = (len: number, hh: number, cx: number, cy: number) => {
@@ -81,18 +84,20 @@ const MOULD_PARTING = (() => {
 const GLYPH_LEN = 42;
 const G_RESERVE = stack(1, GLYPH_LEN, 2.05, 48, 0, 0, 1.8, true);
 const G_INVITE = stack(3, 34.5, 1.8, 48, 8.4, 2.4, 1.9, true);
-// Limited: one racket with its numbered tag, the pair centred as a whole
-const LIM = (() => {
-  const len = 40;
-  const cx = 15;
-  const top = 4;
-  const outline = movePts(iconRacket(len, 2), { dx: cx, dy: top });
+// Limited: a matched pair (the back racket knocked out behind the front one) with the set's numbered
+// tag tied to the front grip
+const PAIR = (() => {
+  const len = 37;
+  const backAt = { dx: 12.2, dy: 3 };
+  const frontAt = { dx: 19.4, dy: 6.2 };
+  const back = movePts(iconRacket(len, 1.9), backAt);
+  const front = movePts(iconRacket(len, 1.9), frontAt);
   return {
-    outline: ptsPath(outline),
-    throat: ptsPath(movePts(iconThroat(len), { dx: cx, dy: top })),
-    holes: penDots(movePts(iconHoleCentres(len), { dx: cx, dy: top })),
+    outlines: [occluded(back, [front], 1.8), ptsPath(front)],
+    throat: ptsPath(movePts(iconThroat(len), frontAt)),
+    holes: penDots(movePts(iconHoleCentres(len), frontAt)),
     holeDia: iconHoleDia(len),
-  };
+  } satisfies Stack;
 })();
 // "001" in squarish strokes that echo Saira's numerals; 6.4 units tall
 const DIGIT_H = 6.4;
@@ -106,6 +111,8 @@ const TAG_DIGITS = zero(30.6) + zero(35.05) + one(39.5);
 
 export type IconName =
   | "rackets3"
+  | "rackets2"
+  | "fiveYears"
   | "penNib"
   | "court"
   | "numberedTag"
@@ -119,6 +126,8 @@ export type IconName =
 
 export const ICON_NAMES: IconName[] = [
   "rackets3",
+  "rackets2",
+  "fiveYears",
   "penNib",
   "court",
   "numberedTag",
@@ -133,6 +142,15 @@ export const ICON_NAMES: IconName[] = [
 
 const ICONS: Record<IconName, ReactNode> = {
   rackets3: <StackArt s={RACKETS24} />,
+  rackets2: <StackArt s={PAIR24} />,
+  // a dial open at the top (time) around a squarish 5 that echoes Saira's numerals
+  fiveYears: (
+    <>
+      <path d="M14.99 3.78 A8.75 8.75 0 1 1 9.01 3.78" />
+      <path d="M10.75 1.9 H13.25" />
+      <path d="M14.4 7.6 H10.15 L9.85 11.35 C10.45 10.95 11.15 10.8 11.9 10.8 C13.7 10.8 14.85 11.95 14.85 13.65 C14.85 15.4 13.6 16.5 11.85 16.5 C10.8 16.5 9.9 16.05 9.3 15.3" />
+    </>
+  ),
   penNib: (
     <>
       <g transform="rotate(45 12 12)">
@@ -252,11 +270,9 @@ export function TierGlyph({ tier, selected = false, className, title }: TierGlyp
   } else if (tier === "limited") {
     art = (
       <>
-        <path d={LIM.outline} />
-        <path d={LIM.throat} />
-        <path className={styles.holes} d={LIM.holes} style={{ strokeWidth: LIM.holeDia }} />
-        {/* the numbered tag, tied to the grip */}
-        <path d="M26.5 36.9 C24.2 40.6 20.6 42.4 17.3 41.2" />
+        <StackArt s={PAIR} />
+        {/* the set's numbered tag, tied to the front grip */}
+        <path d="M26.5 36.9 C25 39.9 23.2 41.6 21.3 41.9" />
         <path d="M26.2 30.5 H43.8 Q45 30.5 45 31.7 V40.3 Q45 41.5 43.8 41.5 H26.2 L23 36 Z" />
         <circle cx="27.5" cy="36" r="1" />
         <path className={styles.digit} d={TAG_DIGITS} />

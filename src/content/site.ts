@@ -1,6 +1,7 @@
 import { priceLabel, tiers } from "@/content/lineup";
 
-const shipMonth = "January 2027";
+// A no-break space keeps the month and year on one line wherever they wrap.
+const shipMonth = "January\u00a02027";
 
 // Commercial facts shared by the landing page and /reserve.
 export const site = {
@@ -8,7 +9,7 @@ export const site = {
   fromPriceLabel: `From ${priceLabel(Math.min(...tiers.map((t) => t.priceEur)))}`,
   shipMonth,
   shipLabel: `Ships ${shipMonth}`,
-  refundLabel: "Fully refundable until your racket ships",
+  refundLabel: "Fully refundable until we ship",
   ctaLabel: "Reserve Now",
   payLabel: "Pay with Card",
   placeLabel: "Place Reservation",

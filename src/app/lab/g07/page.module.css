@@ -1,4 +1,4 @@
-/* Lab only: beat B of the One piece chapter, the two sections in the thirds around the K03 photo. */
+/* Lab only: beat B of the Unibody chapter, the two sections in the thirds around the K03 photo. */
 .thirds {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -103,15 +103,6 @@ function bore(c: number, y0: number, y1: number) {
     .join("");
 }
 
-/** ISO break line across the full section: straight, with one Z at mid-height. */
-function breakLine(x: number) {
-  const m = T / 2;
-  return `M${pt(x, -3.2)}V${r1(m - 2.6)}L${pt(x + 1.3, m - 1.1)}L${pt(x - 1.3, m + 1.1)}L${pt(x, m + 2.6)}V${r1(T + 3.2)}`;
-}
-export const breakLines = {
-  both: breakLine(breakZone.l + 0.5) + breakLine(breakZone.r - 0.5),
-};
-
 /** ISO centrelines: the mid-plane and one through each hole (dash-dot, drawn quiet). */
 export const centrelines = {
   mid: `M${pt(-3, T / 2)}H${r1(W + 3)}`,
@@ -120,19 +111,6 @@ export const centrelines = {
 
 /** The bore beyond each cut hole, filled with a cylinder shade. */
 export const boreRects = [HOLE_C, W - HOLE_C].map((c) => ({ x: c - HOLE_R, y: 0, w: HOLE_R * 2, h: T }));
-
-/** Hatch clip excludes the break zone: hatch stops there, outlines run straight through. */
-function withoutBreak(blocks: [number, number][]) {
-  const out: [number, number][] = [];
-  for (const [a, b] of blocks) {
-    if (b <= breakZone.l + 0.5 || a >= breakZone.r - 0.5) out.push([a, b]);
-    else {
-      out.push([a, breakZone.l + 0.5]);
-      out.push([breakZone.r - 0.5, b]);
-    }
-  }
-  return out;
-}
 
 // ---------------------------------------------------------------- tubular racket
 
@@ -147,8 +125,10 @@ export const tubular = {
     return { d: `${outer}${inner}`, drift: [left ? -DRIFT : DRIFT, 0] as const };
   }),
   faces: [
-    { y0: 0, y1: SKIN, drift: [0, -DRIFT] as const },
-    { y0: T - SKIN, y1: T, drift: [0, DRIFT] as const },
+    // The faces stay on the core: both constructions bond a face to a core, so only the frame tube's
+    // joints open (CLAIMS.md row 4).
+    { y0: 0, y1: SKIN, drift: [0, 0] as const },
+    { y0: T - SKIN, y1: T, drift: [0, 0] as const },
   ].map((f) => ({
     d: coreSpans.map(([a, b]) => rect(a, f.y0, b, f.y1)).join(""),
     // the bore beyond the cut: the face's top and bottom edges seen across each hole
@@ -156,12 +136,13 @@ export const tubular = {
     drift: f.drift,
   })),
   core: coreSpans.map(([a, b]) => rect(a, SKIN, b, T - SKIN)).join(""),
-  coreClip: withoutBreak(coreSpans).map(([a, b]) => rect(a, SKIN, b, T - SKIN)).join(""),
+  coreClip: coreSpans.map(([a, b]) => rect(a, SKIN, b, T - SKIN)).join(""),
   bores: holes.map((h) => bore(h.c, 0, T)).join(""),
-  /** Four bond lines, each sitting in the middle of the gap its parts drift open. */
+  /**
+   * The frame tube's two joints, each in the middle of the gap the tube drifts open. Face-to-core bonds are
+   * not marked: KINETIQ bonds its shell to a core too, so marking them on one side only would be unfair.
+   */
   bonds: [
-    { id: "top", d: coreSpans.map(([a, b]) => `M${pt(a, SKIN - DRIFT / 2)}H${r1(b)}`).join("") },
-    { id: "bottom", d: coreSpans.map(([a, b]) => `M${pt(a, T - SKIN + DRIFT / 2)}H${r1(b)}`).join("") },
     { id: "left", d: `M${pt(TUBE_W - DRIFT / 2, 0)}V${r1(T)}` },
     { id: "right", d: `M${pt(W - TUBE_W + DRIFT / 2, 0)}V${r1(T)}` },
   ],
@@ -172,11 +153,10 @@ export const tubular = {
 type Seg = { d: string; len: number; end: [number, number] };
 
 /**
- * The shell as ONE path, drawn in one unbroken stroke. It starts at the top of the break, runs
- * right, dives through the right hole, wraps the right edge, returns along the bottom (diving up
- * through both holes), wraps the left edge and comes back along the top. Each hole is crossed
- * twice, once from each face, so both bore walls and both rims are traced; retraced walls simply
- * overlap. Returns the path and the fraction of its length that completes the right half (phones).
+ * The shell's outer skin as ONE path, drawn in one unbroken stroke: it starts at the middle of the top face,
+ * runs right, wraps the right edge, returns along the bottom, wraps the left edge and comes back along the
+ * top. The hole walls are drawn apart and quieter (`walls`), so the only strong line is the unbroken skin.
+ * Returns the path and the fraction of its length that completes the right half (phones).
  */
 function shellPath() {
   const segs: Seg[] = [];
@@ -189,39 +169,19 @@ function shellPath() {
     segs.push({ d: `A${EDGE_R} ${EDGE_R} 0 0 1 ${pt(x, y)}`, len: (Math.PI * EDGE_R) / 2, end: [x, y] });
     cur = [x, y];
   };
-  const [hl, hr] = holes;
-  // top, rightwards, through the right hole from above
-  line(hr.l, 0);
-  line(hr.l, T);
-  line(hr.r, T);
-  line(hr.r, 0);
-  // right edge
+  // top, rightwards, then the right edge
   line(W - EDGE_R, 0);
   arc(W, EDGE_R);
   line(W, T - EDGE_R);
   arc(W - EDGE_R, T);
-  // bottom, leftwards, through the right hole from below
-  line(hr.r, T);
-  line(hr.r, 0);
-  line(hr.l, 0);
-  line(hr.l, T);
+  // bottom, leftwards, to the middle: the right half is complete
   const halfIndex = segs.length;
   line(breakZone.c, T);
-  // through the left hole from below
-  line(hl.r, T);
-  line(hl.r, 0);
-  line(hl.l, 0);
-  line(hl.l, T);
-  // left edge
+  // left edge, and back along the top to the start
   line(EDGE_R, T);
   arc(0, T - EDGE_R);
   line(0, EDGE_R);
   arc(EDGE_R, 0);
-  // top, rightwards, through the left hole from above, back to the start
-  line(hl.l, 0);
-  line(hl.l, T);
-  line(hl.r, T);
-  line(hl.r, 0);
   line(breakZone.c, 0);
 
   const total = segs.reduce((s, g) => s + g.len, 0);
@@ -242,7 +202,9 @@ export const kinetiq = {
   contour: rrect(0, 0, W, T, EDGE_R, EDGE_R),
   /** Fraction of the shell path that completes the right half (the phone crop). */
   halfFraction: shell.halfFraction,
-  coreClip: withoutBreak(innerSpans)
+  /** The skin lining each hole: the same carbon, drawn as quiet hairlines inside the section. */
+  walls: holes.map((h) => `M${pt(h.l, 0)}V${r1(T)}M${pt(h.r, 0)}V${r1(T)}`).join(""),
+  coreClip: innerSpans
     .map(([a, b]) => {
       const left = a < 1 + SIDE_WALL;
       const right = b > W - SIDE_WALL - 1;

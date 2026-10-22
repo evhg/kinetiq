@@ -50,6 +50,21 @@
   border-radius: 3px;
 }
 
+/* a set's cards share one soft shadow instead of a plate each (the /reserve gallery) */
+.root[data-plate="none"] .tilt {
+  padding: 0;
+}
+/* the back card of a set: only its top shows, the serial and set number straight under the header; on a narrow card
+   the set number alone, so the line never wraps under the front card */
+.peekMeta {
+  margin-top: 0.7em;
+}
+@container (max-width: 349.98px) {
+  .peekMeta > :first-child:not(:only-child) {
+    display: none;
+  }
+}
+
 .card {
   position: relative;
   /* A6; it may grow taller only if the content ever needs it (aspect-ratio acts as a minimum) */

@@ -89,3 +89,14 @@ commands and 51 exited non-zero. None of them broke the site. They fall into fou
   words sit, and which shots must register pixel for pixel (base and full variants, K03b and K03).
 - **One critic pass per shot pays off.** Every shot a critic reviewed came back clearly better (K05
   went from a dim racket on a starfield to a lit, woven face with a fine laser line).
+
+## Container restarts
+
+- **The container can restart without warning** (twice on 2026-10-22, at moments with very different load). A
+  restart kills every process: the dev server, renders, Playwright and every running workflow. Files on disk survive,
+  and so do the workflow journals.
+- **Resume, don't restart:** relaunch a workflow with its `resumeFromRunId`; finished agents replay from the journal
+  and only the interrupted one runs again. An interrupted agent leaves half-applied edits, so tell its rerun to look
+  before re-applying.
+- **Snapshot often:** commit work in progress to a separate branch (never `main`, which deploys) so a restart or a
+  reclaimed container loses nothing. Restart the dev server detached after a restart (`setsid nohup npx next dev`).

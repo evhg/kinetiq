@@ -33,7 +33,11 @@
   /* keep the floor under the beam; the crop comes off the empty backdrop above the racket */
   object-position: 50% 72%;
 }
+/* Positioned, so the words paint above the absolutely placed still (wide screens) even when no reveal
+   transform lifts them (reduced motion). */
 .copy {
+  position: relative;
+  z-index: 1;
   display: grid;
   justify-items: center;
   gap: clamp(14px, 1vw + 6px, 28px);

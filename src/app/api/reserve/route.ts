@@ -1,23 +1,22 @@
-import { deliveryCountryCodes, invitesOpen, tierById, type Tier } from "@/content/lineup";
-import { isFeelId } from "@/content/site";
+import { deliveryCountryCodes, invitesOpen, orderLine, tierById } from "@/content/lineup";
+import { feels, isFeelId } from "@/content/site";
+import { STRIPE_API, STRIPE_VERSION, cleanCode, countPaid, inviteCodes, inviteUses, logStripeError } from "@/lib/stripe-server";
 
 // "Place Reservation": creates a Stripe PaymentIntent for the chosen tier and returns its
 // client secret. The browser then confirms the card in place with Stripe's Payment Element.
 // The amount always comes from src/content/lineup.ts, never from the browser.
 //
 // Env: STRIPE_SECRET_KEY (server) and NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY (browser).
-// INVITE_CODES (comma-separated): the Invite Only tier needs one of them. Without codes, or while the
-// ambassador extras are unsigned (lineup.ts `ambassador.confirmed`), that tier stays closed (403).
+// INVITE_CODES (comma-separated): the Invite Only tier needs one of them, checked here again whatever
+// the page unlocked (/api/invite). Without codes, or before INVITE_TERMS_READY (lineup.ts), that tier
+// stays closed (403). A code reserves one set only, and InviQtus is never sold when Stripe cannot count
+// (its ten sets and ten coaching sessions are a fixed commitment).
 // Without STRIPE_SECRET_KEY the route answers 503 { preview: true }.
 //
-// Every request pins STRIPE_VERSION, so the account's default API version can never change what
-// this route sends. Stripe.js loads the same release (src/lib/stripe-client.ts).
+// Stripe requests pin STRIPE_VERSION (src/lib/stripe-server.ts).
 //
 // Data minimisation: we send Stripe the name, email and delivery address needed to deliver
 // the racket and send the receipt. Nothing is stored on our side.
-
-const STRIPE_VERSION = "2026-09-30.endive";
-const STRIPE_API = "https://api.stripe.com/v1";
 
 type Body = {
   tier?: string;
@@ -29,53 +28,9 @@ type Body = {
   attempt?: string;
 };
 
-type StripeErrorBody = { error?: { type?: string; code?: string; param?: string; request_log_url?: string } };
-
 const clean = (v: unknown, max = 200) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 const START_FAILED = "Payment could not start. Nothing was charged. Please try again.";
-
-/** Logs what is needed to find the request in Stripe, never the message (it can echo customer data). */
-async function logStripeError(what: string, res: Response) {
-  let e: StripeErrorBody["error"];
-  try {
-    e = ((await res.json()) as StripeErrorBody).error;
-  } catch {
-    e = undefined;
-  }
-  console.error(what, res.status, e?.type ?? "", e?.code ?? "", e?.param ?? "", e?.request_log_url ?? "");
-}
-
-/**
- * Reserved units of a numbered edition: succeeded plus processing PaymentIntents for the tier.
- * Search can lag by about a minute. Returns null when the count is unavailable.
- */
-async function reservedUnits(key: string, tier: Tier): Promise<number | null> {
-  const count = async (status: "succeeded" | "processing") => {
-    const q = new URLSearchParams({
-      query: `status:"${status}" AND metadata["tier"]:"${tier.id}"`,
-      limit: "1",
-      "expand[]": "total_count",
-    });
-    const res = await fetch(`${STRIPE_API}/payment_intents/search?${q}`, {
-      headers: { Authorization: `Bearer ${key}`, "Stripe-Version": STRIPE_VERSION },
-      signal: AbortSignal.timeout(5000),
-      cache: "no-store",
-    });
-    if (!res.ok) {
-      await logStripeError("Stripe search failed", res);
-      return null;
-    }
-    const data = (await res.json()) as { total_count?: number };
-    return typeof data.total_count === "number" ? data.total_count : null;
-  };
-  try {
-    const [done, settling] = await Promise.all([count("succeeded"), count("processing")]);
-    return done === null || settling === null ? null : done + settling;
-  } catch (err) {
-    console.error("Stripe search failed", err instanceof Error ? err.name : "unknown");
-    return null;
-  }
-}
+const NOT_CONFIRMED = "We could not confirm that this set is still available. Nothing was charged. Please try again in a minute.";
 
 export async function POST(request: Request) {
   let body: Body;
@@ -116,18 +71,14 @@ export async function POST(request: Request) {
     return Response.json({ error: `Please check your ${missing.join(", ")}.`, fields: missing }, { status: 400 });
   }
 
-  // Invite Only fails closed: no configured codes means no invitations yet.
+  // Invite Only fails closed: no paperwork or no configured codes means no invitations yet.
   let invite = "";
   if (tier.id === "invite") {
-    const codes = (process.env.INVITE_CODES ?? "")
-      .split(",")
-      .map((c) => c.trim().toUpperCase())
-      .filter(Boolean);
     if (!invitesOpen(process.env.INVITE_CODES)) {
       return Response.json({ error: "Invitations open soon.", fields: ["invite"] }, { status: 403 });
     }
-    invite = clean(body.invite, 40).toUpperCase();
-    if (!codes.includes(invite)) {
+    invite = cleanCode(body.invite);
+    if (!invite || !inviteCodes().includes(invite)) {
       return Response.json({ error: "That invitation code is not valid.", fields: ["invite"] }, { status: 403 });
     }
   }
@@ -137,12 +88,23 @@ export async function POST(request: Request) {
     return Response.json({ preview: true, error: "Reservations open at launch. Nothing was charged." }, { status: 503 });
   }
 
-  // Numbered editions stop at their limit. If Stripe cannot count, sell: an outage must not block sales.
+  // Numbered editions stop at their limit: one PaymentIntent per set, plus the sets promised off the site.
+  // If Stripe cannot count, VanQuish still sells (an outage must not block sales); InviQtus never does.
   if (tier.limit !== null) {
-    const reserved = await reservedUnits(key, tier);
-    if (reserved === null) console.error("Edition cap not checked", tier.id);
-    else if (reserved >= tier.limit) {
+    const paid = await countPaid(key, `metadata["tier"]:"${tier.id}"`);
+    if (paid === null) {
+      console.error("Edition cap not checked", tier.id);
+      if (tier.id === "invite") return Response.json({ error: NOT_CONFIRMED }, { status: 503 });
+    } else if (paid + tier.offSite >= tier.limit) {
       return Response.json({ error: `${tier.name} is sold out. Nothing was charged.`, soldOut: true }, { status: 409 });
+    }
+  }
+  // An invitation reserves one set.
+  if (invite) {
+    const uses = await inviteUses(key, invite);
+    if (uses === null) return Response.json({ error: NOT_CONFIRMED }, { status: 503 });
+    if (uses > 0) {
+      return Response.json({ error: "This invitation has already been used. Nothing was charged.", fields: ["invite"] }, { status: 409 });
     }
   }
 
@@ -151,7 +113,8 @@ export async function POST(request: Request) {
     currency: "eur",
     "allowed_payment_method_types[0]": "card",
     receipt_email: email,
-    description: `KINETIQ ${tier.name} reservation`,
+    // "KINETIQ reservation: VanQuish, two Command rackets": a set is one feel, never a mixed pair.
+    description: `KINETIQ reservation: ${orderLine(tier, feels[feel].name)}`,
     "shipping[name]": name,
     "shipping[address][line1]": address.line1,
     "shipping[address][postal_code]": address.postal_code,

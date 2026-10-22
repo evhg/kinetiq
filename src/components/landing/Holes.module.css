@@ -59,7 +59,7 @@
 .statLabel {
   color: var(--steel);
 }
-/* The pair hands straight on to Feel: no dead band under the captions. */
+/* The pair hands straight on to Durability: no dead band under the captions. */
 .pair {
   padding: clamp(80px, 7vw, 200px) var(--margin) clamp(8px, 1vw, 32px);
 }

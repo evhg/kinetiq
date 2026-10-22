@@ -11,7 +11,8 @@ const sentence = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 /** Strings this graphic adds on top of lineup.ts (ambassador). Text only: no logos, likeness or people. */
 export const LABELS = {
-  who: `One-on-one coaching with ${ambassador.confirmed ? ambassador.name : ambassador.neutral}`,
+  // "Exclusive" is the owner's word; the session's format waits for the written terms (CLAIMS.md row 20).
+  who: ambassador.named ? `Exclusive coaching with ${ambassador.name}` : "Exclusive coaching",
   where: sentence(ambassador.event),
   summary: "Plan of a padel court, 20 by 10 metres, with one marked position at the back of the court for the session.",
 };

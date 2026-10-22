@@ -62,6 +62,37 @@
 .cardFit {
   width: min(100%, calc(100cqh / 1.46));
 }
+/* VanQuish: the set's two cards. B rests behind A and only its top shows above A (header, serial and "Set No. 027 /
+   500 B"; MeasurementCard's peek renders nothing below that), under one soft shadow and no mount plates. The pair is
+   never narrower than the card's full layout (340 px): phones show it full width from the top, and the slide crops
+   A's foot under a fade, so the header, set number and every measured row stay legible (never the text-free thumb). */
+.cardPair {
+  --pair-w: 100cqw;
+  position: relative;
+  width: var(--pair-w);
+  max-width: none;
+  max-height: none;
+  padding-top: calc(var(--pair-w) * var(--peek, 0.245));
+  filter: drop-shadow(0 18px 34px rgb(0 0 0 / 0.55));
+}
+.cardBack {
+  position: absolute;
+  inset: 0 0 auto;
+  transform-origin: 50% 0;
+  transform: scale(0.94);
+  filter: brightness(0.86);
+}
+.cardFront {
+  position: relative;
+  filter: drop-shadow(0 -3px 12px rgb(0 0 0 / 0.3));
+}
+@media (max-width: 1023px) {
+  .slideCard {
+    place-items: start center;
+    -webkit-mask-image: linear-gradient(#000 86%, transparent 100%);
+    mask-image: linear-gradient(#000 86%, transparent 100%);
+  }
+}
 /* /reserve's 16 px minimum for the card's text too (the card grows a little taller where it must) */
 .cardFit figure {
   --fs: clamp(16px, 4.1cqw, 64px);
@@ -210,9 +241,19 @@
     -webkit-mask-image: linear-gradient(to right, transparent, #000 28%, #000 72%, transparent);
     mask-image: linear-gradient(to right, transparent, #000 28%, #000 72%, transparent);
   }
-  /* The controls float over the slide's foot: graphics keep clear of them. */
+  /* The controls float over the slide's foot: graphics keep clear of them. On a short window the pair keeps its
+     340 px minimum and fades out above the controls instead of shrinking into the thumb. */
   .slideCard {
     --card-pad-bottom: calc(32px + clamp(48px, 0.6vw + 40px, 56px) + 32px);
+    -webkit-mask-image: linear-gradient(#000 calc(100% - var(--card-pad-bottom)), transparent calc(100% - var(--card-pad-bottom) + 40px));
+    mask-image: linear-gradient(#000 calc(100% - var(--card-pad-bottom)), transparent calc(100% - var(--card-pad-bottom) + 40px));
+  }
+  .cardPair {
+    --pair-w: max(360px, min(70cqw, calc(100cqh / 1.78)));
+    --peek: 0.27;
+  }
+  .cardBack {
+    transform: translateX(4%) rotate(2.5deg);
   }
   .slideCourt {
     padding-bottom: calc(32px + clamp(48px, 0.6vw + 40px, 56px) + 16px);
@@ -235,6 +276,15 @@
   from {
     opacity: 0;
   }
+}
+
+/* The neutral shell (app/reserve/page.tsx) for the moment before the chosen edition streams in: the lit stage and
+   the column's floor, nothing that names an edition or a price. */
+.shellGallery {
+  pointer-events: none;
+}
+.shellOptions {
+  min-height: calc(100svh - var(--chrome-h));
 }
 
 /* ---------- options column ---------- */
@@ -267,6 +317,41 @@
   .options {
     padding: clamp(40px, 2.2vw + 8px, 64px) clamp(40px, 2.8vw, 72px) clamp(64px, 6vw, 120px);
     border-left: 1px solid var(--hairline);
+  }
+}
+/* The column scrolls with the page under the fixed header: a soft fade of the stage along its top edge, shown once
+   the header turns solid, so text and card edges dissolve into it instead of being sliced (wide screens only). Fixed,
+   so it takes no grid row; it spans the column (the same width as the layout's second track). */
+.topFade {
+  display: none;
+}
+@media (min-width: 1024px) {
+  .topFade {
+    display: block;
+    position: fixed;
+    z-index: 2;
+    top: var(--chrome-h);
+    right: 0;
+    width: calc(clamp(500px, 34vw, 860px) - 1px);
+    height: 36px;
+    background: linear-gradient(rgb(17 17 19), rgb(17 17 19) 35%, rgb(17 17 19 / 0));
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms ease;
+  }
+  :global(header[data-scrolled="true"]) ~ main .topFade {
+    opacity: 1;
+  }
+}
+/* Phones and tablets: the column ends on a soft graphite light (the G10 pool) under Due Today and Pay with
+   Card, so the page's last screen keeps a lit floor (fill rule) as the sets' longer includes push it down. */
+@media (max-width: 1023px) {
+  .options {
+    background:
+      radial-gradient(ellipse 90% 30% at 50% 0%, var(--lift), transparent 75%),
+      radial-gradient(closest-side, rgb(60 60 66), rgb(48 48 54 / 0.85) 45%, rgb(34 34 39 / 0.4) 75%, transparent) 50% 100% / 100% 560px
+        no-repeat,
+      var(--stage);
   }
 }
 .columnHead {
@@ -313,8 +398,12 @@
   cursor: pointer;
   transition: border-color 200ms ease, transform 160ms var(--ease-out);
 }
-.tier:active {
+.tier:not([data-locked]):active {
   transform: scale(0.99);
+}
+/* InviQtus before an invitation: shown whole, but not an option (no pointer, hover, press or selection) */
+.tier[data-locked="true"] {
+  cursor: default;
 }
 .tier::after {
   content: "";
@@ -371,24 +460,24 @@
   letter-spacing: -0.01em;
   line-height: 1.1;
 }
-.tier[data-tier="invite"]:not([data-checked="true"]) .tierName {
-  color: var(--muted);
-}
 .tierStatus {
   font-family: var(--font-data);
   font-size: clamp(1rem, 0.2vw + 0.95rem, 1.25rem);
   color: var(--muted);
+  white-space: nowrap;
 }
 .tierStatus[data-tier="limited"] {
   color: var(--amber);
 }
+/* InviQtus: "Invite Only" in a warm, static tone (rank, not a state: no hover, press or glow) */
 .tierStatus[data-tier="invite"] {
-  color: var(--muted);
+  color: var(--amber-hot);
 }
 .tierLine {
   color: var(--steel);
   font-size: clamp(1.125rem, 0.25vw + 1rem, 1.3125rem);
   line-height: 1.5;
+  text-wrap: pretty;
 }
 .tierPrice {
   font-size: clamp(1.25rem, 0.3vw + 1.1rem, 1.5rem);
@@ -407,6 +496,130 @@
   font-size: 1rem;
   color: var(--amber);
 }
+/* an edition's includes shown without choosing it (InviQtus): hairline rule, no entrance */
+.extras[data-quiet] {
+  border-top-color: var(--hairline);
+  animation: none;
+}
+.extras[data-quiet] .extrasHead {
+  color: var(--steel);
+}
+.extrasFine {
+  margin-top: 4px;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.lockedNote {
+  font-family: var(--font-data);
+  font-size: clamp(1rem, 0.15vw + 0.95rem, 1.125rem);
+  color: var(--steel);
+}
+
+/* "Have an invitation?": a quiet text button that opens the code field in place */
+.invite {
+  display: grid;
+  gap: 10px;
+  margin-top: -4px;
+}
+.inviteAsk {
+  justify-self: start;
+  min-height: 44px;
+  padding: 0 2px;
+  border: 0;
+  background: none;
+  color: var(--steel);
+  font: inherit;
+  font-size: clamp(1rem, 0.15vw + 0.95rem, 1.125rem);
+  text-decoration: underline;
+  text-decoration-color: var(--edge);
+  text-underline-offset: 5px;
+  cursor: pointer;
+  transition: color 200ms ease;
+}
+.inviteAsk[aria-expanded="true"] {
+  color: var(--text);
+}
+.inviteAsk:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+.inviteForm {
+  display: grid;
+  gap: 8px;
+}
+.inviteForm > * {
+  animation: field-in 220ms var(--ease-out) both;
+}
+.inviteForm[data-instant] > * {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .inviteForm > * {
+    animation: none;
+  }
+}
+.inviteLabel {
+  font-size: clamp(1rem, 0.15vw + 0.95rem, 1.125rem);
+  color: var(--steel);
+}
+.inviteRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+.inviteRow input {
+  width: 100%;
+  min-height: clamp(56px, 0.6vw + 52px, 64px);
+  padding: 0 16px;
+  border: 1px solid var(--edge);
+  border-radius: 4px;
+  background: var(--field);
+  color: var(--text);
+  font-family: var(--font-data);
+  font-size: clamp(1.125rem, 0.15vw + 1.05rem, 1.25rem);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: border-color 200ms ease;
+}
+.inviteRow input:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  border-color: var(--text);
+  box-shadow: 0 0 0 1px var(--amber);
+}
+.inviteRow[data-invalid] input {
+  border-color: var(--alert);
+}
+.inviteUnlock {
+  min-height: clamp(56px, 0.6vw + 52px, 64px);
+  padding: 0 clamp(20px, 0.6vw + 16px, 28px);
+  border: 1px solid var(--edge);
+  border-radius: 4px;
+  background: var(--graphite-2);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-variation-settings: "wdth" 110;
+  font-weight: 600;
+  font-size: clamp(1.0625rem, 0.15vw + 1rem, 1.1875rem);
+  cursor: pointer;
+  transition: border-color 200ms ease, transform 160ms var(--ease-out);
+}
+.inviteUnlock:not(:disabled):active {
+  transform: scale(0.97);
+}
+.inviteUnlock[data-busy="true"] {
+  cursor: progress;
+  color: var(--steel);
+}
+.inviteError {
+  color: var(--alert);
+  font-size: 1.0625rem;
+}
+.inviteError:empty {
+  display: none;
+}
 .extra {
   display: grid;
   grid-template-columns: 20px 1fr;
@@ -414,6 +627,15 @@
   align-items: start;
   color: var(--text);
   font-size: clamp(1.0625rem, 0.2vw + 1rem, 1.25rem);
+  text-wrap: pretty;
+}
+/* InviQtus before an invitation: its includes stay in view, but quieter than a chosen edition's */
+.tier[data-locked="true"] .extra {
+  color: var(--steel);
+}
+.tier[data-locked="true"] .extraIcon {
+  color: var(--steel);
+  opacity: 0.7;
 }
 .extraIcon {
   margin-top: 0.15em;
@@ -611,9 +833,14 @@
 }
 @media (hover: hover) and (pointer: fine) {
   .pay:not(:disabled):hover,
-  .tiers:not(:disabled) .tier:not([data-disabled="true"]):hover,
-  .feel:not(:disabled) .feelOption:hover {
+  .tiers:not(:disabled) .tier:not([data-disabled="true"], [data-locked]):hover,
+  .feel:not(:disabled) .feelOption:hover,
+  .inviteUnlock:not(:disabled):hover {
     border-color: var(--steel);
+  }
+  .inviteAsk:hover {
+    color: var(--text);
+    text-decoration-color: var(--steel);
   }
 }
 
@@ -818,6 +1045,17 @@
   opacity: 0;
   pointer-events: none;
 }
+/* the column's text fades out above the bar instead of being sliced through by its top edge */
+.bar::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 1px);
+  height: 40px;
+  background: linear-gradient(rgb(10 10 11 / 0), rgb(10 10 11 / 0.92));
+  pointer-events: none;
+}
 .barText {
   display: grid;
   gap: 2px;
@@ -863,6 +1101,9 @@
     padding: 14px var(--col-pad);
     background: rgb(17 17 19 / 0.94);
   }
+  .bar::before {
+    background: linear-gradient(rgb(17 17 19 / 0), rgb(17 17 19 / 0.94));
+  }
   .barText {
     font-size: 1.0625rem;
   }
@@ -884,11 +1125,20 @@
     width: 40px;
     height: 40px;
   }
+  /* the status sits above the name as an eyebrow, so the header stays one composed block */
   .tierHead {
     grid-template-columns: auto 1fr;
+    grid-template-areas: "glyph status" "glyph name";
+    row-gap: 2px;
+  }
+  .tierGlyph {
+    grid-area: glyph;
+  }
+  .tierName {
+    grid-area: name;
   }
   .tierStatus {
-    grid-column: 2;
+    grid-area: status;
   }
 }
 

@@ -35,7 +35,7 @@ import styles from "./TechnicalDrawing.module.css";
 /** New strings used by G01 (not yet in copy.ts). Claims restate existing copy (CLAIMS.md rows). */
 export const LABELS = {
   summary:
-    "Technical drawing of the KINETIQ racket. Overall length 455 mm, head width 260 mm, thickness 38.0 mm, 42 moulded holes of 12.4 mm diameter, every surface within plus or minus 0.015 mm. Section A-A shows one continuous shell around the core; section B-B shows the shell running unbroken down the wall of a moulded hole.",
+    "Technical drawing of the KINETIQ racket. Overall length 455 mm, head width 260 mm, thickness 38.0 mm, 42 moulded holes of 12.4 mm diameter, every surface within plus or minus 0.015 mm. Section A-A shows one continuous shell sealed around the core; section B-B shows the shell running unbroken down the wall of a moulded hole.",
   holeNote: "0 drilled",
   shell: "One shell. No tube.",
   core: "Core",
@@ -48,8 +48,8 @@ export const LABELS = {
   detailScale: "Scale 2:1",
   notesTitle: "Notes",
   notes: [
-    "One piece, from a single mould.",
-    "No frame tube. No seam. No joint.",
+    "Unibody, from a single mould.",
+    "No frame tube. Zero seams.",
     "42 holes moulded. 0 drilled.",
     "Every surface within ±0.015 of design.",
     "Mass within ±1.0 g of reference.",
@@ -58,7 +58,7 @@ export const LABELS = {
   balance: "Balance ±1.0 mm",
   balanceSub: "set in the mould",
   title: "KINETIQ",
-  titleSub: "One-piece padel racket",
+  titleSub: "Unibody padel racket",
   titleCap: "Title",
   /** Title-block cells, each in its own grid area (see .cells in the CSS module). */
   cells: [

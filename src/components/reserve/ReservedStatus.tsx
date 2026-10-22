@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { priceLabel, tierById, tiers, type Tier } from "@/content/lineup";
+import { orderLine, priceLabel, tierById, tiers, type Tier } from "@/content/lineup";
 import { reserveCopy } from "@/content/reserve";
 import { feels, isFeelId, site } from "@/content/site";
 import { loadStripe } from "@/lib/stripe-client";
@@ -84,11 +84,10 @@ export function ReservedStatus({ pending = false, redirect, hasSecret = false, t
           <h1 className="t-h2">{reserveCopy.confirmationHeadline}</h1>
           {t ? (
             <p className={styles.tier}>
-              {t.name}
-              {isFeelId(feel) ? `, ${feels[feel].name}` : ""}. <span className="t-num">{priceLabel(t.priceEur)}</span>
+              {isFeelId(feel) ? orderLine(t, feels[feel].name) : t.name}. <span className="t-num">{priceLabel(t.priceEur)}</span>
             </p>
           ) : null}
-          <p className="t-lead">{reserveCopy.confirmationBody}</p>
+          <p className="t-lead">{reserveCopy.confirmationBody(t?.rackets)}</p>
           {paymentId ? <p className={`t-num ${styles.ref}`}>{reserveCopy.reference(paymentId)}</p> : null}
           <Link href="/" className="btn btn-secondary">
             {R.back}

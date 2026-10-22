@@ -1,5 +1,7 @@
+/* isolates, so the pool light behind the copy stays under the section's own content (globals .pool) */
 .section {
   position: relative;
+  isolation: isolate;
   background: var(--stage);
 }
 .copy {
@@ -8,6 +10,11 @@
   gap: clamp(14px, 1vw + 6px, 28px);
   text-align: center;
   padding: clamp(96px, 8vw, 200px) var(--margin) clamp(32px, 3vw, 72px);
+}
+/* The pool light reaches down behind the mould, never up past the section's top edge: there it would lie
+   over the end of the Unibody chapter (its proofs) and grey them out. */
+.section .copy::before {
+  inset: 0 0 -45%;
 }
 .copy :global(.t-h2) {
   max-width: 20ch;

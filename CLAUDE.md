@@ -24,7 +24,7 @@ Lenis · Playwright (dev only). No real-time 3D: product imagery is Blender stil
 - `npm run lint`, `npm run typecheck`.
 - `npm run check`: the check harness (see Definition of done). `--skip-build`, `--url=<url>`,
   `--study` (reference mode), `--only=phone|desktop|wide`, `--mode=motion|reduced`, `--verbose`,
-  `--path=/reserve` (any page; run it for `/` and `/reserve`).
+  `--path=/reserve` (any page; run it for `/` and `/reserve`), `--gate` (the NDA gate, without the cookie).
   Output goes to `.checks/<label>/` (git-ignored). Uses a free port per run.
 - `node scripts/stills.mjs <masters dir> [id ...]`: export Blender masters to `public/stills/` (AVIF + WebP).
 - Vercel installs with `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm ci` (`vercel.json`), so builds never
@@ -34,20 +34,49 @@ Lenis · Playwright (dev only). No real-time 3D: product imagery is Blender stil
 - `src/app/`: routes, `layout.tsx` (motion init script, providers), `globals.css`.
 - `src/components/motion/`: `MotionProvider` (reduced-motion state), `SmoothScroll` (Lenis), `PinnedChapter`.
 - `src/components/landing/`: one component + CSS module per landing section; `Reveal` and `Scrub` helpers.
-- `src/components/graphics/`: data graphics G01–G13 (SVG/canvas), each with a review page at `/lab/<id>` (dev only;
+- `src/components/graphics/`: data graphics G01–G14 (SVG/canvas), each with a review page at `/lab/<id>` (dev only;
   `KQ_LAB=1` serves them in production).
 - `src/components/media/Still.tsx`: product stills with phone art direction. `src/components/reserve/`: /reserve.
-- `src/components/chrome/`: header (compact Reserve Now after the hero), footer. No preview banner (owner, 2026-10-22).
+- `src/components/chrome/`: `Chrome.tsx` (server: `SiteHeader`, `SiteFooter`) and `HeaderClient.tsx` (scroll state,
+  compact Reserve Now after the hero; its label comes in as a prop). No preview banner (owner, 2026-10-22).
 - `src/lib/gsap.ts`: the only place GSAP plugins are registered. Import gsap from here.
-- `src/content/`: all words. `copy.ts` (landing), `lineup.ts` (editions, prices, limits, ambassador gate,
-  delivery countries), `reserve.ts`, `site.ts` (CTA labels, ship date, refund, feels). Change words there.
+- `src/content/`: all words; change them there. `copy.ts` (landing), `lineup.ts` (editions, prices, limits, `lifetime`,
+  the coach, invitation gate, delivery countries), `reserve.ts`, `site.ts` (CTA labels, ship date, refund, feels).
 - Flow (Tesla Roadster reserve page): landing page with one CTA, "Reserve Now" → `/reserve?tier=` (edition,
   feel, trust lines, Due Today, "Pay with Card" expands the form in place) → "Place Reservation" posts to
   `src/app/api/reserve/route.ts` (PaymentIntent via REST, amount from `lineup.ts`) and confirms the card
   with Stripe's Payment Element in place → confirmation in place, or `/reserved` after 3-D Secure.
+  InviQtus is invite only: never chosen from a link (`?tier=invite` shows ConQuer) and never interactive until a
+  valid code ("Have an invitation?" or `?invite=CODE`, POST /api/invite) unlocks it; /api/reserve checks it again.
 - Data minimisation: name, email, delivery address and card only. No phone, accounts or opt-ins.
 - `public/`: static assets and `CREDITS.md`. `scripts/`: harness. `docs/`: research notes.
 - `.claude/skills/`: saved reference skills (GSAP, Emil Kowalski, our frontend-design notes).
+
+## NDA gate (owner, 2026-10-22: investors declare the NDA, then give an email, once per device)
+- `src/proxy.ts` (Next 16 "proxy", formerly middleware; Node runtime) runs on every path except `/_next/static/`,
+  the HMR socket and the two icon files (`/icon.svg`, `/apple-icon.png`, from `src/app/`); each exclusion is anchored,
+  so `/iconography` or `/_next/imagex` cannot borrow it. Without a valid `kq_nda` cookie: pages are rewritten to
+  `/nda` (the URL stays as typed); assets, `/api/*` and other `/_next/*` paths get an empty 403. `POST /api/nda`
+  always passes; `/nda` with the cookie redirects to `/`. Dev only: `/__nextjs_*` (the error overlay) passes.
+- Cookie (`src/lib/nda.ts`): `kq_nda` = base64url of `{"email","at"}`, HttpOnly, SameSite=Lax, Secure on https,
+  Path=/, 365 days; valid when it decodes and the email looks valid. Nothing is stored or logged on the server.
+  A declaration, not a login: it is unsigned and its format is public (this repo), so anyone can skip the gate
+  without declaring (CLAIMS.md row 25b). Known limit: `/_next/static/` chunks are served without the cookie, and the
+  landing and /reserve chunks carry edition copy, so a chunk URL a cleared visitor forwards stays readable.
+- The root layout's metadata is neutral (title "KINETIQ", noindex): the product's title, description and og:image
+  live in `src/lib/product-metadata.ts`, used by `/` and `/reserve` only, so a 404 or any path the proxy lets through
+  inherits no claim. Never put product metadata back in `layout.tsx`.
+- Stills are `Cache-Control: private` with `Vary: Cookie` (`next.config.ts`), so no shared cache can hand one to a
+  visitor without the cookie. After each deploy, check production headers for `/` and a still with and without the
+  cookie (`curl -D -`): the gate must never come back `public` or cacheable.
+- `/nda` (`src/components/nda/NdaGate.tsx`, words in `src/content/nda.ts`) must ship no product copy, prices, claims
+  or stills, and no og:image. The root not-found's tree (and its client chunks) ships with every page, the gate
+  included: keep words out of `HeaderClient` and anything not-found renders (its footer drops "100% Swiss Made.").
+- Arrival: the gate sets `kq_nda_tried` in sessionStorage and reloads; the head script (`lib/motion-preference.ts`)
+  then marks `html[data-arrive]` and the page lifts out of a void veil (globals.css; /reserve holds it until its
+  neutral shell is replaced by the linked edition). `components/nda/Arrival.tsx` clears the flag and the attribute.
+- Scripts pass the gate with `scripts/nda-cookie.mjs`: `await context.addCookies([ndaCookie(baseUrl)])` before the
+  first navigation; `curl -H "Cookie: $(node scripts/nda-cookie.mjs)" <url>`. `check.mjs` adds it to every case.
 
 ## Interface micro-animations (Emil Kowalski's rules)
 - Animate `transform` and `opacity` only. Never `transition: all`.
@@ -108,22 +137,34 @@ Lenis · Playwright (dev only). No real-time 3D: product imagery is Blender stil
   stay off the live domain until then; the site shows no preview banner (owner: not appropriate).
 - Stripe: `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `INVITE_CODES` (see `.env.example`).
   Server and Stripe.js are pinned to API version `2026-09-30.endive` (`allowed_payment_method_types`).
-  Without keys, /reserve runs in preview (Place Reservation disabled). Invite Only fails closed without codes.
+  Without keys, /reserve runs in preview (Place Reservation disabled). Invite Only fails closed without codes;
+  keep `INVITE_CODES` empty until CLAIMS.md rows 20, 21 and 29 (terms, coach, guarantee statement) are ready.
 - Hero lead is the owner's own sentence (2026-10-22); keep it verbatim, even while "one piece" is retired as a
   marketing phrase elsewhere: "One single piece of space-grade carbon. No tube, no joints. Ultra-precision
-  moulded to 15 microns and 1 gram. Every racket plays exactly the same."
+  moulded to 15 microns and 1 gram. Every racket plays exactly the same." "Built to last five years." follows it
+  as its own sentence (`hero.life`). Elsewhere say "unibody" and "Zero seams.", never "zero weak points".
+- Sealed core (CLAIMS.md rows 30 to 34): the shell closes around the whole EVA core and lines all 42 holes ("The core
+  never touches the air."); "Swiss-made EVA" at country level only; "Injected straight into the mould". "Three times
+  longer" only against an open core and always with its † fine print (`durability.coreFine`). Never heat, "airtight",
+  "waterproof" or "first".
+- Lineup (owner, 2026-10-22): ConQuer, one racket, €410; VanQuish, a matched pair (both Command or both Pace: one
+  feel per set), 500 sets, €990; InviQtus, ten sets of three, €2,900, each with one of ten coaching sessions.
+- Durability lives in `lifetime` (`lineup.ts`): "Built to last five years" always travels with `lifetime.fine`; only
+  InviQtus has a guarantee ("five-year guarantee", never "lifetime guarantee"); "first" only in the Durability lead.
 - One landing CTA label: "Reserve Now" (`site.ctaLabel`); then "Pay with Card" and "Place Reservation".
 - An edition that sells out: set `available: false` in `lineup.ts` (shows "Sold out", blocks payment).
-- The ambassador (Invite Only extras) stays neutral until `ambassador.confirmed` is true (`lineup.ts`).
+- The coach has agreed (`ambassador.confirmed: true`); name him only once `COACH_FULL_NAME` (`lineup.ts`) holds his
+  first name and surname as approved in writing. Never a nickname or his family; signed rackets only with `signs`.
 - Fonts must cover every language listed in `DESIGN.md`.
 
 ## Definition of done
 1. `npm run lint`, `npm run typecheck` and `npm run build` pass.
-2. `npm run check` passes for `/` and `--path=/reserve`: phone, desktop and wide (2560), motion and reduced
-   motion, 0 console errors, no blank frames, the fill rule, no horizontal overflow, budgets met, Skip link works.
+2. `npm run check` passes for `/`, `--path=/reserve` and `--gate`: phone, desktop and wide (2560), motion and reduced
+   motion, 0 console errors, no blank frames, the fill rule, no horizontal overflow, budgets met, Skip link works,
+   the gate's keyboard flow opens the page and assets and APIs answer 403 without the cookie.
 3. You have opened and reviewed the screenshots yourself: fix anything blank, overlapping, cropped or
    unreadable, then rerun.
-4. After pushing, run `npm run check -- --url=<production url>` (and `--path=/reserve`) on the live site.
+4. After pushing, run `npm run check -- --url=<production url>` (and `--path=/reserve`, `--gate`) on the live site.
 
 ## Notes
 - Long-frame counts from headless runs are a smoke signal, not a device measurement.
