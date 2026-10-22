@@ -129,5 +129,8 @@ Lenis · Playwright (dev only). No real-time 3D: product imagery is Blender stil
   process name: `for d in /proc/[0-9]*; do [ "$(cat $d/comm)" = "next-server (v1" ] && kill ${d#/proc/}; done`.
 - Production URL: https://kinetiq-seven-neon.vercel.app (Vercel team EVHG, project `kinetiq`).
 - `docs/reference-notes.md`: study of lighthouse.storage/token (techniques only, nothing copied).
+- `docs/agent-learnings.md`: what failed while agents built the site, and why. In short: detach long jobs that
+  must outlive a subagent (`setsid nohup`, progress in a file), kill by PID and never by command-line text,
+  no foreground `sleep`, one Blender render at a time (`flock`), one writer per file set in a shared tree.
 - `docs/research/non-tubular.md`: construction terms ("no frame tube", not "tubeless") and factory questions.
 - Never name the factory, its town, its patents or its other customers in the public repo or on the site.
