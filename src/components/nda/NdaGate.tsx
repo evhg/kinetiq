@@ -18,7 +18,8 @@ const LEAVE_MS = 260;
  * opened from the keyboard appears at once. On success the cookie is set by POST /api/nda, a void veil fades in
  * under the wordmark and the page reloads at the same URL, where src/proxy.ts now lets the real page through.
  */
-export function NdaGate() {
+/** `recorded`: sign-in emails to the owner are switched on, so the note says the email is recorded. */
+export function NdaGate({ recorded = false }: { recorded?: boolean }) {
   const { motionOn } = useMotion();
   const [step, setStep] = useState<Step>("ask");
   const [instant, setInstant] = useState(false);
@@ -177,7 +178,7 @@ export function NdaGate() {
                   {/* The error takes the note's place while it shows, so the step never changes height. */}
                   <div className={styles.messages} data-error={error ? true : undefined}>
                     <p id="nda-email-note" className={styles.note}>
-                      {copy.email.note}
+                      {recorded ? copy.email.noteRecorded : copy.email.note}
                     </p>
                     <p id="nda-email-error" className={styles.error} role="alert">
                       {error}

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { NdaGate } from "@/components/nda/NdaGate";
 import { ndaCopy } from "@/content/nda";
+import { ndaNotifyConfigured } from "@/lib/nda-notify";
 
 // The NDA gate. src/proxy.ts rewrites every page request without the kq_nda cookie to this route (the URL stays
 // as typed), and redirects /nda to / once the cookie is set. Metadata overrides the layout's whole set: a plain
@@ -23,5 +24,6 @@ export const metadata: Metadata = {
 };
 
 export default function NdaPage() {
-  return <NdaGate />;
+  // The note says the email is recorded only while sign-in emails are switched on (Vercel settings, read at build).
+  return <NdaGate recorded={ndaNotifyConfigured()} />;
 }
