@@ -25,12 +25,12 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
 - `src/app/`: routes, `layout.tsx` (motion init script, providers), `globals.css`. `src/lib/gsap.ts` is the only place
   GSAP plugins are registered: import gsap from there. `src/lib/racket-shape.ts`: the racket (Stills and graphics).
 - `src/components/`: `motion/` (`MotionProvider`, `SmoothScroll` for Lenis, `PinnedChapter`), `landing/` (a component
-  and CSS module per section; `Reveal`, `Scrub`), `graphics/` (G01–G15, each with a review page at `/lab/<id>`, dev
+  and CSS module per section; `Reveal`, `Scrub`), `graphics/` (G01–G16, each with a review page at `/lab/<id>`, dev
   only; `KQ_LAB=1` serves them in production), `media/Still.tsx`, `reserve/`, `chrome/` (`SiteHeader`, `SiteFooter`;
   `HeaderClient.tsx`: the compact Reserve Now, label passed in, hidden over hero and `data-cta`). No preview banner.
 - `src/content/`: all words. `copy.ts` (landing), `lineup.ts` (editions, prices, limits, `lifetime`, `sampleSet`, coach,
   invitations, countries), `reserve.ts`, `site.ts` (CTAs, price note, ship date, refund, feels; `DEFAULT_FEEL` Command,
-  `FEEL_PREFERENCE_KEY` "kq-feel", `storedFeel()` for the coming site-wide feel toggle), `stills.json` (crops).
+  `FEEL_PREFERENCE_KEY` "kq-feel", `storedFeel()`; the toggle's store is `lib/feel-store.ts`), `stills.json` (crops).
 - Flow (Tesla Roadster reserve page): "Reserve Now" → `/reserve?tier=` (feel, edition, trust lines, Due Today, "Pay
   with Card" expands the form in place; the gallery opens on K08, both feels, until a feel is chosen) → "Place
   Reservation" posts to `src/app/api/reserve/route.ts` (PaymentIntent via REST, amount from `lineup.ts`; enforces
@@ -91,6 +91,7 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
   renders nothing for a still that has not been exported, so a section must still read without it.
 - Graphics are SVG or canvas, drawn from `racket-shape.ts`. Text in them stays ≥ 15 px at 390 px wide. Canvas loops
   cap at 30 fps, pause off-screen and when hidden, DPR ≤ 2. No "Illustrative" captions (owner, 2026-10-23).
+- Feel toggle: DESIGN.md "Feel toggle" (`html[data-feel]` before first paint; Pace still = id + "-pace", same crops).
 - One canonical racket in every still and graphic (`racket-shape.ts`, render audit 2026-10-22): 455.0 × 260.0 × 38.0 mm
   (the FIP limits); 42 moulded holes, a crown of 8 of Ø14.0 mm along the top and 34 of Ø12.4 mm below; 1.5 mm edge
   radius, the flat face ending 4 mm from the edge (`FACE_INSET`); one handle: a round overgrip with a helical wrap, a
@@ -138,6 +139,7 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
   sentence of the body copy ("as designed", "made to last"), or is dropped. /reserve keeps what the law needs at the
   payment: Due Today, the refund line, the order line.
 - One landing CTA, "Reserve Now"; then "Pay with Card" and "Place Reservation". Sold out: `available: false`.
+- Space-grade (rows 41 to 44): only against "the standard carbon most padel rackets use"; no defence, military, maker.
 - The coach is named "Paquito Navarro" (`COACH_FULL_NAME`, `lineup.ts`), approved in writing (owner, 2026-10-22), in
   the One of Ten coaching include and G12. Exactly that name; never his family, no descriptor until a true one is
   confirmed, signed rackets only with `signs`. His racket sponsor's contract must allow it (CLAIMS.md row 21).
@@ -153,11 +155,9 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
    on the live site (Vercel team EVHG, project `kinetiq`).
 
 ## Notes
-- Headless long-frame counts are a smoke signal only; the harness uses `--disable-gpu-compositing` and native scroll.
-- Stale servers: never `pkill -f "next start"` (it matches your own shell). Kill by process name: `for d in
-  /proc/[0-9]*; do [ "$(cat $d/comm)" = "next-server (v1" ] && kill ${d#/proc/}; done`.
-- Never call a contextSafe function synchronously inside a gsap.matchMedia().add() (or any context) callback: it makes a
-  context cycle and the revert overflows the stack (the Back-button "This page couldn't load", 2026-10-23).
+- Headless long-frame counts are a smoke signal (`--disable-gpu-compositing`). Stale servers: never `pkill -f`; kill
+  by name: `for d in /proc/[0-9]*; do [ "$(cat $d/comm)" = "next-server (v1" ] && kill ${d#/proc/}; done`.
+- Never call a contextSafe function synchronously inside a gsap.matchMedia().add() callback (Back-button crash, 10-23).
 - `docs/reference-notes.md`: lighthouse.storage/token. `docs/research/non-tubular.md`: construction terms ("no frame
   tube", not "tubeless"), factory questions. `docs/agent-learnings.md`: detach long jobs (`setsid nohup`, progress in
   a file), kill by PID, no foreground `sleep`, one Blender render at a time (`flock`), one writer per file set.

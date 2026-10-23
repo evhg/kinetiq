@@ -74,8 +74,8 @@ const SWEET_SPOT: Slide | null = hasStill("K12-base", "portrait")
 /**
  * Until the buyer chooses a feel, every edition's gallery opens on the two feels together (owner, 2026-10-23): K08's
  * wide render, Command's white 3K face beside Pace's black 12K, kept whole. Once a feel is chosen it gives way, and the
- * gallery shows that feel's renders where they exist (K08's half, K11's set) and the Command renders otherwise (a later
- * release adds Pace versions of every still).
+ * gallery shows that feel's renders where they exist (K08's half, K11's set, and any still with a Pace version, through
+ * Still's `feel`) and the Command renders otherwise.
  */
 const BOTH_FEELS: Slide = {
   kind: "still",
@@ -126,8 +126,8 @@ function feelSlides(tier: TierId, feel: FeelId): Slide[] {
       return feel === "pace" ? [face, ...shots, card] : [...shots, face, card];
     }
     case "limited":
-      // The set first, in the chosen feel, with its set number on both throats; then the mark up close, for Command
-      // only: K10's throat is white twill, and Pace has no render of its own yet.
+      // The set first, in the chosen feel, with its set number on both throats; then the mark up close (K10, whose
+      // Pace export the gallery's feel picks).
       return [
         {
           kind: "still",
@@ -138,16 +138,12 @@ function feelSlides(tier: TierId, feel: FeelId): Slide[] {
           position: "50% 30%",
           alt: `A ${name} set: two identical ${feelName} rackets, ${sampleSet.words}, the set number laser-marked on both throats`,
         },
-        ...(feel === "command"
-          ? [
-              {
-                kind: "still" as const,
-                id: "K10",
-                phoneCrop: "card",
-                alt: `Close-up of a ${name} throat, laser-marked ${sampleSet.mark} above the KINETIQ wordmark`,
-              },
-            ]
-          : []),
+        {
+          kind: "still",
+          id: "K10",
+          phoneCrop: "card",
+          alt: `Close-up of a ${name} throat, laser-marked ${sampleSet.mark} above the KINETIQ wordmark`,
+        },
         { kind: "still", id: "K07", phoneCrop: "trio", fit: "contain", alt: "Identical KINETIQ rackets, each in its own shaft of light" },
         { kind: "still", id: "K06-full", phoneCrop: "card", alt: "The mould, its cavity glowing warm" },
         { kind: "still", id: "K03", phoneCrop: "card", alt: "The head cut through: one carbon shell closed around the core, lining every hole" },
@@ -299,6 +295,8 @@ export function Gallery({ tierId, feel, chosen }: { tierId: TierId; feel: FeelId
                 sizes={SIZES}
                 className={styles.slideStill}
                 priority={i === 0}
+                // A still with a Pace version (K01, K02) shows the checkout's feel, never the landing's toggle alone.
+                feel={feel}
               />
             ) : s.kind === "reveal" ? (
               // K12's base render alone, contained and feathered (the lit pass stays on the landing).

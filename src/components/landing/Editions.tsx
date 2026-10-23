@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ReserveLink } from "@/components/chrome/ReserveLink";
 import { Fragment, type ReactNode } from "react";
 import { Icon, TierGlyph } from "@/components/graphics/Icons";
 import { Still } from "@/components/media/Still";
@@ -66,7 +67,7 @@ export function Editions() {
                 />
               </div>
             ) : (
-              <Link href={`/reserve?tier=${t.id}`} className={styles.card} data-tier={t.id}>
+              <ReserveLink href={`/reserve?tier=${t.id}`} className={styles.card} data-tier={t.id}>
                 <CardBody
                   t={t}
                   end={
@@ -75,7 +76,7 @@ export function Editions() {
                     </svg>
                   }
                 />
-              </Link>
+              </ReserveLink>
             )}
           </li>
         ))}

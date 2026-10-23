@@ -1,12 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import { useRef } from "react";
+import { FeelToggle } from "@/components/chrome/FeelToggle";
+import { ReserveLink } from "@/components/chrome/ReserveLink";
 import { Still } from "@/components/media/Still";
 import { useMotion } from "@/components/motion/MotionProvider";
 import { Hyphens } from "@/components/text/Hyphens";
 import { hero } from "@/content/copy";
-import { site } from "@/content/site";
+import { feelToggleLabels, site } from "@/content/site";
 import { gsap, useGSAP } from "@/lib/gsap";
 import styles from "./Hero.module.css";
 
@@ -97,9 +98,15 @@ export function Hero() {
         </p>
       </div>
       <div className={styles.bottom}>
-        <Link href="/reserve" className={`btn btn-primary ${styles.cta}`}>
-          {site.ctaLabel}
-        </Link>
+        {/* Reserve Now and, beside it, the Command | Pace toggle (owner, 2026-10-23): one row from 700 px, the toggle
+            above the button on phones. The stills with a Pace version and the checkout follow it (DESIGN.md
+            "Feel toggle"). */}
+        <div className={styles.actions}>
+          <ReserveLink href="/reserve" className={`btn btn-primary ${styles.cta}`}>
+            {site.ctaLabel}
+          </ReserveLink>
+          <FeelToggle label={site.feelToggleLabel} labels={feelToggleLabels} size="hero" />
+        </div>
         <p className={`t-label ${styles.note}`}>{hero.ctaNote}</p>
       </div>
     </section>

@@ -168,6 +168,34 @@ export const sealedCore = {
   callouts: ["Swiss-made EVA", "Injected straight into the mould", "Three times the life of an exposed EVA core"],
 };
 
+/**
+ * Space-grade carbon, the opening of Prove it (owner, 2026-10-23: "What makes space-grade carbon better than the
+ * carbon used by [other] racket manufacturers? ... the same materials and engineering standards to withstand the
+ * extreme mechanical, thermal, and environmental conditions of space travel"; CLAIMS.md rows 41 to 44). The material
+ * first, then the mould (Born whole). It says what the carbon and the standard do for the player, against "the
+ * standard carbon most padel rackets use": never a country or a maker, never defence or military wording, never the
+ * factory, and never a number until the fibre and resin datasheets give one. The hero sentence names the material;
+ * this section tells it once. G16's words are here too (the drawing carries no caption).
+ */
+export const spaceGrade = {
+  eyebrow: "Space-grade carbon",
+  headline: "We build it from the carbon made for space.",
+  // No-break spaces keep "space hardware" and "most padel rackets" whole wherever the lead wraps.
+  lead: "KINETIQ is moulded from carbon fibre and resin of the grades used in space\u00a0hardware, to the same engineering standards, which are written for extreme mechanical, thermal and environmental conditions. That carbon is stronger for its weight than the standard carbon most padel\u00a0rackets use, so your racket holds its shape and its feel, shot after\u00a0shot.",
+  points: [
+    { title: "Strength without extra weight.", body: "Each fibre carries more load per gram than standard carbon, so the strength is in the shell rather than in added material." },
+    { title: "Solid through every layer.", body: "The resin is cured to the same standard as space hardware, so the layers bond without the air pockets that weaken a face." },
+    { title: "Steady in heat and cold.", body: "Made for the temperature swings of space, the shell keeps its stiffness on a hot summer court and on a cold winter one." },
+  ],
+  /** G16: the shell cut through and magnified, standard carbon beside ours. Drawn from typical values (row 44). */
+  graphic: {
+    kicker: "Through the shell, magnified",
+    standard: { title: "Standard carbon", note: "Fewer fibres, set unevenly, with air trapped in the resin." },
+    kinetiq: { title: "Space-grade carbon", note: "More fibres, packed close and even, with solid resin between them." },
+    alt: "Two magnified cross-sections through a carbon shell. On the left, standard carbon: fewer fibres, set unevenly in the resin, with air pockets between the layers. On the right, KINETIQ's space-grade carbon: more fibres, packed close and even, with solid resin between the layers.",
+  },
+};
+
 export const bornWhole = {
   eyebrow: "Born whole",
   headline: "Swiss Made, right down to the core.",

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useState } from "react";
 import type { TierId } from "@/content/lineup";
-import { DEFAULT_FEEL, FEEL_PREFERENCE_KEY, storedFeel, type FeelId } from "@/content/site";
+import { DEFAULT_FEEL, type FeelId } from "@/content/site";
+import { setFeel, useFeel } from "@/lib/feel-store";
 import { Gallery } from "./Gallery";
 import { ReservePanel } from "./ReservePanel";
 import styles from "./Reserve.module.css";
@@ -18,16 +19,6 @@ type Props = {
   initialInvite?: string | null;
 };
 
-/** Follows the stored feel across tabs (the toggle a later release adds writes it). */
-const subscribeFeel = (onChange: () => void) => {
-  const onStorage = (e: StorageEvent) => {
-    if (e.key === null || e.key === FEEL_PREFERENCE_KEY) onChange();
-  };
-  window.addEventListener("storage", onStorage);
-  return () => window.removeEventListener("storage", onStorage);
-};
-const noStoredFeel = () => null;
-
 /**
  * The reservation page: a sticky gallery for the chosen edition beside the options column. The feel is Command until
  * the buyer chooses (owner, 2026-10-23: the site opens on Command); a feel from the link (?feel=) or the site-wide
@@ -36,7 +27,8 @@ const noStoredFeel = () => null;
 export function ReserveExperience({ initialTier, initialFeel = null, invitesOpen = false, initialInvite = null }: Props) {
   const [tierId, setTierId] = useState<TierId>(initialTier ?? "reserve");
   const [picked, setPicked] = useState<FeelId | null>(null);
-  const stored = useSyncExternalStore(subscribeFeel, storedFeel, noStoredFeel);
+  // The site-wide choice (the landing's toggle, or an earlier visit here), followed across tabs (lib/feel-store.ts).
+  const { chosen: stored } = useFeel();
   const choice = picked ?? initialFeel ?? stored;
   const feel = choice ?? DEFAULT_FEEL;
 
@@ -47,7 +39,11 @@ export function ReserveExperience({ initialTier, initialFeel = null, invitesOpen
         tierId={tierId}
         onTier={setTierId}
         feel={feel}
-        onFeel={setPicked}
+        onFeel={(id) => {
+          // The feel chosen here is the site's choice too: the landing's toggles and stills follow it.
+          setPicked(id);
+          setFeel(id);
+        }}
         invitesOpen={invitesOpen}
         initialInvite={initialInvite}
         preselected={initialTier !== undefined}

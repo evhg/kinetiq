@@ -1,5 +1,5 @@
 {
-  "$comment": "Product stills: Blender Cycles masters (own work) exported by scripts/stills.mjs. Crops are fractions of the master: x, y, w, h. rotate is degrees counter-clockwise, applied before the crop.",
+  "$comment": "Product stills: Blender Cycles masters (own work) exported by scripts/stills.mjs. Crops are fractions of the master: x, y, w, h. rotate is degrees counter-clockwise, applied before the crop. A still's Pace version (the black 12K face) is its id plus \"-pace\", with the same crops; <Still> shows it when the feel is Pace and it is exported, and the Command one otherwise.",
   "widths": {
     "wide": [
       828,
@@ -37,12 +37,34 @@
         "portrait": {}
       }
     },
+    "K01-hero-full-phone-pace": {
+      "crops": {
+        "portrait": {}
+      }
+    },
     "K01-base": {
       "crops": {
         "wide": {}
       }
     },
     "K01-full": {
+      "crops": {
+        "wide": {},
+        "card": {
+          "x": 0.3,
+          "y": 0,
+          "w": 0.4,
+          "h": 1
+        },
+        "og": {
+          "x": 0,
+          "y": 0.07,
+          "w": 1,
+          "h": 0.93
+        }
+      }
+    },
+    "K01-full-pace": {
       "crops": {
         "wide": {},
         "card": {
@@ -77,6 +99,14 @@
       }
     },
     "K02": {
+      "crops": {
+        "wide": {},
+        "portrait": {
+          "rotate": 90
+        }
+      }
+    },
+    "K02-pace": {
       "crops": {
         "wide": {},
         "portrait": {
@@ -127,12 +157,33 @@
         "wide": {}
       }
     },
+    "K05-pace": {
+      "crops": {
+        "wide": {}
+      }
+    },
     "K05-phone": {
       "crops": {
         "portrait": {}
       }
     },
+    "K05-phone-pace": {
+      "crops": {
+        "portrait": {}
+      }
+    },
     "K06-base": {
+      "crops": {
+        "wide": {},
+        "card": {
+          "x": 0.275,
+          "y": 0,
+          "w": 0.45,
+          "h": 1
+        }
+      }
+    },
+    "K06-base-pace": {
       "crops": {
         "wide": {},
         "card": {
@@ -263,6 +314,175 @@
         "wide": {},
         "portrait": {
           "x": 0.435,
+          "y": 0,
+          "w": 0.45,
+          "h": 1
+        }
+      }
+    },
+    "K13": {
+      "crops": {
+        "wide": {},
+        "card": {
+          "x": 0.275,
+          "y": 0,
+          "w": 0.45,
+          "h": 1
+        },
+        "portrait": {
+          "x": 0.341,
+          "y": 0,
+          "w": 0.316,
+          "h": 1
+        }
+      }
+    },
+    "K01-base-pace": {
+      "crops": {
+        "wide": {}
+      }
+    },
+    "K01-finale-pace": {
+      "crops": {
+        "wide": {},
+        "portrait": {
+          "x": 0.341,
+          "y": 0,
+          "w": 0.316,
+          "h": 1
+        },
+        "card": {
+          "x": 0.3,
+          "y": 0,
+          "w": 0.4,
+          "h": 1
+        }
+      }
+    },
+    "K01-hero-base-phone-pace": {
+      "crops": {
+        "portrait": {}
+      }
+    },
+    "K06-full-pace": {
+      "crops": {
+        "wide": {},
+        "card": {
+          "x": 0.275,
+          "y": 0,
+          "w": 0.45,
+          "h": 1
+        }
+      }
+    },
+    "K10-pace": {
+      "crops": {
+        "wide": {
+          "x": 0.0225,
+          "y": 0.045,
+          "w": 0.955,
+          "h": 0.955
+        },
+        "card": {
+          "x": 0.285,
+          "y": 0.045,
+          "w": 0.43,
+          "h": 0.955
+        }
+      }
+    },
+    "K11-single-pace": {
+      "crops": {
+        "wide": {},
+        "card": {
+          "x": 0.275,
+          "y": 0,
+          "w": 0.45,
+          "h": 1
+        }
+      }
+    },
+    "K09-pace": {
+      "crops": {
+        "wide": {},
+        "card": {
+          "x": 0.2,
+          "y": 0,
+          "w": 0.6,
+          "h": 1
+        }
+      }
+    },
+    "K09-card-pace": {
+      "crops": {
+        "card": {}
+      }
+    },
+    "K12-base-pace": {
+      "crops": {
+        "wide": {},
+        "portrait": {
+          "x": 0.435,
+          "y": 0,
+          "w": 0.45,
+          "h": 1
+        }
+      }
+    },
+    "K12-full-pace": {
+      "crops": {
+        "wide": {},
+        "portrait": {
+          "x": 0.435,
+          "y": 0,
+          "w": 0.45,
+          "h": 1
+        }
+      }
+    },
+    "K03-pace": {
+      "crops": {
+        "wide": {},
+        "card": {
+          "x": 0.275,
+          "y": 0,
+          "w": 0.45,
+          "h": 1
+        }
+      }
+    },
+    "K03b-tubular-pace": {
+      "crops": {
+        "wide": {}
+      }
+    },
+    "K04-base-pace": {
+      "crops": {
+        "wide": {},
+        "card": {
+          "x": 0.41,
+          "y": 0,
+          "w": 0.4,
+          "h": 1
+        }
+      }
+    },
+    "K04-full-pace": {
+      "crops": {
+        "wide": {},
+        "card": {
+          "x": 0.41,
+          "y": 0,
+          "w": 0.4,
+          "h": 1
+        }
+      }
+    },
+    "K11-command-pace": {
+      "crops": {
+        "wide": {},
+        "card": {
+          "x": 0.275,
           "y": 0,
           "w": 0.45,
           "h": 1

@@ -1,4 +1,6 @@
 import generated from "@/content/stills.generated.json";
+import type { FeelId } from "@/content/site";
+import { FeelPicture, type PictureSet } from "./FeelPicture";
 
 /** Pixel size, exported widths and content hash (part of every file name) of one crop. */
 type Size = { w: number; h: number; widths: number[]; hash?: string };
@@ -24,17 +26,51 @@ type Props = {
   loading?: "eager" | "lazy";
   fetchPriority?: "high" | "low" | "auto";
   className?: string;
+  /**
+   * The feel to show where the still has a Pace version, instead of the site-wide one (the /reserve gallery passes the
+   * checkout's feel). Omitted: the still follows the feel toggle.
+   */
+  feel?: FeelId;
 };
 
 const PHONE = "(max-width: 699px)";
+/** A still's Pace version: its id plus "-pace", with the same crops ("K01-full-pace", "K05-phone-pace"). */
+const PACE = "-pace";
 const file = (key: string, s: Size, w: number, type: "avif" | "webp") =>
   `/stills/${key}-${w}${s.hash ? `.${s.hash}` : ""}.${type}`;
 const srcset = (key: string, s: Size, type: "avif" | "webp") =>
   s.widths.map((w) => `${file(key, s, w, type)} ${w}w`).join(", ");
 
+/** One picture's sources and fallback: the phone crop (if any) first, then the wide crop, AVIF before WebP. */
+function pictureSet(
+  main: [string, Size],
+  phone: [string, Size] | null,
+  phoneMedia: string,
+  sz: string,
+  phoneSizes: string,
+): PictureSet {
+  const [key, s] = main;
+  const fallback = s.widths.find((w) => w >= 1280) ?? s.widths[s.widths.length - 1];
+  const sources: PictureSet["sources"] = [];
+  if (phone) {
+    const [pk, p] = phone;
+    sources.push(
+      { media: phoneMedia, type: "image/avif", srcSet: srcset(pk, p, "avif"), sizes: phoneSizes, width: p.w, height: p.h },
+      { media: phoneMedia, type: "image/webp", srcSet: srcset(pk, p, "webp"), sizes: phoneSizes, width: p.w, height: p.h },
+    );
+  }
+  sources.push({ type: "image/avif", srcSet: srcset(key, s, "avif"), sizes: sz }, { type: "image/webp", srcSet: srcset(key, s, "webp"), sizes: sz });
+  return { sources, src: file(key, s, fallback, "webp"), width: s.w, height: s.h };
+}
+
+const entry = (key: string | null): [string, Size] | null => (key && sizes[key] ? [key, sizes[key]] : null);
+
 /**
  * A product still (own Blender render) as AVIF with a WebP fallback and a phone art-direction crop.
  * Renders nothing until scripts/stills.mjs has exported the still.
+ * Where a Pace version is exported (the id plus "-pace", per crop), the still follows the feel (FeelPicture): the
+ * server paints Command, and a stored or chosen Pace swaps in on the client. A crop without a Pace export keeps its
+ * Command file, silently; a still with none renders exactly as before.
  */
 export function Still({
   id,
@@ -49,36 +85,39 @@ export function Still({
   loading,
   fetchPriority,
   className,
+  feel,
 }: Props) {
-  const key = `${id}-${crop}`;
-  const main = sizes[key];
+  const main = entry(`${id}-${crop}`);
   if (!main) return null;
-  const phoneKey = phoneCrop ? `${phoneId ?? id}-${phoneCrop}` : null;
-  const phone = phoneKey ? sizes[phoneKey] : null;
-  const fallback = main.widths.find((w) => w >= 1280) ?? main.widths[main.widths.length - 1];
+  const phoneBase = phoneId ?? id;
+  const phone = phoneCrop ? entry(`${phoneBase}-${phoneCrop}`) : null;
+  const paceMain = entry(`${id}${PACE}-${crop}`);
+  const pacePhone = phone && phoneCrop ? entry(`${phoneBase}${PACE}-${phoneCrop}`) : null;
+  const command = pictureSet(main, phone, phoneMedia, sz, phoneSizes);
+  const img = {
+    loading: loading ?? (priority ? "eager" : "lazy"),
+    fetchPriority: fetchPriority ?? (priority ? "high" : "auto"),
+    decoding: priority ? "sync" : "async",
+  } as const;
+  if (paceMain || pacePhone) {
+    const pace = pictureSet(paceMain ?? main, pacePhone ?? phone, phoneMedia, sz, phoneSizes);
+    return <FeelPicture command={command} pace={pace} feel={feel} className={className} alt={alt} {...img} />;
+  }
   return (
     <picture className={className}>
-      {phone && phoneKey && (
-        <>
-          <source media={phoneMedia} type="image/avif" srcSet={srcset(phoneKey, phone, "avif")} sizes={phoneSizes} width={phone.w} height={phone.h} />
-          <source media={phoneMedia} type="image/webp" srcSet={srcset(phoneKey, phone, "webp")} sizes={phoneSizes} width={phone.w} height={phone.h} />
-        </>
-      )}
-      <source type="image/avif" srcSet={srcset(key, main, "avif")} sizes={sz} />
-      <source type="image/webp" srcSet={srcset(key, main, "webp")} sizes={sz} />
-      <img
-        src={file(key, main, fallback, "webp")}
-        width={main.w}
-        height={main.h}
-        alt={alt}
-        loading={loading ?? (priority ? "eager" : "lazy")}
-        fetchPriority={fetchPriority ?? (priority ? "high" : "auto")}
-        decoding={priority ? "sync" : "async"}
-      />
+      {command.sources.map((s) => (
+        <source key={`${s.media ?? ""}${s.type}`} {...s} />
+      ))}
+      <img src={command.src} width={command.width} height={command.height} alt={alt} {...img} />
     </picture>
   );
 }
 
 export function hasStill(id: string, crop = "wide") {
   return Boolean(sizes[`${id}-${crop}`]);
+}
+
+/** Whether a still has a Pace version exported for this crop. */
+export function hasPaceStill(id: string, crop = "wide") {
+  return Boolean(sizes[`${id}${PACE}-${crop}`]);
 }

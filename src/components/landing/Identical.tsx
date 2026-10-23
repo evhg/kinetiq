@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { ReserveLink } from "@/components/chrome/ReserveLink";
 import { ConsistencySpikes } from "@/components/graphics/ConsistencySpikes";
 import { MeasurementCard } from "@/components/graphics/MeasurementCard";
 import { Still } from "@/components/media/Still";
@@ -33,9 +33,9 @@ export function Identical() {
             {/* Only the price line rises in: the button is never invisible while on screen, since the header's compact
                 Reserve Now hides as soon as it enters (data-cta, HeaderClient) */}
             <Reveal className={styles.cta} items=":scope > p">
-              <Link href="/reserve" className="btn btn-primary" data-cta="">
+              <ReserveLink href="/reserve" className="btn btn-primary" data-cta="">
                 {site.ctaLabel}
-              </Link>
+              </ReserveLink>
               <p className="t-label">{site.priceNote}</p>
             </Reveal>
           </div>

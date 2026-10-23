@@ -11,6 +11,7 @@ import { Holes } from "@/components/landing/Holes";
 import { Identical } from "@/components/landing/Identical";
 import { Precision } from "@/components/landing/Precision";
 import { SealedCore } from "@/components/landing/SealedCore";
+import { SpaceGrade } from "@/components/landing/SpaceGrade";
 import { Specifications } from "@/components/landing/Specifications";
 import { SweetSpot } from "@/components/landing/SweetSpot";
 import { Unibody } from "@/components/landing/Unibody";
@@ -31,8 +32,10 @@ export default function Home() {
         <SweetSpot />
         <Unibody />
         <Feel />
-        {/* Prove it, as one story (owner, 2026-10-23): made whole in one mould, exact to 15 microns, every hole moulded
-            and lined, so the core never touches the air, so it lasts; then the whole drawing as the recap. */}
+        {/* Prove it, as one story (owner, 2026-10-23): the space-grade carbon it is made of, made whole in one mould,
+            exact to 15 microns, every hole moulded and lined, so the core never touches the air, so it lasts; then the
+            whole drawing as the recap. */}
+        <SpaceGrade />
         <BornWhole />
         <Precision />
         <Holes />

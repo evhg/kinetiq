@@ -14,13 +14,13 @@ const POINTS_REVEAL = "(max-width: 899px) and (prefers-reduced-motion: no-prefer
  * Feel, right after its cause (the Unibody chapter, whose Skip link lands here, so it takes focus). Pinned from 900 px
  * like the chapters above it (owner, 2026-10-23), with its own eyebrow and Skip link: the headline, the vibration
  * graph and the three points share one screen, the graph draws once as the chapter arrives, the points follow in the
- * scrub, and the screen holds before Born whole. Phones and reduced motion stack it, every part visible.
+ * scrub, and the screen holds before Space-grade carbon. Phones and reduced motion stack it, every part visible.
  */
 export function Feel() {
   return (
     <PinnedChapter
       id="feel"
-      nextId="born-whole"
+      nextId="space-grade"
       labelledBy="feel-title"
       className={styles.chapter}
       length={0.8}

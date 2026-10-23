@@ -142,6 +142,20 @@ html[data-arrive]:has([data-reserve-shell])::after {
     display: none;
   }
 }
+/* Feel stills (components/media/FeelPicture.tsx): a still with a Pace version holds one version at a time. Its image is
+   hidden while the other version loads (data-feel-ready), and, for a still that follows the feel toggle, at once
+   whenever html[data-feel] names the other feel (set by the head script before the first paint, and by every toggle),
+   so a stored Pace never flashes Command. Opacity only: exit 150 ms, entry 240 ms ease-out; reduced motion: instant
+   (the rule below forces every duration to 0). */
+html[data-motion="on"] picture[data-feel-swap] img {
+  transition: opacity 240ms var(--ease-out);
+}
+html picture[data-feel-swap][data-feel-ready="false"] img,
+html[data-feel="pace"] picture[data-feel-follow][data-feel-shown="command"] img,
+html[data-feel="command"] picture[data-feel-follow][data-feel-shown="pace"] img {
+  opacity: 0;
+  transition-duration: 150ms;
+}
 /* Sections focused by script (Skip link targets) are not controls: no page-wide ring. */
 [tabindex="-1"]:focus {
   outline: none;
