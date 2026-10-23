@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { ReserveLink } from "@/components/chrome/ReserveLink";
 import { Still } from "@/components/media/Still";
 import { finale } from "@/content/copy";
 import { site } from "@/content/site";
@@ -22,9 +22,9 @@ export function Finale() {
         </h2>
         <p className="t-lead">{finale.sub}</p>
         {/* data-cta: the header's compact Reserve Now hides while this one is on screen (HeaderClient) */}
-        <Link href="/reserve" className={`btn btn-primary ${styles.cta}`} data-cta="">
+        <ReserveLink href="/reserve" className={`btn btn-primary ${styles.cta}`} data-cta="">
           {site.ctaLabel}
-        </Link>
+        </ReserveLink>
       </Reveal>
     </section>
   );

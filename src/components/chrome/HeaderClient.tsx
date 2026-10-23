@@ -2,16 +2,26 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import type { FeelId } from "@/content/site";
+import { useFeel, withFeel } from "@/lib/feel-store";
+import { FeelToggle } from "./FeelToggle";
 import styles from "./Chrome.module.css";
+
+/** The feel toggle's words, passed in from the server like the CTA label (src/content/site.ts). */
+export type FeelToggleCopy = { label: string; labels: Record<FeelId, string> };
 
 /**
  * Wordmark only. On the landing page a compact Reserve Now appears while neither the hero (the element with id
  * "hero") nor an in-page Reserve Now (marked data-cta) is on screen, so two never show at once. The label comes in
  * as a prop from the server (Chrome.tsx), so this client module carries no site copy: the root not-found renders
  * the header too, and its tree ships with every page, the NDA gate included.
+ * Beside it, from 700 px, the Command | Pace toggle (`feelToggle`, its words passed in the same way), shown and hidden
+ * with it: below 700 px the wordmark, the toggle and Reserve Now do not fit one row at 375 px, and the hero's own
+ * toggle stays (DESIGN.md "Feel toggle"). Reserve Now carries the chosen feel into checkout (?feel=).
  */
-export function HeaderClient({ ctaLabel }: { ctaLabel?: string }) {
+export function HeaderClient({ ctaLabel, feelToggle }: { ctaLabel?: string; feelToggle?: FeelToggleCopy }) {
   const compactCta = Boolean(ctaLabel);
+  const { chosen } = useFeel();
   const ref = useRef<HTMLElement>(null);
   const [scrolled, setScrolled] = useState(false);
   const [showCta, setShowCta] = useState(false);
@@ -72,16 +82,28 @@ export function HeaderClient({ ctaLabel }: { ctaLabel?: string }) {
           KINETIQ
         </Link>
         {compactCta ? (
-          <Link
-            href="/reserve"
-            prefetch={false}
-            className={`btn btn-primary ${styles.compact}`}
-            data-visible={showCta}
-            tabIndex={showCta ? 0 : -1}
-            aria-hidden={!showCta}
-          >
-            {ctaLabel}
-          </Link>
+          <div className={styles.end}>
+            {feelToggle ? (
+              <FeelToggle
+                label={feelToggle.label}
+                labels={feelToggle.labels}
+                size="compact"
+                className={styles.feel}
+                inert={!showCta}
+                visible={showCta}
+              />
+            ) : null}
+            <Link
+              href={withFeel("/reserve", chosen)}
+              prefetch={false}
+              className={`btn btn-primary ${styles.compact}`}
+              data-visible={showCta}
+              tabIndex={showCta ? 0 : -1}
+              aria-hidden={!showCta}
+            >
+              {ctaLabel}
+            </Link>
+          </div>
         ) : null}
       </div>
     </header>

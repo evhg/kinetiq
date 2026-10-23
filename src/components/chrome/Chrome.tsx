@@ -1,4 +1,4 @@
-import { site } from "@/content/site";
+import { feelToggleLabels, site } from "@/content/site";
 import { HeaderClient } from "./HeaderClient";
 import styles from "./Chrome.module.css";
 
@@ -6,9 +6,17 @@ import styles from "./Chrome.module.css";
 // them: the root not-found (header without CTA, footer without the brand line) is serialised into every page, the
 // NDA gate included, so nothing it renders may carry product copy or claims.
 
-/** Wordmark only; `compactCta` adds the compact Reserve Now that appears after the hero (landing page). */
+/**
+ * Wordmark only; `compactCta` adds the compact Reserve Now that appears after the hero (landing page), with the
+ * Command | Pace toggle beside it from 700 px.
+ */
 export function SiteHeader({ compactCta = false }: { compactCta?: boolean }) {
-  return <HeaderClient ctaLabel={compactCta ? site.ctaLabel : undefined} />;
+  return (
+    <HeaderClient
+      ctaLabel={compactCta ? site.ctaLabel : undefined}
+      feelToggle={compactCta ? { label: site.feelToggleLabel, labels: feelToggleLabels } : undefined}
+    />
+  );
 }
 
 /**

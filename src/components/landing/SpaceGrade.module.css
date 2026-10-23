@@ -1,0 +1,85 @@
+/* Space-grade carbon: the graphite floor, from Feel's --stage, with the G10 lift behind G16 (fill rule: the drawing's
+   fibres and the lift keep well over 8% of the screen at luma 40 or more). Ends on --stage, Born whole's first colour. */
+.section {
+  position: relative;
+  display: grid;
+  gap: clamp(56px, 4.4vw, 128px);
+  overflow: hidden;
+  isolation: isolate;
+  padding: clamp(96px, 7vw, 200px) var(--margin) clamp(80px, 6vw, 160px);
+  background:
+    radial-gradient(ellipse 64% 54% at 66% 42%, rgb(54 52 56), rgb(40 40 46 / 0.7) 45%, transparent 80%),
+    radial-gradient(ellipse 90% 70% at 40% 60%, rgb(34 34 39 / 0.55), transparent 80%),
+    var(--stage);
+}
+/* K13, full bleed above the words, feathered into the floor at both ends. */
+.band {
+  margin: calc(-1 * clamp(96px, 7vw, 200px)) calc(-1 * var(--margin)) 0;
+  -webkit-mask-image: linear-gradient(transparent, #000 14%, #000 80%, transparent);
+  mask-image: linear-gradient(transparent, #000 14%, #000 80%, transparent);
+}
+.still img {
+  width: 100%;
+  height: auto;
+  max-height: 86svh;
+  object-fit: cover;
+}
+.grid {
+  display: grid;
+  gap: clamp(40px, 4vw, 96px);
+  align-items: center;
+}
+.head {
+  display: grid;
+  gap: clamp(14px, 1vw + 6px, 28px);
+  align-content: center;
+}
+.head :global(.t-h2) {
+  max-width: 14ch;
+  text-wrap: balance;
+}
+.head :global(.t-lead) {
+  max-width: 40ch;
+  text-wrap: pretty;
+}
+.graph {
+  min-width: 0;
+}
+.points {
+  display: grid;
+  gap: 32px;
+}
+.point {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  padding-top: 24px;
+  border-top: 1px solid rgb(255 255 255 / 0.1);
+}
+.point :global(.t-h3) {
+  text-wrap: balance;
+}
+@media (min-width: 1000px) {
+  .grid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+  }
+  .head {
+    grid-column: 1 / span 5;
+  }
+  .graph {
+    grid-column: 6 / span 7;
+  }
+}
+/* Three points across from 900 px, each a title row and a body row (subgrid), so the bodies share one top line. */
+@media (min-width: 900px) {
+  .points {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px var(--gutter);
+  }
+  .point {
+    grid-row: span 2;
+    grid-template-rows: subgrid;
+    row-gap: 12px;
+  }
+}

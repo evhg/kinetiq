@@ -48,6 +48,32 @@
   transform: none;
   pointer-events: auto;
 }
+/* The compact Reserve Now and, from 700 px, the feel toggle before it, one group at the row's end. */
+.end {
+  display: flex;
+  align-items: center;
+  gap: clamp(10px, 0.4vw + 8px, 16px);
+}
+/* Shown and hidden with the compact Reserve Now (HeaderClient), the same 200 ms ease-out. Below 700 px the three do not
+   fit one row at 375 px, so the hero's toggle is the phone's (DESIGN.md "Feel toggle"). */
+.end .feel {
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+  transition:
+    opacity 200ms var(--ease-out),
+    transform 200ms var(--ease-out);
+}
+.end .feel[data-visible="true"] {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+@media (max-width: 699px) {
+  .end .feel {
+    display: none;
+  }
+}
 /* Phones keep the compact Reserve Now too (the next one is many screens down), sized to sit by the wordmark. */
 @media (max-width: 767px) {
   .compact {

@@ -450,5 +450,92 @@
    1440
   ],
   "hash": "004df3f0ea"
+ },
+ "K01-hero-full-phone-pace-portrait": {
+  "w": 1440,
+  "h": 2560,
+  "widths": [
+   828,
+   1170,
+   1440
+  ],
+  "hash": "2e82dfa6c6"
+ },
+ "K01-full-pace-wide": {
+  "w": 2560,
+  "h": 1440,
+  "widths": [
+   828,
+   1280,
+   1920,
+   2560
+  ],
+  "hash": "b3e3cc1be4"
+ },
+ "K01-full-pace-card": {
+  "w": 1024,
+  "h": 1440,
+  "widths": [
+   640,
+   1024
+  ],
+  "hash": "91358243e5"
+ },
+ "K01-full-pace-og": {
+  "w": 2560,
+  "h": 1339,
+  "widths": [
+   1200
+  ],
+  "hash": "9873b0c5be"
+ },
+ "K01-base-pace-wide": {
+  "w": 2560,
+  "h": 1440,
+  "widths": [
+   828,
+   1280,
+   1920,
+   2560
+  ],
+  "hash": "3ee8cfb1ff"
+ },
+ "K01-finale-pace-wide": {
+  "w": 2560,
+  "h": 1440,
+  "widths": [
+   828,
+   1280,
+   1920,
+   2560
+  ],
+  "hash": "1a4fd8a4bc"
+ },
+ "K01-finale-pace-portrait": {
+  "w": 809,
+  "h": 1440,
+  "widths": [
+   809
+  ],
+  "hash": "6c525a083b"
+ },
+ "K01-finale-pace-card": {
+  "w": 1024,
+  "h": 1440,
+  "widths": [
+   640,
+   1024
+  ],
+  "hash": "d4510f3808"
+ },
+ "K01-hero-base-phone-pace-portrait": {
+  "w": 1440,
+  "h": 2560,
+  "widths": [
+   828,
+   1170,
+   1440
+  ],
+  "hash": "c6196d97cc"
  }
 }

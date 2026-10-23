@@ -24,6 +24,11 @@ export const site = {
   ctaLabel: "Reserve Now",
   payLabel: "Pay with Card",
   placeLabel: "Place Reservation",
+  /**
+   * The feel toggle beside Reserve Now (the hero's, and the header's from 700 px): its group's accessible name. The two
+   * options are the feels' names (`feels`). HeaderClient gets both as props, so its client module carries no copy.
+   */
+  feelToggleLabel: "Feel",
 } as const;
 
 export type FeelId = "command" | "pace";
@@ -38,6 +43,9 @@ export const feels: Record<FeelId, { name: string; sub: string; spec: string }> 
   pace: { name: "Pace", sub: "Power", spec: "Two-density core, black 12K face" },
 };
 
+/** The toggle's two labels, in its order (Command first, as the site opens on it). */
+export const feelToggleLabels: Record<FeelId, string> = { command: feels.command.name, pace: feels.pace.name };
+
 export function isFeelId(v: string | null | undefined): v is FeelId {
   return v === "command" || v === "pace";
 }
@@ -47,8 +55,9 @@ export const DEFAULT_FEEL: FeelId = "command";
 
 /**
  * Where a site-wide feel choice is kept in the visitor's own browser (a per-visitor convenience, never sent anywhere).
- * Nothing writes it yet: the feel toggle beside Reserve Now (a later release) will, and /reserve already reads it when
- * the link carries no ?feel= (ReserveExperience). Reads fail quietly (private windows, blocked storage).
+ * The feel toggles beside Reserve Now and the /reserve feel picker write it (lib/feel-store.ts), the head script mirrors
+ * it on html[data-feel] before the first paint, and /reserve reads it when the link carries no ?feel=
+ * (ReserveExperience). Reads and writes fail quietly (private windows, blocked storage).
  */
 export const FEEL_PREFERENCE_KEY = "kq-feel";
 

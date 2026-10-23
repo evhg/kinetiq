@@ -74,8 +74,8 @@ const SWEET_SPOT: Slide | null = hasStill("K12-base", "portrait")
 /**
  * Until the buyer chooses a feel, every edition's gallery opens on the two feels together (owner, 2026-10-23): K08's
  * wide render, Command's white 3K face beside Pace's black 12K, kept whole. Once a feel is chosen it gives way, and the
- * gallery shows that feel's renders where they exist (K08's half, K11's set) and the Command renders otherwise (a later
- * release adds Pace versions of every still).
+ * gallery shows that feel's renders where they exist (K08's half, K11's set, and any still with a Pace version, through
+ * Still's `feel`) and the Command renders otherwise.
  */
 const BOTH_FEELS: Slide = {
   kind: "still",
@@ -299,6 +299,8 @@ export function Gallery({ tierId, feel, chosen }: { tierId: TierId; feel: FeelId
                 sizes={SIZES}
                 className={styles.slideStill}
                 priority={i === 0}
+                // A still with a Pace version (K01, K02) shows the checkout's feel, never the landing's toggle alone.
+                feel={feel}
               />
             ) : s.kind === "reveal" ? (
               // K12's base render alone, contained and feathered (the lit pass stays on the landing).
