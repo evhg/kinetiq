@@ -33,12 +33,13 @@ type Slide =
       feel?: FeelId;
       /** K08 whole: Command and Pace together, the first slide until the buyer chooses a feel. */
       both?: boolean;
+      /** A separate still for phones and tablets (the stacked layout), e.g. K07's trio, which fits a 4:5 frame. */
+      phoneId?: string;
       alt: string;
     }
   | {
       /**
-       * K12's base render alone: its lit pass is an illustration and keeps its "Illustrative" caption on the landing,
-       * so the checkout never shows it. One crop at every size, contained and centred (Reserve.module.css .reveal).
+       * K12's base render alone: its lit pass illustrates the sweet spot on the landing, so the checkout never shows it. One crop at every size, contained and centred (Reserve.module.css .reveal).
        */
       kind: "reveal";
       base: string;
@@ -81,7 +82,11 @@ const BOTH_FEELS: Slide = {
   id: "K08",
   both: true,
   fit: "contain",
-  alt: "Command and Pace side by side: a white 3K carbon twill face beside a black 12K spread-tow face",
+  // Stacked (phones, tablets): K08's 16:9 frame would sit small in the 4:5 track, so K07's square trio (Pace, Command,
+  // Pace) shows both feels instead.
+  phoneId: "K07",
+  phoneCrop: "trio",
+  alt: "Command and Pace together: white 3K carbon twill faces beside black 12K spread-tow faces",
 };
 
 function slidesFor(tier: TierId, feel: FeelId, chosen: boolean): Slide[] {
@@ -288,6 +293,7 @@ export function Gallery({ tierId, feel, chosen }: { tierId: TierId; feel: FeelId
                 id={s.id}
                 crop={s.crop}
                 phoneCrop={s.phoneCrop}
+                phoneId={s.phoneId}
                 phoneMedia={STACKED}
                 alt={s.alt}
                 sizes={SIZES}
