@@ -5,15 +5,23 @@ import { useRef } from "react";
 import { Still } from "@/components/media/Still";
 import { useMotion } from "@/components/motion/MotionProvider";
 import { Hyphens } from "@/components/text/Hyphens";
-import { hero, lifeNote } from "@/content/copy";
+import { hero } from "@/content/copy";
 import { site } from "@/content/site";
 import { gsap, useGSAP } from "@/lib/gsap";
 import styles from "./Hero.module.css";
 
 /**
+ * Where the hero takes its portrait layout and the 9:16 phone master: phones, tablets in portrait below 1000 px, and
+ * any window narrower than 4:5 (an iPad Pro in portrait). Keep it in step with Hero.module.css.
+ */
+const PORTRAIT = "(max-width: 699px), (max-width: 999px) and (max-aspect-ratio: 1/1), (max-aspect-ratio: 4/5)";
+/** On a portrait tablet the master is drawn wider than the screen (up to about 1.4 times), sized by its band. */
+const PORTRAIT_SIZES = "(min-width: 700px) 140vw, 100vw";
+
+/**
  * Hero: K01 rises out of the dark (base, then the beam), one CTA. Wide screens set the words, Reserve Now
- * and the price line in the left seven columns beside the racket, which stands large on the right; phones
- * keep the words above the racket and Reserve Now on the floor below it.
+ * and the price line in the left seven columns beside the racket, which stands large on the right; phones and
+ * portrait tablets keep the words above the racket and Reserve Now on the floor below it.
  */
 export function Hero() {
   const root = useRef<HTMLElement>(null);
@@ -46,6 +54,15 @@ export function Hero() {
           live = false;
         };
       });
+      // Wide screens: the sweet spot's racket rises beside where this one stands, so this one fades out first (between
+      // 10% and 32% of the hero scrolled) and the two only cross at low light (SweetSpot.tsx starts its racket late).
+      mm.add("(prefers-reduced-motion: no-preference) and (min-width: 1000px)", () => {
+        gsap.fromTo(
+          `.${styles.drift}`,
+          { opacity: 1 },
+          { opacity: 0, ease: "none", scrollTrigger: { trigger: root.current, start: "top -10%", end: "top -32%", scrub: 0.4 } },
+        );
+      });
       return () => mm.revert();
     },
     { scope: root, dependencies: [motionOn], revertOnUpdate: true },
@@ -55,9 +72,10 @@ export function Hero() {
     <section ref={root} id="hero" className={styles.hero} aria-labelledby="hero-title">
       <div className={styles.drift} aria-hidden="true">
         <div className={styles.media}>
-          {/* Wide: the close beam camera (the racket spans 27-80% of the frame). Phones: their own 9:16 master. */}
-          <Still id="K01-base" phoneId="K01-hero-base-phone" phoneCrop="portrait" alt="" priority className={styles.base} />
-          <Still id="K01-full" phoneId="K01-hero-full-phone" phoneCrop="portrait" alt="" loading="eager" fetchPriority="low" className={styles.full} />
+          {/* Wide: the close beam camera (the racket spans 27-80% of the frame). Phones and portrait tablets: their own
+              9:16 master (PORTRAIT, the same condition as Hero.module.css's portrait layouts). */}
+          <Still id="K01-base" phoneId="K01-hero-base-phone" phoneCrop="portrait" phoneMedia={PORTRAIT} phoneSizes={PORTRAIT_SIZES} alt="" priority className={styles.base} />
+          <Still id="K01-full" phoneId="K01-hero-full-phone" phoneCrop="portrait" phoneMedia={PORTRAIT} phoneSizes={PORTRAIT_SIZES} alt="" loading="eager" fetchPriority="low" className={styles.full} />
         </div>
       </div>
       <div className={styles.veil} aria-hidden="true" />
@@ -68,13 +86,7 @@ export function Hero() {
           {hero.headline}
         </h1>
         <p className={`t-lead ${styles.lead}`}>
-          <Hyphens text={hero.lead} />{" "}
-          <span className={styles.life}>
-            {hero.life}
-            <a href={`#${lifeNote.id}`} className="footmark" aria-label={lifeNote.label}>
-              {lifeNote.mark}
-            </a>
-          </span>
+          <Hyphens text={hero.lead} />
         </p>
       </div>
       <div className={styles.bottom}>

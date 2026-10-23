@@ -3,6 +3,7 @@
 import { useId, useRef } from "react";
 import { useMotion } from "@/components/motion/MotionProvider";
 import { identical } from "@/content/copy";
+import { sampleSet } from "@/content/lineup";
 import { gsap, useGSAP } from "@/lib/gsap";
 import {
   flatness,
@@ -21,22 +22,31 @@ const { card } = identical;
 export const LABELS = {
   wordmark: "KINETIQ",
   serial: "Serial",
-  limit: "limit 0.015 mm",
   mapTitle: "Flatness",
   mapScaleFrom: "0",
   mapScaleTo: "12 µm",
   signature: "Signature",
   summary:
-    "Sample measurement card: every KINETIQ ships with its own certificate, with the measured weight, balance, thickness and surface deviation, a flatness map of the head and a blank signature line.",
+    "Sample measurement card. Every KINETIQ ships with its own card, giving that racket's measured weight, balance, thickness and surface deviation and a flatness map of its head.",
 };
 
 type Props = {
   className?: string;
-  /** Limited edition line, e.g. "Set No. 027 / 500 A" (VanQuish: one card per racket, numbered to match). */
+  /**
+   * A First 500 sample card, one per racket of set 027 of 500, numbered to match: "Set No. 027 / 500 A" under the
+   * serial, and B is the set's second racket (its own measured values). Each carries its own serial
+   * (identical.card.setSerials), never a single racket's. Without it the card is a single racket's: its own serial
+   * (KQ-000427) and no set line.
+   */
+  set?: "A" | "B";
+  /** Any other edition line under the serial (lab pages); `set` takes precedence. */
   edition?: string;
   /** The buyer's feel (e.g. "Pace") in place of the sample's. */
   feel?: string;
-  /** The second racket of a set: its own serial and measured values (identical.pairCard). */
+  /**
+   * Another racket's measured values (identical.card.second): a single Pace racket's card, with its serial, or with
+   * set "B" (which implies it), the set's second card.
+   */
   second?: boolean;
   /** Rest the card at −3° on wide screens (flat on phones). */
   rotate?: boolean;
@@ -54,6 +64,11 @@ type Props = {
    * (no title, rows or map), so the strip beside the front card is clean paper, never clipped values.
    */
   peek?: boolean;
+  /**
+   * A tighter rhythm on a narrow card (below 340 px, where the text sits at its floor), so a set's two cards fit a
+   * phone's 4:5 gallery frame whole: the /reserve gallery only.
+   */
+  dense?: boolean;
 };
 
 function SwissCross({ className }: { className?: string }) {
@@ -108,14 +123,16 @@ function Rosette({ className }: { className?: string }) {
  */
 export function MeasurementCard({
   className,
-  edition,
+  set,
+  edition: editionLine,
   feel,
-  second = false,
+  second: secondRacket = false,
   rotate = false,
   variant = "full",
   enter = true,
   plate = true,
   peek = false,
+  dense = false,
 }: Props) {
   const root = useRef<HTMLElement>(null);
   const { motionOn } = useMotion();
@@ -139,10 +156,11 @@ export function MeasurementCard({
     { scope: root, dependencies: [motionOn, enter], revertOnUpdate: true },
   );
 
+  const second = secondRacket || set === "B";
+  const edition = set ? sampleSet.card(set) : editionLine;
   const sample = second ? card.second : null;
-  const serial = sample?.serial ?? card.serial;
+  const serial = set ? card.setSerials[set] : (sample?.serial ?? card.serial);
   const rows = card.rows.map(([k, v]): [string, string] => [k, k === "Feel" && feel ? feel : (sample?.values[k] ?? v)]);
-  const deviationKey = rows[rows.length - 1][0];
 
   return (
     <figure
@@ -152,6 +170,7 @@ export function MeasurementCard({
       data-variant={variant}
       data-plate={plate ? undefined : "none"}
       data-peek={peek ? "" : undefined}
+      data-dense={dense ? "" : undefined}
       aria-hidden={thumb ? true : undefined}
     >
       <div className={styles.mover} data-g08-mover="">
@@ -224,7 +243,8 @@ export function MeasurementCard({
                       <dt>{k}</dt>
                       <dd>
                         {v}
-                        {k === deviationKey ? <span className={styles.limit}>{LABELS.limit}</span> : null}
+                        {/* the tolerance the row is held to (identical.card.limits), in one form under its value */}
+                        {card.limits[k] ? <span className={styles.limit}>{card.limits[k]}</span> : null}
                       </dd>
                     </div>
                   ))}

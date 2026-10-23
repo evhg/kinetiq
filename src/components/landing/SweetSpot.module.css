@@ -1,0 +1,248 @@
+/* Sweet spot. Phones and tablets (below 1000 px): one column, the headline, the image, then the words. Wide: the
+   words in the left five columns, the racket on the right where the hero's stood (see below).
+   The floor picks up where the hero's studio leaves off (a warm graphite, never the void), with a lift behind
+   the racket, so the hand-off from the hero reads as one room (fill rule). Its top is the hero floor's last colour,
+   rgb(26 25 25), and its foot ends on Unibody's first, rgb(19 20 22) (the pinned chapter's floor; stacked, beat A
+   feathers in from it), so neither boundary is a step. Check with a pixel probe, not by eye. */
+.section {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: grid;
+  gap: 0;
+  padding: clamp(72px, 14vw, 128px) var(--margin) clamp(80px, 16vw, 144px);
+  background:
+    radial-gradient(ellipse 90% 34% at 50% 34%, rgb(50 50 55 / 0.9), rgb(36 36 40 / 0.55) 50%, transparent 82%),
+    linear-gradient(180deg, rgb(26 25 25), rgb(19 19 21) 40%, var(--stage) 80%, rgb(19 20 22));
+}
+.head {
+  display: grid;
+  gap: clamp(12px, 1vw + 6px, 28px);
+}
+.title {
+  max-width: 12ch;
+}
+.media {
+  position: relative;
+  justify-self: center;
+  width: min(100%, 560px);
+  margin-top: clamp(28px, 6vw, 56px);
+}
+.graphic {
+  width: 100%;
+}
+/* K12: the base render, the lit pass over it (both 4:5 portrait crops on phones). Its edges feather into the
+   floor, so its darker backdrop never shows as a box; the racket spans x 18 to 84% and y 6 to 94% of the crop. */
+.still {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  -webkit-mask-image:
+    linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent),
+    linear-gradient(transparent, #000 4%, #000 96%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent),
+    linear-gradient(transparent, #000 4%, #000 96%, transparent);
+  mask-composite: intersect;
+}
+.base,
+.full {
+  position: absolute;
+  inset: 0;
+}
+.base img,
+.full img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* 700 to 999 px use the wide master: this crops it to the portrait crop's window (x 0.435 to 0.885) */
+  object-position: 79% 50%;
+}
+.caption {
+  margin-top: 12px;
+  text-align: center;
+}
+.body {
+  display: grid;
+  gap: 16px;
+  margin-top: clamp(28px, 6vw, 48px);
+}
+.body :global(.t-lead) {
+  max-width: 40ch;
+}
+/* the player's line, brighter: what the face does for you */
+.bright {
+  color: var(--text);
+}
+/* the two numbers side by side, under one amber hairline (Apple Watch Series 7: a share, then a border in mm) */
+.lockup {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gutter);
+  margin: clamp(36px, 7vw, 56px) 0 0;
+  padding: clamp(20px, 2vw, 40px) 0 0;
+  list-style: none;
+}
+.lockup::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: linear-gradient(90deg, var(--amber), rgb(227 164 103 / 0.25) 70%, transparent);
+}
+.stat {
+  display: grid;
+  align-content: start;
+  gap: clamp(8px, 0.6vw + 4px, 18px);
+}
+.value {
+  font-size: clamp(3.5rem, 5.4vw, 9.5rem);
+  color: var(--text);
+  white-space: nowrap;
+}
+.value :global(.t-unit) {
+  font-size: max(0.9375rem, 0.3em);
+}
+/* "Nearly 94%": the qualifier at the unit's size, on the numeral's baseline (Apple: "nearly 20 percent") */
+.value .nearly {
+  margin-left: 0;
+  margin-right: 0.06em;
+  color: var(--steel);
+}
+/* "94%": the sign sits close, like a unit Apple sets tight */
+.value .pct {
+  margin-left: 0.04em;
+}
+.label {
+  font-size: clamp(1rem, 0.4vw + 0.85rem, 1.375rem);
+  color: var(--steel);
+  text-wrap: balance;
+}
+
+/* Wide: the words in columns 1 to 5, centred in the screen; the racket on the right at the height of the screen.
+   G15 stands in columns 6 to 12; K12 is full bleed, its own left side kept clear for the words. */
+@media (min-width: 1000px) {
+  .section {
+    min-height: 100svh;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-template-rows: 1fr auto auto auto 1fr;
+    column-gap: var(--gutter);
+    padding: calc(var(--chrome-h) + clamp(16px, 3vh, 64px)) var(--margin) clamp(32px, 5vh, 96px);
+    background:
+      radial-gradient(ellipse 30% 48% at 66% 54%, rgb(54 53 58 / 0.95), rgb(38 38 42 / 0.6) 48%, transparent 80%),
+      linear-gradient(180deg, rgb(26 25 25), rgb(20 20 22) 30%, var(--stage) 70%, rgb(19 20 22));
+  }
+  .head,
+  .body,
+  .lockup {
+    grid-column: 1 / span 5;
+  }
+  .head {
+    grid-row: 2;
+  }
+  .body {
+    grid-row: 3;
+    margin-top: clamp(20px, 1.8vw, 48px);
+  }
+  .lockup {
+    grid-row: 4;
+    margin-top: clamp(32px, 3.4vw, 88px);
+  }
+  .media {
+    grid-column: 6 / -1;
+    grid-row: 1 / -1;
+    justify-self: stretch;
+    width: auto;
+    margin: 0;
+    display: grid;
+    align-items: center;
+    justify-items: end;
+  }
+  /* G15 as tall as the screen allows below the header, the racket a little right of the column's middle */
+  .graphic {
+    width: min(100%, calc((100svh - var(--chrome-h)) * 0.9 * 446 / 494));
+  }
+  .caption {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    text-align: right;
+  }
+  /* K12 full bleed: grid-area auto makes the section's padding box the containing block (an absolutely placed grid
+     child with a grid area would fill only that area). Below the header, so the head never sits under it. */
+  .section[data-media="still"] .media {
+    position: absolute;
+    grid-area: auto;
+    inset: var(--chrome-h) 0 0;
+    z-index: -1;
+    margin: 0;
+  }
+  /* The whole 16:9 frame, never cropped by a wider screen: as tall as the space below the header, centred, and no
+     taller than keeps the rim (x 0.81 of the frame) inside the right margin on a tall screen. Screens narrower than
+     16:9 crop its sides only (x 0 to 0.45 is backdrop). The racket spans y 0.056 to 0.936 of the frame, so the
+     feathers stop short of it and blend the frame into the floor on every side (fill rule, the hero's hand-off). */
+  .section[data-media="still"] .still {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    height: min(100%, (50vw - var(--margin)) * 1.8);
+    aspect-ratio: 16 / 9;
+    translate: -50% -50%;
+    -webkit-mask-image:
+      linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent),
+      linear-gradient(transparent, #000 5%, #000 94%, transparent);
+    -webkit-mask-composite: source-in;
+    mask-image:
+      linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent),
+      linear-gradient(transparent, #000 5%, #000 94%, transparent);
+    mask-composite: intersect;
+  }
+  .section[data-media="still"] .base img,
+  .section[data-media="still"] .full img {
+    object-position: 50% 50%;
+  }
+  /* The caption under the lockup in columns 1 to 5, off the racket; the lockup keeps a line clear for it. */
+  .section[data-media="still"] .caption {
+    left: var(--margin);
+    right: auto;
+    bottom: clamp(32px, 5vh, 96px);
+    text-align: left;
+  }
+  .section[data-media="still"] .lockup {
+    margin-bottom: calc(var(--fs-fine) * 1.55 + clamp(16px, 2vh, 32px));
+  }
+}
+/* Where it clears the grip (from 1200 px and 3:2: the grip ends at least 28 px to its left, measured 1200x800 to
+   2560x1440), the caption stands with the racket it describes, at the right margin by the butt cap, so it never
+   reads as fine print under the numbers. Narrower or taller windows keep it under the lockup, off the racket. */
+@media (min-width: 1200px) and (min-aspect-ratio: 3/2) {
+  .section[data-media="still"] .caption {
+    left: auto;
+    right: var(--margin);
+    text-align: right;
+  }
+  .section[data-media="still"] .lockup {
+    margin-bottom: 0;
+  }
+}
+
+/* Below 1000 px K12's own backdrop is the lift (its pool of light behind the racket): a lift under it would only
+   show as a lighter rim around the frame. */
+@media (max-width: 999px) {
+  .section[data-media="still"] {
+    background: linear-gradient(180deg, rgb(26 25 25), rgb(19 19 21) 40%, var(--stage) 80%, rgb(19 20 22));
+  }
+}
+
+@media (max-width: 699px) {
+  .base img,
+  .full img {
+    object-position: 50% 50%;
+  }
+  .title {
+    font-size: 2.75rem;
+  }
+}

@@ -1,13 +1,13 @@
 import { LifespanGraph } from "@/components/graphics/LifespanGraph";
-import { coreNote, durability, lifeNote } from "@/content/copy";
+import { Hyphens } from "@/components/text/Hyphens";
+import { durability } from "@/content/copy";
 import { Reveal } from "./Reveal";
 import styles from "./Durability.module.css";
 
 /**
  * Durability, after Holes: a sealed core, no seams and no drilled holes. The claim and its lead beside G14
- * (five years against the one to two most padel rackets last), then the four reasons, then the fine print:
- * the usage profile in full (the hero's and finale's footnote markers land on it) and what "three times
- * longer" is measured against (the sealed-core point's marker lands on it).
+ * (five years against the one to two most padel rackets last), then the four reasons. The only place the page
+ * says five years (owner, 2026-10-22); no fine print: the usage profile and the promised tests are point 4.
  */
 export function Durability() {
   return (
@@ -28,32 +28,13 @@ export function Durability() {
         {durability.points.map((p) => (
           <li key={p.title} className={styles.point}>
             <h3 className="t-h3">{p.title}</h3>
+            {/* a hyphenated word ("90-minute") never breaks at its hyphen */}
             <p className="t-body">
-              {p.body}
-              {p.note === "core" ? (
-                <a href={`#${coreNote.id}`} className="footmark footmark-raised" aria-label={coreNote.label}>
-                  {coreNote.mark}
-                </a>
-              ) : null}
+              <Hyphens text={p.body} />
             </p>
           </li>
         ))}
       </Reveal>
-      {/* the usage profile the hero's and finale's markers point to, and the comparison behind the sealed core */}
-      <div className={styles.notes}>
-        {/* starts with the claim it qualifies, as under the editions: the hero's and finale's markers land here */}
-        <p id={lifeNote.id} className={`t-fine ${styles.fine}`}>
-          <span className={styles.claim}>
-            <span className={styles.mark}>{lifeNote.mark}</span>
-            {durability.headline}
-          </span>{" "}
-          {durability.finePrint}
-        </p>
-        <p id={coreNote.id} className={`t-fine ${styles.fine}`}>
-          <span className={styles.mark}>{coreNote.mark}</span>
-          {durability.coreFine}
-        </p>
-      </div>
     </section>
   );
 }

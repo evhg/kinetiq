@@ -134,6 +134,11 @@
   stroke: var(--dw-tangent);
   stroke-width: var(--w-thin);
 }
+/* the overgrip's band, wrap seams and the cap's groove and K: thin, quieter than the outline */
+.svg .grip {
+  stroke: var(--dw-hidden);
+  stroke-width: var(--w-thin);
+}
 .svg .hidden {
   stroke: var(--dw-hidden);
   stroke-width: var(--w-thin);

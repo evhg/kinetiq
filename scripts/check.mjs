@@ -1,16 +1,19 @@
 #!/usr/bin/env node
 // Check harness: builds and serves the production site (or targets --url),
-// then screenshots every 10% of the page at phone, desktop and wide (2560) sizes,
-// with motion on and with reduced motion. Records console errors, LCP, CLS,
-// horizontal overflow, long frames while scrolling, blank frames and the fill
-// rule (no mostly-black viewport, no dead black strip).
+// then screenshots every 10% of the page at phone (390x844, and 390x664 as Safari shows it), tablet (768x1024),
+// laptop (1536x730, a browser window), desktop and wide (2560) sizes, with motion on and with reduced motion.
+// Records console errors, LCP, CLS, horizontal overflow, long frames while scrolling, blank frames and the fill
+// rule (no mostly-black viewport, no dead black strip). By keyboard: every Skip
+// link. And no footnote markers or small print anywhere in the page's text (owner, 2026-10-22).
 //
 // Usage:
 //   node scripts/check.mjs                      build + start locally
 //   node scripts/check.mjs --skip-build         reuse the last .next build
 //   node scripts/check.mjs --url=https://x.app  test a deployed URL
 //   node scripts/check.mjs --path=/reserve      test another page
-//   node scripts/check.mjs --only=wide          one viewport (phone|desktop|wide)
+//   node scripts/check.mjs --only=wide          one viewport, or several: --only=phone,phone-short
+//                                               (phone|phone-short|tablet|laptop|desktop|wide)
+//   node scripts/check.mjs --mode=reduced       one mode (motion|reduced)
 //   node scripts/check.mjs --url=... --study    reference mode: also detect
 //                                               animation libraries and pins
 //   node scripts/check.mjs --gate               the NDA gate: loads the page WITHOUT the
@@ -62,10 +65,19 @@ const label =
 const outDir = join(process.cwd(), ".checks", label);
 
 const BUDGET = { lcpMs: 2500, cls: 0.1 };
+// Browser viewports, not screens. "phone" is the iPhone's whole 390x844 screen; Safari's toolbars take about 180 px
+// of it, so "phone-short" (390x664) is what a visitor on an iPhone actually sees (others: 393x659, 375x667). "tablet"
+// is an iPad in portrait in Safari. "laptop" is a real laptop browser window (a 1920x1080 screen at 125% on Windows,
+// minus the browser's toolbars): shorter than 16:10, where layouts sized by width alone meet the stills (Precision's
+// record line on K05), held to the desktop budgets. `throttled` cases run PHONE_THROTTLE, settle longer and are held to the LCP
+// budget; every case is held to the CLS budget.
 const VIEWPORTS = [
-  { name: "phone", width: 390, height: 844, isMobile: true, hasTouch: true, deviceScaleFactor: 2 },
-  { name: "desktop", width: 1440, height: 900, isMobile: false, hasTouch: false, deviceScaleFactor: 1 },
-  { name: "wide", width: 2560, height: 1440, isMobile: false, hasTouch: false, deviceScaleFactor: 1 },
+  { name: "phone", width: 390, height: 844, isMobile: true, hasTouch: true, deviceScaleFactor: 2, throttled: true },
+  { name: "phone-short", width: 390, height: 664, isMobile: true, hasTouch: true, deviceScaleFactor: 2, throttled: true },
+  { name: "tablet", width: 768, height: 1024, isMobile: true, hasTouch: true, deviceScaleFactor: 2, throttled: false },
+  { name: "laptop", width: 1536, height: 730, isMobile: false, hasTouch: false, deviceScaleFactor: 1, throttled: false },
+  { name: "desktop", width: 1440, height: 900, isMobile: false, hasTouch: false, deviceScaleFactor: 1, throttled: false },
+  { name: "wide", width: 2560, height: 1440, isMobile: false, hasTouch: false, deviceScaleFactor: 1, throttled: false },
 ];
 // Fill rule (DESIGN.md): no viewport may read as mostly black, at any width.
 // - at most 40% of pixels at luma <= 12 (flat black)
@@ -76,7 +88,20 @@ const MODES = [
   { name: "motion", reducedMotion: "no-preference" },
   { name: "reduced", reducedMotion: "reduce" },
 ];
-// Lighthouse-style mobile profile, applied to the phone runs.
+// --only and --mode take one name or a comma list. An unknown name stops the run, so a typo never passes with no cases.
+function pick(list, arg, flag) {
+  if (arg === undefined) return list;
+  const names = String(arg).split(",");
+  const unknown = names.filter((n) => !list.some((x) => x.name === n));
+  if (unknown.length) {
+    console.error(`[check] --${flag}: unknown ${unknown.join(", ")} (one of ${list.map((x) => x.name).join("|")})`);
+    process.exit(2);
+  }
+  return list.filter((x) => names.includes(x.name));
+}
+const RUN_VIEWPORTS = pick(VIEWPORTS, args.only, "only");
+const RUN_MODES = pick(MODES, args.mode, "mode");
+// Lighthouse-style mobile profile, applied to the throttled (phone) viewports.
 const PHONE_THROTTLE = { cpuRate: 4, latency: 150, down: (1.6 * 1024 * 1024) / 8, up: (750 * 1024) / 8 };
 
 const ANIMATION_LIB_SIGNATURES = {
@@ -362,7 +387,7 @@ async function runCase(browser, statsPage, vp, mode) {
     });
   }
 
-  if (vp.name === "phone") await throttle(context, page);
+  if (vp.throttled) await throttle(context, page);
 
   const id = `${vp.name}-${mode.name}`;
   log(`${id}: loading ${targetUrl}`);
@@ -390,7 +415,7 @@ async function runCase(browser, statsPage, vp, mode) {
   for (let i = 0; i <= 10; i++) {
     const max = await page.evaluate(() => document.documentElement.scrollHeight - window.innerHeight);
     await scrollTo(page, Math.round((max * i) / 10));
-    await page.waitForTimeout(vp.name === "phone" ? 1200 : 800);
+    await page.waitForTimeout(vp.throttled ? 1200 : 800);
     const file = `${id}-${String(i * 10).padStart(3, "0")}.png`;
     const shotStart = Date.now();
     const png = await capture(page, join(outDir, file));
@@ -407,6 +432,8 @@ async function runCase(browser, statsPage, vp, mode) {
   return {
     id,
     viewport: vp.name,
+    size: `${vp.width}x${vp.height}`,
+    throttled: vp.throttled,
     mode: mode.name,
     lcpMs: Math.round(load.lcp),
     lcpElement: load.lcpEl,
@@ -428,31 +455,144 @@ async function runCase(browser, statsPage, vp, mode) {
   };
 }
 
-// Functional checks for the shared UI: the Skip link of the first pinned chapter. Below 900 px the
-// chapters don't pin and the link is hidden by design, so there is nothing to check there.
+// Functional checks for the shared UI: the Skip link of every pinned chapter, reached by keyboard as a visitor would.
+// Each link is visually hidden until it takes focus (globals.css `.skip-link`). From the top of the page, Tab must reach
+// the first link (and, after each skip, Tab from its target must reach the next one, in page order); the moment it has
+// focus it must show, with no transition, at the top of its stage with the stage at the top of the window (just below
+// the header), at least 44 px tall and not under anything; Enter must land on its target with focus, just below the
+// header; once focus moves on, the link hides again.
+// Below 900 px the chapters don't pin and the links are not rendered (display: none), so there is nothing to check.
+const MAX_TABS = 80; // Tab presses allowed to reach each Skip link (header, hero and section controls come first)
+
+async function skipLinkState(page, href) {
+  return page.evaluate((href) => {
+    const a = [...document.querySelectorAll(".skip-link")].find((el) => el.getAttribute("href") === href);
+    if (!a) return null;
+    const r = a.getBoundingClientRect();
+    const stage = a.closest(".pin-stage")?.getBoundingClientRect() ?? null;
+    const cs = getComputedStyle(a);
+    const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    const pad = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+    const zero = (list) => list.split(",").every((d) => parseFloat(d) === 0);
+    return {
+      focused: document.activeElement === a,
+      width: Math.round(r.width),
+      height: Math.round(r.height),
+      top: Math.round(r.top),
+      // Distance from the top of the pinned stage; the CSS puts it just below the header (= html's scroll padding).
+      fromStageTop: stage ? Math.round(r.top - stage.top) : null,
+      expectedFromStageTop: Math.round(pad),
+      inView: r.top >= 0 && r.left >= 0 && r.bottom <= window.innerHeight && r.right <= window.innerWidth,
+      onTop: Boolean(hit && (hit === a || a.contains(hit))),
+      clipped: cs.clipPath !== "none",
+      instant: zero(cs.transitionDuration) && cs.animationName === "none",
+    };
+  }, href);
+}
+
+// No small print (owner, 2026-10-22): no footnote markers anywhere in the page's text, hidden text included: no
+// dagger, double dagger or section sign, and no asterisk attached to a word ("five years.*"), and no element left
+// with the old footnote-link class. A qualifier that keeps a claim honest belongs in a plain sentence instead.
+async function footnoteMarks(page) {
+  const hits = await page.evaluate(() => {
+    const out = [];
+    const re = /[\u2020\u2021\u00a7]|\S\*|\*\S/g;
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+      acceptNode: (n) => (n.parentElement?.closest("script,style,noscript,template") ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT),
+    });
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+      const text = n.textContent ?? "";
+      for (const m of text.matchAll(re)) {
+        const at = m.index ?? 0;
+        out.push(`"${text.slice(Math.max(0, at - 24), at + 8).replace(/\s+/g, " ").trim()}" (${n.parentElement?.closest("section")?.id || n.parentElement?.tagName.toLowerCase()})`);
+      }
+    }
+    for (const el of document.querySelectorAll(".footmark")) out.push(`.footmark element "${el.textContent}"`);
+    return out.slice(0, 12);
+  });
+  return { ok: hits.length === 0, problems: hits };
+}
+
 async function interactionChecks(page) {
   const out = {};
-  const skipLink = page.locator(".skip-link").first();
-  if ((await skipLink.count()) > 0 && (await skipLink.isVisible())) {
-    const href = await skipLink.getAttribute("href");
-    const pinTop = await page.evaluate(() => {
-      const el = document.querySelector(".pin");
-      return el ? el.getBoundingClientRect().top + window.scrollY : 0;
-    });
-    await scrollTo(page, Math.round(pinTop + 50));
-    await page.waitForTimeout(800);
-    await skipLink.focus();
+  out.marks = await footnoteMarks(page);
+  const { links, pins, wide } = await page.evaluate(() => ({
+    links: [...document.querySelectorAll(".skip-link")]
+      .filter((a) => getComputedStyle(a).display !== "none")
+      .map((a) => ({ href: a.getAttribute("href"), chapter: a.closest(".pin")?.id ?? null })),
+    pins: document.querySelectorAll(".pin").length,
+    wide: window.innerWidth >= 900,
+  }));
+  if (!links.length) {
+    // A page with pinned chapters must offer their Skip links wherever the chapters can pin.
+    if (pins && wide) out.skip = { ok: false, links: [], problems: [`${pins} pinned chapter(s) but no Skip link rendered`] };
+    return out;
+  }
+
+  // Start from the top of the page with nothing focused, so the first Tab goes to the first control.
+  await scrollTo(page, 0);
+  await page.waitForTimeout(500);
+  await page.evaluate(() => document.activeElement instanceof HTMLElement && document.activeElement.blur());
+
+  const problems = [];
+  const results = [];
+  for (const link of links) {
+    const name = `${link.chapter ? `#${link.chapter}` : "?"} → ${link.href}`;
+    const res = { ...link, tabs: 0 };
+    results.push(res);
+    const before = await skipLinkState(page, link.href);
+    res.hiddenBefore = Boolean(before && !before.focused && before.width <= 1 && before.height <= 1);
+    if (!res.hiddenBefore) problems.push(`${name}: visible before it has focus (${before?.width}x${before?.height} px)`);
+
+    // Tab until this link has focus. Another Skip link first means the tab order skipped this one.
+    let at = null;
+    while (res.tabs < MAX_TABS) {
+      await page.keyboard.press("Tab");
+      res.tabs++;
+      at = await page.evaluate(() => {
+        const a = document.activeElement;
+        return a && a.classList.contains("skip-link") ? a.getAttribute("href") : null;
+      });
+      if (at) break;
+    }
+    res.reached = at === link.href;
+    if (!res.reached) {
+      problems.push(at ? `${name}: Tab reached ${at} first` : `${name}: not reached in ${MAX_TABS} Tab presses`);
+      break; // the rest of the walk would start from the wrong place
+    }
+
+    // Measured at once, in the frame focus arrived: it must already be fully shown.
+    const shown = await skipLinkState(page, link.href);
+    res.shown = shown;
+    const shownProblems = [];
+    if (shown.clipped || shown.width <= 1 || shown.height < 44) shownProblems.push(`not shown on focus (${shown.width}x${shown.height} px)`);
+    if (!shown.instant) shownProblems.push("animates in (transition or animation)");
+    if (!shown.inView) shownProblems.push(`out of view (top ${shown.top} px)`);
+    // PinnedChapter brings the chapter's first screen into view on focus, so the link sits just below the header.
+    else if (Math.abs(shown.top - shown.expectedFromStageTop) > 2) shownProblems.push(`not at the top of the window (top ${shown.top} px, expected ${shown.expectedFromStageTop})`);
+    if (!shown.onTop) shownProblems.push("covered by another element");
+    if (shown.fromStageTop === null || Math.abs(shown.fromStageTop - shown.expectedFromStageTop) > 2)
+      shownProblems.push(`not at the top of its stage (${shown.fromStageTop} px from it, expected ${shown.expectedFromStageTop})`);
+    problems.push(...shownProblems.map((p) => `${name}: ${p}`));
+
+    // Enter: an instant jump to the target, which takes focus just below the fixed header (html's scroll-padding-top).
     await page.keyboard.press("Enter");
     await page.waitForTimeout(800);
-    // The target lands just below the fixed header: html's scroll-padding-top (header height + 16 px).
-    out.skip = await page.evaluate((id) => {
+    res.landed = await page.evaluate((id) => {
       const t = document.getElementById(id);
       const top = t ? t.getBoundingClientRect().top : null;
       const pad = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
       return { targetTop: top === null ? null : Math.round(top), expectedTop: Math.round(pad), focused: document.activeElement?.id === id };
-    }, href.slice(1));
-    out.skip.ok = out.skip.focused && out.skip.targetTop !== null && Math.abs(out.skip.targetTop - out.skip.expectedTop) < 40;
+    }, link.href.slice(1));
+    const { targetTop, expectedTop, focused } = res.landed;
+    if (!focused) problems.push(`${name}: Enter did not move focus to the target`);
+    if (targetTop === null || Math.abs(targetTop - expectedTop) >= 40) problems.push(`${name}: target landed at ${targetTop} px, expected ${expectedTop}`);
+
+    const after = await skipLinkState(page, link.href);
+    res.hiddenAfter = Boolean(after && !after.focused && after.width <= 1 && after.height <= 1);
+    if (!res.hiddenAfter) problems.push(`${name}: still visible after focus moved on`);
   }
+  out.skip = { ok: problems.length === 0, links: results, problems };
   return out;
 }
 
@@ -482,7 +622,7 @@ async function runGateCase(browser, statsPage, vp, mode) {
   page.on("pageerror", (e) => consoleErrors.push(`pageerror: ${e.message}`));
   page.on("requestfailed", (r) => failedRequests.push(`${r.failure()?.errorText} ${r.url()}`));
   page.on("request", (r) => !opening && new URL(r.url()).pathname.startsWith("/stills/") && stillsRequested.push(r.url()));
-  if (vp.name === "phone") await throttle(context, page);
+  if (vp.throttled) await throttle(context, page);
 
   const id = `gate-${vp.name}-${mode.name}`;
   log(`${id}: loading ${targetUrl} without the NDA cookie`);
@@ -511,7 +651,7 @@ async function runGateCase(browser, statsPage, vp, mode) {
     steps.push(fillStep(await imageStats(statsPage, png), pct, file));
   };
   const active = () => page.evaluate(() => document.activeElement?.getAttribute("data-nda") ?? document.activeElement?.id ?? "");
-  const settle = () => page.waitForTimeout(vp.name === "phone" ? 900 : 500);
+  const settle = () => page.waitForTimeout(vp.throttled ? 900 : 500);
 
   await shoot("1-ask", 0);
   // Keyboard only from here: Tab to Yes, then Not yet, its message, Back, and back to Yes.
@@ -601,6 +741,8 @@ async function runGateCase(browser, statsPage, vp, mode) {
   return {
     id,
     viewport: vp.name,
+    size: `${vp.width}x${vp.height}`,
+    throttled: vp.throttled,
     mode: mode.name,
     lcpMs: Math.round(load.lcp),
     lcpElement: load.lcpEl,
@@ -681,9 +823,10 @@ function evaluate(results) {
     if (r.blankSteps.length) failures.push(`${r.id}: blank frames at ${r.blankSteps.join(", ")}%`);
     if (r.overflowX) failures.push(`${r.id}: horizontal overflow`);
     if (r.clsAfterScroll > BUDGET.cls) failures.push(`${r.id}: CLS ${r.clsAfterScroll} > ${BUDGET.cls}`);
-    if (r.viewport === "phone" && r.lcpMs > BUDGET.lcpMs) failures.push(`${r.id}: LCP ${r.lcpMs} ms > ${BUDGET.lcpMs} ms`);
+    if (r.throttled && r.lcpMs > BUDGET.lcpMs) failures.push(`${r.id}: LCP ${r.lcpMs} ms > ${BUDGET.lcpMs} ms`);
     if (r.sceneState === "webgl" && r.sceneStd !== null && r.sceneStd < 2) failures.push(`${r.id}: 3D scene looks blank`);
-    if (r.interactions?.skip && !r.interactions.skip.ok) failures.push(`${r.id}: Skip link did not land on its target with focus`);
+    if (r.interactions?.skip && !r.interactions.skip.ok) failures.push(`${r.id}: Skip links: ${r.interactions.skip.problems.join("; ")}`);
+    if (r.interactions?.marks && !r.interactions.marks.ok) failures.push(`${r.id}: footnote markers: ${r.interactions.marks.problems.join("; ")}`);
     if (r.interactions?.gate && !r.interactions.gate.ok) failures.push(`${r.id}: gate: ${r.interactions.gate.problems.join("; ")}`);
     if (r.fillSteps.length) failures.push(`${r.id}: fill rule broken at ${r.fillSteps.join("; ")}`);
   }
@@ -693,12 +836,13 @@ function evaluate(results) {
 function markdown(results, failures, server = []) {
   const rows = results.map(
     (r) =>
-      `| ${r.id} | ${r.lcpMs} (${r.lcpElement || "?"}) | ${r.clsAfterScroll} | ${r.longFrames}/${r.frames} (worst ${r.worstFrameMs} ms) | ${r.sceneState ?? "-"} (${r.sceneStd ?? "-"}) | ${r.interactions?.skip ? (r.interactions.skip.ok ? "ok" : "FAIL") : r.interactions?.gate ? (r.interactions.gate.ok ? "gate ok" : "gate FAIL") : "-"} | ${r.consoleErrors.length} | ${r.blankSteps.length ? r.blankSteps.join(",") : "none"} | ${r.fillSteps.length ? r.fillSteps.length : "ok"} |`,
+      `| ${r.id} | ${r.lcpMs} (${r.lcpElement || "?"}) | ${r.clsAfterScroll} | ${r.longFrames}/${r.frames} (worst ${r.worstFrameMs} ms) | ${r.sceneState ?? "-"} (${r.sceneStd ?? "-"}) | ${r.interactions?.skip ? (r.interactions.skip.ok ? `ok (${r.interactions.skip.links.length}, by Tab)` : "FAIL") : r.interactions?.gate ? (r.interactions.gate.ok ? "gate ok" : "gate FAIL") : "-"}${r.interactions?.marks ? (r.interactions.marks.ok ? "; no markers" : "; markers FAIL") : ""} | ${r.consoleErrors.length} | ${r.blankSteps.length ? r.blankSteps.join(",") : "none"} | ${r.fillSteps.length ? r.fillSteps.length : "ok"} |`,
   );
   return [
     `# Check report: ${targetUrl}`,
     "",
-    `Run at ${new Date().toISOString()}. Phone runs use 4x CPU slowdown, 150 ms RTT, 1.6 Mbps.`,
+    `Run at ${new Date().toISOString()}. Viewports: ${[...new Set(results.map((r) => `${r.viewport} ${r.size}`))].join(", ")}.`,
+    `Throttled runs (${VIEWPORTS.filter((v) => v.throttled).map((v) => v.name).join(", ")}) use 4x CPU slowdown, 150 ms RTT, 1.6 Mbps and are held to the ${BUDGET.lcpMs} ms LCP budget; every run to CLS ${BUDGET.cls}.`,
     "Long frames are measured in headless Chromium with software WebGL, so treat them as a smoke signal, not a device measurement.",
     "",
     "| Case | LCP ms (element) | CLS | Long frames >50 ms | Scene (contrast) | Skip link / gate | Console errors | Blank steps | Fill rule |",
@@ -732,8 +876,8 @@ async function main() {
   const results = [];
   let serverChecks = [];
   try {
-    for (const vp of VIEWPORTS.filter((v) => !args.only || v.name === args.only)) {
-      for (const mode of MODES.filter((m) => !args.mode || m.name === args.mode)) {
+    for (const vp of RUN_VIEWPORTS) {
+      for (const mode of RUN_MODES) {
         const browser = await launchBrowser();
         try {
           const statsPage = await (await browser.newContext()).newPage();

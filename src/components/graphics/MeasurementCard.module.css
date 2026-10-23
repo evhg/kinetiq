@@ -219,11 +219,14 @@
   text-align: right;
   white-space: nowrap;
 }
+/* the tolerance under a value (Weight, Balance, Max surface deviation): set tight to its value, so the three limits
+   add little to the card's height */
 .limit {
   display: block;
-  margin-top: 0.02em;
+  margin-top: -0.1em;
   font-size: var(--fs-small);
   font-weight: 400;
+  line-height: 1.05;
   color: var(--ink-soft);
 }
 
@@ -352,6 +355,15 @@
   }
   .side {
     gap: 0.35em;
+  }
+  /* dense (the /reserve gallery's set of two on phones): a little tighter again, so the front card stays near A6 */
+  .root[data-dense] .card {
+    --pad: 5.2cqw;
+    --title-gap: 0.35em;
+    --meta-gap: 0.2em;
+    --rows-gap: 0.45em;
+    --row-pad: 0.1em;
+    --foot-gap: 0.4em;
   }
 }
 

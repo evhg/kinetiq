@@ -36,9 +36,6 @@
   gap: clamp(18px, 1.2vw + 8px, 36px);
   max-width: min(38vw, 860px);
 }
-.copy :global(.t-body) {
-  font-size: clamp(1.125rem, 0.5vw + 0.95rem, 1.375rem);
-}
 .stats {
   display: flex;
   gap: clamp(28px, 3vw, 88px);
@@ -64,25 +61,61 @@
   padding: clamp(80px, 7vw, 200px) var(--margin) clamp(8px, 1vw, 32px);
 }
 
+/* The band's top and foot fade from its own --stage, the floor of the sections around it, so the bright weave
+   never ends on a line. The fades are fixed to the band, over the parallaxed media (z-index -2) and under the words:
+   the scrub moves the image under them but can never move its edge into view. */
+@media (min-width: 700px) {
+  .band::before,
+  .band::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: -1;
+    height: 15%;
+    pointer-events: none;
+  }
+  .band::before {
+    top: 0;
+    background: linear-gradient(var(--stage), transparent);
+  }
+  .band::after {
+    bottom: 0;
+    background: linear-gradient(transparent, var(--stage));
+  }
+}
+
 @media (max-width: 699px) {
+  /* The stats and the drilled-vs-moulded pair they introduce stay one chapter: about 80 px between them (the band's
+     foot and the pair's top), under the breaks between chapters. The 4vw at the top, the band's own flat --stage, is
+     more than the scrub's 3% lift of the frame (3.75vw), so the band never clips the frame's top feather. */
   .band {
     display: flex;
     flex-direction: column;
     gap: 32px;
     min-height: 0;
-    padding-top: 0;
+    padding-top: 4vw;
+    padding-bottom: 48px;
   }
+  /* The frame feathers at both ends (it is in the flow here, so the scrub's ±3% moves the mask with it): it rises out
+     of the graph section's floor and fades out above the headline, never a straight edge. The lit hole spans about
+     30% to 67% of the frame, clear of both feathers. */
   .media {
     position: relative;
     inset: auto;
     width: 100vw;
     margin-inline: calc(var(--margin) * -1);
     aspect-ratio: 4 / 5;
+    -webkit-mask-image: linear-gradient(transparent, #000 14%, #000 86%, transparent);
+    mask-image: linear-gradient(transparent, #000 14%, #000 86%, transparent);
   }
   .media::after {
     content: none;
   }
   .copy {
     max-width: none;
+  }
+  .pair {
+    padding-top: 32px;
   }
 }

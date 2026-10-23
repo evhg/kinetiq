@@ -10,7 +10,8 @@ import { Hero } from "@/components/landing/Hero";
 import { Holes } from "@/components/landing/Holes";
 import { Identical } from "@/components/landing/Identical";
 import { Precision } from "@/components/landing/Precision";
-import { SpecStrip } from "@/components/landing/SpecStrip";
+import { Specifications } from "@/components/landing/Specifications";
+import { SweetSpot } from "@/components/landing/SweetSpot";
 import { Unibody } from "@/components/landing/Unibody";
 import { meta } from "@/content/copy";
 import { productMetadata } from "@/lib/product-metadata";
@@ -22,15 +23,20 @@ export default function Home() {
   return (
     <>
       <SiteHeader compactCta />
+      {/* Three movements, one idea per screen (DESIGN.md "Page"): meet it, prove it, choose it. */}
       <main id="main">
+        {/* Meet it: what the racket does for you, then why. */}
         <Hero />
-        <SpecStrip />
+        <SweetSpot />
         <Unibody />
+        <Feel />
+        {/* Prove it: how it is made, how exact, how long it lasts, then the whole drawing as the recap. */}
         <BornWhole />
         <Precision />
         <Holes />
         <Durability />
-        <Feel />
+        <Specifications />
+        {/* Choose it: sameness, feel, edition. */}
         <Identical />
         <ChooseFeel />
         <Editions />

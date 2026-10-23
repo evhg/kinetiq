@@ -113,32 +113,6 @@ img {
   outline-offset: 4px;
   border-radius: 2px;
 }
-/* Footnote marker: a five-year line's link to its usage profile (CLAIMS.md row 26), at its line's size. */
-.footmark {
-  margin-left: 0.04em;
-  color: var(--amber-hot);
-  text-decoration: none;
-}
-/* a dagger in running text reads as a stray glyph at full size: raised and tight to the full stop, like the hero's
-   asterisk, and never below 15 px */
-.footmark-raised {
-  margin-left: 0.02em;
-  font-size: max(15px, 0.78em);
-  line-height: 0;
-  vertical-align: 0.38em;
-}
-/* in a headline, a raised half-size mark (still well above 15 px) */
-h2 .footmark {
-  margin-left: 0.06em;
-  font-size: 0.5em;
-  line-height: 0;
-  vertical-align: 0.8em;
-}
-@media (hover: hover) and (pointer: fine) {
-  .footmark:hover {
-    color: var(--text);
-  }
-}
 /* Arriving from the NDA gate (html[data-arrive], head script in lib/motion-preference.ts): the first frame is painted
    under the same void the gate faded into, which then lifts, so leaving and arriving read as one move. It sits under
    the fixed header (z-index 30), whose wordmark holds the place the gate's did. /reserve holds the veil while its
@@ -385,6 +359,10 @@ html[data-arrive]:has([data-reserve-shell])::after {
 .pin-stage {
   position: relative;
 }
+/* The Skip link is for keyboard users only: visually hidden (still in the tab order and the accessibility tree) until
+   it takes focus, then shown at once at the top of the pinned stage, just below the header (PinnedChapter brings the
+   chapter's first screen into view on focus). No transition: it answers a keypress, so it jumps. Mouse and touch
+   visitors never see it; every pin ends on its own. scripts/check.mjs reaches each one by Tab. */
 .skip-link {
   position: absolute;
   z-index: 5;
@@ -394,20 +372,23 @@ html[data-arrive]:has([data-reserve-shell])::after {
   align-items: center;
   min-height: 44px;
   padding: 0 16px;
-  border: 1px solid var(--hairline);
+  border: 1px solid var(--edge);
   border-radius: 4px;
-  background: rgb(6 6 7 / 0.6);
-  color: var(--steel);
+  background: rgb(6 6 7 / 0.85);
+  color: var(--text);
   font-family: var(--font-data);
   font-size: 1rem;
   text-decoration: none;
-  transition: border-color 200ms ease, color 200ms ease;
 }
-@media (hover: hover) and (pointer: fine) {
-  .skip-link:hover {
-    color: var(--text);
-    border-color: var(--edge);
-  }
+.skip-link:not(:focus) {
+  width: 1px;
+  height: 1px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 .beat {
   position: relative;

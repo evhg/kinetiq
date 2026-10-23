@@ -34,7 +34,7 @@ export function Holes() {
           <h2 id="holes-title" className="t-h2">
             {holes.headline}
           </h2>
-          <p className="t-body">{holes.body}</p>
+          <p className="t-lead">{holes.body}</p>
           <dl className={styles.stats}>
             {holes.stats.map((s) => (
               <div key={s.label} className={styles.stat}>

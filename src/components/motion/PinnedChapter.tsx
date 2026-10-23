@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, type CSSProperties, type MouseEvent, type ReactNode } from "react";
+import { useRef, type CSSProperties, type FocusEvent, type MouseEvent, type ReactNode } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { useMotion } from "./MotionProvider";
 
@@ -22,8 +22,9 @@ type Props = {
 };
 
 /**
- * A pinned, scrubbed chapter with a visible Skip link. With motion off it is a
- * normal section: no pin, no scrub, and the CSS shows the final state.
+ * A pinned, scrubbed chapter with a Skip link that appears on keyboard focus (globals.css `.skip-link`: visually
+ * hidden until it takes focus, then shown at once at the top of the stage). With motion off it is a normal section:
+ * no pin, no scrub, and the CSS shows the final state.
  */
 export const PIN_MEDIA = "(min-width: 900px) and (prefers-reduced-motion: no-preference)";
 
@@ -69,6 +70,19 @@ export function PinnedChapter({ id, nextId, labelledBy, className = "", length =
     history.replaceState(null, "", `#${nextId}`);
   };
 
+  // The link only shows on keyboard focus (globals.css), at the top of the stage. If the stage is not at the top of
+  // the window (the chapter is still below, or already behind), jump to the chapter's first screen, so the link
+  // appears just below the header with the chapter opening behind it instead of at the foot of the window. Instant,
+  // like the skip itself; the browser's own focus scroll then has nothing left to do.
+  const reveal = (e: FocusEvent<HTMLAnchorElement>) => {
+    const section = root.current;
+    const stage = e.currentTarget.parentElement;
+    if (!section || !stage || Math.abs(stage.getBoundingClientRect().top) < 1) return;
+    const y = Math.round(section.getBoundingClientRect().top + window.scrollY);
+    if (window.__lenis) window.__lenis.scrollTo(y, { immediate: true, force: true });
+    else window.scrollTo({ top: y, behavior: "instant" });
+  };
+
   return (
     <section
       ref={root}
@@ -80,7 +94,7 @@ export function PinnedChapter({ id, nextId, labelledBy, className = "", length =
       data-motion-on={motionOn}
     >
       <div className="pin-stage">
-        <a className="skip-link" href={`#${nextId}`} onClick={skip}>
+        <a className="skip-link" href={`#${nextId}`} onClick={skip} onFocus={reveal}>
           Skip this chapter
         </a>
         {children}

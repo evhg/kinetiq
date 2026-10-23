@@ -12,8 +12,11 @@
 .intro :global(.t-h2) {
   max-width: 22ch;
 }
+/* Raised (z-index 1): Editions, an isolated section painted after this one, spreads its intro light upward over the
+   foot of this section; it passes under the words here, never over them. */
 .stage {
   position: relative;
+  z-index: 1;
   isolation: isolate;
 }
 .wide {
@@ -33,16 +36,70 @@
 .phoneMedia {
   aspect-ratio: 4 / 5;
   overflow: hidden;
+  /* the frame's lit backdrop rises out of the floor instead of starting on a line, and its vignette fades back into
+     it above the name: 20 px stays above the crown, which starts about 30 px down, and the foot feather starts at
+     86%, below the butt cap (about 79% of the frame) */
+  -webkit-mask-image: linear-gradient(transparent, #000 20px, #000 86%, transparent);
+  mask-image: linear-gradient(transparent, #000 20px, #000 86%, transparent);
+}
+/* the name and purpose, the photo's caption: the name in display type, "Built for control" in steel at lead size */
+.tag {
+  display: grid;
+  justify-items: center;
+  gap: clamp(6px, 0.5vw, 14px);
+  text-align: center;
+  padding: 24px var(--margin) 0;
+}
+.sub {
+  color: var(--steel);
 }
 .text {
   display: grid;
   justify-items: center;
   gap: clamp(8px, 0.6vw, 16px);
   text-align: center;
-  padding: 24px var(--margin) 40px;
+  padding: 16px var(--margin) 40px;
 }
-.text :global(.t-lead) {
-  max-width: 28ch;
+.text .line {
+  max-width: 32ch;
+  text-wrap: balance;
+}
+/* Four ruled rows, label then value, set left inside the centred column so the two feels read across. */
+.rows {
+  display: grid;
+  width: min(100%, 38rem);
+  margin: clamp(12px, 1.2vw, 32px) 0 0;
+  text-align: left;
+  border-bottom: 1px solid var(--hairline);
+}
+.row {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  gap: 16px;
+  align-items: baseline;
+  padding: clamp(12px, 0.8vw + 4px, 22px) 0;
+  border-top: 1px solid var(--hairline);
+}
+.label {
+  color: var(--muted);
+}
+.value {
+  margin: 0;
+  font-size: var(--fs-body);
+  line-height: 1.4;
+  color: var(--steel);
+  text-wrap: balance;
+}
+/* One line across both feels, under a hairline: only the core and the face differ. */
+.closing {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  padding: 8px var(--margin) clamp(72px, 6vw, 160px);
+}
+.closing :global(.t-lead) {
+  max-width: 52ch;
+  color: var(--text);
 }
 .name {
   font-family: var(--font-display);
@@ -58,7 +115,7 @@
 
 /* Wide: one 16:9 K08 frame (both rackets) with the words below each racket. The butt caps sit at 77% of
    the still, which covers the frame centred (height max(frame, 56.25vw)), so the words start at least
-   48 px under the caps and run on below the frame; its foot fades into the floor. */
+   48 px under the caps and run on below the frame; its top rises out of the floor and its foot fades into it. */
 @media (min-width: 700px) {
   .stage {
     --frame-h: max(480px, min(56.25vw, 100svh));
@@ -75,15 +132,21 @@
     height: var(--frame-h);
     z-index: -1;
     overflow: hidden;
-    -webkit-mask-image: linear-gradient(#000 82%, transparent);
-    mask-image: linear-gradient(#000 82%, transparent);
+    /* both ends feather: the top over at most 64 px, which ends above the racket heads (about 11% down) */
+    -webkit-mask-image: linear-gradient(transparent, #000 min(8%, 64px), #000 82%, transparent);
+    mask-image: linear-gradient(transparent, #000 min(8%, 64px), #000 82%, transparent);
   }
+  /* The two columns share six rows (the name tag, the line and the four ruled rows) through subgrid, so each ruled
+     row sits level with its counterpart and reads across, even where one feel's words run to more lines. The name
+     tag sits directly under its racket's cap, so the photo and the names are seen together. */
   .panels {
     grid-template-columns: 1fr 1fr;
+    grid-template-rows: repeat(6, auto);
   }
   .panel {
-    align-content: start;
-    padding-top: calc(var(--butt-y) + clamp(48px, 3.4vw, 96px));
+    grid-row: span 6;
+    grid-template-rows: subgrid;
+    padding-top: calc(var(--butt-y) + clamp(20px, 1.6vw, 44px));
   }
   .panel + .panel {
     border-left: 1px solid rgb(255 255 255 / 0.08);
@@ -91,12 +154,37 @@
   .phoneMedia {
     display: none;
   }
-  .text {
-    gap: clamp(4px, 0.4vw, 12px);
-    padding: 0 var(--margin) clamp(56px, 3vw, 96px);
+  .tag {
+    padding: 0 var(--margin);
   }
-  .text :global(.t-lead) {
-    max-width: 40ch;
+  .text {
+    grid-row: span 5;
+    grid-template-rows: subgrid;
+    row-gap: clamp(4px, 0.4vw, 12px);
+    align-items: start;
+    padding: clamp(20px, 1.6vw, 44px) var(--margin) clamp(40px, 2.4vw, 80px);
+  }
+  /* The character line takes the ruled rows' box and alignment, so the two columns read as one grid: both lines
+     start on the labels' left edge and run the same measure. */
+  .text .line {
+    width: min(100%, 38rem);
+    max-width: none;
+    text-align: left;
+    text-wrap: pretty;
+  }
+  .rows {
+    grid-row: span 4;
+    grid-template-rows: subgrid;
+    row-gap: 0;
+  }
+  /* the hairline runs the width of the content, closing the two columns like the foot of a table */
+  .closing {
+    margin-inline: var(--margin);
+    padding: clamp(28px, 2.4vw, 64px) 0 clamp(72px, 6vw, 160px);
+    border-top: 1px solid var(--hairline);
+  }
+  .closing :global(.t-lead) {
+    max-width: 64ch;
   }
   .name {
     font-size: clamp(2.25rem, 2.6vw + 0.5rem, 5rem);

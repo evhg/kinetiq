@@ -21,6 +21,8 @@ export const ndaCopy = {
     submit: "Open the presentation",
     busy: "Opening",
     note: "Your email is kept in a cookie on this device, so you only do this once.",
+    /** Shown instead of `note` while sign-in emails to the owner are switched on (src/lib/nda-notify.ts). */
+    noteRecorded: "We note your email for our NDA records and keep it in a cookie on this device, so you only do this once.",
     invalid: "Enter a valid email address.",
     failed: "The presentation did not open. Please try again.",
     blocked: "This browser did not keep the cookie. Allow cookies for this site, then try again.",

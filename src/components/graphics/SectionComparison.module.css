@@ -282,6 +282,11 @@
   text-align: right;
   translate: -100% 0;
 }
+/* one label for two features: its leaders fan out from the middle of the shelf */
+.label[data-side="centre"] {
+  text-align: center;
+  translate: -50% 0;
+}
 
 /* ---------- pair (lab and simple placements) ---------- */
 .pair {

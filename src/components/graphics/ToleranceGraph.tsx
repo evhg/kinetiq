@@ -18,6 +18,8 @@ export const LABELS = {
   limitBottom: `${MINUS}${precision.graph.limitLabel}`,
   summary:
     "Illustrative graph. Along the full 455 mm of the racket, the KINETIQ surface stays inside the plus or minus 15 micron limit. For scale, a human hair is 70 microns and a sheet of paper 100 microns.",
+  /** A scale reference's label: "Human hair, 70 µm thick". */
+  reference: (label: string, um: number) => `${label}, ${um} µm thick`,
 };
 
 const um = (v: number) => (v > 0 ? `+${v}` : v < 0 ? `${MINUS}${Math.abs(v)}` : "0");
@@ -136,15 +138,13 @@ export function ToleranceGraph({ className, caption = true }: Props) {
             <line className={styles.axis} x1="0" x2={VB} y1={VB} y2={VB} />
           </svg>
 
-          {/* Scale references, mirrored: a hair's (or a sheet's) thickness away from the design
-              surface in either direction. Labelled once, on the upper line. */}
+          {/* Scale references: one line each, a hair's (or a sheet's) thickness above the design
+              surface, labelled with that thickness. Never mirrored below zero: an unlabelled line
+              there reads as data, and the pair as a "±70 µm" hair. */}
           {refs.map((r) => (
             <div key={r.label} className={styles.ref} style={{ top: pct(Y(r.um)) }} data-ref>
-              <span className={styles.refLabel}>{`${r.label}, ${r.um} µm`}</span>
+              <span className={styles.refLabel}>{LABELS.reference(r.label, r.um)}</span>
             </div>
-          ))}
-          {refs.map((r) => (
-            <div key={`${r.label}-low`} className={styles.ref} style={{ top: pct(Y(-r.um)) }} data-ref />
           ))}
 
           <div

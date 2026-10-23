@@ -8,18 +8,36 @@
   gap: clamp(40px, 4vw, 112px);
   padding: clamp(56px, 5vw, 160px) var(--margin) clamp(96px, 8vw, 220px);
 }
-/* a soft light behind the title, fading out inside its own box, so the band above the cards is lit */
-.title {
+/* The headline and its lead, centred over the cards, with a soft light behind them that fades out inside its own
+   box, so the band above the cards is lit. */
+.intro {
   position: relative;
+  display: grid;
+  justify-items: center;
+  gap: clamp(16px, 1.2vw, 32px);
   text-align: center;
 }
-.title::before {
+.intro::before {
   content: "";
   position: absolute;
   z-index: -1;
-  inset: -140% 0%;
+  inset: -70% 0%;
   background: radial-gradient(closest-side, rgb(60 60 66), rgb(48 48 54 / 0.9) 45%, rgb(34 34 39 / 0.4) 75%, transparent);
   pointer-events: none;
+}
+.title {
+  max-width: 22ch;
+  text-wrap: balance;
+}
+/* a clause wraps inside itself only where it is wider than the screen (phones: "We make / one racket, / in three
+   editions.") */
+.clause {
+  display: inline-block;
+}
+.lead {
+  max-width: 50ch;
+  color: var(--steel);
+  text-wrap: pretty;
 }
 .cards {
   display: grid;
@@ -79,13 +97,11 @@ a.card:active {
   letter-spacing: -0.01em;
   line-height: 1.1;
 }
+/* the availability tags, all in the amber family: a tag, never a control (the card already ends in its arrow) */
 .status {
   font-size: clamp(1rem, 0.3vw + 0.9rem, 1.25rem);
-  color: var(--text);
-  white-space: nowrap;
-}
-.status[data-tier="limited"] {
   color: var(--amber);
+  white-space: nowrap;
 }
 /* The top tier, by invitation: a warm, static mark of rank (never a hover or pressed state). */
 .status[data-tier="invite"] {
@@ -140,22 +156,11 @@ a.card:active {
   align-items: start;
   text-wrap: pretty;
 }
-/* the footnote marker after the design life, at the line's own size (never below 15 px) */
-.mark {
-  color: var(--amber-hot);
-}
-/* a double dagger reads as a stray glyph at full size: raised, tight to the word, still 15 px or more */
-.raised {
-  margin-left: 0.04em;
-  font-size: max(15px, 0.78em);
-  line-height: 0;
-  vertical-align: 0.38em;
-}
 .includeIcon {
   margin-top: 0.15em;
   color: var(--amber);
 }
-/* InviQtus: by invitation, not a link. It says so where the arrow sits on the other two cards. */
+/* One of Ten: by invitation, not a link. It says so where the arrow sits on the other two cards. */
 .byInvite {
   font-size: clamp(1rem, 0.3vw + 0.9rem, 1.25rem);
   color: var(--text);
@@ -179,35 +184,6 @@ a.card:active {
   font-family: var(--font-data);
   font-size: clamp(1rem, 0.25vw + 0.95rem, 1.25rem);
 }
-/* the fine print, once under the three cards: the design life, then the InviQtus guarantee, one line each */
-.notes {
-  position: relative;
-  display: grid;
-  gap: 8px;
-  margin-top: calc(clamp(40px, 4vw, 112px) * -0.4);
-}
-/* a soft pool under the fine print, so the band between the cards and the finale keeps a lit floor (fill rule);
-   dim enough at its centre (luma 48) that the muted fine print keeps 5:1 */
-.notes::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  inset: -70% 4%;
-  background: radial-gradient(closest-side, rgb(48 48 54), rgb(43 43 48) 40%, rgb(30 30 34 / 0.5) 75%, transparent);
-  pointer-events: none;
-}
-.fine {
-  max-width: 76ch;
-  margin-inline: auto;
-  color: var(--muted);
-  font-size: clamp(0.9375rem, 0.2vw + 0.9rem, 1.125rem);
-  line-height: 1.55;
-  text-align: center;
-  text-wrap: pretty;
-}
-.fineHead {
-  color: var(--steel);
-}
 @media (hover: hover) and (pointer: fine) {
   a.card:hover {
     border-color: var(--edge);
@@ -224,8 +200,10 @@ a.card:active {
     text-decoration-color: var(--steel);
   }
 }
-/* Phones: the status sits above the name as an eyebrow, so the header stays one composed block. */
-@media (max-width: 479px) {
+/* Phones, and three narrow cards (900 to 1279 px, where the glyph, "One of Ten" and "Invite Only" no longer fit on one
+   line and the head overflowed its card): the status sits above the name as an eyebrow, so the header stays one
+   composed block. */
+@media (max-width: 479px), (min-width: 900px) and (max-width: 1279px) {
   .head {
     grid-template-columns: auto 1fr;
     grid-template-areas: "glyph status" "glyph name";
@@ -239,6 +217,50 @@ a.card:active {
   }
   .status {
     grid-area: status;
+  }
+}
+/* Three across: the cards share six rows through subgrid (the image, the name, the card line, the includes, One of
+   Ten's invitation note, the price foot), so each card's includes start on one line across the row and the feet stay
+   level, however many lines a card line takes. The body keeps its padding as a subgrid (it adds to the edge rows of
+   every card alike). */
+@media (min-width: 900px) {
+  .cards {
+    grid-template-rows: auto auto auto auto 1fr auto;
+    row-gap: 0;
+  }
+  .item,
+  .card {
+    grid-row: 1 / -1;
+    grid-template-rows: subgrid;
+  }
+  .card {
+    row-gap: 0;
+  }
+  .body {
+    grid-row: 2 / -1;
+    display: grid;
+    grid-template-rows: subgrid;
+    row-gap: clamp(12px, 0.8vw, 20px);
+  }
+  .head {
+    grid-row: 1;
+  }
+  .line {
+    grid-row: 2;
+  }
+  .includes {
+    grid-row: 3;
+    align-self: start;
+  }
+  .inviteLink,
+  .inviteSoon {
+    grid-row: 4;
+    align-self: start;
+    justify-self: start;
+  }
+  .foot {
+    grid-row: 5;
+    margin-top: 0;
   }
 }
 @media (max-width: 899px) {
@@ -255,5 +277,46 @@ a.card:active {
   }
   .item {
     scroll-snap-align: start;
+  }
+}
+/* Tablets in portrait: a card 62% of the track (about 340 to 505 px, 57vw: Editions.tsx sizes), so a square frame and
+   the price under it fit one screen (the whole card does from 600 x 960 up), and the next card peeks in from the right.
+   The head (glyph, name, status) still fits one row at 600 px. */
+@media (min-width: 600px) and (max-width: 899px) {
+  .cards {
+    grid-auto-columns: 62%;
+  }
+}
+/* Phones and tablets: square frames, and the price right under the name (image, name, price and arrow, then the line
+   and the includes), so a card's image and its price are on one screen together; the spare height of the equal cards
+   falls at their foot. The One of Ten case (K09, 16 to 82% of its 4:5 render) stays whole in the window the square keeps
+   (7.5 to 87.5%). KINETIQ's single racket (K11-single, 10 to 83% of its 4:5 crop) and the First 500 pair (10 to 85%),
+   which a square would crop to crown and cap, are shown whole instead, with air above and below, their sides
+   feathered into the frame's --stage (the single racket spans 25 to 75% of its crop's width, the pair about 21 to 79%). */
+@media (max-width: 899px) {
+  .media {
+    aspect-ratio: 1 / 1;
+  }
+  .still img {
+    object-position: 50% 37.5%;
+  }
+  .card[data-tier="reserve"] .still img {
+    object-fit: contain;
+    -webkit-mask-image: linear-gradient(90deg, transparent 10%, #000 20%, #000 80%, transparent 90%);
+    mask-image: linear-gradient(90deg, transparent 10%, #000 20%, #000 80%, transparent 90%);
+  }
+  .card[data-tier="limited"] .still img {
+    object-fit: contain;
+    -webkit-mask-image: linear-gradient(90deg, transparent 10%, #000 18%, #000 82%, transparent 90%);
+    mask-image: linear-gradient(90deg, transparent 10%, #000 18%, #000 82%, transparent 90%);
+  }
+  .head {
+    order: -2;
+  }
+  .foot {
+    order: -1;
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
   }
 }

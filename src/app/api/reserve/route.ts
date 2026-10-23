@@ -1,16 +1,30 @@
-import { deliveryCountryCodes, invitesOpen, orderLine, tierById } from "@/content/lineup";
+import { deliveryCountryCodes, orderLine, plainText, tierById } from "@/content/lineup";
 import { feels, isFeelId } from "@/content/site";
-import { STRIPE_API, STRIPE_VERSION, cleanCode, countPaid, inviteCodes, inviteUses, logStripeError } from "@/lib/stripe-server";
+import {
+  STRIPE_API,
+  STRIPE_VERSION,
+  cleanCode,
+  countPaid,
+  inviteCodes,
+  invitationsOpen,
+  inviteUses,
+  logStripeError,
+} from "@/lib/stripe-server";
 
 // "Place Reservation": creates a Stripe PaymentIntent for the chosen tier and returns its
 // client secret. The browser then confirms the card in place with Stripe's Payment Element.
 // The amount always comes from src/content/lineup.ts, never from the browser.
 //
 // Env: STRIPE_SECRET_KEY (server) and NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY (browser).
-// INVITE_CODES (comma-separated): the Invite Only tier needs one of them, checked here again whatever
-// the page unlocked (/api/invite). Without codes, or before INVITE_TERMS_READY (lineup.ts), that tier
-// stays closed (403). A code reserves one set only, and InviQtus is never sold when Stripe cannot count
-// (its ten sets and ten coaching sessions are a fixed commitment).
+// INVITE_CODES (comma-separated, 12 characters or more): the Invite Only tier needs one of them, checked here again
+// whatever the page unlocked (/api/invite). Without codes, before INVITE_TERMS_READY (lineup.ts), or while
+// INVITE_ONE_USE_ENFORCED (stripe-server.ts) is false, that tier stays closed (403): the one-use check below runs on
+// Search, which lags, so it cannot yet stop two payments started with one code at once. A code reserves one set
+// only, and One of Ten is never sold when Stripe cannot count (its ten sets and ten coaching sessions are a fixed
+// commitment).
+//
+// Every PaymentIntent carries a reference, "KQ-" and 8 hex characters, in its description and metadata[reference]:
+// it prints on Stripe's receipt, the confirmation shows it, and the owner finds the payment by it.
 // Without STRIPE_SECRET_KEY the route answers 503 { preview: true }.
 //
 // Stripe requests pin STRIPE_VERSION (src/lib/stripe-server.ts).
@@ -29,6 +43,10 @@ type Body = {
 };
 
 const clean = (v: unknown, max = 200) => (typeof v === "string" ? v.trim().slice(0, max) : "");
+const sha256hex = async (s: string) =>
+  Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s))), (b) =>
+    b.toString(16).padStart(2, "0"),
+  ).join("");
 const START_FAILED = "Payment could not start. Nothing was charged. Please try again.";
 const NOT_CONFIRMED = "We could not confirm that this set is still available. Nothing was charged. Please try again in a minute.";
 
@@ -71,10 +89,11 @@ export async function POST(request: Request) {
     return Response.json({ error: `Please check your ${missing.join(", ")}.`, fields: missing }, { status: 400 });
   }
 
-  // Invite Only fails closed: no paperwork or no configured codes means no invitations yet.
+  // Invite Only fails closed: no paperwork, no valid configured codes or no atomic one-use check means no invitations
+  // yet (invitationsOpen, stripe-server.ts).
   let invite = "";
   if (tier.id === "invite") {
-    if (!invitesOpen(process.env.INVITE_CODES)) {
+    if (!invitationsOpen()) {
       return Response.json({ error: "Invitations open soon.", fields: ["invite"] }, { status: 403 });
     }
     invite = cleanCode(body.invite);
@@ -89,7 +108,7 @@ export async function POST(request: Request) {
   }
 
   // Numbered editions stop at their limit: one PaymentIntent per set, plus the sets promised off the site.
-  // If Stripe cannot count, VanQuish still sells (an outage must not block sales); InviQtus never does.
+  // If Stripe cannot count, First 500 still sells (an outage must not block sales); One of Ten never does.
   if (tier.limit !== null) {
     const paid = await countPaid(key, `metadata["tier"]:"${tier.id}"`);
     if (paid === null) {
@@ -113,19 +132,28 @@ export async function POST(request: Request) {
     currency: "eur",
     "allowed_payment_method_types[0]": "card",
     receipt_email: email,
-    // "KINETIQ reservation: VanQuish, two Command rackets": a set is one feel, never a mixed pair.
-    description: `KINETIQ reservation: ${orderLine(tier, feels[feel].name)}`,
     "shipping[name]": name,
     "shipping[address][line1]": address.line1,
     "shipping[address][postal_code]": address.postal_code,
     "shipping[address][city]": address.city,
     "shipping[address][country]": address.country,
+    // The tier id is the stable key (the edition caps count by it); the edition name is for people reading Stripe.
     "metadata[tier]": tier.id,
+    "metadata[edition]": plainText(tier.name),
     "metadata[feel]": feel,
     "metadata[rackets]": String(tier.rackets),
   });
   if (address.line2) params.set("shipping[address][line2]", address.line2);
   if (invite) params.set("metadata[invite]", invite);
+
+  // The reference: from the attempt and these details, so a double click gets the same one (and the same idempotency
+  // key below), and edited details a new one. "Reservation KQ-1A2B3C4D: First 500, two Command rackets" (Stripe takes
+  // plain text: the names' no-break spaces become spaces). A set is one feel, never a mixed pair.
+  const attempt = typeof body.attempt === "string" && /^[A-Za-z0-9-]{8,64}$/.test(body.attempt) ? body.attempt : "";
+  const seed = attempt ? `${attempt}:${params}` : crypto.randomUUID();
+  const reference = `KQ-${(await sha256hex(seed)).slice(0, 8).toUpperCase()}`;
+  params.set("description", `Reservation ${reference}: ${plainText(orderLine(tier, feels[feel].name))}`);
+  params.set("metadata[reference]", reference);
 
   const headers: Record<string, string> = {
     Authorization: `Bearer ${key}`,
@@ -135,11 +163,8 @@ export async function POST(request: Request) {
   // Same attempt and same details → same PaymentIntent, so a double click never charges twice.
   // Edited details make a new key (Stripe rejects a reused key with different parameters); the
   // browser checks its previous PaymentIntent before it asks for a new one.
-  const attempt = typeof body.attempt === "string" && /^[A-Za-z0-9-]{8,64}$/.test(body.attempt) ? body.attempt : "";
   if (attempt) {
-    const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(params.toString()));
-    const hash = Array.from(new Uint8Array(digest).slice(0, 8), (b) => b.toString(16).padStart(2, "0")).join("");
-    headers["Idempotency-Key"] = `kq-${tier.id}-${attempt}-${hash}`;
+    headers["Idempotency-Key"] = `kq-${tier.id}-${attempt}-${(await sha256hex(params.toString())).slice(0, 16)}`;
   }
 
   try {
@@ -150,7 +175,7 @@ export async function POST(request: Request) {
     }
     const pi = (await res.json()) as { client_secret?: string; id?: string };
     if (!pi.client_secret) return Response.json({ error: START_FAILED }, { status: 502 });
-    return Response.json({ clientSecret: pi.client_secret, id: pi.id });
+    return Response.json({ clientSecret: pi.client_secret, id: pi.id, reference });
   } catch (err) {
     console.error("Stripe PaymentIntent failed", err instanceof Error ? err.name : "unknown");
     return Response.json({ error: START_FAILED }, { status: 502 });

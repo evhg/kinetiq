@@ -21,6 +21,40 @@
 .track::-webkit-scrollbar {
   display: none;
 }
+/* Phones and tablets: 4:5 where the screen is tall enough, shorter (down to square) where it is not, so the first
+   view holds the whole frame and its arrows, dots and counter (56 px), clear of the fixed Due Today bar (74 px with
+   its rule, plus the safe area) and of its 40 px fade: 390 x 664, 393 x 659, 375 x 667 and 768 x 1024 alike. Every
+   slide keeps its subject whole from 4:5 to square (Gallery.tsx positions and phoneFit; the cards fit the height). */
+@media (max-width: 1023px), (max-aspect-ratio: 4/5) {
+  .track {
+    aspect-ratio: auto;
+    height: min(125vw, max(100vw, calc(100svh - var(--chrome-h) - 56px - 74px - env(safe-area-inset-bottom) - 40px)));
+  }
+  /* A crop taller than the frame (K02 edge-on) is contained, never cropped: it fills the frame's height, and its own
+     sides feather into the slide. */
+  .slide[data-phone-fit] .slideStill {
+    display: flex;
+    justify-content: center;
+  }
+  .slide[data-phone-fit] .slideStill img {
+    width: auto;
+    max-width: 100%;
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+    mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+  }
+  /* A wide shot kept whole (fit "contain") without a phone fit of its own: its square phone crop (K07's trio) spans
+     the frame's width, never cropped, in the middle of the taller frame, its top and foot feathered into the slide. */
+  .slide[data-fit="contain"]:not([data-phone-fit]) .slideStill {
+    display: flex;
+    align-items: center;
+  }
+  .slide[data-fit="contain"]:not([data-phone-fit]) .slideStill img {
+    height: auto;
+    max-height: 100%;
+    -webkit-mask-image: linear-gradient(transparent, #000 10%, #000 90%, transparent);
+    mask-image: linear-gradient(transparent, #000 10%, #000 90%, transparent);
+  }
+}
 .slide {
   position: relative;
   scroll-snap-align: start;
@@ -62,10 +96,11 @@
 .cardFit {
   width: min(100%, calc(100cqh / 1.46));
 }
-/* VanQuish: the set's two cards. B rests behind A and only its top shows above A (header, serial and "Set No. 027 /
-   500 B"; MeasurementCard's peek renders nothing below that), under one soft shadow and no mount plates. The pair is
-   never narrower than the card's full layout (340 px): phones show it full width from the top, and the slide crops
-   A's foot under a fade, so the header, set number and every measured row stay legible (never the text-free thumb). */
+/* First 500: the set's two cards. B rests behind A and only its top shows above A (header, serial and "Set No. 027 /
+   500 B"; MeasurementCard's peek renders nothing below that), under one soft shadow and no mount plates. Phones and
+   tablets (stacked: below 1024 px, or portrait) show the pair whole in the frame, its text at the 16 px floor: A at the single card's
+   width (18.75 times the card's font size, 300 px on a phone) in the dense rhythm, and above it only B's set number
+   ("Set No. 027 / 500 B"), never a card cut off by the frame. */
 .cardPair {
   --pair-w: 100cqw;
   position: relative;
@@ -86,11 +121,102 @@
   position: relative;
   filter: drop-shadow(0 -3px 12px rgb(0 0 0 / 0.3));
 }
-@media (max-width: 1023px) {
+/* KINETIQ: the racket's own card (serial KQ-000427), whole in the frame, under the same soft shadow (no plate: A6) */
+.cardSingle {
+  width: min(100%, calc(100cqh / 1.42));
+  filter: drop-shadow(0 18px 34px rgb(0 0 0 / 0.55));
+}
+@media (max-width: 1023px), (max-aspect-ratio: 4/5) {
+  /* each card fits the frame whole, so nothing fades under its foot */
   .slideCard {
-    place-items: start center;
-    -webkit-mask-image: linear-gradient(#000 86%, transparent 100%);
-    mask-image: linear-gradient(#000 86%, transparent 100%);
+    place-items: center;
+    --card-pad-top: 4px;
+    --card-pad-bottom: 4px;
+  }
+  .slideCard:has(.cardPair) {
+    --card-fs: clamp(16px, 4.1cqw, 64px);
+  }
+  /* Tablets: the pair (about 1.53 times as tall as wide) no wider than the frame's height allows. */
+  .cardPair {
+    --pair-w: min(100cqw, calc(18.75 * var(--card-fs)), calc(100cqh / 1.56));
+    padding-top: calc(2.75 * max(16px, 0.041 * var(--pair-w)));
+  }
+  .cardBack header {
+    display: none;
+  }
+  .cardBack header + p {
+    margin-top: 0;
+  }
+  /* A frame too short for the pair whole with B's set number above it (it needs 468 px with the text at 16 px; short
+     phones have a frame under 4:5): B rests behind A, turned and offset to show only its edge, and the pair's text
+     shrinks from 16 px to fit the frame's height, never under 15 px (A is about 27 times it tall). */
+  @container (max-height: 467px) {
+    .cardPair {
+      --card-fs: clamp(15px, calc(100cqh / 27.5), 16px);
+      --pair-w: calc(18.75 * var(--card-fs));
+      padding-top: 0;
+    }
+    /* both cards' text with it (over .cardFit figure's 16 px floor below) */
+    .cardFit.cardPair figure {
+      --fs: var(--card-fs);
+    }
+    .cardBack {
+      transform-origin: 50% 50%;
+      transform: translateX(4%) rotate(1.5deg);
+    }
+  }
+}
+/* Phones: the single card at the size of the pair's A, 300 px wide with its text at 16 px (its compact rhythm stays
+   near A6), down to 15 px where the frame is short; wider cards set their text by their width instead. */
+@media (max-width: 699px) {
+  .cardSingle {
+    --single-fs: clamp(15px, calc(100cqh / 28), 16px);
+    width: calc(18.75 * var(--single-fs));
+  }
+  .cardFit.cardSingle figure {
+    --fs: var(--single-fs);
+  }
+}
+/* K12: the base render alone (the lit pass is an illustration and stays on the landing, with its caption). Its 4:5
+   portrait crop, contained and centred at every size, so the whole racket shows, from the crown to the
+   engraved cap. The picture is sized to fit and its own edges feather into the slide, so no box
+   edge shows: in the crop the racket, rim included, spans 18% to 82% across and 5.7% to 94.2% down, clear of the
+   feathers (15% at the sides, 5% at the top and foot). */
+.reveal {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+/* the slide in the render's own edge tone (no lift behind it), so the feathered edges meet the same graphite */
+.slide:has(.reveal) {
+  background: rgb(19 19 20);
+}
+.reveal > .slideStill {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.reveal img {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  -webkit-mask-image:
+    linear-gradient(to right, transparent, #000 15%, #000 85%, transparent),
+    linear-gradient(transparent, #000 5%, #000 95%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent, #000 15%, #000 85%, transparent),
+    linear-gradient(transparent, #000 5%, #000 95%, transparent);
+  mask-composite: intersect;
+}
+/* Wide screens: the controls float over the slide's foot, so K12's frame ends 16 px above them (as the court's does)
+   and the cap stays clear of the arrows and dots. */
+@media (min-width: 1024px) and (aspect-ratio > 4/5) {
+  .reveal {
+    height: calc(100% - (32px + clamp(48px, 0.6vw + 40px, 56px) + 16px));
   }
 }
 /* /reserve's 16 px minimum for the card's text too (the card grows a little taller where it must) */
@@ -120,7 +246,7 @@
   align-items: center;
   justify-content: center;
   gap: 16px;
-  padding: 16px var(--margin) 0;
+  padding: 8px var(--margin) 0;
 }
 .arrow {
   display: grid;
@@ -173,7 +299,7 @@
   }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 1024px) and (aspect-ratio > 4/5) {
   .layout {
     display: grid;
     grid-template-columns: minmax(0, 1fr) clamp(500px, 34vw, 860px);
@@ -291,6 +417,8 @@
 .options {
   position: relative;
   isolation: isolate;
+  /* the badges' container query (inline size only, so the fixed .topFade and .bar still place by the viewport) */
+  container-type: inline-size;
   display: grid;
   gap: clamp(28px, 1.2vw + 14px, 44px);
   padding: 32px var(--margin) calc(96px + env(safe-area-inset-bottom));
@@ -313,7 +441,7 @@
   mask-image: linear-gradient(#000, transparent);
   pointer-events: none;
 }
-@media (min-width: 1024px) {
+@media (min-width: 1024px) and (aspect-ratio > 4/5) {
   .options {
     padding: clamp(40px, 2.2vw + 8px, 64px) clamp(40px, 2.8vw, 72px) clamp(64px, 6vw, 120px);
     border-left: 1px solid var(--hairline);
@@ -325,7 +453,7 @@
 .topFade {
   display: none;
 }
-@media (min-width: 1024px) {
+@media (min-width: 1024px) and (aspect-ratio > 4/5) {
   .topFade {
     display: block;
     position: fixed;
@@ -345,7 +473,7 @@
 }
 /* Phones and tablets: the column ends on a soft graphite light (the G10 pool) under Due Today and Pay with
    Card, so the page's last screen keeps a lit floor (fill rule) as the sets' longer includes push it down. */
-@media (max-width: 1023px) {
+@media (max-width: 1023px), (max-aspect-ratio: 4/5) {
   .options {
     background:
       radial-gradient(ellipse 90% 30% at 50% 0%, var(--lift), transparent 75%),
@@ -358,7 +486,7 @@
   display: grid;
   gap: 6px;
 }
-/* The column names the chosen edition (the header already carries the wordmark). */
+/* The column's title names the racket ("Reserve your KINETIQ"); the cards below name the editions. */
 .columnTitle {
   font-family: var(--font-display);
   font-variation-settings: "wdth" 112;
@@ -401,7 +529,7 @@
 .tier:not([data-locked]):active {
   transform: scale(0.99);
 }
-/* InviQtus before an invitation: shown whole, but not an option (no pointer, hover, press or selection) */
+/* One of Ten before an invitation: shown whole, but not an option (no pointer, hover, press or selection) */
 .tier[data-locked="true"] {
   cursor: default;
 }
@@ -466,10 +594,12 @@
   color: var(--muted);
   white-space: nowrap;
 }
+/* every availability tag in the amber family, so none of them reads as a control */
+.tierStatus[data-tier="reserve"],
 .tierStatus[data-tier="limited"] {
   color: var(--amber);
 }
-/* InviQtus: "Invite Only" in a warm, static tone (rank, not a state: no hover, press or glow) */
+/* One of Ten: "Invite Only" in a warm, static tone (rank, not a state: no hover, press or glow) */
 .tierStatus[data-tier="invite"] {
   color: var(--amber-hot);
 }
@@ -496,19 +626,13 @@
   font-size: 1rem;
   color: var(--amber);
 }
-/* an edition's includes shown without choosing it (InviQtus): hairline rule, no entrance */
+/* an edition's includes shown without choosing it (One of Ten): hairline rule, no entrance */
 .extras[data-quiet] {
   border-top-color: var(--hairline);
   animation: none;
 }
 .extras[data-quiet] .extrasHead {
   color: var(--steel);
-}
-.extrasFine {
-  margin-top: 4px;
-  font-size: 1rem;
-  line-height: 1.5;
-  color: var(--muted);
 }
 .lockedNote {
   font-family: var(--font-data);
@@ -629,7 +753,7 @@
   font-size: clamp(1.0625rem, 0.2vw + 1rem, 1.25rem);
   text-wrap: pretty;
 }
-/* InviQtus before an invitation: its includes stay in view, but quieter than a chosen edition's */
+/* One of Ten before an invitation: its includes stay in view, but quieter than a chosen edition's */
 .tier[data-locked="true"] .extra {
   color: var(--steel);
 }
@@ -665,17 +789,18 @@
   font-weight: 560;
   font-size: clamp(1.25rem, 0.4vw + 1.05rem, 1.75rem);
 }
+/* Each feel names its core and face and says what it does: one per row in the column, side by side once two fit. */
 .feelOptions {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
   gap: 12px;
 }
 .feelOption {
   display: flex;
-  align-items: center;
-  gap: 14px;
+  align-items: flex-start;
+  gap: 16px;
   min-height: clamp(80px, 0.4vw + 74px, 88px);
-  padding: 12px 16px;
+  padding: 16px 18px;
   border: 1px solid var(--hairline);
   border-radius: 4px;
   background: var(--graphite);
@@ -705,7 +830,14 @@
 }
 .feelText {
   display: grid;
-  gap: 2px;
+  gap: 4px;
+  min-width: 0;
+}
+.feelTitle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 10px;
 }
 .feelName {
   font-size: clamp(1.25rem, 0.2vw + 1.15rem, 1.375rem);
@@ -715,6 +847,23 @@
   font-family: var(--font-data);
   font-size: 1rem;
   color: var(--muted);
+}
+.feelSpec {
+  font-family: var(--font-data);
+  font-size: 1rem;
+  color: var(--steel);
+}
+.feelLine {
+  margin-top: 4px;
+  font-size: clamp(1rem, 0.15vw + 0.95rem, 1.125rem);
+  line-height: 1.45;
+  color: var(--steel);
+  text-wrap: pretty;
+}
+.feelHelper {
+  font-size: clamp(1.0625rem, 0.2vw + 1rem, 1.25rem);
+  color: var(--text);
+  text-wrap: pretty;
 }
 .hint {
   font-family: var(--font-data);
@@ -744,6 +893,17 @@
 .badges {
   margin-top: -8px;
 }
+/* Narrow columns (phones, small tablets and the wide-screen column up to about 2400 px): the two badges full width,
+   one above the other, their mark cells aligned, like the rules below them. At 2560 they fit on one row. */
+@container (max-width: 699px) {
+  ul.badges {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  ul.badges > li {
+    grid-template-columns: auto 1fr;
+  }
+}
 
 /* due today */
 .due {
@@ -767,17 +927,6 @@
 .dueAmount {
   font-size: clamp(1.75rem, 0.8vw + 1.35rem, 2.5rem);
   font-weight: 500;
-}
-.dueRefund,
-.dueNote {
-  font-family: var(--font-data);
-  font-size: clamp(1rem, 0.15vw + 0.95rem, 1.125rem);
-  color: var(--muted);
-}
-.fine {
-  font-size: clamp(1rem, 0.15vw + 0.95rem, 1.125rem);
-  color: var(--muted);
-  line-height: 1.5;
 }
 
 /* Pay with Card: a large dark secondary button that becomes the form's header */
@@ -877,7 +1026,10 @@
   display: grid;
   gap: 18px;
 }
-@media (min-width: 1024px) {
+/* Postal code and City side by side wherever the column is wide enough, stacked on phones: by the options column's
+   own width (.options is the container), which is wider on a tablet (699 px at 768) than beside the gallery (418 px
+   or more). Phones in portrait stay below 410 (400 at 440 wide). */
+@container (min-width: 410px) {
   .pair {
     grid-template-columns: 1fr 1fr;
   }
@@ -1015,6 +1167,10 @@
 .doneTier {
   font-size: clamp(1.25rem, 0.4vw + 1.05rem, 1.625rem);
 }
+/* it names the buyer's email, which can be longer than a phone's line */
+.doneBody {
+  overflow-wrap: anywhere;
+}
 .doneRef {
   font-size: clamp(1rem, 0.15vw + 0.95rem, 1.125rem);
   color: var(--steel);
@@ -1086,7 +1242,7 @@
   opacity: 0.55;
   cursor: not-allowed;
 }
-@media (min-width: 1024px) {
+@media (min-width: 1024px) and (aspect-ratio > 4/5) {
   /* Desktop: Due Today and Pay with Card stay in view at the foot of the column (Tesla shows both in the
      first screen). It bleeds to the column's edges and hides while the in-page Pay with Card shows. */
   .options {
@@ -1116,14 +1272,14 @@
   }
 }
 @media (max-width: 479px) {
-  /* the two feels share a 350 px row: a smaller swatch keeps both inside the column */
+  /* one feel per row: a smaller swatch leaves the words most of the width */
   .feelOption {
-    gap: 10px;
-    padding: 12px;
+    gap: 14px;
+    padding: 14px;
   }
   .swatch {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
   }
   /* the status sits above the name as an eyebrow, so the header stays one composed block */
   .tierHead {

@@ -5,13 +5,15 @@ import { Badges } from "@/components/graphics/Badges";
 import { Icon, TierGlyph, type IconName } from "@/components/graphics/Icons";
 import { useMotion } from "@/components/motion/MotionProvider";
 import { Hyphens } from "@/components/text/Hyphens";
-import { deliveryCountries, includeIcons, includesFine, orderLine, priceLabel, tiers, tierById, type TierId } from "@/content/lineup";
+import { deliveryCountries, includeIcons, orderLine, priceLabel, tiers, tierById, type TierId } from "@/content/lineup";
 import { reserveCopy } from "@/content/reserve";
 import { feels, site, type FeelId } from "@/content/site";
 import { isPaid, loadStripe, type Stripe, type StripeElement, type StripeElements } from "@/lib/stripe-client";
 import styles from "./Reserve.module.css";
 
 type Stage = "choose" | "details" | "processing" | "done";
+/** A PaymentIntent this page started: its client secret, its reference (from /api/reserve) and what it is for. */
+type Started = { secret: string; reference: string; tier: TierId; feel: FeelId; email: string };
 type Fields = {
   name: string;
   email: string;
@@ -91,7 +93,7 @@ type Props = {
   onTier: (id: TierId) => void;
   feel: FeelId | null;
   onFeel: (id: FeelId) => void;
-  /** Invitation codes exist (decided on the server). InviQtus still needs a valid one from the buyer. */
+  /** Invitation codes exist (decided on the server). One of Ten still needs a valid one from the buyer. */
   invitesOpen: boolean;
   /** ?invite= from the link: a code to check on load, "" to open the code field, null without it. */
   initialInvite?: string | null;
@@ -113,9 +115,9 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
   const [cardReady, setCardReady] = useState(false);
   const [soldOut, setSoldOut] = useState<TierId[]>([]);
   const [instantForm, setInstantForm] = useState(false);
-  const [paid, setPaid] = useState<{ tier: TierId; feel: FeelId; email: string; secret: string } | null>(null);
+  const [paid, setPaid] = useState<Started | null>(null);
   const [payVisible, setPayVisible] = useState(true);
-  // InviQtus: locked for everyone until a valid invitation code unlocks (and selects) it.
+  // One of Ten: locked for everyone until a valid invitation code unlocks (and selects) it.
   const [inviteCode, setInviteCode] = useState<string | null>(null);
   const [inviteFieldOpen, setInviteFieldOpen] = useState(invitesOpen && initialInvite === "");
   const [inviteDraft, setInviteDraft] = useState(initialInvite ?? "");
@@ -126,7 +128,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
   const inviteWrapRef = useRef<HTMLDivElement>(null);
   const inviteInputRef = useRef<HTMLInputElement>(null);
   const inviteRadioRef = useRef<HTMLInputElement>(null);
-  // Set when a typed code is accepted: focus moves on to the InviQtus option once it is a real radio.
+  // Set when a typed code is accepted: focus moves on to the One of Ten option once it is a real radio.
   const focusInviteRef = useRef(false);
   const formRef = useRef<HTMLFormElement>(null);
   const tiersRef = useRef<HTMLFieldSetElement>(null);
@@ -138,10 +140,10 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
   const paymentRef = useRef<StripeElement | null>(null);
   const attemptRef = useRef<string>("");
   // The last PaymentIntent this page started, with what it was for.
-  const secretRef = useRef<{ secret: string; tier: TierId; feel: FeelId; email: string } | null>(null);
+  const secretRef = useRef<Started | null>(null);
   const uid = useId();
   const tier = tierById(tierId)!;
-  // On sale and not sold out. InviQtus also needs an accepted invitation code before it can be chosen.
+  // On sale and not sold out. One of Ten also needs an accepted invitation code before it can be chosen.
   const isSelectable = (id: TierId) => tierById(id)!.available && !soldOut.includes(id);
   const isLocked = (id: TierId) => id === "invite" && (!invitesOpen || !inviteCode);
   const isAvailable = (id: TierId) => isSelectable(id) && !isLocked(id);
@@ -156,7 +158,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
 
   // A buyer who clicked an edition on the landing page sees that edition's card, not the first one.
   useEffect(() => {
-    if (!preselected || !window.matchMedia("(min-width: 1024px)").matches) return;
+    if (!preselected || !window.matchMedia("(min-width: 1024px) and (aspect-ratio > 4/5)").matches) return;
     const card = tiersRef.current?.querySelector<HTMLElement>('[data-checked="true"]');
     if (card && card.getBoundingClientRect().bottom > window.innerHeight - 120) scrollToY(topBelowHeader(card, PRESELECT_GUTTER), false);
   }, [preselected]);
@@ -174,7 +176,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
   };
 
   // A link with ?invite: a bare one brings the code field into view; one with a code checks it, and a
-  // valid code unlocks and selects InviQtus, while a wrong one brings the field and its message into view.
+  // valid code unlocks and selects One of Ten, while a wrong one brings the field and its message into view.
   // Closed invitations show the card's "open soon" note. A checked code leaves the address bar (and so
   // the history), as the page's own state now holds it.
   useEffect(() => {
@@ -349,7 +351,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
     const paidEarlier = async () => {
       const last = secretRef.current;
       if (!last || !(await isPaid(stripe, last.secret))) return false;
-      setPaid({ tier: last.tier, feel: last.feel, email: last.email, secret: last.secret });
+      setPaid(last);
       setStage("done");
       return true;
     };
@@ -373,7 +375,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
           attempt: attemptRef.current,
         }),
       });
-      let data: { clientSecret?: string; error?: string; fields?: string[]; soldOut?: boolean } = {};
+      let data: { clientSecret?: string; reference?: string; error?: string; fields?: string[]; soldOut?: boolean } = {};
       try {
         data = await res.json();
       } catch {
@@ -384,7 +386,8 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
         setBadFields(data.fields ?? []);
         throw new Shown(data.error ?? E.generic);
       }
-      secretRef.current = { secret: data.clientSecret, tier: tier.id, feel, email: fields.email };
+      const started: Started = { secret: data.clientSecret, reference: data.reference ?? "", tier: tier.id, feel, email: fields.email };
+      secretRef.current = started;
       const result = await stripe.confirmPayment({
         elements,
         clientSecret: data.clientSecret,
@@ -396,7 +399,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
       });
       const status = result.paymentIntent?.status;
       if (status === "succeeded" || status === "processing") {
-        setPaid({ tier: tier.id, feel, email: fields.email, secret: data.clientSecret });
+        setPaid(started);
         setStage("done");
         return;
       }
@@ -444,7 +447,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
     onTier("invite");
   };
 
-  // The InviQtus option is a real radio once unlocked: focus continues from it.
+  // The One of Ten option is a real radio once unlocked: focus continues from it.
   useEffect(() => {
     if (!inviteCode || !focusInviteRef.current) return;
     focusInviteRef.current = false;
@@ -456,12 +459,12 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
       {/* wide screens: the column's text fades out under the header instead of being sliced by it */}
       <div className={styles.topFade} aria-hidden="true" />
       <div className={styles.columnHead}>
-        <h1 className={styles.columnTitle}>{tier.name}</h1>
+        <h1 className={styles.columnTitle}>{reserveCopy.columnTitle}</h1>
         <p className={styles.ships}>{site.shipLabel}</p>
       </div>
 
       {stage === "done" && paid ? (
-        <Confirmation tier={paid.tier} feel={paid.feel} email={paid.email} paymentId={paid.secret.split("_secret_")[0]} />
+        <Confirmation tier={paid.tier} feel={paid.feel} email={paid.email} reference={paid.reference} />
       ) : (
         <>
           <fieldset ref={tiersRef} className={styles.tiers} disabled={open}>
@@ -469,12 +472,12 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
             {tiers.map((t) => {
               const checked = tierId === t.id;
               const can = isSelectable(t.id);
-              // InviQtus reads "Invite Only" whatever the state of the invitations (the note below the
+              // One of Ten reads "Invite Only" whatever the state of the invitations (the note below the
               // includes says when they open); an accepted code makes it "Invited".
               const status = !can ? reserveCopy.soldOut : t.id === "invite" && inviteCode ? INV.acceptedStatus : t.availability;
               const extras = (
                 <span className={styles.extras} data-quiet={!checked || undefined}>
-                  <span className={styles.extrasHead}>{reserveCopy.includedWith(t.name)}</span>
+                  <span className={styles.extrasHead}>{reserveCopy.included}</span>
                   {t.includes.map((x, n) => (
                     <span key={x} className={styles.extra}>
                       <Icon name={includeIcons[t.id][n] ?? "shieldCheck"} size={20} className={styles.extraIcon} />
@@ -483,7 +486,6 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
                       </span>
                     </span>
                   ))}
-                  <span className={styles.extrasFine}>{includesFine(t.id)}</span>
                 </span>
               );
               const head = (
@@ -502,7 +504,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
                 </>
               );
 
-              // InviQtus without an accepted invitation: shown whole (price and what it includes), but
+              // One of Ten without an accepted invitation: shown whole (price and what it includes), but
               // not an option. No hover, press or selected state; its radio stays disabled.
               if (isLocked(t.id)) {
                 return (
@@ -589,7 +591,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
                       onChange={() => onTier(t.id)}
                     />
                     {head}
-                    {/* InviQtus keeps its includes in view; the others show theirs when chosen */}
+                    {/* One of Ten keeps its includes in view; the others show theirs when chosen */}
                     {checked || t.id === "invite" ? extras : null}
                   </label>
                   {t.id === "invite" && inviteCode ? (
@@ -602,7 +604,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
             })}
           </fieldset>
 
-          <fieldset ref={feelRef} className={styles.feel} disabled={open} data-missing={feelMissing && !feel}>
+          <fieldset ref={feelRef} className={styles.feel} disabled={stage === "processing"} data-missing={feelMissing && !feel}>
             <legend className={styles.feelLegend}>{reserveCopy.feelLegend(tier.rackets)}</legend>
             <div className={styles.feelOptions}>
               {(Object.keys(feels) as FeelId[]).map((id) => (
@@ -620,12 +622,17 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
                   />
                   <Swatch weave={id} />
                   <span className={styles.feelText}>
-                    <span className={styles.feelName}>{feels[id].name}</span>
-                    <span className={styles.feelSub}>{feels[id].sub}</span>
+                    <span className={styles.feelTitle}>
+                      <span className={styles.feelName}>{feels[id].name}</span>
+                      <span className={styles.feelSub}>{feels[id].sub}</span>
+                    </span>
+                    <span className={styles.feelSpec}>{feels[id].spec}</span>
+                    <span className={styles.feelLine}>{reserveCopy.feelLines[id]}</span>
                   </span>
                 </label>
               ))}
             </div>
+            <p className={styles.feelHelper}>{reserveCopy.feelHelper}</p>
             <p className={styles.hint} aria-live="polite">
               {feelMissing && !feel ? reserveCopy.feelRequired : reserveCopy.feelHint(tier.rackets)}
             </p>
@@ -646,7 +653,6 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
               <span className={styles.dueLabel}>{reserveCopy.dueTodayLabel}</span>
               <span className={`t-num ${styles.dueAmount}`}>{priceLabel(tier.priceEur)}</span>
             </div>
-            <p className={styles.fine}>{PK ? reserveCopy.fineprint : reserveCopy.previewLine}</p>
           </div>
 
           <button
@@ -726,7 +732,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
       {stage === "choose" ? (
         <div className={styles.bar} data-hidden={payVisible} inert={payVisible} data-reserve-bar="">
           <span className={styles.barText}>
-            <span className={styles.barTier}>{tier.name}</span>
+            <span className={styles.barTier}>{reserveCopy.barCount(tier.rackets)}</span>
             <span className="t-num">
               {reserveCopy.dueTodayLabel} {priceLabel(tier.priceEur)}
             </span>
@@ -740,8 +746,11 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
   );
 }
 
-/** The confirmation, in place of the options. Focus moves to its heading so it is announced. */
-function Confirmation({ tier, feel, email, paymentId }: { tier: TierId; feel: FeelId; email: string; paymentId: string }) {
+/**
+ * The confirmation, in place of the options. Focus moves to its heading so it is announced. The receipt is said once,
+ * with the buyer's address; the reference is the one /api/reserve put on the payment (and so on Stripe's receipt).
+ */
+function Confirmation({ tier, feel, email, reference }: { tier: TierId; feel: FeelId; email: string; reference: string }) {
   const t = tierById(tier)!;
   const box = useRef<HTMLDivElement>(null);
   const heading = useRef<HTMLHeadingElement>(null);
@@ -754,31 +763,50 @@ function Confirmation({ tier, feel, email, paymentId }: { tier: TierId; feel: Fe
   return (
     <div ref={box} className={styles.done}>
       <h2 ref={heading} tabIndex={-1} className={styles.doneTitle}>
-        {reserveCopy.confirmationHeadline}
+        {reserveCopy.confirmationHeadline(t.rackets)}
       </h2>
       <p className={styles.doneTier}>
         {orderLine(t, feels[feel].name)}. <span className="t-num">{priceLabel(t.priceEur)}</span>
       </p>
-      <p className="t-body">{reserveCopy.confirmationBody(t.rackets)}</p>
-      <p className={`t-num ${styles.doneRef}`}>{reserveCopy.reference(paymentId)}</p>
-      {email ? <p className={styles.fine}>{reserveCopy.receiptSent(email)}</p> : null}
+      <p className={`t-body ${styles.doneBody}`}>{reserveCopy.confirmationBody(t.id, email || undefined)}</p>
+      {reference ? <p className={`t-num ${styles.doneRef}`}>{reserveCopy.reference(reference)}</p> : null}
     </div>
   );
 }
 
-/** A woven-carbon swatch: fine 3K twill for Command, wide 12K spread tow for Pace. */
+/** A woven-carbon swatch: fine white 3K twill for Command, wide black 12K spread tow for Pace (owner, 2026-10-22). */
+const SWATCH: Record<FeelId, { ground: string; tow: string; line: string; edge: string }> = {
+  command: { ground: "#d6d2cb", tow: "#ebe8e2", line: "#f6f4f0", edge: "#c9ccd1" },
+  pace: { ground: "#0d0d0f", tow: "#26262b", line: "#3a3a41", edge: "#6b6e76" },
+};
+
+/** Command's 2/2 twill: each row's two-cell float steps one cell along, so the weave reads as diagonal ribs. */
+const TWILL = [0, 1, 2, 3].flatMap((row) => [0, 1].map((k) => ({ row, col: (row + k) % 4 })));
+
 function Swatch({ weave }: { weave: FeelId }) {
   const id = useId();
-  const cell = weave === "command" ? 5 : 12;
+  const c = SWATCH[weave];
+  const cell = weave === "command" ? 3 : 12;
   return (
     <svg viewBox="0 0 56 56" className={styles.swatch} aria-hidden="true">
       <defs>
-        <pattern id={id} width={cell * 2} height={cell * 2} patternUnits="userSpaceOnUse" patternTransform="rotate(45 28 28)">
-          <rect width={cell * 2} height={cell * 2} fill="#0d0d0f" />
-          <rect width={cell} height={cell} fill="#26262b" />
-          <rect x={cell} y={cell} width={cell} height={cell} fill="#26262b" />
-          <path d={`M0 ${cell / 2}h${cell}M${cell} ${cell * 1.5}h${cell}`} stroke="#3a3a41" strokeWidth={cell / 5} />
-        </pattern>
+        {weave === "command" ? (
+          <pattern id={id} width={cell * 4} height={cell * 4} patternUnits="userSpaceOnUse">
+            <rect width={cell * 4} height={cell * 4} fill={c.ground} />
+            {TWILL.map(({ row, col }) => (
+              <rect key={`${row}-${col}`} x={col * cell} y={row * cell} width={cell} height={cell} fill={c.tow} />
+            ))}
+            {/* the sheen along each float, in the tow's direction */}
+            <path d={TWILL.map(({ row, col }) => `M${(col + 0.5) * cell} ${row * cell}v${cell}`).join("")} stroke={c.line} strokeWidth={cell / 5} />
+          </pattern>
+        ) : (
+          <pattern id={id} width={cell * 2} height={cell * 2} patternUnits="userSpaceOnUse" patternTransform="rotate(45 28 28)">
+            <rect width={cell * 2} height={cell * 2} fill={c.ground} />
+            <rect width={cell} height={cell} fill={c.tow} />
+            <rect x={cell} y={cell} width={cell} height={cell} fill={c.tow} />
+            <path d={`M0 ${cell / 2}h${cell}M${cell} ${cell * 1.5}h${cell}`} stroke={c.line} strokeWidth={cell / 5} />
+          </pattern>
+        )}
         <radialGradient id={`${id}-g`} cx="30%" cy="25%" r="80%">
           <stop offset="0" stopColor="#fff" stopOpacity="0.22" />
           <stop offset="0.5" stopColor="#fff" stopOpacity="0" />
@@ -786,7 +814,7 @@ function Swatch({ weave }: { weave: FeelId }) {
       </defs>
       <circle cx="28" cy="28" r="27" fill={`url(#${id})`} />
       <circle cx="28" cy="28" r="27" fill={`url(#${id}-g)`} />
-      <circle cx="28" cy="28" r="27.5" fill="none" stroke="#6b6e76" strokeWidth="1" />
+      <circle cx="28" cy="28" r="27.5" fill="none" stroke={c.edge} strokeWidth="1" />
     </svg>
   );
 }

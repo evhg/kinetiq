@@ -3,10 +3,11 @@ import { Suspense } from "react";
 import { SiteHeader } from "@/components/chrome/Chrome";
 import { ReserveExperience } from "@/components/reserve/ReserveExperience";
 import styles from "@/components/reserve/Reserve.module.css";
-import { invitesOpen, tierById } from "@/content/lineup";
+import { tierById } from "@/content/lineup";
 import { reserveCopy } from "@/content/reserve";
 import { isFeelId } from "@/content/site";
 import { productMetadata } from "@/lib/product-metadata";
+import { invitationsOpen } from "@/lib/stripe-server";
 
 export const metadata: Metadata = productMetadata(reserveCopy.pageTitle);
 
@@ -14,8 +15,8 @@ type Search = Promise<Record<string, string | string[] | undefined>>;
 
 // Tesla's structure: wordmark only, no footer. The last element is Pay with Card, then Place Reservation.
 // The shell (header and an empty stage) is static; the experience streams in behind Suspense with ?tier=, ?feel= and
-// ?invite already applied, so a VanQuish link never paints ConQuer or its price first (the fallback shows no
-// edition at all). InviQtus is never chosen from the link: ?tier=invite shows the default edition, and only a valid
+// ?invite already applied, so a First 500 link never paints KINETIQ or its price first (the fallback shows no
+// edition at all). One of Ten is never chosen from the link: ?tier=invite shows the default edition, and only a valid
 // invitation code unlocks it (?invite=CODE checks one on load; a bare ?invite opens the code field).
 export default function ReservePage({ searchParams }: { searchParams: Search }) {
   return (
@@ -65,7 +66,7 @@ async function Preselected({ searchParams }: { searchParams: Search }) {
       initialTier={initialTier}
       initialFeel={initialFeel}
       initialInvite={initialInvite}
-      invitesOpen={invitesOpen(process.env.INVITE_CODES)}
+      invitesOpen={invitationsOpen()}
     />
   );
 }

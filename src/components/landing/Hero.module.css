@@ -1,5 +1,6 @@
-/* Phones and tablets (below 1000 px): the words at the top, the racket in the middle, Reserve Now and the
-   price line on the floor beneath it, all inside one screen. Wide screens: see the split layout below. */
+/* Phones and tablets (below 1000 px, and portrait windows narrower than 4:5 above it): the words at the top, the
+   racket in the middle, Reserve Now and the price line on the floor beneath it, all inside one screen. Wide screens:
+   see the split layout below. */
 .hero {
   position: relative;
   min-height: 100svh;
@@ -57,6 +58,18 @@
   /* keep the floor: any crop comes off the empty backdrop above the racket */
   object-position: 50% 100%;
 }
+/* The floor ends on the sweet-spot section's first colour (SweetSpot.module.css), painted over the scroll-away veil,
+   so the hand-off reads as one room at every scroll position (the veil would otherwise darken the floor's last row
+   and leave a step). Under the words and Reserve Now. */
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  z-index: -1;
+  height: 12%;
+  background: linear-gradient(rgb(26 25 25 / 0), rgb(26 25 25 / 0.7) 55%, rgb(26 25 25));
+  pointer-events: none;
+}
 /* The lit layer waits for the reveal when motion is on; otherwise it shows at once. */
 :global(html[data-motion="on"]) .full {
   opacity: 0;
@@ -90,10 +103,6 @@
   max-width: 54ch;
   text-wrap: pretty;
 }
-/* The five-year line follows the owner's sentence in the headline white. */
-.life {
-  color: var(--text);
-}
 .bottom {
   display: grid;
   justify-items: center;
@@ -119,19 +128,104 @@
   .cta {
     width: 100%;
   }
+  /* the price note is one sentence: on phones it wraps into two even lines under the button */
+  .note {
+    white-space: normal;
+    text-align: center;
+    text-wrap: balance;
+  }
 }
-/* Short phones: the headline and Reserve Now, as on Tesla's phone page; the spec strip that follows
-   carries the lead's facts. */
+/* Short phones, which is Safari on most iPhones (375x667, 390x664, 393x659, up to 430x740): the owner's lead always
+   shows. The words step down a size, and the racket's frame shrinks toward its floor (from 92% down), so the crown
+   clears the lead and the foot still clears Reserve Now. The shrunken frame's sides and top feather into the studio
+   backdrop the hero paints, so neither the frame nor the beam ever ends on an edge. The independent `scale` composes
+   with the scroll drift's transform (Hero.tsx). */
 @media (max-width: 699px) and (max-height: 740px) {
+  .hero {
+    padding-top: calc(var(--chrome-h) + 20px);
+  }
+  .top {
+    gap: 10px;
+  }
+  .title {
+    font-size: 2rem;
+  }
   .lead {
-    display: none;
+    font-size: 1rem;
+    line-height: 1.4;
+  }
+  .drift {
+    scale: 0.84;
+    transform-origin: 50% 92%;
+    -webkit-mask-image:
+      linear-gradient(90deg, transparent, #000 16%, #000 84%, transparent), linear-gradient(transparent, #000 20%);
+    -webkit-mask-composite: source-in;
+    mask-image:
+      linear-gradient(90deg, transparent, #000 16%, #000 84%, transparent), linear-gradient(transparent, #000 20%);
+    mask-composite: intersect;
+  }
+}
+/* the shortest phones (about 640 px): the lead's four lines need a little more room */
+@media (max-width: 699px) and (max-height: 650px) {
+  .drift {
+    scale: 0.76;
+  }
+}
+
+/* Tablets in portrait (700 to 999 px and taller than wide, or a window from 1000 px narrower than 4:5, such as an
+   iPad Pro): the phone layout with the phone master (Hero.tsx), sized by the room it has. The frame takes the band
+   between the words and Reserve Now in the flow, and the master is drawn from that band's height (a size container):
+   the racket (51% to 81% of the master) runs from 16 px under the band's top to 24 px above its foot, so the crown
+   clears the lead and the foot clears Reserve Now at any portrait size. The master overflows the band behind the
+   words and the button (the hero clips it). Its sides and top feather into the hero's backdrop where it is narrower
+   than the screen, and its floor fades out from the racket's foot to the price line, so the beam never runs under
+   the words. */
+@media (min-width: 700px) and (max-width: 999px) and (max-aspect-ratio: 1/1), (min-width: 1000px) and (max-aspect-ratio: 4/5) {
+  .drift {
+    --racket: calc(100cqh - 40px);
+    --master-h: calc(var(--racket) / 0.3);
+    position: relative;
+    inset: auto;
+    order: 1;
+    flex: 1 1 0;
+    align-self: stretch;
+    height: auto;
+    min-height: 300px;
+    container-type: size;
+  }
+  .bottom {
+    order: 2;
+  }
+  /* without container units (iPadOS 15) the master simply covers the band, feathered at both ends */
+  .media {
+    -webkit-mask-image: linear-gradient(transparent, #000 15%, #000 85%, transparent);
+    mask-image: linear-gradient(transparent, #000 15%, #000 85%, transparent);
+  }
+  @supports (height: 1cqh) {
+    .media {
+      inset: auto;
+      left: calc(50% - 0.28125 * var(--master-h));
+      bottom: calc(24px - 0.19 * var(--master-h));
+      width: calc(0.5625 * var(--master-h));
+      height: var(--master-h);
+      -webkit-mask-image:
+        linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent), linear-gradient(transparent, #000 12%),
+        linear-gradient(to top, transparent calc(0.19 * var(--master-h) - 112px), #000 calc(0.19 * var(--master-h)));
+      -webkit-mask-composite: source-in;
+      mask-image:
+        linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent), linear-gradient(transparent, #000 12%),
+        linear-gradient(to top, transparent calc(0.19 * var(--master-h) - 112px), #000 calc(0.19 * var(--master-h)));
+      mask-composite: intersect;
+    }
   }
 }
 
 /* Wide: the words, Reserve Now and the price line in the left seven columns, vertically centred; the
    still (close beam camera) moves right by 21vw so the racket, 54% of the screen tall, stands at 71% across.
-   Its left third feathers into the studio backdrop the hero paints, which matches the still's own edge. */
-@media (min-width: 1000px) {
+   Its left third feathers into the studio backdrop the hero paints, which matches the still's own edge. From 1000 px
+   and wider than 4:5 (range syntax, so it is the exact complement of the portrait layout's max-aspect-ratio: 4/5 and
+   no window falls between the two); a narrower window takes the portrait layout above (the racket would meet the lead). */
+@media (min-width: 1000px) and (aspect-ratio > 4/5) {
   .hero {
     --shift: 21vw;
     display: grid;
@@ -160,6 +254,10 @@
     width: 62%;
     height: auto;
     background: linear-gradient(to right, rgb(21 21 22 / 0.55), transparent);
+  }
+  /* Wide, the floor's fade is taller, so the beam on the floor never ends on a hard line. */
+  .hero::after {
+    height: 22%;
   }
   .top,
   .bottom {

@@ -12,7 +12,7 @@ type Props = {
   initialTier?: TierId;
   /** Preselected from ?feel= by the page; Command otherwise (an option is always chosen, as on Tesla's page). */
   initialFeel?: FeelId | null;
-  /** Whether invitation codes exist (decided on the server); InviQtus still needs a valid one. */
+  /** Whether invitation codes exist (decided on the server); One of Ten still needs a valid one. */
   invitesOpen?: boolean;
   /** ?invite= from the link: a code to check on load, "" to open the code field, null without it. */
   initialInvite?: string | null;

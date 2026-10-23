@@ -7,14 +7,18 @@ import {
   BORE,
   CUT_Y,
   DIM,
+  HANDLE_MM,
   HEAD_MAX,
   HEAD_W,
+  HOLES_MM,
+  HOLE_R_MM,
   LIP_R,
   arrow,
   at,
   boreFibres,
   boreSection,
   circle,
+  handleDetail,
   headHalfWidth,
   holes,
   line,
@@ -35,9 +39,11 @@ import styles from "./TechnicalDrawing.module.css";
 /** New strings used by G01 (not yet in copy.ts). Claims restate existing copy (CLAIMS.md rows). */
 export const LABELS = {
   summary:
-    "Technical drawing of the KINETIQ racket. Overall length 455 mm, head width 260 mm, thickness 38.0 mm, 42 moulded holes of 12.4 mm diameter, every surface within plus or minus 0.015 mm. Section A-A shows one continuous shell sealed around the core; section B-B shows the shell running unbroken down the wall of a moulded hole.",
+    "Technical drawing of the KINETIQ racket. Overall length at most 455.0 mm, head width at most 260.0 mm, thickness at most 38.0 mm. 42 moulded holes: 34 of 12.4 mm diameter and a row of 8 of 14.0 mm along the top. Every surface within plus or minus 0.015 mm. The head narrows into the handle, which carries a wrapped overgrip and a black butt cap engraved with a Q, the KINETIQ logo. Section A-A shows one continuous shell sealed around the core; section B-B shows the shell running unbroken down the wall of a moulded hole.",
   holeNote: "0 drilled",
-  shell: "One shell. No tube.",
+  grip: ["Overgrip,", "helical wrap"],
+  cap: ["Black cap,", "engraved Q"],
+  shell: "Carbon shell",
   core: "Core",
   fibre: ["Fibre continuous", "around the edge"],
   weave: ["One weave,", "face to edge"],
@@ -52,8 +58,8 @@ export const LABELS = {
     "No frame tube. Zero seams.",
     "42 holes moulded. 0 drilled.",
     "Every surface within ±0.015 of design.",
-    "Mass within ±1.0 g of reference.",
-    "Balance within ±1.0 mm, set in the mould.",
+    "Weight within ±1.0 g of reference.",
+    "Balance within ±1.0 mm of reference.",
   ],
   balance: "Balance ±1.0 mm",
   balanceSub: "set in the mould",
@@ -76,6 +82,7 @@ type Layer = "outline" | "hidden" | "dims" | "values";
 type Kind =
   | "vis"
   | "hole"
+  | "grip"
   | "tangent"
   | "hidden"
   | "centre"
@@ -198,13 +205,32 @@ function cutPlane(D: Draft, t: Xf, y: number, x0: number, x1: number, end: numbe
   }
 }
 
+/** The hole nearest a point (drawing mm): its centre and radius. */
+function holeNear(x: number, y: number): { c: V; r: number } {
+  let best = 0;
+  HOLES_MM.forEach(([hx, hy], i) => {
+    const [bx, by] = HOLES_MM[best];
+    if (Math.hypot(hx - x, hy - y) < Math.hypot(bx - x, by - y)) best = i;
+  });
+  return { c: HOLES_MM[best], r: HOLE_R_MM[best] };
+}
+
+/** A point on a hole's rim, toward a target (drawing mm). */
+function rimToward(h: { c: V; r: number }, to: V): V {
+  const dx = to[0] - h.c[0];
+  const dy = to[1] - h.c[1];
+  const l = Math.hypot(dx, dy) || 1;
+  return [h.c[0] + (dx / l) * h.r, h.c[1] + (dy / l) * h.r];
+}
+
 function frontView(D: Draft, t: Xf, o: FrontOpts = {}) {
   const top = DIM.headTop;
   const butt = DIM.buttY;
   D.add("outline", "vis", silhouette(t));
   D.add("outline", "vis", throat(t));
   D.add("outline", "hole", holes(t));
-  D.add("outline", "tangent", tangentEdge(t, 13));
+  D.add("outline", "tangent", tangentEdge(t));
+  D.add("outline", "grip", handleDetail(t, "front"));
   D.add("hidden", "centre", line(at(t, [0, top + 16]), at(t, [0, butt - 16])));
   if (o.cut) {
     // both planes run clear across the head, so every letter sits outside the outline
@@ -214,32 +240,42 @@ function frontView(D: Draft, t: Xf, o: FrontOpts = {}) {
     cutPlane(D, t, BORE[1], -wb, wb, 13, "B");
   }
   if (o.dims) {
-    dimV(D, at(t, [0, top]), at(t, [-DIM.handleR - 1.6, butt]), at(t, [-174, 0])[0], String(DIM.length));
-    dimH(D, at(t, [-HEAD_MAX[0], HEAD_MAX[1]]), at(t, [HEAD_MAX[0], HEAD_MAX[1]]), at(t, [0, top + 32])[1], String(DIM.width));
+    // the envelope as one-sided limits ("max"), so the general ±0.015 never takes a racket past the rules (row 6c)
+    dimV(D, at(t, [0, top]), at(t, [-10, butt]), at(t, [-174, 0])[0], `${DIM.length.toFixed(1)} max`);
+    dimH(D, at(t, [-HEAD_MAX[0], HEAD_MAX[1]]), at(t, [HEAD_MAX[0], HEAD_MAX[1]]), at(t, [0, top + 32])[1], `${DIM.width.toFixed(1)} max`);
   }
   if (o.callout) {
-    const hole: V = [40.5, -40.5];
-    const a = (-62 * Math.PI) / 180;
-    const tip = at(t, [hole[0] + Math.cos(a) * (DIM.holeD / 2), hole[1] + Math.sin(a) * (DIM.holeD / 2)]);
-    leader(D, tip, at(t, [72, -197]), 9, "dim", [
+    // the 34 lattice holes, from the lowest row; the 8 of the crown, from above the head
+    const grid = holeNear(49, -59.6);
+    const gElbow = at(t, [72, -197]);
+    leader(D, at(t, rimToward(grid, [72, -197])), gElbow, 9, "dim", [
       <span key="a">
         <Dia />
-        {DIM.holeD.toFixed(1)} <span className={styles.times}>×{DIM.holes}</span>
+        {DIM.holeD.toFixed(1)} <span className={styles.times}>×{DIM.grid}</span>
       </span>,
       <span key="b" className={styles.subline}>
         {LABELS.holeNote}
       </span>,
     ]);
+    const crown = holeNear(73.4, 96.7);
+    const cElbow: V = [100, top + 13];
+    leader(D, at(t, rimToward(crown, cElbow)), at(t, cElbow), -9, "dim", [
+      <span key="a">
+        <Dia />
+        {DIM.crownD.toFixed(1)} <span className={styles.times}>×{DIM.crown}</span>
+      </span>,
+    ]);
   }
 }
 
-function sideView(D: Draft, t: Xf, o: { dims?: boolean; balance?: boolean } = {}) {
+function sideView(D: Draft, t: Xf, o: { dims?: boolean; balance?: boolean; handle?: boolean } = {}) {
   const h = DIM.thickness / 2;
   D.add("outline", "vis", sideProfile(t));
+  D.add("outline", "grip", handleDetail(t, "side"));
   D.add("hidden", "hidden", sideHidden(t));
   D.add("hidden", "centre", line(at(t, [0, DIM.headTop + 16]), at(t, [0, DIM.buttY - 16])));
   if (o.dims) {
-    dimH(D, at(t, [-h, DIM.headTop - 7]), at(t, [h, DIM.headTop - 7]), at(t, [0, DIM.headTop + 32])[1], DIM.thickness.toFixed(1), {
+    dimH(D, at(t, [-h, DIM.headTop - 7]), at(t, [h, DIM.headTop - 7]), at(t, [0, DIM.headTop + 32])[1], `${DIM.thickness.toFixed(1)} max`, {
       outside: true,
     });
   }
@@ -256,6 +292,15 @@ function sideView(D: Draft, t: Xf, o: { dims?: boolean; balance?: boolean } = {}
       </span>,
     ]);
   }
+  if (o.handle) {
+    // the canonical handle: the wrapped overgrip and the engraved cap
+    const g = HANDLE_MM.grip;
+    const gripTip = at(t, [g.z, -228]);
+    leader(D, gripTip, [gripTip[0] + 30, gripTip[1]], 9, "note", LABELS.grip, "dot");
+    const capY = HANDLE_MM.cap.mark;
+    const capTip = at(t, [sideHalf(capY), capY]);
+    leader(D, capTip, [capTip[0] + 28, capTip[1] + 14], 9, "note", LABELS.cap, "dot");
+  }
 }
 
 /** Thin projection lines that tie the front view to the side view. */
@@ -264,7 +309,7 @@ function projection(D: Draft, f: Xf, s: Xf) {
     [DIM.headTop, 5, sideHalf(DIM.headTop) - 2],
     [-86.5, headHalfWidth(-86.5) + 5, sideHalf(-86.5) + 5],
     [-127, headHalfWidth(-127) + 5, sideHalf(-127) + 5],
-    [DIM.buttY, DIM.handleR + 6, DIM.handleR + 6],
+    [DIM.buttY, HANDLE_MM.grip.x + 6, HANDLE_MM.grip.z + 6],
   ];
   for (const [y, fx, sx] of rows) D.add("hidden", "construct", line(at(f, [fx, y]), at(s, [-sx, y])));
 }
@@ -281,20 +326,24 @@ function sectionView(D: Draft, t: Xf, o: { callouts: SectionCallouts }) {
   D.add("hidden", "centre", line(at(t, [-W - 10, 0]), at(t, [W + 10, 0])));
   D.add("hidden", "centre", line(at(t, [0, h + 9]), at(t, [0, -h - 9])));
   // tips: the shell on the top face, the core, and the wrapped rim
-  const shellTip = at(t, [-96, h - 1]);
-  const coreTip = at(t, [92, -3]);
+  const xs = -0.74 * W;
+  const xc = 0.71 * W;
+  const shellTip = at(t, [xs, h - 1]);
+  const coreTip = at(t, [xc, -3]);
   const k = 0.7071;
-  const rimTip = at(t, [W - 15 + 15 * k, h - 15 + 15 * k]);
+  const R = DIM.edgeR;
+  const rimTip = at(t, [W - R + R * k, h - R + R * k]);
   const top = at(t, [0, h])[1];
   const bot = at(t, [0, -h])[1];
   if (o.callouts === "wide") {
-    leader(D, shellTip, [shellTip[0] + 16, top - 50], 10, "note", [LABELS.shell], "dot");
+    leader(D, shellTip, [shellTip[0] - 16, top - 50], -10, "note", [LABELS.shell], "dot");
     leader(D, rimTip, [rimTip[0] - 4, top - 50], -10, "note", LABELS.fibre);
     leader(D, coreTip, [coreTip[0] + 14, bot + 34], 10, "note", [LABELS.core], "dot");
   } else {
-    leader(D, at(t, [-96, -h + 1]), [at(t, [-96, 0])[0] + 10, bot + 24], 8, "note", [LABELS.shell], "dot");
-    leader(D, at(t, [W - 15 + 15 * k, -h + 15 - 15 * k]), [at(t, [W, 0])[0] - 6, bot + 66], -8, "note", LABELS.fibre);
-    leader(D, at(t, [92, 3]), [at(t, [92, 0])[0] + 8, top - 22], 8, "note", [LABELS.core], "dot");
+    leader(D, at(t, [xs, -h + 1]), [at(t, [xs, 0])[0] + 10, bot + 24], 8, "note", [LABELS.shell], "dot");
+    // the rim leader steps outward first, so it clears the end of the shell label on the row above
+    leader(D, at(t, [W - R + R * k, -h + R - R * k]), [at(t, [W, 0])[0] + 12, bot + 66], -8, "note", LABELS.fibre);
+    leader(D, at(t, [xc, 3]), [at(t, [xc, 0])[0] + 8, top - 22], 8, "note", [LABELS.core], "dot");
   }
 }
 
@@ -366,7 +415,7 @@ function wideSheet(uid: string): Draft {
   const f: Xf = { ox: 228, oy: 244, s: 1 };
   const s: Xf = { ox: f.ox + 268, oy: f.oy, s: 1 };
   frontView(D, f, { dims: true, cut: true, callout: true });
-  sideView(D, s, { dims: true, balance: true });
+  sideView(D, s, { dims: true, balance: true, handle: true });
   projection(D, f, s);
   const sec: Xf = { ox: 908, oy: 150, s: 2 };
   sectionView(D, sec, { callouts: "wide" });
@@ -582,7 +631,7 @@ function useReveal(root: React.RefObject<HTMLElement | null>, enabled: boolean) 
 
 export type TechnicalDrawingProps = {
   className?: string;
-  /** "full": the whole sheet (spec strip); "front": the front view only (phones, disclosures). */
+  /** "full": the whole sheet (Specifications, 1240 px and wider); "front": the front view only (narrower screens). */
   variant?: "full" | "front";
   /** "feature" for a graphic in its own right; "quiet" (spec-sheet 40% lines) behind other content. */
   tone?: "feature" | "quiet";

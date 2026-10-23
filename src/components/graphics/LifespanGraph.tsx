@@ -12,7 +12,7 @@ const { graph } = durability;
 /** Strings this graphic adds on top of durability.graph (copy.ts). */
 export const LABELS = {
   summary:
-    "Illustrative graph on a five-year axis. Most padel rackets are spent between one and two years of recreational play, by brand and retailer guidance. KINETIQ is built to last five years at two 90-minute sessions a week: about 780 hours of ball strikes, a design life to be verified in independent fatigue tests.",
+    "Illustrative graph on a five-year axis. Most padel rackets are spent between one and two years of recreational play, by brand and retailer guidance. KINETIQ is built to last five years at two 90-minute sessions a week, about 160,000 ball strikes in all. An independent lab will run fatigue tests to that count before we ship.",
 };
 
 /* ---------- geometry (normalised 1000 x 1000 viewBox, y down) ---------- */

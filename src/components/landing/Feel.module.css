@@ -1,9 +1,16 @@
-/* isolates, so the points' pool light stays under the section's own content (globals .pool) */
+/* isolates, so the points' pool light stays under the section's own content (globals .pool). The G10 lift (globals
+   .lift) fades out to flat --stage at the foot, where Born whole begins on --stage, so the two meet with no line. */
 .section {
   isolation: isolate;
   display: grid;
   gap: clamp(48px, 4vw, 120px);
   padding: clamp(80px, 5vw, 140px) var(--margin) clamp(96px, 8vw, 220px);
+}
+.section:global(.lift) {
+  background:
+    linear-gradient(transparent 80%, var(--stage)),
+    radial-gradient(ellipse 85% 75% at 50% 50%, var(--lift), rgb(34 34 39 / 0.6) 40%, transparent 80%),
+    var(--stage);
 }
 .head {
   display: grid;
@@ -19,12 +26,22 @@
   display: grid;
   gap: 32px;
 }
+/* The points' pool ends a little below the list, inside the section's foot padding (globals .pool reaches 45% of
+   the list below it, which on phones ran past the section's foot and was cut off there by Born whole). */
+.section .points::before {
+  inset: -45% 0 -12%;
+}
 .point {
   display: grid;
   gap: 12px;
   align-content: start;
   padding-top: 24px;
-  border-top: 1px solid var(--hairline);
+  /* translucent, so the rule always reads about 20 levels above whatever is under it, the pool's peak included
+     (an opaque --hairline matches the pool's light and the middle rule vanishes) */
+  border-top: 1px solid rgb(255 255 255 / 0.1);
+}
+.point :global(.t-h3) {
+  text-wrap: balance;
 }
 @media (min-width: 900px) {
   .head {
@@ -35,8 +52,15 @@
   .head :global(.t-lead) {
     max-width: 50ch;
   }
+  /* Each point spans a title row and a body row of the list's grid (subgrid, as in Durability), so a title that
+     wraps to two lines moves every body in the row down with it: the bodies share one top line. */
   .points {
     grid-template-columns: repeat(3, 1fr);
-    gap: var(--gutter);
+    gap: 0 var(--gutter);
+  }
+  .point {
+    grid-row: span 2;
+    grid-template-rows: subgrid;
+    row-gap: 12px;
   }
 }

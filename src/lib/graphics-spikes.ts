@@ -1,5 +1,5 @@
 // G04 consistency spikes (illustrative, not measured): a narrow distribution inside a ±1.0
-// tolerance window, for mass (355.0 g reference) and balance (250.4 mm reference).
+// tolerance window, for mass (355.0 g reference) and balance (250.0 mm reference).
 import { VB, n1, seeded } from "./graphics-plot";
 
 export type SpikeSpec = {
@@ -15,7 +15,7 @@ export type SpikeSpec = {
 
 export const SPIKES: SpikeSpec[] = [
   { id: "mass", reference: 355, span: 5, window: 1, sigma: 0.24, unit: "g", seed: 3550 },
-  { id: "balance", reference: 250.4, span: 5, window: 1, sigma: 0.27, unit: "mm", seed: 2504 },
+  { id: "balance", reference: 250, span: 5, window: 1, sigma: 0.27, unit: "mm", seed: 2504 },
 ];
 
 /** Peak height as a share of the plot. */

@@ -149,7 +149,7 @@ export function occluded(back: V[], fronts: V[][], gap: number): string {
     .join("");
 }
 
-/** The 42 real hole centres (same transform as iconRacket): a regular grid, not a scatter. */
+/** The 42 real hole centres (same transform as iconRacket): the crown of 8 and the lattice, not a scatter. */
 export function iconHoleCentres(len: number): V[] {
   const top = HEAD_START[1];
   const k = len / (top - (HANDLE.top - HANDLE.length));
@@ -180,7 +180,7 @@ export function penDots(centres: V[]): string {
   return centres.map(([x, y]) => `M${fmt(x)} ${fmt(y)}h0`).join("");
 }
 
-/** The real hole diameter at an icon racket's scale. */
+/** The lattice holes' real diameter (12.4 mm) at an icon racket's scale; at icon sizes the crown's 14.0 mm reads the same. */
 export function iconHoleDia(len: number): number {
   return (HOLE_RADIUS * 2 * len) / (HEAD_START[1] - (HANDLE.top - HANDLE.length));
 }

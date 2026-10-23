@@ -58,12 +58,38 @@
 }
 .cta :global(.t-label) {
   max-width: 30ch;
+  text-wrap: balance;
+}
+/* From 700 px K07 spans the full width at its own 16:9, anchored to the section's foot, and the section is the words
+   plus two thirds of the image's height. So however many lines the words take, they end a third of the way down K07,
+   over the dim tops of the light shafts and clear of the racket heads (their rims start at 0.39 of its height), and
+   every pixel under the lead stays at 4.5:1 or more against --steel. Above the image the floor is --stage, K07's
+   own top colour, with a soft lift at its top centre that meets the Specifications lift where it ends (about luma
+   24 in the middle, 17 at the sides); the image's top edge feathers into it, so there is no seam. Its foot feathers
+   too, below the stands' bases (0.73 of its height): the floor reflections fade into --stage, the proof's own top
+   colour, instead of ending on a line. */
+@media (min-width: 700px) {
+  .lineup {
+    min-height: 0;
+    padding-bottom: calc(56.25% * 2 / 3);
+    background: radial-gradient(ellipse 50% 160px at 50% 0, rgb(24 24 27), rgb(24 24 27 / 0)), var(--stage);
+  }
+  .media {
+    inset: auto 0 0;
+    aspect-ratio: 16 / 9;
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 10%, #000 78%, transparent);
+    mask-image: linear-gradient(to bottom, transparent, #000 10%, #000 78%, transparent);
+  }
+}
+/* Tablet portrait: one column, but the certificate stays an object on the floor (about its desktop size), not a sheet
+   across the screen: card and Reserve Now fit on one screen under the header. */
+@media (min-width: 700px) and (max-width: 899px) {
+  .card {
+    justify-self: center;
+    width: min(100%, 460px);
+  }
 }
 @media (min-width: 900px) {
-  /* A little taller than the screen: the covered still scales with it, so the rackets clear the copy. */
-  .lineup {
-    min-height: 104svh;
-  }
   .grid {
     grid-template-columns: repeat(12, minmax(0, 1fr));
     column-gap: var(--gutter);
@@ -86,13 +112,28 @@
     order: 2;
     width: 100vw;
     margin-top: 24px;
-    /* the phone crop: three whole rackets of the five, with their light shafts */
+    /* the phone crop: three whole rackets of the five, with their light shafts (stands down to 0.84 of it); its top
+       feathers into the lift and its floor reflections fade out before the proof begins */
     aspect-ratio: 1331 / 1325;
+    -webkit-mask-image: linear-gradient(transparent, #000 12%, #000 82%, transparent);
+    mask-image: linear-gradient(transparent, #000 12%, #000 82%, transparent);
   }
+  /* The words stand above the still on phones: a soft lift behind them, faded out before K07 begins, so the band
+     never reads as flat black (fill rule) however many lines the headline and lead take. The floor is --stage, as under
+     Specifications' lift (about luma 23 at its foot, met by this lift's top) and close to K07's backdrop, so
+     neither edge of the band is a step. */
   .lineup {
     display: flex;
     flex-direction: column;
     align-items: center;
+    background:
+      radial-gradient(ellipse 110% 38% at 50% 24%, rgb(43 43 49 / 0.85), rgb(30 30 34 / 0.5) 55%, transparent 100%),
+      var(--stage);
+  }
+  /* full measure, like the hero's and the finale's Reserve Now: the card centres its items, which would shrink this
+     block to its price line; the line stays centred under the button (.cta's own justify-items) */
+  .cta {
+    justify-self: stretch;
   }
   .cta :global(.btn) {
     width: 100%;

@@ -1,10 +1,14 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, after, type NextRequest } from "next/server";
+import { tierById } from "@/content/lineup";
 import { NDA_COOKIE, NDA_MAX_AGE, encodeNda, isEmail, normaliseEmail } from "@/lib/nda";
+import { isReservedAddress, mayNotify, ndaNotifyConfigured, notifyNdaSignIn } from "@/lib/nda-notify";
 
 // The NDA gate's one endpoint (src/proxy.ts lets it through without the cookie). It checks the email, sets the
-// kq_nda cookie (src/lib/nda.ts) and stores nothing else: no database, no log line, the email lives only in
-// the visitor's cookie. A malformed address is an answer, not a failure: 200 with ok: false (no console error),
-// as in /api/invite. Malformed or cross-site requests get 400 / 403.
+// kq_nda cookie (src/lib/nda.ts) and, after the response, emails the owner (src/lib/nda-notify.ts): for a same-origin
+// request only, once per address a day and at most 20 an hour and 40 a day per server instance; a sign-in over those
+// caps is listed in the next email. No database and no log line with the address. A
+// malformed address is an answer, not a failure: 200 with ok: false (no console error), as in /api/invite. Malformed
+// or cross-site requests get 400 / 403.
 
 const MAX_BODY = 2048;
 
@@ -37,5 +41,23 @@ export async function POST(request: NextRequest) {
     path: "/",
     maxAge: NDA_MAX_AGE,
   });
+  const origin = request.nextUrl.origin;
+  // The gate's own form, from this site (browsers without Sec-Fetch-Site send Origin). A script can forge both:
+  // mayNotify is what bounds the emails. With emails off, no address is held even in memory. Addresses on reserved
+  // test domains (the check harness's harness@kinetiq.invalid) are never emailed and never count against the caps.
+  const site = request.headers.get("sec-fetch-site");
+  const sameOrigin = site ? site === "same-origin" : request.headers.get("origin") === origin;
+  if (!sameOrigin || isReservedAddress(email) || !ndaNotifyConfigured() || !mayNotify(email)) return res;
+  // The page's path and its edition only: never an invitation code, a payment's client secret or any other parameter.
+  let page = "/";
+  try {
+    const ref = new URL(request.headers.get("referer") ?? "", origin);
+    if (ref.origin === origin) {
+      const tier = tierById(ref.searchParams.get("tier"));
+      page = `${ref.pathname.slice(0, 100)}${tier ? `?tier=${tier.id}` : ""}`;
+    }
+  } catch {}
+  const signIn = { email, at: new Date().toISOString(), page, origin };
+  after(() => notifyNdaSignIn(signIn));
   return res;
 }

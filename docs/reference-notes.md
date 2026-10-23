@@ -33,8 +33,9 @@ Techniques only. No text, images or exact layouts are copied.
 ## What we reuse (as techniques)
 1. **Scroll-scrubbed camera move on one hero model** as the opening act. We do the same with the racket:
    the reveal plays on load, then scroll turns the racket edge-on (one piece, 38 mm).
-2. **A visible skip link inside the pinned stage**, for the whole length of the pin. Ours is in every
-   pinned chapter, top left, and also moves keyboard focus.
+2. **A skip link inside the pinned stage**, for the whole length of the pin. Ours is in every pinned
+   chapter and moves keyboard focus, but it appears only on keyboard focus (owner's question, 2026-10-22):
+   visually hidden otherwise, shown at once at the top of the stage. Mouse and touch visitors never need it.
 3. **A thin progress cue during a long pinned sequence**, so people know how long it lasts.
    (Our precision chapter uses comparison bars that fill as you scroll.)
 4. **Lenis off under reduced motion**: ours goes further, with no Lenis on touch devices either.

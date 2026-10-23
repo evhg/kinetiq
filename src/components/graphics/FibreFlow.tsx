@@ -301,33 +301,36 @@ export function FibreFlow({
       yield;
       // Bores, drawn as G06 draws a moulded hole: cleared, a throat that darkens with depth, an
       // amber rim light outside, a crisp rim and wall lines that tighten down the bore.
-      const r = f.holeR;
+      const R = f.holeRs;
       const h = f.holes;
-      const circles = (rr: number) => {
+      /** Every bore's circle at k times its own radius, plus `add` px. */
+      const circles = (k: number, add = 0) => {
         ctx.beginPath();
-        for (let k = 0; k < h.length; k += 2) {
-          ctx.moveTo(h[k] + rr, h[k + 1]);
-          ctx.arc(h[k], h[k + 1], rr, 0, Math.PI * 2);
+        for (let i = 0; i < h.length; i += 2) {
+          const rr = R[i / 2] * k + add;
+          ctx.moveTo(h[i] + rr, h[i + 1]);
+          ctx.arc(h[i], h[i + 1], rr, 0, Math.PI * 2);
         }
       };
       ctx.save();
       ctx.globalCompositeOperation = "destination-out";
-      circles(r * 1.02);
+      circles(1.02);
       ctx.fill();
       ctx.restore();
-      for (let k = 0; k < h.length; k += 2) {
-        const rg = ctx.createRadialGradient(h[k], h[k + 1], 0, h[k], h[k + 1], r);
+      for (let i = 0; i < h.length; i += 2) {
+        const r = R[i / 2];
+        const rg = ctx.createRadialGradient(h[i], h[i + 1], 0, h[i], h[i + 1], r);
         rg.addColorStop(0, rgba(dark, 0.62));
         rg.addColorStop(0.7, rgba(dark, 0.5));
         rg.addColorStop(1, rgba(dark, 0.22));
         ctx.fillStyle = rg;
         ctx.beginPath();
-        ctx.arc(h[k], h[k + 1], r, 0, Math.PI * 2);
+        ctx.arc(h[i], h[i + 1], r, 0, Math.PI * 2);
         ctx.fill();
       }
       // Amber rim light: the same stacked-stroke glow, hugging the outside of each bore.
       for (const [wd, a] of GLOW) {
-        circles(r * 1.02 + wd / 2);
+        circles(1.02, wd / 2);
         ctx.strokeStyle = rgba(amber, a * 0.8);
         ctx.lineWidth = wd;
         ctx.stroke();
@@ -339,12 +342,12 @@ export function FibreFlow({
         [0.82, 0.26],
         [0.765, 0.15],
       ] as const) {
-        circles(r * k);
+        circles(k);
         ctx.strokeStyle = rgba(amber, a);
         ctx.lineWidth = wallW;
         ctx.stroke();
       }
-      circles(r);
+      circles(1);
       ctx.strokeStyle = rgba(steel, 0.72);
       ctx.lineWidth = Math.max(1, lineW + 0.25);
       ctx.stroke();
@@ -666,12 +669,11 @@ function Fallback({ mode, angle, frame, fadeSide, focus }: Pick<Props, "angle" |
   const [w, h] = mode === "strip" ? [390, 260] : [1600, 900];
   const f = buildFlowField({ ...layout(mode, w, h, frame, fadeSide, focus, 1, angle ?? 0), spacing: mode === "strip" ? 9 : 13, tow: 1, maxStep: 10 });
   const d = linesToPath(f.lines, 1);
-  const r = f.holeR.toFixed(1);
   return (
     <svg className={styles.fallback} viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true">
       <path d={d} className={styles.fbLines} />
       {Array.from({ length: f.holes.length / 2 }, (_, k) => (
-        <circle key={k} cx={f.holes[2 * k].toFixed(1)} cy={f.holes[2 * k + 1].toFixed(1)} r={r} className={styles.fbHole} />
+        <circle key={k} cx={f.holes[2 * k].toFixed(1)} cy={f.holes[2 * k + 1].toFixed(1)} r={f.holeRs[k].toFixed(1)} className={styles.fbHole} />
       ))}
     </svg>
   );
