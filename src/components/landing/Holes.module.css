@@ -36,6 +36,10 @@
   gap: clamp(18px, 1.2vw + 8px, 36px);
   max-width: min(38vw, 860px);
 }
+/* the claim that no other racket has it: the brighter of the two leads, as the sweet spot's second line */
+.only {
+  color: var(--text);
+}
 .stats {
   display: flex;
   gap: clamp(28px, 3vw, 88px);

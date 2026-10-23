@@ -2,6 +2,10 @@
   background: var(--void);
 }
 .stage {
+  /* the sentence over the numeral: its size, and the height it takes above the numeral (two lines on phones, one
+     from 700 px), which the numeral's height caps and the portrait frames below take into account */
+  --intro-fs: 1.125rem;
+  --intro-h: calc(var(--intro-fs) * 1.35 * 2 + 8px);
   position: relative;
   min-height: 100svh;
   display: grid;
@@ -23,8 +27,17 @@
   object-fit: cover;
 }
 .record {
+  display: grid;
+  justify-items: center;
   margin: 0;
   font-weight: inherit;
+}
+/* steel, the lead's colour, in the lead's face: the numeral is the sentence's last word */
+.intro {
+  max-width: 30ch;
+  margin-bottom: 8px;
+  font-size: var(--intro-fs);
+  text-wrap: balance;
 }
 .number {
   display: inline-flex;
@@ -41,6 +54,14 @@
   max-width: 34ch;
 }
 @media (min-width: 700px) {
+  .stage {
+    --intro-fs: clamp(1.125rem, 0.6vw + 0.8rem, 1.75rem);
+    --intro-h: calc(var(--intro-fs) * 1.35 + clamp(4px, 0.6vh, 12px));
+  }
+  .intro {
+    max-width: none;
+    margin-bottom: clamp(4px, 0.6vh, 12px);
+  }
   .line {
     margin-top: calc(clamp(8px, 1.2vh, 24px) * -1);
     font-size: clamp(1.125rem, 0.6vw + 0.8rem, 1.75rem);
@@ -75,7 +96,8 @@
    720 to 2560 x 1305). 1440 x 900 and 2560 x 1440 keep 14vw. */
 @media (min-width: 700px) and (aspect-ratio > 1/1) {
   .number {
-    font-size: clamp(5.5rem, min(14vw, 39svh - 130px, 54.5svh - 8.75vw - 140px), 22.5rem);
+    /* the sentence above the numeral takes its own height from both height terms */
+    font-size: clamp(5.5rem, min(14vw, 39svh - 130px - var(--intro-h), 54.5svh - 8.75vw - 140px - var(--intro-h)), 22.5rem);
   }
 }
 /* Portrait windows from 700 px (iPads): the 16:9 scan, covered into a stage taller than wide, would show only its
@@ -84,7 +106,7 @@
    78.5% of the frame, about 1.02 times the screen's width tall) is centred whole below them, cap included. */
 @media (min-width: 700px) and (max-aspect-ratio: 1/1) {
   .stage {
-    --frame-top: calc(var(--chrome-h) + clamp(8px, 2vh, 40px) + max(7rem, 14vw) * 0.9 + 32px);
+    --frame-top: calc(var(--chrome-h) + clamp(8px, 2vh, 40px) + var(--intro-h) + max(7rem, 14vw) * 0.9 + 32px);
     background: var(--stage);
   }
   .media {
@@ -171,7 +193,7 @@
     background: var(--stage);
   }
   .media {
-    inset: calc(9svh + 2rem) 0 0;
+    inset: calc(9svh + 2rem + var(--intro-h)) 0 0;
     -webkit-mask-image: linear-gradient(180deg, transparent, #000 12%);
     mask-image: linear-gradient(180deg, transparent, #000 12%);
   }

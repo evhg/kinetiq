@@ -8,7 +8,8 @@
 // which stays verbatim (CLAUDE.md; the owner replaced the hero lead after retiring the phrase). Elsewhere the
 // construction words are "unibody" and "Zero seams.", scoped to the frame: "No joint to work loose." Never
 // "zero weak points" or "nothing to come apart" (absolute durability promises, CLAIMS.md row 8b), never
-// "first unibody" (the word is already used in other racket sports, row 3).
+// "first unibody" in any line but the owner's own eyebrow "The first Unibody" (owner, 2026-10-23; CLAIMS.md row 36:
+// the word is already used in other racket sports, row 3).
 // Durability (owner, 2026-10-22): "Built to last five years" is said in one place only, the Durability section,
 // where its usage profile and the promised fatigue tests are told in its own sentences (owner: the five years in
 // three places was too much). Never in the hero, the finale or the meta; the one edition line that names five years
@@ -17,11 +18,15 @@
 // fatigue report exists the testing is promised, never claimed as done (CLAIMS.md rows 26 and 28).
 // No small print (owner, 2026-10-22): no footnote markers (*, \u2020, \u2021, \u00a7) and no fine-print lines. Where a
 // qualifier keeps a claim honest, it is part of a plain sentence in the body copy ("as designed", "made to last",
-// "An independent lab will run fatigue tests"); a graphic with unmeasured data keeps its "Illustrative" caption.
+// "An independent lab will run fatigue tests"). No "Illustrative" captions either (owner, 2026-10-23, risk accepted:
+// "Do apple or tesla put it on their product launch pages?"): the graphics stand without them (CLAIMS.md, "No Illustrative captions").
+// Patent (owner, 2026-10-23): "patent pending" everywhere, never "patented" (CLAIMS.md row 11).
 // Sealed core (owner, 2026-10-22; CLAIMS.md rows 30 to 34): the carbon shell closes around the whole EVA core
-// and lines every hole, so the core never touches the air. It is told once per place: the reveal in the
-// unibody chapter (unibody.sealed), the drilled hole that opens a core (holes.body), and the result in
-// Durability ("three times longer", only against the same core left open, and only as a design: "made to last").
+// and lines every hole, so the core never touches the air. It is told once per place: the drilled hole that opens a
+// core (holes.body), then the reveal right after Holes, in its own pinned chapter (sealedCore; owner, 2026-10-23: the
+// sealed core comes after the moulded holes), and the result in Durability ("three times longer", only against the
+// same core left open, and only as a design: "made to last"; the sealed-core bullet says it against "an exposed EVA
+// core", the same core left open).
 // The seal keeps out sweat, humidity and UV; never heat (the shell does not insulate), never "airtight",
 // "waterproof" or "first". "Swiss-made EVA" stays at country level: never the factory, a supplier or a town.
 // Voice (owner, 2026-10-22; batch 3 names-copy-final): whole, plain sentences that say what we made and what it does
@@ -57,8 +62,8 @@ export const hero = {
  * the 531.5 cm² of face above the bridge, 93.8%, said "Nearly 94%" (Apple Watch Series 7: "nearly 20 percent";
  * a 5.85-inch iPhone X display was sold as 5.8-inch, so Apple never rounds up without a word). A design ceiling,
  * not a measurement: line 1 says so in its own words ("we designed all of that flat face to be sweet spot": what is
- * counted, and that it is a design), and the caption says "Illustrative. The sweet spot as designed." until the
- * independent rebound map exists. No fine print (owner, 2026-10-22). Line 1 is about the face only: the cause (the
+ * counted, and that it is a design). No fine print (owner, 2026-10-22) and no "Illustrative" caption (owner,
+ * 2026-10-23). Line 1 is about the face only: the cause (the
  * frame tube we left out) is told once, in Unibody.
  * Never "all sweet spot", "zero", "no dead zones", "100%", "bezel", "twice the sweet spot", a comparison with a
  * tubular racket or another brand, or "largest".
@@ -80,8 +85,6 @@ export const sweetSpot = {
    */
   share: { nearly: "Nearly", unit: "%", label: "of the face is sweet\u00a0spot" },
   inset: { unit: "mm", label: "from the sweet\u00a0spot to the edge" },
-  /** Under the image, the K12 still or G15, which stands in for it until K12 is exported. */
-  caption: "Illustrative. The sweet spot as designed.",
   /** K12 (K12-base, then K12-full): a face-on white Command racket whose face lights up to 4 mm from the edge. */
   imageAlt: (n: SweetNumbers) =>
     `A white KINETIQ Command racket face-on. Its face lights up evenly to within ${n.inset}\u00a0mm of the edge: the sweet spot as designed.`,
@@ -89,7 +92,7 @@ export const sweetSpot = {
     /** G15's detail: the edge magnified, with the band between the light and the edge dimensioned. */
     detail: (n: SweetNumbers) => `${n.inset} mm`,
     alt: (n: SweetNumbers) =>
-      `Face-on KINETIQ Command racket in white 3K carbon twill. Warm light fills its face to within ${n.inset}\u00a0mm of the edge, ${n.nearly ? "nearly " : ""}${n.share}% of the face above the bridge, and the 42 moulded holes stay dark. A magnified detail of the edge measures the ${n.inset}\u00a0mm band. Illustrative.`,
+      `Face-on KINETIQ Command racket in white 3K carbon twill. Warm light fills its face to within ${n.inset}\u00a0mm of the edge, ${n.nearly ? "nearly " : ""}${n.share}% of the face above the bridge, and the 42 moulded holes stay dark. A magnified detail of the edge measures the ${n.inset}\u00a0mm band.`,
   },
 };
 
@@ -97,7 +100,7 @@ export const sweetSpot = {
  * Specifications, the recap before the buy (CLAIMS.md row 6c): six cells, then G01 whole. The outer dimensions
  * sit at the FIP limits (length 45.5 cm, width 26 cm, thickness 38 mm; `racket-shape.ts` peaks at exactly
  * 260.0 mm). Never "the largest face the rules allow": head length is free under the rules. The tolerances
- * (±1.0 g, ±1.0 mm) are told by Identical, which follows.
+ * (±1.0 g, ±0.1 mm) are told by Identical, which follows.
  */
 export const specifications = {
   eyebrow: "Specifications",
@@ -114,7 +117,8 @@ export const specifications = {
 };
 
 /**
- * Unibody, pinned on wide screens: beat A (K02 edge-on), beat B (the cut-through and G07), then the sealed core.
+ * Unibody, pinned on wide screens: beat A (K02 edge-on), then beat B (the cut-through and G07). The sealed core,
+ * once its last beat, is its own chapter after Holes (owner, 2026-10-23).
  * Beat A says what one shell means in your hand, then what we left out (CLAIMS.md row 8c): "frame tube" is said here,
  * once, and the sweet-spot line above it speaks only of the face. Its three callouts sit beside
  * the parts they name, rim, bridge and handle, in that order (top to bottom on phones, where K02 stands upright).
@@ -124,11 +128,12 @@ export const specifications = {
  */
 export const unibody = {
   edge: {
-    eyebrow: "Unibody",
-    headline: "It feels like one thing in your hand.",
-    // No-break spaces keep "the bridge" and "one carbon shell" whole, so a phone sets three whole phrases.
-    body: "We left out the frame tube. The face, the\u00a0bridge and the handle are one\u00a0carbon\u00a0shell.",
-    // The handle callout gives no number: Identical tells the tolerances (±1.0 g, ±1.0 mm).
+    // The owner's words (2026-10-23), light punctuation only. "The first Unibody" is a "first" claim: CLAIMS.md row 36.
+    eyebrow: "The first Unibody",
+    headline: "When you hold it, there is no boundary between the material and your experience.",
+    // No-break spaces keep "the bridge," and "integrated carbon unit" whole, so a phone sets whole phrases.
+    body: "We no longer need the frame tube. The face, the\u00a0bridge, and the handle are one single integrated\u00a0carbon\u00a0unit.",
+    // The handle callout gives no number: Identical tells the tolerances (±1.0 g, ±0.1 mm).
     callouts: [
       { at: "rim", text: "The face is in play almost to the rim." },
       { at: "bridge", text: "Zero seams, so there is no joint to work loose." },
@@ -147,26 +152,29 @@ export const unibody = {
     left: { title: "Tubular racket", tube: "Frame tube", joints: "Joints", joint: "Joint", core: "Open core" },
     right: { title: "KINETIQ", shell: "One continuous shell", core: "Sealed core" },
   },
-  /**
-   * The sealed core, over the K03 cut-through: the reveal. Durability carries the result (CLAIMS.md rows 30 to 33).
-   * "Conventional" means a racket whose holes are drilled after curing; the claim is the drilled bore only, never
-   * the core's edge, which a tubular frame closes (row 31).
-   */
-  sealed: {
-    eyebrow: "Sealed core",
-    headline: "The core never touches the air.",
-    body: "In a conventional racket, every drilled hole opens the foam core to sweat, humidity and UV. In KINETIQ, the carbon shell closes around the whole core.",
-    callouts: ["Swiss-made EVA", "Injected straight into the mould", "All 42 holes lined in carbon"],
-  },
+};
+
+/**
+ * The sealed core, over the K03 cut-through: its own pinned chapter right after Holes (owner, 2026-10-23), so the
+ * moulded, lined holes lead to the core they keep closed, and Durability, next, carries the result (CLAIMS.md rows
+ * 30 to 34). The body picks up from Holes: the holes are moulded and lined, so the shell closes around the whole core.
+ * The third bullet is the owner's ("three times longer", row 34): against an exposed EVA core, the same core left
+ * open, never other brands' rackets.
+ */
+export const sealedCore = {
+  eyebrow: "Sealed core",
+  headline: "The core never touches the air.",
+  body: "Because every hole is moulded and lined, the carbon shell closes around the whole foam core, so sweat, humidity and UV never reach it.",
+  callouts: ["Swiss-made EVA", "Injected straight into the mould", "Three times the life of an exposed EVA core"],
 };
 
 export const bornWhole = {
   eyebrow: "Born whole",
   headline: "Swiss Made, right down to the core.",
-  body: "The two words you find on the dial of a Swiss watch are etched into the side of every KINETIQ. We make each one in Switzerland, in one mould, by one patented process.",
+  body: "The two words you find on the dial of a Swiss watch are etched into the side of every KINETIQ. We make each one in Switzerland, in one mould, by one patent-pending process.",
   lockup: { value: "100%", label: "Swiss Made" },
   /** G13: the Swiss badge, then the patent badge (the /reserve trust badges; Badges.tsx reads them in this order). */
-  badges: [site.swissMade, "Patented one-mould process"],
+  badges: [site.swissMade, "Patent-pending one-mould process"],
 };
 
 export const precision = {
@@ -175,12 +183,17 @@ export const precision = {
    * "15 microns" to screen readers (the graph section's h2 says the headline).
    */
   record: { to: 15, unit: "µm", spokenUnit: "microns" },
+  /**
+   * The story into the numeral (owner, 2026-10-23: "After 100% Swiss made, the page just says 15 micron ... so what?"):
+   * one sentence that the numeral ends, read by screen readers as "... exact to within 15 microns." The record line
+   * under the numeral then gives its scale.
+   */
+  recordIntro: "Every racket is moulded with ultra-precision, exact to within",
   /** "About": 15 µm is 21% of the 70 µm hair G03 prints, so "a fifth" alone would round in our favour. */
   recordLine: "About a fifth of a human hair.",
   headline: "Measured in microns.",
   body: "We hold every surface to within 15 microns of its design, and we measure every racket, not a sample, so each one plays the way we drew it.",
   graph: {
-    caption: "Illustrative. Surface deviation along the racket, against the ±15 µm limit.",
     limitLabel: "15 µm",
     references: [
       { label: "Human hair", um: 70 },
@@ -189,9 +202,16 @@ export const precision = {
   },
 };
 
+/**
+ * Holes (CLAIMS.md rows 5, 11, 31 and 37). The patent-pending process is named beside the wrap it makes (owner,
+ * 2026-10-23), and `only` makes his point that the three together are on no other racket on the market (row 37:
+ * a market search before launch). The sealed core follows this section, so the body ends on the core it keeps closed.
+ */
 export const holes = {
+  eyebrow: "Moulded holes",
   headline: "All 42 holes are formed in the mould.",
-  body: "Drilling a racket cuts the fibres that carry the shot and opens its core to the air. We mould each hole instead, and wrap carbon around its edge.",
+  body: "Drilling a racket cuts the fibres that carry the shot and opens its core to the air. We mould each hole instead, and wrap carbon around its edge, in the same patent-pending\u00a0process.",
+  only: "No other racket on the market has holes made this way: none of them drilled, no foam left exposed, and the carbon wrapped smooth around every edge.",
   stats: [
     { value: "42", label: "holes, moulded" },
     { value: "0", label: "drilled" },
@@ -242,7 +262,6 @@ export const durability = {
     kinetiqSpan: { value: "5", unit: "years" },
     kinetiqNote: "About 160,000 ball strikes",
     xAxis: "Years, at two 90-minute sessions a week",
-    caption: "Illustrative. KINETIQ as designed, against brand and retailer guidance for most padel rackets.",
   },
 };
 
@@ -250,9 +269,11 @@ export const durability = {
 // joint once (point 1) and otherwise speaks of the hand: its body does not say "one carbon shell" again (the phrase is
 // Unibody's and the finale's). Point 3 is the twist proof moved from the retired Unibody
 // beat C (CLAIMS.md row 7); it replaced "The same, edge to centre.", which the sweet-spot section now says.
+// Pinned like the chapters above it (owner, 2026-10-23), with its own eyebrow; the body is the owner's line (row 14).
 export const feel = {
+  eyebrow: "Direct feel",
   headline: "You feel exactly where you met the ball.",
-  body: "What reaches your hand is the contact itself.",
+  body: "The impact is absorbed by the entire unibody's surface.",
   // Point 1 says "dull", never "soften": a softer hit is what Command sells (feelChoice), so the joint we left out must
   // never read as a cushion we took away. Each title states its claim once; its body gives the reason.
   points: [
@@ -264,7 +285,6 @@ export const feel = {
     },
   ],
   graph: {
-    caption: "Illustrative. How vibration fades after impact.",
     glued: "Tubular racket",
     kinetiq: "KINETIQ, unibody",
     settled: "Settled",
@@ -273,12 +293,12 @@ export const feel = {
 
 export const identical = {
   headline: "Every KINETIQ is made to the same weight and balance.",
-  body: "Each racket is within 1.0\u00a0g of the reference weight, and its balance is set in the mould to within 1.0\u00a0mm, so you can change rackets in the middle of a match and the new one feels like the one you put down.",
+  // Balance to ±0.1 mm (owner, 2026-10-23); the weight stays ±1.0 g (CLAIMS.md row 12).
+  body: "Each racket is within 1.0\u00a0g of the reference weight, and its balance is set in the mould to within 0.1\u00a0mm, so you can change rackets in the middle of a match and the new one feels like the one you put down.",
   stats: [
     { value: "±1.0", unit: "g", label: "weight, every racket" },
-    { value: "±1.0", unit: "mm", label: "balance, every racket" },
+    { value: "±0.1", unit: "mm", label: "balance, every racket" },
   ],
-  graphCaption: "Illustrative. Distribution against the tolerance window.",
   card: {
     title: "Certificate of measurement",
     tag: "Sample card",
@@ -289,18 +309,18 @@ export const identical = {
     rows: [
       ["Feel", "Command"],
       ["Weight", "355.2 g"],
-      ["Balance", "250.4 mm"],
+      ["Balance", "250.04 mm"],
       ["Thickness", "38.00 mm"],
       ["Max surface deviation", "0.012 mm"],
     ] as [string, string][],
     /**
      * Under a row's value, in one form: the tolerance it is held to, the three the page promises (Identical's ±1.0 g
-     * and ±1.0 mm, Precision's 15 µm). Thickness has none: 38.0 mm is the design size at the rules' limit, not a
+     * and ±0.1 mm, Precision's 15 µm). Measured balances sit inside ±0.1 mm, to two decimals like the thickness. Thickness has none: 38.0 mm is the design size at the rules' limit, not a
      * tolerance, and "max 38.0 mm" under 38.00 mm would read as no margin.
      */
     limits: {
       Weight: "ref 355.0 g ±1.0 g",
-      Balance: "ref 250.0 mm ±1.0 mm",
+      Balance: "ref 250.0 mm ±0.1 mm",
       "Max surface deviation": "limit 0.015 mm",
     } as Record<string, string>,
     swiss: "Swiss Made",
@@ -310,7 +330,7 @@ export const identical = {
      */
     second: {
       serial: "KQ-000428",
-      values: { Weight: "354.9 g", Balance: "250.6 mm", "Max surface deviation": "0.011 mm" } as Record<string, string>,
+      values: { Weight: "354.9 g", Balance: "249.97 mm", "Max surface deviation": "0.011 mm" } as Record<string, string>,
     },
   },
 };

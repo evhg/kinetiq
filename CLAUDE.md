@@ -89,7 +89,8 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
   not committed; `scripts/stills.mjs` dithers and exports AVIF + WebP crops listed in `stills.json`. `<Still>`
   renders nothing for a still that has not been exported, so a section must still read without it.
 - Graphics are SVG or canvas, drawn from `racket-shape.ts`. Text in them stays ≥ 15 px at 390 px wide.
-  Canvas loops cap at 30 fps, pause off-screen and when hidden, DPR ≤ 2. Unmeasured data says "Illustrative".
+  Canvas loops cap at 30 fps, pause off-screen and when hidden, DPR ≤ 2. No "Illustrative" captions (owner,
+  2026-10-23).
 - One canonical racket in every still and graphic (`racket-shape.ts`, render audit 2026-10-22): 455.0 × 260.0 × 38.0
   mm (the FIP limits); 42 moulded holes, a crown of 8 of Ø14.0 mm along the top and 34 of Ø12.4 mm below; 1.5 mm edge
   radius, the flat face ending 4 mm from the edge (`FACE_INSET`); one handle: a round overgrip with a helical wrap, a
@@ -124,7 +125,9 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
   section prints; none is typed in `copy.ts` (/lab/g15 checks). Never "bezel", "all sweet spot", "zero", "100%", "no
   dead zones", "largest", or a tube or brand comparison.
 - Sealed core (CLAIMS.md rows 30 to 34; wording in DESIGN.md): "Three times longer" only against the same core left
-  open, and as a design ("made to last") until tested. Never heat, "airtight", "waterproof" or "first".
+  open ("an exposed EVA core"), and as a design ("made to last") until tested. Never heat, "airtight", "waterproof" or
+  "first". Its chapter follows Holes (owner, 2026-10-23). The moulding process is "patent pending", never "patented".
+- Tolerances (owner, 2026-10-23): weight ±1.0 g, balance ±0.1 mm (Identical, G01, G04, the sample cards).
 - Lineup (owner, 2026-10-22): KINETIQ, one racket, €410; First 500, two identical rackets (one feel per set), the
   first 500 sets, numbered 001 to 500, first to ship, €990; One of Ten, ten sets of three, €2,900, each with an
   exclusive coaching session. "First 500" and "One of Ten" in full (no-break spaces in code), never shortened or with
@@ -132,11 +135,13 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
 - Five years is said in the Durability section only (owner, 2026-10-22): its h2 (`lifetime.line`), lead, G14 and
   point 4 (usage profile and promised fatigue tests in a plain sentence); never the hero, finale, meta or confirmation.
   The one edition include allowed to name it is One of Ten's "A five-year KINETIQ guarantee on all three rackets",
-  because the owner asked for that guarantee (never "lifetime guarantee"). "First" only in the Durability lead.
+  because the owner asked for that guarantee (never "lifetime guarantee"). "First" only in the Durability lead and the
+  owner's own lines (2026-10-23): the Unibody eyebrow "The first Unibody" (CLAIMS.md row 36) and the KINETIQ card line.
 - No small print (owner, 2026-10-22, risk accepted in CLAIMS.md): no footnote markers (*, †, ‡, §) and no fine-print
   lines, on the landing page, the edition cards or /reserve. A qualifier that keeps a claim honest goes in a plain
-  sentence of the body copy ("as designed", "made to last"), or is dropped. Graphics with unmeasured data keep their
-  "Illustrative" caption. /reserve keeps what the law needs at the payment: Due Today, the refund line, the order line.
+  sentence of the body copy ("as designed", "made to last"), or is dropped. No "Illustrative" captions under the
+  graphics either (owner, 2026-10-23, risk accepted in CLAIMS.md). /reserve keeps what the law needs at the
+  payment: Due Today, the refund line, the order line.
 - One landing CTA, "Reserve Now"; then "Pay with Card" and "Place Reservation". Sold out: `available: false`.
 - The coach is named "Paquito Navarro" (`COACH_FULL_NAME`, `lineup.ts`), approved in writing (owner, 2026-10-22), in
   the One of Ten coaching include and G12. Exactly that name; never his family, no descriptor until a true one is

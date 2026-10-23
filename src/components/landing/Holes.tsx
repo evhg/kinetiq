@@ -7,7 +7,10 @@ import { Reveal } from "./Reveal";
 import { Scrub } from "./Scrub";
 import styles from "./Holes.module.css";
 
-/** 42 moulded holes: the macro (weave wrapping one hole wall), then drilled against moulded. */
+/**
+ * 42 moulded holes: the macro (weave wrapping one hole wall), then drilled against moulded. The sealed core follows
+ * (SealedCore.tsx): the lined holes are what keep the core closed.
+ */
 export function Holes() {
   return (
     <>
@@ -31,10 +34,13 @@ export function Holes() {
           <Still id="K04-full" phoneCrop="card" alt="" className={`${styles.layer} ${styles.ring}`} />
         </div>
         <Reveal className={styles.copy}>
+          <p className="t-eyebrow">{holes.eyebrow}</p>
           <h2 id="holes-title" className="t-h2">
             {holes.headline}
           </h2>
           <p className="t-lead">{holes.body}</p>
+          {/* The owner's point (2026-10-23): no drilling, no exposed foam and a smooth wrap, together on no other racket. */}
+          <p className={`t-lead ${styles.only}`}>{holes.only}</p>
           <dl className={styles.stats}>
             {holes.stats.map((s) => (
               <div key={s.label} className={styles.stat}>

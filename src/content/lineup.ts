@@ -21,7 +21,12 @@ export type Tier = {
   priceEur: number;
   /** One line on the option card. */
   cardLine: string;
+  /** What comes with the edition: four lines at most (owner, 2026-10-23), on the landing cards and on /reserve. */
   includes: string[];
+  /** A plain line under the includes (First 500: one set per customer), or none. */
+  note?: string;
+  /** How many of this edition one customer may reserve (by email, /api/reserve), or null for no limit. */
+  perCustomer: number | null;
   /** Units made (sets, for the editions sold as sets), or null for the open tier. */
   limit: number | null;
   /**
@@ -98,15 +103,28 @@ export const countWord = (n: number) => COUNT_WORDS[n] ?? String(n);
 
 // "Exclusive" is the owner's word; the format (one-on-one or a small group) waits for the written terms (row 20).
 // "One of ten sessions" is retired: it clashed with the edition's name.
+// Once he signs the rackets (`signs`), the coaching line says so, so the edition keeps its four includes.
 const coaching = ambassador.named
-  ? `An exclusive coaching session with ${ambassador.name}, one per\u00a0set`
+  ? ambassador.signs
+    ? `An exclusive coaching session with ${ambassador.name}, who signs your three\u00a0rackets`
+    : `An exclusive coaching session with ${ambassador.name}, one per\u00a0set`
   : "An exclusive coaching session, one per\u00a0set";
+
+/**
+ * Every measurement card is signed by our Swiss engineer, who signs off each racket's quality check one racket at a
+ * time (owner, 2026-10-23). One wording for every edition's card line, by the number of rackets.
+ */
+const signedCards = (rackets: number) =>
+  rackets === 1
+    ? "A measurement card, signed by our Swiss engineer after checking your\u00a0racket"
+    : `${countWord(rackets).charAt(0).toUpperCase()}${countWord(rackets).slice(1)} measurement cards, signed by our Swiss engineer after checking each\u00a0racket`;
 
 /** The editions section on the landing page: one racket, three editions. */
 export const editionsIntro = {
   headline: "We make one racket, in three editions.",
-  // The h2 says one racket; the KINETIQ card line says it is the same in every edition (the one line /reserve shows),
-  // and Two feels has just said "the feel you choose", so the lead says neither again.
+  // The h2 says one racket and the lead that only the quantity, the shipping and the extras differ: together they say
+  // every edition holds the same racket (DESIGN.md), now that the KINETIQ card line is the owner's "world's first"
+  // sentence (2026-10-23). /reserve says it in its edition legend (reserve.ts `editionHelper`).
   lead: "They differ only in how many rackets you receive, when they ship and what comes with them.",
   /** The invitation edition's card says so where the other two cards carry their arrow. */
   byInvitation: "By invitation",
@@ -118,7 +136,9 @@ export const tiers: Tier[] = [
     name: "KINETIQ",
     availability: "Available",
     priceEur: 410,
-    cardLine: "It is the same racket you will find in every edition.",
+    // The owner's sentence (2026-10-23), a "first" claim (CLAIMS.md). "Every edition holds the same racket" is said by
+    // the Editions h2 and lead, and on /reserve by the edition legend.
+    cardLine: "The world's first ultra high-precision unibody space-grade carbon padel\u00a0racket.",
     // Four includes, in the First 500 card's order (racket, number, card, shipping), so this card has no empty band
     // above its price. The serial on the throat is the canon mark (CLAIMS.md row 15); the ship month is the same as
     // `site.shipMonth` (typed here: site.ts imports this file). It ships after the First 500 sets, which keeps their
@@ -126,10 +146,11 @@ export const tiers: Tier[] = [
     includes: [
       "One KINETIQ racket, Command\u00a0or\u00a0Pace",
       "Its own serial number, laser-marked on the\u00a0throat",
-      "A measurement card, numbered to\u00a0match",
+      signedCards(1),
       "Ships in January\u00a02027, after the First\u00a0500\u00a0sets",
     ],
     limit: null,
+    perCustomer: null,
     offSite: 0,
     rackets: 1,
     available: true,
@@ -147,10 +168,13 @@ export const tiers: Tier[] = [
     includes: [
       "Two identical KINETIQ rackets, both Command or both\u00a0Pace",
       "Your set number, laser-marked on both\u00a0throats",
-      "Two measurement cards, numbered to\u00a0match",
+      signedCards(2),
       "First out of the mould and first to ship, in\u00a0January\u00a02027",
     ],
+    // One set per customer (owner, 2026-10-23: scarcity). /api/reserve refuses a second set for the same email.
+    note: "We sell one set per\u00a0customer.",
     limit: 500,
+    perCustomer: 1,
     offSite: 0,
     rackets: 2,
     available: true,
@@ -164,17 +188,18 @@ export const tiers: Tier[] = [
     // does not. As on First 500's card, the card line gives the numbering ("numbered" follows "sets", never the
     // rackets) and the includes what is in the box. The set number is on the case plate (K09, "No. 01 / 10"); each
     // racket has its own serial (row 15). It ships after the First 500 sets, which keeps their "first to ship" true
-    // (CLAIMS.md rows 19 and 22); the ship line comes last, as on the other two cards.
+    // (CLAIMS.md rows 19 and 22). Four includes at most (owner, 2026-10-23): the set, the signed cards, the coaching
+    // session and the guarantee. Its ship line gave way: no line says One of Ten ships first, so First 500's "first to
+    // ship" stays true, and the confirmation still says it ships after the First 500 sets.
     cardLine: "We make ten sets, numbered 01\u00a0to\u00a010.",
     includes: [
       "Three identical KINETIQ rackets in one feel, in a fitted case with your set\u00a0number",
-      "Three measurement cards, numbered to\u00a0match",
-      ...(ambassador.signs ? [`Each racket signed by ${ambassador.name}`] : []),
+      signedCards(3),
       coaching,
       lifetime.guarantee,
-      "Ships in January\u00a02027, after the First\u00a0500\u00a0sets",
     ],
     limit: 10,
+    perCustomer: null,
     offSite: 0,
     rackets: 3,
     available: true,
@@ -185,14 +210,7 @@ export const tiers: Tier[] = [
 export const includeIcons: Record<TierId, IconName[]> = {
   reserve: ["racket", "numberedTag", "measurementCard", "deliveryBox"],
   limited: ["rackets2", "numberedTag", "measurementCard", "deliveryBox"],
-  invite: [
-    "fittedCase",
-    "measurementCard",
-    ...(ambassador.signs ? (["penNib"] as IconName[]) : []),
-    "court",
-    "shieldCheck",
-    "deliveryBox",
-  ],
+  invite: ["fittedCase", "measurementCard", "court", "shieldCheck"],
 };
 
 /**

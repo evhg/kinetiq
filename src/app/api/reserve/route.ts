@@ -47,6 +47,17 @@ const sha256hex = async (s: string) =>
   Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s))), (b) =>
     b.toString(16).padStart(2, "0"),
   ).join("");
+/**
+ * One customer, as far as an email address can tell: lower case, without a "+tag", and for Gmail without dots. Its
+ * SHA-256 goes into metadata[buyer] (never the address itself, which Stripe already holds as the receipt email), so
+ * the per-customer limit can find earlier sets with the same Search that counts the editions.
+ */
+async function buyerKey(email: string) {
+  const [local, domain = ""] = email.toLowerCase().split("@");
+  const gmail = domain === "gmail.com" || domain === "googlemail.com";
+  const bare = local.replace(/\+.*$/, "");
+  return (await sha256hex(`kq-buyer:${gmail ? bare.replace(/\./g, "") : bare}@${gmail ? "gmail.com" : domain}`)).slice(0, 32);
+}
 const START_FAILED = "Payment could not start. Nothing was charged. Please try again.";
 const NOT_CONFIRMED = "We could not confirm that this set is still available. Nothing was charged. Please try again in a minute.";
 
@@ -108,7 +119,8 @@ export async function POST(request: Request) {
   }
 
   // Numbered editions stop at their limit: one PaymentIntent per set, plus the sets promised off the site.
-  // If Stripe cannot count, First 500 still sells (an outage must not block sales); One of Ten never does.
+  // If Stripe cannot count the edition, First 500 still sells this step (the per-customer check below fails closed);
+  // One of Ten never does.
   if (tier.limit !== null) {
     const paid = await countPaid(key, `metadata["tier"]:"${tier.id}"`);
     if (paid === null) {
@@ -116,6 +128,21 @@ export async function POST(request: Request) {
       if (tier.id === "invite") return Response.json({ error: NOT_CONFIRMED }, { status: 503 });
     } else if (paid + tier.offSite >= tier.limit) {
       return Response.json({ error: `${tier.name} is sold out. Nothing was charged.`, soldOut: true }, { status: 409 });
+    }
+  }
+  // First 500 sells one set per customer (owner, 2026-10-23): a paid or settling set for the same buyer (metadata[buyer],
+  // by email) refuses the next. This check fails closed: if Stripe cannot say, no set is sold. Search lags by about a
+  // minute and a different address is a different buyer (CLAIMS.md), so it holds against a second order, not against
+  // two started at the same moment or a second email.
+  const buyer = await buyerKey(email);
+  if (tier.perCustomer !== null) {
+    const mine = await countPaid(key, `metadata["tier"]:"${tier.id}" AND metadata["buyer"]:"${buyer}"`);
+    if (mine === null) return Response.json({ error: NOT_CONFIRMED }, { status: 503 });
+    if (mine >= tier.perCustomer) {
+      return Response.json(
+        { error: `${tier.name} is limited to one set per customer, and this email already has one. Nothing was charged.`, fields: ["email"] },
+        { status: 409 },
+      );
     }
   }
   // An invitation reserves one set.
@@ -142,6 +169,7 @@ export async function POST(request: Request) {
     "metadata[edition]": plainText(tier.name),
     "metadata[feel]": feel,
     "metadata[rackets]": String(tier.rackets),
+    "metadata[buyer]": buyer,
   });
   if (address.line2) params.set("shipping[address][line2]", address.line2);
   if (invite) params.set("metadata[invite]", invite);

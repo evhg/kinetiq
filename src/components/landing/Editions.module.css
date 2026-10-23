@@ -179,6 +179,12 @@ a.card:active {
   text-underline-offset: 5px;
   transition: color 200ms ease;
 }
+/* First 500: one set per customer, a plain line under the includes (row 4, where One of Ten says when it opens). */
+.note {
+  color: var(--text);
+  font-family: var(--font-data);
+  font-size: clamp(1rem, 0.25vw + 0.95rem, 1.25rem);
+}
 .inviteSoon {
   color: var(--muted);
   font-family: var(--font-data);
@@ -253,7 +259,8 @@ a.card:active {
     align-self: start;
   }
   .inviteLink,
-  .inviteSoon {
+  .inviteSoon,
+  .note {
     grid-row: 4;
     align-self: start;
     justify-self: start;

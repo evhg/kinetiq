@@ -12,7 +12,7 @@
   /* Line labels and the Settled marker: one step above the axis labels (16 / 19 / 26 px). */
   --fs-line: clamp(1rem, 0.625vw + 0.625rem, 1.625rem);
   --rise: calc(var(--fs-line) * 1.2 + clamp(12px, 0.6vw + 4px, 24px));
-  /* Width of the y-title column, so the caption can align with the plot's left edge. */
+  /* Width of the y-title column. */
   --y-col: calc(var(--fs-label) * 1.2 + var(--gap));
   width: 100%;
   margin: 0;
@@ -32,8 +32,7 @@
 .yTitle,
 .xTitle,
 .label,
-.markerLabel,
-.captionText {
+.markerLabel {
   font-family: var(--font-data);
   font-size: var(--fs-label);
   font-variant-numeric: tabular-nums lining-nums;
@@ -258,18 +257,6 @@
   opacity: 0;
 }
 
-.caption {
-  margin-top: clamp(20px, 1.4vw + 8px, 48px);
-  padding-left: var(--y-col);
-}
-
-.captionText {
-  display: block;
-  font-size: var(--fs-label);
-  color: var(--muted);
-  white-space: normal;
-}
-
 @media (max-width: 639px) {
   .root {
     --plot-h: calc(40vw + 104px);
@@ -287,5 +274,25 @@
   }
   .labelK {
     top: calc(57% + 2px);
+  }
+}
+
+/* Fill (the Feel chapter from 900 px wide and 560 px tall, Feel.module.css): the plot takes whatever height the parent
+   leaves it, so the headline, the graph and the three points share one screen. The marker's rise and the axis title
+   keep their own sizes. Below that the plot keeps its own width-based height. */
+@media (min-width: 900px) and (min-height: 560px) {
+  .root[data-fill] {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    height: 100%;
+    min-height: 0;
+  }
+  .root[data-fill] .chart {
+    grid-template-rows: minmax(0, 1fr) auto;
+    min-height: 0;
+  }
+  .root[data-fill] .plot {
+    height: auto;
+    min-height: 0;
   }
 }

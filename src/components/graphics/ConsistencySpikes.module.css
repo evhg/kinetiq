@@ -43,8 +43,7 @@
 .statLabel,
 .axisTitle,
 .limitLabel,
-.ticks span,
-.captionText {
+.ticks span {
   font-family: var(--font-data);
   font-size: var(--fs-label);
   font-variant-numeric: tabular-nums lining-nums;
@@ -200,17 +199,6 @@
 .ticks .tickRef {
   transform: translateX(-50%);
   color: var(--steel);
-}
-
-.caption {
-  margin-top: clamp(24px, 1.6vw + 8px, 56px);
-}
-
-.captionText {
-  display: block;
-  font-size: var(--fs-label);
-  color: var(--muted);
-  white-space: normal;
 }
 
 @media (max-width: 639px) {

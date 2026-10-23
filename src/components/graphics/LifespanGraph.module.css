@@ -204,8 +204,7 @@
 .laneLabel,
 .note,
 .xTick,
-.xTitle,
-.captionText {
+.xTitle {
   font-family: var(--font-data);
   font-variant-numeric: tabular-nums lining-nums;
   letter-spacing: 0.01em;
@@ -365,17 +364,6 @@
   margin-top: clamp(12px, 0.8vw + 4px, 28px);
   font-size: var(--fs-label);
   color: var(--muted);
-}
-
-.caption {
-  margin-top: clamp(20px, 1.4vw + 8px, 48px);
-}
-
-.captionText {
-  display: block;
-  font-size: var(--fs-label);
-  color: var(--muted);
-  white-space: normal;
 }
 
 @media (max-width: 639px) {

@@ -30,7 +30,12 @@ export const reserveCopy = {
   galleryLabel: "Edition gallery",
   previousImage: "Previous image",
   nextImage: "Next image",
-  chooseLegend: "Choose your edition",
+  /**
+   * The edition picker's legend, under the feel picker (owner, 2026-10-23: the feel comes first). Its helper is the one
+   * place /reserve says every edition holds the same racket, now that the KINETIQ card line is the owner's sentence.
+   */
+  chooseLegend: "Your edition",
+  editionHelper: "Every edition holds the same racket, in the feel you\u00a0choose.",
   soldOut: "Sold out",
   /** Under One of Ten's includes while no invitations exist (its status still reads "Invite Only"). */
   invitesClosedNote: "Invitations open soon.",
@@ -66,7 +71,7 @@ export const reserveCopy = {
   trustLines: [
     site.refundLabel,
     "Free delivery in Europe, VAT\u00a0and\u00a0duties\u00a0included",
-    "Serial number and measurement card with every racket",
+    "Serial number and signed measurement card with every racket",
   ],
   formHeading: "Your details",
   fields: {
@@ -114,11 +119,11 @@ export const reserveCopy = {
     const tier = tierById(tierId);
     switch (tier?.id) {
       case "reserve":
-        return `${receipt} Your ${site.name} ships in ${site.shipMonth}, after the ${name("limited")} sets, with its serial number and measurement card. It is fully refundable until then.`;
+        return `${receipt} Your ${site.name} ships in ${site.shipMonth}, after the ${name("limited")} sets, with its serial number and signed measurement card. It is fully refundable until then.`;
       case "limited":
-        return `${receipt} Your set is one of the ${tier.name}, and it ships first, in ${site.shipMonth}, with its number on both throats and two measurement cards to match. It is fully refundable until then.`;
+        return `${receipt} Your set is one of the ${tier.name}, and it ships first, in ${site.shipMonth}, with its number on both throats and two signed measurement cards. It is fully refundable until then.`;
       case "invite":
-        return `${receipt} Your ${countWord(tier.rackets)} rackets ship in ${site.shipMonth}, after the ${name("limited")} sets, with ${countWord(tier.rackets)} measurement cards, in a fitted case marked with your set number. They are fully refundable until then, and we will write to you about your coaching session.`;
+        return `${receipt} Your ${countWord(tier.rackets)} rackets ship in ${site.shipMonth}, after the ${name("limited")} sets, with ${countWord(tier.rackets)} signed measurement cards, in a fitted case marked with your set number. They are fully refundable until then, and we will write to you about your coaching session.`;
       default:
         return `${receipt} We ship in ${site.shipMonth}, and your reservation is fully refundable until then.`;
     }

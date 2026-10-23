@@ -12,7 +12,7 @@ const { graph } = durability;
 /** Strings this graphic adds on top of durability.graph (copy.ts). */
 export const LABELS = {
   summary:
-    "Illustrative graph on a five-year axis. Most padel rackets are spent between one and two years of recreational play, by brand and retailer guidance. KINETIQ is built to last five years at two 90-minute sessions a week, about 160,000 ball strikes in all. An independent lab will run fatigue tests to that count before we ship.",
+    "Graph on a five-year axis. Most padel rackets are spent between one and two years of recreational play, by brand and retailer guidance. KINETIQ is built to last five years at two 90-minute sessions a week, about 160,000 ball strikes in all. An independent lab will run fatigue tests to that count before we ship.",
 };
 
 /* ---------- geometry (normalised 1000 x 1000 viewBox, y down) ---------- */
@@ -47,8 +47,6 @@ const KINETIQ_PATH = `M0 ${LANE.kinetiq}H${VB}`;
 
 type Props = {
   className?: string;
-  /** Show the "Illustrative" caption under the plot. Default true. */
-  caption?: boolean;
 };
 
 /**
@@ -57,7 +55,7 @@ type Props = {
  * five years. Server render and reduced motion show the finished graph; motion draws the typical lane,
  * then the KINETIQ trace behind a glow head, and sets the five-year numeral once the head arrives.
  */
-export function LifespanGraph({ className, caption = true }: Props) {
+export function LifespanGraph({ className }: Props) {
   const root = useRef<HTMLElement>(null);
   const { motionOn } = useMotion();
   const gid = useId().replace(/:/g, "");
@@ -236,8 +234,7 @@ export function LifespanGraph({ className, caption = true }: Props) {
         <span className={styles.xTitle}>{graph.xAxis}</span>
       </div>
 
-      <figcaption className={styles.caption}>
-        {caption ? <span className={styles.captionText}>{graph.caption}</span> : null}
+      <figcaption>
         <span className="visually-hidden">{LABELS.summary}</span>
       </figcaption>
     </figure>

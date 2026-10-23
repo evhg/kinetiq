@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { site } from "@/content/site";
 import { HeaderClient } from "./HeaderClient";
 import styles from "./Chrome.module.css";
@@ -12,12 +11,14 @@ export function SiteHeader({ compactCta = false }: { compactCta?: boolean }) {
   return <HeaderClient ctaLabel={compactCta ? site.ctaLabel : undefined} />;
 }
 
-/** `brandLine={false}` drops "100% Swiss Made." (`site.swissMade`, CLAIMS.md row 10): the root not-found uses it. */
+/**
+ * `brandLine={false}` drops "100% Swiss Made." (`site.swissMade`, CLAIMS.md row 10): the root not-found uses it. No
+ * Credits link (owner, 2026-10-23): /credits and public/CREDITS.md stay, unlinked from the footer.
+ */
 export function SiteFooter({ brandLine = true }: { brandLine?: boolean }) {
   return (
     <footer className={styles.footer}>
       <p>{brandLine ? `${site.copyright} ${site.swissMade}.` : site.copyright}</p>
-      <Link href="/credits">Credits</Link>
     </footer>
   );
 }

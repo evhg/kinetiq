@@ -12,7 +12,7 @@ import styles from "./VibrationGraph.module.css";
 export const LABELS = {
   yAxis: "Vibration",
   xAxis: "Time after impact",
-  summary: `Illustrative graph. After impact, the ${feel.graph.glued.toLowerCase()} keeps ringing and only settles at the end of the window. KINETIQ settles under 5% of its starting vibration in about a third of the time.`,
+  summary: `Graph. After impact, the ${feel.graph.glued.toLowerCase()} keeps ringing and only settles at the end of the window. KINETIQ settles under 5% of its starting vibration in about a third of the time.`,
   tableCaption: `Vibration left after impact, as a share of the ${feel.graph.glued.toLowerCase()}'s starting vibration`,
   tableTime: "Time after impact, share of the window",
 };
@@ -26,8 +26,11 @@ type Props = {
    */
   scrub?: boolean;
   timelineRef?: RefObject<gsap.core.Timeline | null>;
-  /** Show the "Illustrative" caption under the plot. Default true. */
-  caption?: boolean;
+  /**
+   * Fill the parent's height instead of the plot's own width-based height (the pinned Feel chapter, where the
+   * headline, the graph and the three points share one screen). The parent must have a definite height.
+   */
+  fill?: boolean;
 };
 
 const V = `0 0 ${VB} ${VB}`;
@@ -39,7 +42,7 @@ const OPEN = 5.5;
  * wide fan of impact points); KINETIQ settles in a third of the time and its fan collapses onto
  * one line. Server render and reduced motion show the finished graph.
  */
-export function VibrationGraph({ className, scrub = false, timelineRef, caption = true }: Props) {
+export function VibrationGraph({ className, scrub = false, timelineRef, fill = false }: Props) {
   const root = useRef<HTMLElement>(null);
   const { motionOn } = useMotion();
   const gid = useId().replace(/:/g, "");
@@ -121,7 +124,7 @@ export function VibrationGraph({ className, scrub = false, timelineRef, caption 
   const rows = envelopeTable();
 
   return (
-    <figure ref={root} className={`${styles.root}${className ? ` ${className}` : ""}`}>
+    <figure ref={root} className={`${styles.root}${className ? ` ${className}` : ""}`} data-fill={fill || undefined}>
       <div className={styles.chart} aria-hidden="true">
         <span className={styles.yTitle}>{LABELS.yAxis}</span>
         <div className={styles.plot}>
@@ -199,8 +202,7 @@ export function VibrationGraph({ className, scrub = false, timelineRef, caption 
         <span className={styles.xTitle}>{LABELS.xAxis}</span>
       </div>
 
-      <figcaption className={styles.caption}>
-        {caption ? <span className={styles.captionText}>{feel.graph.caption}</span> : null}
+      <figcaption>
         <span className="visually-hidden">{LABELS.summary}</span>
         <div className="visually-hidden">
           <table>

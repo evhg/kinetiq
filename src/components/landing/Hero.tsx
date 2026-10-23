@@ -38,11 +38,18 @@ export function Hero() {
         const full = root.current?.querySelector<HTMLElement>(`.${styles.full}`);
         const img = full?.querySelector("img");
         let live = true;
-        const beam = contextSafe!(() => {
+        // Never call a contextSafe function from inside this matchMedia context: it pushes the hook's context into the
+        // matchMedia one, which is already inside the hook's, and that cycle makes the hook's revert recurse until the
+        // stack overflows (Back from /reserve re-showed the cached landing with the image decoded: "This page couldn't
+        // load"). A decoded image runs the tween here, in this context; a later decode goes through contextSafe.
+        const beam = () => {
           if (live && full) gsap.fromTo(full, { opacity: 0 }, { opacity: 1, duration: 1.6, delay: 0.2, ease: "power2.out" });
-        });
+        };
         if (img?.complete && img.naturalWidth > 0) beam();
-        else img?.decode().then(beam, beam);
+        else {
+          const later = contextSafe!(beam);
+          img?.decode().then(later, later);
+        }
         // Scroll away: the image drifts and a veil darkens it. The words and the button simply scroll
         // with the page, so Reserve Now stays fully opaque.
         const tl = gsap.timeline({

@@ -7,7 +7,8 @@ import { precision } from "@/content/copy";
 import styles from "./Precision.module.css";
 
 /**
- * Precision: the record "15 µm" and its line, then the graph. The numeral never counts: a count can be paused on a
+ * Precision: one sentence ending on the record "15 µm" ("Every racket is moulded with ultra-precision, exact to
+ * within"), its line, then the graph. The numeral never counts: a count can be paused on a
  * value that is not the claim. Pinned, the scrub settles the laser-scan still (K05, scale 1.08 to 1) and brings the
  * numeral and its line in together near the start, so from then on they always read as a pair. The server render and
  * reduced motion show the final state.
@@ -40,13 +41,16 @@ export function Precision() {
               className={styles.still}
             />
           </div>
+          {/* One sentence that the numeral ends (owner, 2026-10-23): read as "Every racket is moulded with
+              ultra-precision, exact to within 15 microns." */}
           <h2 id="precision-record" className={styles.record}>
+            <span className={`t-lead ${styles.intro}`}>{precision.recordIntro}</span>
             <span className={`t-record ${styles.number}`} aria-hidden="true">
               {record.to}
               <span className={`t-unit ${styles.unit}`}>{record.unit}</span>
             </span>
             {/* Spoken once and in words: the graph section's own h2 says the headline. */}
-            <span className="visually-hidden">{`${record.to} ${record.spokenUnit}`}</span>
+            <span className="visually-hidden">{` ${record.to} ${record.spokenUnit}.`}</span>
           </h2>
           <p className={`t-lead ${styles.line}`}>{precision.recordLine}</p>
         </div>
