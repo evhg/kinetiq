@@ -130,10 +130,9 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
   ship, one set per customer (row 40), €990; One of Ten, ten sets of three with an exclusive coaching session, €2,900.
   Edition bullets: 4 at most. "First 500" and "One of Ten" in full (no-break spaces), never shortened or with ™ (row
   35). Every edition holds the same racket, and the copy says so; never compare the pair's price with KINETIQ's.
-- Five years only in Durability (owner, 2026-10-22): its h2 (`lifetime.line`), lead, G14 and point 4 (usage profile,
-  promised fatigue tests); never the hero, finale, meta or confirmation. The one include that names it is One of Ten's
-  "A five-year KINETIQ guarantee on all three rackets" (never "lifetime guarantee"). "First" only in the Durability lead
-  and the owner's lines (2026-10-23): the eyebrow "The first Unibody" (row 36), the KINETIQ card line (row 38).
+- Five years only in Durability (owner, 2026-10-22): its h2 (`lifetime.line`), lead, G14 and point 4; never the hero,
+  finale, meta or confirmation; the one include naming it is One of Ten's "A five-year KINETIQ guarantee on all three
+  rackets" (never "lifetime guarantee"). "First" only in the Durability lead and the owner's lines (rows 36 and 38).
 - No small print (owner, 2026-10-22, risk accepted in CLAIMS.md): no footnote markers (*, †, ‡, §) and no fine-print
   lines, on the landing page, the edition cards or /reserve. A qualifier that keeps a claim honest goes in a plain
   sentence of the body copy ("as designed", "made to last"), or is dropped. /reserve keeps what the law needs at the
