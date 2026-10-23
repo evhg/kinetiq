@@ -126,8 +126,8 @@ function feelSlides(tier: TierId, feel: FeelId): Slide[] {
       return feel === "pace" ? [face, ...shots, card] : [...shots, face, card];
     }
     case "limited":
-      // The set first, in the chosen feel, with its set number on both throats; then the mark up close, for Command
-      // only: K10's throat is white twill, and Pace has no render of its own yet.
+      // The set first, in the chosen feel, with its set number on both throats; then the mark up close (K10, whose
+      // Pace export the gallery's feel picks).
       return [
         {
           kind: "still",
@@ -138,16 +138,12 @@ function feelSlides(tier: TierId, feel: FeelId): Slide[] {
           position: "50% 30%",
           alt: `A ${name} set: two identical ${feelName} rackets, ${sampleSet.words}, the set number laser-marked on both throats`,
         },
-        ...(feel === "command"
-          ? [
-              {
-                kind: "still" as const,
-                id: "K10",
-                phoneCrop: "card",
-                alt: `Close-up of a ${name} throat, laser-marked ${sampleSet.mark} above the KINETIQ wordmark`,
-              },
-            ]
-          : []),
+        {
+          kind: "still",
+          id: "K10",
+          phoneCrop: "card",
+          alt: `Close-up of a ${name} throat, laser-marked ${sampleSet.mark} above the KINETIQ wordmark`,
+        },
         { kind: "still", id: "K07", phoneCrop: "trio", fit: "contain", alt: "Identical KINETIQ rackets, each in its own shaft of light" },
         { kind: "still", id: "K06-full", phoneCrop: "card", alt: "The mould, its cavity glowing warm" },
         { kind: "still", id: "K03", phoneCrop: "card", alt: "The head cut through: one carbon shell closed around the core, lining every hole" },
