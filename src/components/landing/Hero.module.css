@@ -46,9 +46,22 @@
   transform: scale(1.035);
 }
 .base,
-.full {
+.full,
+.layer {
   position: absolute;
   inset: 0;
+}
+/* The swivel's canvas (HeroSwivel.tsx places and sizes it over the part of the still that turns). It shows from the
+   swivel's second frame, once its frames are decoded: exit 150 ms, entry 240 ms, opacity only. */
+.swivel {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 150ms var(--ease-out);
+}
+.swivel[data-on="true"] {
+  opacity: 1;
+  transition-duration: 240ms;
 }
 .base img,
 .full img {

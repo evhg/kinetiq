@@ -22,6 +22,15 @@ const nextConfig: NextConfig = {
           { key: "Vary", value: "Cookie" },
         ],
       },
+      {
+        // The hero's swivel frames (scripts/sequence.mjs): hashed names too, under the same rule.
+        source: "/stills/seq/:name([A-Za-z0-9-]+)/:file([0-9]{3}-[0-9]+\\.[0-9a-f]{10}\\.webp)",
+        has: [{ type: "cookie", key: "kq_nda" }],
+        headers: [
+          { key: "Cache-Control", value: "private, max-age=31536000, immutable" },
+          { key: "Vary", value: "Cookie" },
+        ],
+      },
     ];
   },
 };
