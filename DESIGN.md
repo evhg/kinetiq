@@ -57,8 +57,9 @@ owner loves: light every face-on shot so the tows resolve (K05, K08, K11).
   The invitation unlock on /reserve ("Have an invitation?", then "Unlock") is a quiet control for invitees
   only, above the options; it is not a CTA.
 - Editions (owner, 2026-10-22): one racket in three editions, KINETIQ, First 500 and One of Ten. The names count and
-  order the rackets and never describe them; every edition holds the same racket, and the copy says so plainly ("It
-  is the same racket you will find in every edition."). Write "First 500" and "One of Ten" in full, never with ™.
+  order the rackets and never describe them; every edition holds the same racket, and the copy says so plainly: the Editions h2
+  and lead on the landing, and on /reserve the edition helper "Every edition holds the same racket, in the feel you
+  choose." Write "First 500" and "One of Ten" in full, never with ™.
   First 500 at €990 is the premium edition (numbered 001 to 500, first out of the mould, first to ship; the KINETIQ
   and One of Ten includes say they ship after the First 500 sets, in the same month): never compared with the single
   price. Status tags are states, never verbs: Available, Limited, Invite Only.

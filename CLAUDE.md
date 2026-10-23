@@ -10,8 +10,8 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
   Every font and asset goes in `public/CREDITS.md` with its source and licence, in the same commit.
 - Assets on kinetiq-review.vercel.app (made by Erik) are not cleared for reuse until their licence is in `CREDITS.md`.
 - Commit straight to `main`; pushing to `main` deploys production on Vercel. Pin exact versions (`save-exact`).
-- No extra animation or UI libraries (Motion/Framer Motion, shadcn, 21st.dev, other kits) unless the
-  brief asks. Our stack covers it. Where a skill suggests Motion's `useSpring`, use `gsap.quickTo`.
+- No extra animation or UI libraries (Motion/Framer Motion, shadcn, 21st.dev, other kits) unless the brief asks. Our
+  stack covers it. Where a skill suggests Motion's `useSpring`, use `gsap.quickTo`.
 
 ## Scripts
 - `npm run dev` (local), `npm run build` / `npm start` (production), `npm run lint`, `npm run typecheck`.
@@ -28,16 +28,17 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
   and CSS module per section; `Reveal`, `Scrub`), `graphics/` (G01–G15, each with a review page at `/lab/<id>`, dev
   only; `KQ_LAB=1` serves them in production), `media/Still.tsx`, `reserve/`, `chrome/` (`SiteHeader`, `SiteFooter`;
   `HeaderClient.tsx`: the compact Reserve Now, label passed in, hidden over hero and `data-cta`). No preview banner.
-- `src/content/`: all words; change them there. `copy.ts` (landing), `lineup.ts` (editions, prices, limits, `lifetime`,
-  `sampleSet`, the coach, invitation gate, delivery countries), `reserve.ts`, `site.ts` (CTA labels,
-  price note, ship date, refund, feels), `stills.json` (crops).
-- Flow (Tesla Roadster reserve page): "Reserve Now" → `/reserve?tier=` (edition, feel, trust lines, Due Today, "Pay
-  with Card" expands the form in place) → "Place Reservation" posts to `src/app/api/reserve/route.ts` (PaymentIntent
-  via REST, amount from `lineup.ts`) and confirms the card with Stripe's Payment Element in place → confirmation in
+- `src/content/`: all words. `copy.ts` (landing), `lineup.ts` (editions, prices, limits, `lifetime`, `sampleSet`, coach,
+  invitations, countries), `reserve.ts`, `site.ts` (CTAs, price note, ship date, refund, feels; `DEFAULT_FEEL` Command,
+  `FEEL_PREFERENCE_KEY` "kq-feel", `storedFeel()` for the coming site-wide feel toggle), `stills.json` (crops).
+- Flow (Tesla Roadster reserve page): "Reserve Now" → `/reserve?tier=` (feel, edition, trust lines, Due Today, "Pay
+  with Card" expands the form in place; the gallery opens on K08, both feels, until a feel is chosen) → "Place
+  Reservation" posts to `src/app/api/reserve/route.ts` (PaymentIntent via REST, amount from `lineup.ts`; enforces
+  `Tier.perCustomer` and fails closed) and confirms the card with Stripe's Payment Element in place → confirmation in
   place, or `/reserved` after 3-D Secure. One of Ten: never chosen from a link (`?tier=invite` shows KINETIQ), never
   interactive until a valid code (POST /api/invite, or `?invite=CODE`) unlocks it; /api/reserve checks it again.
-- Data minimisation: name, email, delivery address and card only; no phone, accounts or opt-ins. NDA emails: below.
-- `public/`: assets and `CREDITS.md`. `scripts/`: harness. `docs/`: research. `.claude/skills/`: reference skills.
+- Data minimisation: name, email, delivery address and card only; no phone, accounts or opt-ins (NDA emails: below).
+  `public/`: assets and `CREDITS.md`. `scripts/`: harness. `docs/`: research. `.claude/skills/`: reference skills.
 
 ## NDA gate (owner, 2026-10-22: investors declare the NDA, then give an email, once per device)
 - `src/proxy.ts` (Next 16 "proxy", formerly middleware) rewrites every page to `/nda` without a valid `kq_nda` cookie
@@ -88,11 +89,10 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
 - Product imagery = own Blender Cycles stills (no people, no other brands, no autographs). Masters are 16-bit PNG,
   not committed; `scripts/stills.mjs` dithers and exports AVIF + WebP crops listed in `stills.json`. `<Still>`
   renders nothing for a still that has not been exported, so a section must still read without it.
-- Graphics are SVG or canvas, drawn from `racket-shape.ts`. Text in them stays ≥ 15 px at 390 px wide.
-  Canvas loops cap at 30 fps, pause off-screen and when hidden, DPR ≤ 2. No "Illustrative" captions (owner,
-  2026-10-23).
-- One canonical racket in every still and graphic (`racket-shape.ts`, render audit 2026-10-22): 455.0 × 260.0 × 38.0
-  mm (the FIP limits); 42 moulded holes, a crown of 8 of Ø14.0 mm along the top and 34 of Ø12.4 mm below; 1.5 mm edge
+- Graphics are SVG or canvas, drawn from `racket-shape.ts`. Text in them stays ≥ 15 px at 390 px wide. Canvas loops
+  cap at 30 fps, pause off-screen and when hidden, DPR ≤ 2. No "Illustrative" captions (owner, 2026-10-23).
+- One canonical racket in every still and graphic (`racket-shape.ts`, render audit 2026-10-22): 455.0 × 260.0 × 38.0 mm
+  (the FIP limits); 42 moulded holes, a crown of 8 of Ø14.0 mm along the top and 34 of Ø12.4 mm below; 1.5 mm edge
   radius, the flat face ending 4 mm from the edge (`FACE_INSET`); one handle: a round overgrip with a helical wrap, a
   satin black cap engraved Q (the company logo, owner 2026-10-22), the head flowing into it with no collar or joint; no
   wrist cord. Only the face follows the feel: Command is white 3K twill (the default in any image that names no feel),
@@ -112,35 +112,31 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
 - No placeholder text in a finished build. Every claim has a row in `CLAIMS.md`, added in the same commit; unverified
   claims stay off the live domain, and `NEXT_PUBLIC_LAUNCHED=true` (removes noindex) waits until CLAIMS.md is cleared.
   Voice (owner, 2026-10-22): whole, plain sentences that say what we made and what it does for the player.
-- Stripe: `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `INVITE_CODES` (`.env.example`); server and
-  Stripe.js pinned to API `2026-09-30.endive` (`allowed_payment_method_types`). No keys: /reserve runs in preview. One
-  of Ten fails closed (`invitationsOpen()`): keep `INVITE_CODES` (12+ characters each) empty until CLAIMS.md rows 20,
-  21, 29 are ready. It takes no payment until the atomic one-use invite check exists (`INVITE_ONE_USE_ENFORCED`).
+- Stripe: `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `INVITE_CODES` (`.env.example`); both sides on API
+  `2026-09-30.endive` (`allowed_payment_method_types`). No keys: /reserve runs in preview. One of Ten fails closed
+  (`invitationsOpen()`): `INVITE_CODES` (12+ characters each) stays empty until rows 20, 21, 29 are ready; no payment
+  until the atomic one-use check exists (`INVITE_ONE_USE_ENFORCED`).
 - The hero lead is the owner's sentence (2026-10-22), verbatim though "one piece" is retired elsewhere: "One single
-  piece of space-grade carbon. No tube, no joints. Ultra-precision moulded to 15 microns and 1 gram. Every racket
-  plays exactly the same." Nothing follows it. Elsewhere "unibody", "Zero seams"; never "zero weak points".
-- Sweet spot (CLAIMS.md row 6b): "Edge to edge.", "Nearly 94% of the face is sweet spot" and "4 mm from the sweet spot
-  to the edge", with line 1 saying in its own words that the flat face is sweet spot by design: a design ceiling from
-  `racket-shape.ts`, rounded as Apple rounds (down, or up only with "Nearly"). `SWEET_CLAIM` builds every number the
-  section prints; none is typed in `copy.ts` (/lab/g15 checks). Never "bezel", "all sweet spot", "zero", "100%", "no
-  dead zones", "largest", or a tube or brand comparison.
-- Sealed core (CLAIMS.md rows 30 to 34; wording in DESIGN.md): "Three times longer" only against the same core left
-  open ("an exposed EVA core"), and as a design ("made to last") until tested. Never heat, "airtight", "waterproof" or
-  "first". Its chapter follows Holes (owner, 2026-10-23). The moulding process is "patent pending", never "patented".
-- Tolerances (owner, 2026-10-23): weight ±1.0 g, balance ±0.1 mm (Identical, G01, G04, the sample cards).
-- Lineup (owner, 2026-10-22): KINETIQ, one racket, €410; First 500, two identical rackets (one feel per set), the
-  first 500 sets, numbered 001 to 500, first to ship, €990; One of Ten, ten sets of three, €2,900, each with an
-  exclusive coaching session. "First 500" and "One of Ten" in full (no-break spaces in code), never shortened or with
-  ™ (row 35). Every edition holds the same racket, and the copy says so; never compare the pair's price with KINETIQ's.
-- Five years is said in the Durability section only (owner, 2026-10-22): its h2 (`lifetime.line`), lead, G14 and
-  point 4 (usage profile and promised fatigue tests in a plain sentence); never the hero, finale, meta or confirmation.
-  The one edition include allowed to name it is One of Ten's "A five-year KINETIQ guarantee on all three rackets",
-  because the owner asked for that guarantee (never "lifetime guarantee"). "First" only in the Durability lead and the
-  owner's own lines (2026-10-23): the Unibody eyebrow "The first Unibody" (CLAIMS.md row 36) and the KINETIQ card line.
+  piece of space-grade carbon. No tube, no joints. Ultra-precision moulded to 15 microns and 1 gram. Every racket plays
+  exactly the same." Nothing follows it. Elsewhere "unibody", "Zero seams"; never "zero weak points".
+- Sweet spot (row 6b): "Edge to edge.", "Nearly 94% of the face is sweet spot", "4 mm from the sweet spot to the edge",
+  line 1 saying the flat face is sweet spot by design: a ceiling from `racket-shape.ts`, rounded down (or up only with
+  "Nearly"). `SWEET_CLAIM` builds every number; none is typed in `copy.ts` (/lab/g15 checks). Never "bezel", "all sweet
+  spot", "zero", "100%", "no dead zones", "largest", or a tube or brand comparison.
+- Sealed core (CLAIMS.md rows 30 to 34; DESIGN.md): "Three times longer" only against the same core left open ("an
+  exposed EVA core"), as a design ("made to last") until tested; never heat, "airtight", "waterproof" or "first"; it
+  follows Holes. The process is "patent pending", never "patented". Tolerances: ±1.0 g, balance ±0.1 mm (2026-10-23).
+- Lineup (owner): KINETIQ, one racket, €410; First 500, two identical rackets in one feel, sets 001 to 500, first to
+  ship, one set per customer (row 40), €990; One of Ten, ten sets of three with an exclusive coaching session, €2,900.
+  Edition bullets: 4 at most. "First 500" and "One of Ten" in full (no-break spaces), never shortened or with ™ (row
+  35). Every edition holds the same racket, and the copy says so; never compare the pair's price with KINETIQ's.
+- Five years only in Durability (owner, 2026-10-22): its h2 (`lifetime.line`), lead, G14 and point 4 (usage profile,
+  promised fatigue tests); never the hero, finale, meta or confirmation. The one include that names it is One of Ten's
+  "A five-year KINETIQ guarantee on all three rackets" (never "lifetime guarantee"). "First" only in the Durability lead
+  and the owner's lines (2026-10-23): the eyebrow "The first Unibody" (row 36), the KINETIQ card line (row 38).
 - No small print (owner, 2026-10-22, risk accepted in CLAIMS.md): no footnote markers (*, †, ‡, §) and no fine-print
   lines, on the landing page, the edition cards or /reserve. A qualifier that keeps a claim honest goes in a plain
-  sentence of the body copy ("as designed", "made to last"), or is dropped. No "Illustrative" captions under the
-  graphics either (owner, 2026-10-23, risk accepted in CLAIMS.md). /reserve keeps what the law needs at the
+  sentence of the body copy ("as designed", "made to last"), or is dropped. /reserve keeps what the law needs at the
   payment: Due Today, the refund line, the order line.
 - One landing CTA, "Reserve Now"; then "Pay with Card" and "Place Reservation". Sold out: `available: false`.
 - The coach is named "Paquito Navarro" (`COACH_FULL_NAME`, `lineup.ts`), approved in writing (owner, 2026-10-22), in
@@ -154,16 +150,16 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
    reduced motion, 0 console errors, no blank frames, the fill rule, no horizontal overflow, budgets met, Skip links
    reached by Tab work, no footnote markers, the gate opens by keyboard, and assets and APIs answer 403 without it.
 3. Review the screenshots yourself, plus a 375x667 spot check: fix anything blank, overlapping, cropped or unreadable.
-4. After pushing, run `npm run check -- --url=<production url>` (and `--path=/reserve`, `--gate`) on the live site.
+4. After pushing, run `npm run check -- --url=https://kinetiq-seven-neon.vercel.app` (and `--path=/reserve`, `--gate`)
+   on the live site (Vercel team EVHG, project `kinetiq`).
 
 ## Notes
 - Headless long-frame counts are a smoke signal only; the harness uses `--disable-gpu-compositing` and native scroll.
-- Stale servers: never `pkill -f "next start"` (it matches your own shell and kills it). Kill by
-  process name: `for d in /proc/[0-9]*; do [ "$(cat $d/comm)" = "next-server (v1" ] && kill ${d#/proc/}; done`.
-- Production URL: https://kinetiq-seven-neon.vercel.app (Vercel team EVHG, project `kinetiq`).
-- `docs/reference-notes.md`: lighthouse.storage/token (techniques only). `docs/research/non-tubular.md`: construction
-  terms ("no frame tube", not "tubeless") and factory questions.
-- `docs/agent-learnings.md`: what failed while agents built the site. In short: detach long jobs (`setsid nohup`,
-  progress in a file), kill by PID never by command-line text, no foreground `sleep`, one Blender render at a time
-  (`flock`), one writer per file set in a shared tree.
+- Stale servers: never `pkill -f "next start"` (it matches your own shell). Kill by process name: `for d in
+  /proc/[0-9]*; do [ "$(cat $d/comm)" = "next-server (v1" ] && kill ${d#/proc/}; done`.
+- Never call a contextSafe function synchronously inside a gsap.matchMedia().add() (or any context) callback: it makes a
+  context cycle and the revert overflows the stack (the Back-button "This page couldn't load", 2026-10-23).
+- `docs/reference-notes.md`: lighthouse.storage/token. `docs/research/non-tubular.md`: construction terms ("no frame
+  tube", not "tubeless"), factory questions. `docs/agent-learnings.md`: detach long jobs (`setsid nohup`, progress in
+  a file), kill by PID, no foreground `sleep`, one Blender render at a time (`flock`), one writer per file set.
 - Never name the factory, its town, its patents or its other customers in the public repo or on the site.
