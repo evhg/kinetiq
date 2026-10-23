@@ -17,7 +17,7 @@
 // fatigue report exists the testing is promised, never claimed as done (CLAIMS.md rows 26 and 28).
 // No small print (owner, 2026-10-22): no footnote markers (*, \u2020, \u2021, \u00a7) and no fine-print lines. Where a
 // qualifier keeps a claim honest, it is part of a plain sentence in the body copy ("as designed", "made to last",
-// "Independent fatigue tests will confirm it"); a graphic with unmeasured data keeps its "Illustrative" caption.
+// "An independent lab will run fatigue tests"); a graphic with unmeasured data keeps its "Illustrative" caption.
 // Sealed core (owner, 2026-10-22; CLAIMS.md rows 30 to 34): the carbon shell closes around the whole EVA core
 // and lines every hole, so the core never touches the air. It is told once per place: the reveal in the
 // unibody chapter (unibody.sealed), the drilled hole that opens a core (holes.body), and the result in
@@ -32,7 +32,7 @@ import { lifetime } from "./lineup";
 import { site } from "./site";
 
 export const hero = {
-  eyebrow: "100% Swiss Made",
+  eyebrow: site.swissMade,
   headline: "The most precise padel racket ever made.",
   /**
    * The owner's own sentence (2026-10-22), verbatim by his instruction (CLAUDE.md): it keeps "One single piece"
@@ -68,8 +68,9 @@ export type SweetNumbers = { share: string; nearly: boolean; exact: string; inse
 export const sweetSpot = {
   eyebrow: "Sweet spot",
   headline: "Edge to edge.",
+  // No-break spaces keep "flat face" and "sweet spot" whole wherever line 1 wraps.
   lines: [
-    "The face stays flat right out to where the edge begins to curve, and we designed all of that flat face to be sweet spot.",
+    "The face stays flat right out to where the edge begins to curve, and we designed all of that flat\u00a0face to be sweet\u00a0spot.",
     "That matters most on the shots you can't set up, when you meet the ball late, high or off the glass.",
   ],
   /**
@@ -101,7 +102,7 @@ export const sweetSpot = {
 export const specifications = {
   eyebrow: "Specifications",
   headline: "As large as the rules allow.",
-  lead: "Its length, width and thickness each sit at the limit set by the rules of padel, and no further. The drawing below is to scale.",
+  lead: "Its length, width and thickness each sit at the limit set by the rules of padel, and no further. The drawing below is\u00a0to\u00a0scale.",
   cells: [
     { value: "455.0", unit: "mm", label: "length" },
     { value: "260.0", unit: "mm", label: "width" },
@@ -125,7 +126,8 @@ export const unibody = {
   edge: {
     eyebrow: "Unibody",
     headline: "It feels like one thing in your hand.",
-    body: "We left out the frame tube. The face, the bridge and the handle are one carbon shell.",
+    // No-break spaces keep "the bridge" and "one carbon shell" whole, so a phone sets three whole phrases.
+    body: "We left out the frame tube. The face, the\u00a0bridge and the handle are one\u00a0carbon\u00a0shell.",
     // The handle callout gives no number: Identical tells the tolerances (±1.0 g, ±1.0 mm).
     callouts: [
       { at: "rim", text: "The face is in play almost to the rim." },
@@ -163,7 +165,8 @@ export const bornWhole = {
   headline: "Swiss Made, right down to the core.",
   body: "The two words you find on the dial of a Swiss watch are etched into the side of every KINETIQ. We make each one in Switzerland, in one mould, by one patented process.",
   lockup: { value: "100%", label: "Swiss Made" },
-  badges: ["100% Swiss Made", "Patented one-mould process"],
+  /** G13: the Swiss badge, then the patent badge (the /reserve trust badges; Badges.tsx reads them in this order). */
+  badges: [site.swissMade, "Patented one-mould process"],
 };
 
 export const precision = {
@@ -198,19 +201,22 @@ export const holes = {
 };
 
 // Durability (CLAIMS.md rows 26 to 28, 34, 8b and 9b). The owner's "first of its kind" (row 28) names its category
-// and claims the design, not finished tests: the fatigue report is promised before the first racket ships.
+// and claims the design, not finished tests: the fatigue report is promised before we ship.
 // Without a counsel-reviewed market search at launch, the lead's second sentence becomes "KINETIQ is built for
 // five." Never the hero h1.
 export const durability = {
   eyebrow: "Durability",
   headline: `${lifetime.line}.`,
-  lead: "Most padel rackets are spent in one to two years. KINETIQ is the first padel racket built for five.",
+  lead: "Most padel rackets are spent in one\u00a0to\u00a0two\u00a0years. KINETIQ is the first padel\u00a0racket built\u00a0for\u00a0five.",
   // The sealed core comes first: in most rackets the foam core is what gives out first (CLAIMS.md row 34). Its title
   // names the difference ("sealed, not open"), never "nothing to break down" (absolute, rows 8b and 30).
   // Point 4 carries what the fine print used to: the usage profile and the promised fatigue tests (future tense); it
-  // never reads as a test already passed, and never repeats the five years the headline states (row 26). Its body is a
-  // whole sentence that stands without its title; no "design life" (the page no longer defines it). It counts ball
-  // strikes, the figure row 26's fatigue protocol tests (160,000+), never hours "of play" (row 27).
+  // never reads as a test already passed or foretells its result ("will confirm" is retired), and never repeats the
+  // five years the headline states (row 26). Its sentences stand without the title: the rate, then the total it comes
+  // to "over its life" (a bare "in all" named no period), then the test, "before we ship" as the refund line says it;
+  // no "design life" (the page no longer defines it). It counts ball strikes, the figure row 26's fatigue protocol
+  // tests (160,000+), never hours "of play" (row 27).
+  // No-break spaces keep the lead's "one to two years", "padel racket" and "built for five" whole.
   // "Three times longer" compares the sealed core with the same EVA left open ("the same core left open"), never with
   // other brands' rackets, and never becomes a racket lifespan ("three to six years"): the five years rest on row 26's
   // own test. "Made to last" keeps it a design until the independent test exists (row 34).
@@ -226,7 +232,7 @@ export const durability = {
     { title: "No drilled hole to crack.", body: "Cracks often start at a drilled hole. All 42 of ours are moulded, with carbon wrapped around every edge." },
     {
       title: "Made for regular play.",
-      body: "We designed it for two 90-minute sessions a week, about 160,000 ball strikes in all. Independent fatigue tests will confirm that before the first racket ships.",
+      body: "We designed it for two 90-minute sessions a week, which comes to about 160,000 ball strikes over its life. An independent lab will run fatigue tests to that count before we ship.",
     },
   ],
   graph: {
@@ -270,7 +276,7 @@ export const identical = {
   body: "Each racket is within 1.0\u00a0g of the reference weight, and its balance is set in the mould to within 1.0\u00a0mm, so you can change rackets in the middle of a match and the new one feels like the one you put down.",
   stats: [
     { value: "±1.0", unit: "g", label: "weight, every racket" },
-    { value: "±1.0", unit: "mm", label: "balance, set in the mould" },
+    { value: "±1.0", unit: "mm", label: "balance, every racket" },
   ],
   graphCaption: "Illustrative. Distribution against the tolerance window.",
   card: {
@@ -283,11 +289,20 @@ export const identical = {
     rows: [
       ["Feel", "Command"],
       ["Weight", "355.2 g"],
-      ["Reference", "355.0 g ±1.0 g"],
       ["Balance", "250.4 mm"],
       ["Thickness", "38.00 mm"],
       ["Max surface deviation", "0.012 mm"],
     ] as [string, string][],
+    /**
+     * Under a row's value, in one form: the tolerance it is held to, the three the page promises (Identical's ±1.0 g
+     * and ±1.0 mm, Precision's 15 µm). Thickness has none: 38.0 mm is the design size at the rules' limit, not a
+     * tolerance, and "max 38.0 mm" under 38.00 mm would read as no margin.
+     */
+    limits: {
+      Weight: "ref 355.0 g ±1.0 g",
+      Balance: "ref 250.0 mm ±1.0 mm",
+      "Max surface deviation": "limit 0.015 mm",
+    } as Record<string, string>,
     swiss: "Swiss Made",
     /**
      * A second sample racket, measured on its own: a single Pace racket's card, with this serial, and the B card of
@@ -305,6 +320,8 @@ export const identical = {
  * lines follow one pattern, what we made and then what it does for you, so read side by side only the feel changes.
  * The rows are labels: no full stops. "Suits" is guidance, not a result. No stiffness numbers until measured; never
  * "Made in Europe" or "Easy on the arm". The closing line says plainly that only the core and the face differ.
+ * No-break spaces bind each shot in the Suits rows ("the lob", "a change of tempo"), never the whole list: a whole
+ * list is wider than the value column on phones and tablets.
  */
 export const feelChoice = {
   eyebrow: "Two feels",
@@ -321,7 +338,7 @@ export const feelChoice = {
         ["Feel", "Soft and controlled"],
         ["Face", "White 3K carbon, the finer weave"],
         ["Core", "Soft EVA"],
-        ["Suits", "A game built on placement: the lob, the chiquita, the bandeja"],
+        ["Suits", "A game built on placement: the\u00a0lob, the\u00a0chiquita, the\u00a0bandeja"],
       ],
     },
     {
@@ -333,7 +350,7 @@ export const feelChoice = {
         ["Feel", "Quick and reactive"],
         ["Face", "Black 12K carbon, the bolder weave"],
         ["Core", "Two-density EVA, soft under the face and firmer in the centre"],
-        ["Suits", "A game built on pressure: the first volley, a change of tempo, the smash"],
+        ["Suits", "A game built on pressure: the\u00a0first\u00a0volley, a\u00a0change\u00a0of\u00a0tempo, the\u00a0smash"],
       ],
     },
   ] as { id: "command" | "pace"; name: string; sub: string; line: string; rows: [string, string][] }[],

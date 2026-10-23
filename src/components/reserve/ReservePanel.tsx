@@ -604,7 +604,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
             })}
           </fieldset>
 
-          <fieldset ref={feelRef} className={styles.feel} disabled={open} data-missing={feelMissing && !feel}>
+          <fieldset ref={feelRef} className={styles.feel} disabled={stage === "processing"} data-missing={feelMissing && !feel}>
             <legend className={styles.feelLegend}>{reserveCopy.feelLegend(tier.rackets)}</legend>
             <div className={styles.feelOptions}>
               {(Object.keys(feels) as FeelId[]).map((id) => (

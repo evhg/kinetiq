@@ -44,13 +44,13 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
   (`src/lib/nda.ts`) and answers assets, `/api/*` and other `/_next/*` paths with an empty 403; only `/_next/static/`,
   the HMR socket, the two icon files and `POST /api/nda` pass. Exclusions, cookie and arrival: DESIGN.md "NDA gate".
 - A declaration, not a login (unsigned cookie, public format; CLAIMS.md row 25b). With RESEND_API_KEY, NDA_NOTIFY_TO and
-  NDA_NOTIFY_FROM on Vercel (never in the repo), a same-origin sign-in emails the owner only the address, time and page
-  (path and edition only) via Resend (`nda-notify.ts`): once per address a day, 20 an hour and 40 a day per server
-  instance; sign-ins over the caps go in the next email. Nothing else is stored or logged.
+  NDA_NOTIFY_FROM on Vercel only (never the repo), a same-origin sign-in emails the owner its address, time and page
+  (path, edition) via Resend (`nda-notify.ts`): once per address a day, 20 an hour, 40 a day per instance, the rest in
+  the next email; never for a reserved test domain (`.invalid`: the harness). Nothing else is stored or logged.
 - The root layout's metadata is neutral (title "KINETIQ", noindex): the product's title, description and og:image live
   in `src/lib/product-metadata.ts`, used by `/` and `/reserve` only. Never put product metadata back in `layout.tsx`.
-- Stills are `Cache-Control: private` with `Vary: Cookie` (`next.config.ts`). After each deploy, check production
-  headers for `/` and a still with and without the cookie (`curl -D -`): never `public` or cacheable.
+- Cleared pages are `private, no-cache` (`src/proxy.ts`), stills `private` with `Vary: Cookie` (`next.config.ts`). After
+  each deploy, check production headers for `/` and a still with and without the cookie (`curl -D -`): never `public`.
 - `/nda` ships no product copy, prices, claims, stills or og:image. The root not-found's tree and client chunks ship
   with every page, the gate included: keep words out of `HeaderClient` and anything not-found renders.
 - Scripts pass the gate with `scripts/nda-cookie.mjs`: `await context.addCookies([ndaCookie(baseUrl)])` before the

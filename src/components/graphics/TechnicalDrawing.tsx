@@ -59,7 +59,7 @@ export const LABELS = {
     "42 holes moulded. 0 drilled.",
     "Every surface within ±0.015 of design.",
     "Weight within ±1.0 g of reference.",
-    "Balance within ±1.0 mm, set in the mould.",
+    "Balance within ±1.0 mm of reference.",
   ],
   balance: "Balance ±1.0 mm",
   balanceSub: "set in the mould",

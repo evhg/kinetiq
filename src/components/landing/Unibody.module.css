@@ -99,6 +99,17 @@
     max-width: 26ch;
     margin-inline: auto;
   }
+  /* K03 on phones: a square window on its 4:5 card crop (12% to 92% of it), so the slab (about 30% to 81% of the crop,
+     its base shadow included) sits at 22% to 86% of the frame, clear of the feathers at both ends: the lit floor rises
+     out of the stage under the callouts and fades back into it above the words, never a box on the graphite. */
+  .beatB .still img {
+    aspect-ratio: 1;
+    height: auto;
+    object-fit: cover;
+    object-position: 50% 60%;
+    -webkit-mask-image: linear-gradient(transparent, #000 14%, #000 88%, transparent);
+    mask-image: linear-gradient(transparent, #000 14%, #000 88%, transparent);
+  }
 }
 /* The sealed core: words and three callouts, centred when stacked, a left column beside the shell when pinned. */
 .beatS {
@@ -159,11 +170,16 @@
     -webkit-mask-image: linear-gradient(transparent, #000 20%, #000 78%, transparent);
     mask-image: linear-gradient(transparent, #000 20%, #000 78%, transparent);
   }
-  /* K03, stacked: its lit floor feathers into the beat's stage at both ends, so it never stops on a line above the
-     words (the shell spans y 32% to 82% of the frame, its base shadow included) */
+  /* K03, stacked: its lit floor feathers into the beat's stage at both ends, so it never stops on a line under the
+     words or above the G07 drawings (the shell spans y 32% to 82% of the frame, its base shadow included) */
   .beatB .still img {
     -webkit-mask-image: linear-gradient(transparent, #000 8%, #000 86%, transparent);
     mask-image: linear-gradient(transparent, #000 8%, #000 86%, transparent);
+  }
+  /* Beat B, stacked, also opens on its words: the eyebrow, headline and lead, then K03, then the two sections. Pinned,
+     the media is out of the flow and the drawings keep row 2, so the order changes nothing there. */
+  .beatB .copy {
+    order: -1;
   }
 }
 
@@ -284,15 +300,16 @@
   }
   :global(html[data-motion="on"]) .beatB .media {
     transform: translateY(15%) scale(0.76);
-    /* Feather the outer edges into the stage (the render's border is a flat graphite, luma 17-21). The left feather is
-       the long one (24%, ending before the shell's left face at about 31%): when the frame moves right for the sealed
-       core, its lit floor falls off over about 320 px behind the words instead of standing as a soft wall. */
+    /* Feather the outer edges into the stage (the render's border is a flat graphite, luma 17-21). Both side feathers
+       are long (24%), ending before the shell's faces (its left at about 31%, its right at about 69%): in beat B the
+       scaled frame's right edge is on screen, and when it moves right for the sealed core its left edge falls behind
+       the words, so either way the lit floor falls off over about 260 to 320 px instead of standing as a soft wall. */
     -webkit-mask-image:
-      linear-gradient(to right, transparent, #000 24%, #000 92%, transparent),
+      linear-gradient(to right, transparent, #000 24%, #000 76%, transparent),
       linear-gradient(transparent, #000 8%, #000 92%, transparent);
     -webkit-mask-composite: source-in;
     mask-image:
-      linear-gradient(to right, transparent, #000 24%, #000 92%, transparent),
+      linear-gradient(to right, transparent, #000 24%, #000 76%, transparent),
       linear-gradient(transparent, #000 8%, #000 92%, transparent);
     mask-composite: intersect;
   }
@@ -315,14 +332,15 @@
     height: 100%;
     visibility: hidden;
   }
-  /* The light line traces K02's top edge: the racket spans x 11.5-88.5% and its top edge sits at y 46.5% of the 16:9
-     still, which is 0.065 of its height below the band's top. */
+  /* The light line runs along K02's top edge from the butt cap to the rim: the racket spans x 11.5-88.5%, and the
+     grip's top edge sits at y 47.5% of the 16:9 still, 0.075 of its height below the band's top, so the line lies on
+     the overgrip and, along the head, on the shell just inside its near edge. */
   :global(html[data-motion="on"]) .edgeLight {
     display: block;
     position: absolute;
     left: calc(50% - 0.385 * var(--img-w));
     width: calc(0.77 * var(--img-w));
-    top: calc(0.065 * var(--img-h));
+    top: calc(0.075 * var(--img-h));
     height: 1px;
     transform-origin: 0 50%;
     background: linear-gradient(90deg, transparent, var(--amber) 8%, var(--amber-hot) 50%, var(--amber) 92%, transparent);

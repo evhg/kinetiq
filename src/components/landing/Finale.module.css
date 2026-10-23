@@ -75,11 +75,17 @@
 /* Short phones (Safari on most iPhones, 740 px tall or less): one screen with the footer leaves the frame about 200 px
    high, too short for the 4:5 card crop, so it shows the wide crop (Finale.tsx) with the whole racket and its horizon
    centred and no frame edges, and the section is exactly one screen with the footer (no 600 px floor, which pushed
-   the frame under the header). Portrait only: a phone on its side keeps the 600 px floor, so the frame never collapses. */
+   the frame under the header). Portrait only: a phone on its side keeps the 600 px floor, so the frame never collapses.
+   The wide crop's top row is darker on the left than on the right, which no flat ramp can meet, so the frame itself
+   rises out of the flat band over 32 px instead (the crown starts about 57 px down at 390 x 664). */
 @media (max-width: 699px) and (max-height: 740px) and (orientation: portrait) {
   .section {
     min-height: calc(100svh - clamp(96px, 2vw + 70px, 120px) - 1px);
-    background: linear-gradient(var(--stage), rgb(30 30 31) var(--chrome-h), var(--stage) calc(var(--chrome-h) + 1px));
+    background: var(--stage);
+  }
+  .media {
+    -webkit-mask-image: linear-gradient(transparent, #000 32px);
+    mask-image: linear-gradient(transparent, #000 32px);
   }
   .still img {
     object-position: 50% 50%;

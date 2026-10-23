@@ -30,7 +30,15 @@ export function Precision() {
       >
         <div className={styles.stage}>
           <div className={styles.media} aria-hidden="true">
-            <Still id="K05" phoneId="K05-phone" phoneCrop="portrait" alt="" className={styles.still} />
+            {/* the portrait frame on phones and on any portrait window (iPads), where the 16:9 scan would lose both ends */}
+            <Still
+              id="K05"
+              phoneId="K05-phone"
+              phoneCrop="portrait"
+              phoneMedia="(max-width: 699px), (max-aspect-ratio: 1/1)"
+              alt=""
+              className={styles.still}
+            />
           </div>
           <h2 id="precision-record" className={styles.record}>
             <span className={`t-record ${styles.number}`} aria-hidden="true">

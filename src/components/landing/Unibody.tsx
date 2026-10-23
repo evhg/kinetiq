@@ -111,7 +111,7 @@ export function Unibody() {
 
       <div className={`beat ${styles.beatB}`}>
         <div className={styles.media} aria-hidden="true">
-          <Still id="K03" crop="wide" phoneCrop="slab" alt="" sizes="100vw" className={styles.still} />
+          <Still id="K03" crop="wide" phoneCrop="card" alt="" sizes="100vw" className={styles.still} />
           <Still id="K03b-tubular" alt="" sizes="100vw" className={`${styles.still} ${styles.tubular}`} />
           <SealedCoreTrace className={styles.trace} />
         </div>

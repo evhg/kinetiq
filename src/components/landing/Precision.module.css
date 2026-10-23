@@ -67,15 +67,64 @@
     background: linear-gradient(transparent, var(--stage));
   }
 }
+/* Portrait windows from 700 px (iPads): the 16:9 scan, covered into a stage taller than wide, would show only its
+   middle and cut the head and the cap off at the screen's sides, so the portrait frame (K05-phone, Precision.tsx)
+   takes over. As on phones it starts under the numeral and its line, on the stage tone, and the racket (y 21% to
+   78.5% of the frame, about 1.02 times the screen's width tall) is centred whole below them, cap included. */
+@media (min-width: 700px) and (max-aspect-ratio: 1/1) {
+  .stage {
+    --frame-top: calc(var(--chrome-h) + clamp(8px, 2vh, 40px) + max(7rem, 14vw) * 0.9 + 32px);
+    background: var(--stage);
+  }
+  .media {
+    inset: var(--frame-top) 0 0;
+    -webkit-mask-image: linear-gradient(transparent, #000 16px);
+    mask-image: linear-gradient(transparent, #000 16px);
+  }
+  .still img {
+    object-position: 50% 50%;
+  }
+  .stage::after {
+    height: 24px;
+  }
+}
+/* Not pinned below 900 px: the stage grows past the screen where the screen is too short to hold the whole racket
+   under the line with air above the crown and below the cap (Safari's toolbars at 768 x 954). */
+@media (min-width: 700px) and (max-width: 899px) and (max-aspect-ratio: 1/1) {
+  .stage {
+    min-height: max(100svh, calc(var(--frame-top) + 112vw));
+  }
+}
+/* Pinned from 900 px, the stage is one screen: where that leaves the frame too short for the racket at full width
+   (Safari's toolbars at 1024 x 1292, square windows), the frame narrows to keep the whole racket in it with 40 px of
+   air at each end (the racket is 1.0226 times the frame's width tall), and its sides feather into the stage, which is
+   the backdrop's own tone (the racket spans 20% to 80% of the frame's width; only the laser runs out to the sides). */
+@media (min-width: 900px) and (max-aspect-ratio: 1/1) {
+  .media {
+    width: min(100%, (100svh - var(--frame-top) - 80px) * 0.978);
+    margin-inline: auto;
+    -webkit-mask-image:
+      linear-gradient(transparent, #000 16px),
+      linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
+    -webkit-mask-composite: source-in;
+    mask-image:
+      linear-gradient(transparent, #000 16px),
+      linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
+    mask-composite: intersect;
+  }
+}
 .graphSection {
   display: grid;
   gap: clamp(40px, 4vw, 112px);
   padding: clamp(96px, 8vw, 220px) var(--margin);
 }
-/* The lift and its grid fade to flat --stage at the foot, where Holes begins on --stage (Feel's pattern). The fade is
-   the first layer, so it covers the grid too; two classes, to win over globals' .lift.tech-grid. */
+/* The lift and its grid rise out of flat --stage at the top, where K05's stage ends on --stage, and fade back to it
+   at the foot, where Holes begins on --stage (Feel's pattern). The top fade is a fixed 160 px, since the section is far
+   taller on phones. The fades are the first layers, so they cover the grid too; two classes, to win over globals'
+   .lift.tech-grid. */
 .graphSection:global(.lift.tech-grid) {
   background:
+    linear-gradient(var(--stage), transparent 160px),
     linear-gradient(transparent 85%, var(--stage)),
     linear-gradient(rgb(255 255 255 / 0.03) 1px, transparent 1px) 0 0 / 40px 40px,
     linear-gradient(90deg, rgb(255 255 255 / 0.03) 1px, transparent 1px) 0 0 / 40px 40px,

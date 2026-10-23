@@ -1,6 +1,5 @@
 "use client";
 
-import { Badges } from "@/components/graphics/Badges";
 import { Still } from "@/components/media/Still";
 import { bornWhole } from "@/content/copy";
 import { gsap } from "@/lib/gsap";
@@ -30,7 +29,7 @@ export function BornWhole() {
         <p className="t-lead">{bornWhole.body}</p>
       </div>
       {/* The mould gets the whole frame; the Swiss Made lockup is set into the plate's front face, below its
-          lit top edge (y 78.5% of the still). The patent hallmark follows under the frame. */}
+          lit top edge (y 78.5% of the still). */}
       <div className={styles.stage}>
         <div className={styles.media} aria-hidden="true">
           <Still id="K06-base" phoneCrop="card" alt="" className={styles.layer} />
@@ -49,7 +48,6 @@ export function BornWhole() {
           </p>
         </div>
       </div>
-      <Badges className={styles.badges} items={["patent"]} reveal="none" align="center" />
     </Scrub>
   );
 }

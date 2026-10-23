@@ -1,4 +1,5 @@
 import { LifespanGraph } from "@/components/graphics/LifespanGraph";
+import { Hyphens } from "@/components/text/Hyphens";
 import { durability } from "@/content/copy";
 import { Reveal } from "./Reveal";
 import styles from "./Durability.module.css";
@@ -27,7 +28,10 @@ export function Durability() {
         {durability.points.map((p) => (
           <li key={p.title} className={styles.point}>
             <h3 className="t-h3">{p.title}</h3>
-            <p className="t-body">{p.body}</p>
+            {/* a hyphenated word ("90-minute") never breaks at its hyphen */}
+            <p className="t-body">
+              <Hyphens text={p.body} />
+            </p>
           </li>
         ))}
       </Reveal>

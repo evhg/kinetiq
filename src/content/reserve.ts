@@ -59,9 +59,13 @@ export const reserveCopy = {
         ? "Both rackets are moulded in\u00a0the\u00a0feel\u00a0you\u00a0choose."
         : `All ${countWord(rackets)} rackets are moulded in\u00a0the\u00a0feel\u00a0you\u00a0choose.`,
   dueTodayLabel: "Due Today",
+  /**
+   * The delivery line says the prices include VAT, as the law asks at the payment (CLAIMS.md row 24): every price is
+   * final. No-break spaces keep "VAT and duties included" whole, so it never wraps to leave "included" alone.
+   */
   trustLines: [
     site.refundLabel,
-    "Free delivery in Europe, duties included",
+    "Free delivery in Europe, VAT\u00a0and\u00a0duties\u00a0included",
     "Serial number and measurement card with every racket",
   ],
   formHeading: "Your details",
@@ -82,9 +86,10 @@ export const reserveCopy = {
   /**
    * The order and its total, stated directly above Place Reservation: "KINETIQ, one Command racket. Due today €410.",
    * "First 500, two Command rackets. Due today €990.", "One of Ten, three Pace rackets. Due today €2,900.". No-break
-   * spaces keep "Due today" and the price on one line.
+   * spaces keep the order (about 250 px, narrower than any phone's column) and "Due today" with the price whole, so
+   * the line breaks only between the two sentences, never inside the noun phrase.
    */
-  placeDue: (order: string, price: string) => `${order}. Due\u00a0today\u00a0${price}.`,
+  placeDue: (order: string, price: string) => `${order.replace(/ /g, "\u00a0")}. Due\u00a0today\u00a0${price}.`,
   errors: {
     checkCard: "Please check your card details.",
     generic: "Something went wrong. Nothing was charged.",
@@ -113,7 +118,7 @@ export const reserveCopy = {
       case "limited":
         return `${receipt} Your set is one of the ${tier.name}, and it ships first, in ${site.shipMonth}, with its number on both throats and two measurement cards to match. It is fully refundable until then.`;
       case "invite":
-        return `${receipt} Your ${countWord(tier.rackets)} rackets ship in ${site.shipMonth} with ${countWord(tier.rackets)} measurement cards, in a fitted case marked with your set number, and we will write to you about your coaching session. They are fully refundable until then.`;
+        return `${receipt} Your ${countWord(tier.rackets)} rackets ship in ${site.shipMonth}, after the ${name("limited")} sets, with ${countWord(tier.rackets)} measurement cards, in a fitted case marked with your set number. They are fully refundable until then, and we will write to you about your coaching session.`;
       default:
         return `${receipt} We ship in ${site.shipMonth}, and your reservation is fully refundable until then.`;
     }

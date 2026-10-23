@@ -81,6 +81,17 @@ function restoreHeld({ list, over }: { list: [string, string][]; over: number })
   heldOver += over;
 }
 
+/**
+ * Addresses on the domains reserved for testing and documentation (RFC 2606, RFC 6761: .invalid, .test, .example,
+ * .localhost, example.com, .net and .org) are never emailed: nobody can receive mail there, and the check harness signs
+ * in as harness@kinetiq.invalid on every production run. The route checks this before mayNotify, so such an address
+ * never takes a slot under the caps or a place in the held list.
+ */
+export function isReservedAddress(email: string): boolean {
+  const domain = email.slice(email.lastIndexOf("@") + 1).toLowerCase();
+  return /(^|\.)(invalid|test|example|localhost)$/.test(domain) || /(^|\.)example\.(com|net|org)$/.test(domain);
+}
+
 export function ndaNotifyConfigured(): boolean {
   return Boolean(process.env.RESEND_API_KEY?.trim() && process.env.NDA_NOTIFY_TO?.trim() && process.env.NDA_NOTIFY_FROM?.trim());
 }

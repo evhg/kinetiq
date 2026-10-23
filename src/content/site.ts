@@ -7,6 +7,13 @@ const fromPriceLabel = `From ${priceLabel(Math.min(...tiers.map((t) => t.priceEu
 // Commercial facts shared by the landing page, /reserve and /reserved.
 export const site = {
   name: "KINETIQ",
+  /** The footer's first words, on every page; the root not-found (its tree ships with the gate) shows only these. */
+  copyright: "© 2026 KINETIQ.",
+  /**
+   * The Swiss claim (CLAIMS.md row 10, high risk): one string for the hero eyebrow, the G13 Swiss badge (the /reserve
+   * trust badges) and the footer, so a change to it reaches every place at once.
+   */
+  swissMade: "100% Swiss Made",
   fromPriceLabel,
   shipMonth,
   /** Under the /reserve h1, worded as the KINETIQ include says it: "Ships in January 2027". */

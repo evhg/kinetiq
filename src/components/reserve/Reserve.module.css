@@ -42,6 +42,18 @@
     -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
     mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
   }
+  /* A wide shot kept whole (fit "contain") without a phone fit of its own: its square phone crop (K07's trio) spans
+     the frame's width, never cropped, in the middle of the taller frame, its top and foot feathered into the slide. */
+  .slide[data-fit="contain"]:not([data-phone-fit]) .slideStill {
+    display: flex;
+    align-items: center;
+  }
+  .slide[data-fit="contain"]:not([data-phone-fit]) .slideStill img {
+    height: auto;
+    max-height: 100%;
+    -webkit-mask-image: linear-gradient(transparent, #000 10%, #000 90%, transparent);
+    mask-image: linear-gradient(transparent, #000 10%, #000 90%, transparent);
+  }
 }
 .slide {
   position: relative;
@@ -1022,7 +1034,10 @@
   display: grid;
   gap: 18px;
 }
-@media (min-width: 1024px) {
+/* Postal code and City side by side wherever the column is wide enough, stacked on phones: by the options column's
+   own width (.options is the container), which is wider on a tablet (699 px at 768) than beside the gallery (418 px
+   or more). Phones in portrait stay below 410 (400 at 440 wide). */
+@container (min-width: 410px) {
   .pair {
     grid-template-columns: 1fr 1fr;
   }
@@ -1096,7 +1111,6 @@
   color: var(--steel);
   line-height: 1.5;
   font-variant-numeric: tabular-nums;
-  text-wrap: balance;
 }
 .place {
   position: relative;

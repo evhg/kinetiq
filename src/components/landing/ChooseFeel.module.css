@@ -36,10 +36,11 @@
 .phoneMedia {
   aspect-ratio: 4 / 5;
   overflow: hidden;
-  /* the frame's lit backdrop rises out of the floor instead of starting on a line; 20 px stays above the crown,
-     which starts about 30 px down */
-  -webkit-mask-image: linear-gradient(transparent, #000 20px);
-  mask-image: linear-gradient(transparent, #000 20px);
+  /* the frame's lit backdrop rises out of the floor instead of starting on a line, and its vignette fades back into
+     it above the name: 20 px stays above the crown, which starts about 30 px down, and the foot feather starts at
+     86%, below the butt cap (about 79% of the frame) */
+  -webkit-mask-image: linear-gradient(transparent, #000 20px, #000 86%, transparent);
+  mask-image: linear-gradient(transparent, #000 20px, #000 86%, transparent);
 }
 /* the name and purpose, the photo's caption: the name in display type, "Built for control" in steel at lead size */
 .tag {

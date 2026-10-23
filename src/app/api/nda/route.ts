@@ -1,7 +1,7 @@
 import { NextResponse, after, type NextRequest } from "next/server";
 import { tierById } from "@/content/lineup";
 import { NDA_COOKIE, NDA_MAX_AGE, encodeNda, isEmail, normaliseEmail } from "@/lib/nda";
-import { mayNotify, ndaNotifyConfigured, notifyNdaSignIn } from "@/lib/nda-notify";
+import { isReservedAddress, mayNotify, ndaNotifyConfigured, notifyNdaSignIn } from "@/lib/nda-notify";
 
 // The NDA gate's one endpoint (src/proxy.ts lets it through without the cookie). It checks the email, sets the
 // kq_nda cookie (src/lib/nda.ts) and, after the response, emails the owner (src/lib/nda-notify.ts): for a same-origin
@@ -43,10 +43,11 @@ export async function POST(request: NextRequest) {
   });
   const origin = request.nextUrl.origin;
   // The gate's own form, from this site (browsers without Sec-Fetch-Site send Origin). A script can forge both:
-  // mayNotify is what bounds the emails. With emails off, no address is held even in memory.
+  // mayNotify is what bounds the emails. With emails off, no address is held even in memory. Addresses on reserved
+  // test domains (the check harness's harness@kinetiq.invalid) are never emailed and never count against the caps.
   const site = request.headers.get("sec-fetch-site");
   const sameOrigin = site ? site === "same-origin" : request.headers.get("origin") === origin;
-  if (!sameOrigin || !ndaNotifyConfigured() || !mayNotify(email)) return res;
+  if (!sameOrigin || isReservedAddress(email) || !ndaNotifyConfigured() || !mayNotify(email)) return res;
   // The page's path and its edition only: never an invitation code, a payment's client secret or any other parameter.
   let page = "/";
   try {

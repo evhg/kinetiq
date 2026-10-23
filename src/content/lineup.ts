@@ -140,12 +140,13 @@ export const tiers: Tier[] = [
     availability: "Limited",
     priceEur: 990,
     // "First" is a production promise (CLAIMS.md row 19): sets 001 to 500 leave the mould before any other
-    // edition and ship first. Every line says "sets": 500 sets are 1,000 rackets. "First to ship" is said once, by
-    // the includes; the card line says what the set is.
-    cardLine: "The first 500 sets we make are numbered 001\u00a0to\u00a0500. Each set is two identical rackets in one\u00a0feel.",
+    // edition and ship first. Every line says "sets": 500 sets are 1,000 rackets. The card line gives the name and the
+    // numbering; the includes say what is in the box, each fact once: two identical rackets in one feel, the number on
+    // both throats, and "first to ship".
+    cardLine: "The first 500 sets we make are numbered 001\u00a0to\u00a0500.",
     includes: [
       "Two identical KINETIQ rackets, both Command or both\u00a0Pace",
-      "Your set number, 001\u00a0to\u00a0500, laser-marked on both throats",
+      "Your set number, laser-marked on both\u00a0throats",
       "Two measurement cards, numbered to\u00a0match",
       "First out of the mould and first to ship, in\u00a0January\u00a02027",
     ],
@@ -160,15 +161,18 @@ export const tiers: Tier[] = [
     availability: "Invite Only",
     priceEur: 2900,
     // The tag, and "Invitations open soon." or (once they open) the foot, already say "invitation": the card line
-    // does not. The set number is on the case plate (K09, "No. 01 / 10"); each racket has its own serial (row 15).
-    // The card line says what a set is, as First 500's does (one feel per set); the set number is the include's to say.
-    cardLine: "We make ten sets. Each set is three identical rackets in one\u00a0feel.",
+    // does not. As on First 500's card, the card line gives the numbering ("numbered" follows "sets", never the
+    // rackets) and the includes what is in the box. The set number is on the case plate (K09, "No. 01 / 10"); each
+    // racket has its own serial (row 15). It ships after the First 500 sets, which keeps their "first to ship" true
+    // (CLAIMS.md rows 19 and 22); the ship line comes last, as on the other two cards.
+    cardLine: "We make ten sets, numbered 01\u00a0to\u00a010.",
     includes: [
-      "Three identical KINETIQ rackets in a fitted case marked with your set number, 01\u00a0to\u00a010",
+      "Three identical KINETIQ rackets in one feel, in a fitted case with your set\u00a0number",
       "Three measurement cards, numbered to\u00a0match",
       ...(ambassador.signs ? [`Each racket signed by ${ambassador.name}`] : []),
       coaching,
       lifetime.guarantee,
+      "Ships in January\u00a02027, after the First\u00a0500\u00a0sets",
     ],
     limit: 10,
     offSite: 0,
@@ -181,7 +185,14 @@ export const tiers: Tier[] = [
 export const includeIcons: Record<TierId, IconName[]> = {
   reserve: ["racket", "numberedTag", "measurementCard", "deliveryBox"],
   limited: ["rackets2", "numberedTag", "measurementCard", "deliveryBox"],
-  invite: ["fittedCase", "measurementCard", ...(ambassador.signs ? (["penNib"] as IconName[]) : []), "court", "shieldCheck"],
+  invite: [
+    "fittedCase",
+    "measurementCard",
+    ...(ambassador.signs ? (["penNib"] as IconName[]) : []),
+    "court",
+    "shieldCheck",
+    "deliveryBox",
+  ],
 };
 
 /**

@@ -279,13 +279,21 @@ a.card:active {
     scroll-snap-align: start;
   }
 }
-/* Phones: square frames, and the price right under the name (image, name, price and arrow, then the line and the
-   includes), so a card's image and its price are on one screen together; the spare height of the equal cards falls
-   at their foot. The One of Ten case (K09, 16 to 82% of its 4:5 render) stays whole in the window the square keeps
+/* Tablets in portrait: a card 62% of the track (about 340 to 505 px, 57vw: Editions.tsx sizes), so a square frame and
+   the price under it fit one screen (the whole card does from 600 x 960 up), and the next card peeks in from the right.
+   The head (glyph, name, status) still fits one row at 600 px. */
+@media (min-width: 600px) and (max-width: 899px) {
+  .cards {
+    grid-auto-columns: 62%;
+  }
+}
+/* Phones and tablets: square frames, and the price right under the name (image, name, price and arrow, then the line
+   and the includes), so a card's image and its price are on one screen together; the spare height of the equal cards
+   falls at their foot. The One of Ten case (K09, 16 to 82% of its 4:5 render) stays whole in the window the square keeps
    (7.5 to 87.5%). KINETIQ's single racket (K11-single, 10 to 83% of its 4:5 crop) and the First 500 pair (10 to 85%),
    which a square would crop to crown and cap, are shown whole instead, with air above and below, their sides
    feathered into the frame's --stage (the single racket spans 25 to 75% of its crop's width, the pair about 21 to 79%). */
-@media (max-width: 599px) {
+@media (max-width: 899px) {
   .media {
     aspect-ratio: 1 / 1;
   }

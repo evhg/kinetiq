@@ -22,7 +22,6 @@ const { card } = identical;
 export const LABELS = {
   wordmark: "KINETIQ",
   serial: "Serial",
-  limit: "limit 0.015 mm",
   mapTitle: "Flatness",
   mapScaleFrom: "0",
   mapScaleTo: "12 µm",
@@ -162,7 +161,6 @@ export function MeasurementCard({
   const sample = second ? card.second : null;
   const serial = set ? card.setSerials[set] : (sample?.serial ?? card.serial);
   const rows = card.rows.map(([k, v]): [string, string] => [k, k === "Feel" && feel ? feel : (sample?.values[k] ?? v)]);
-  const deviationKey = rows[rows.length - 1][0];
 
   return (
     <figure
@@ -245,7 +243,8 @@ export function MeasurementCard({
                       <dt>{k}</dt>
                       <dd>
                         {v}
-                        {k === deviationKey ? <span className={styles.limit}>{LABELS.limit}</span> : null}
+                        {/* the tolerance the row is held to (identical.card.limits), in one form under its value */}
+                        {card.limits[k] ? <span className={styles.limit}>{card.limits[k]}</span> : null}
                       </dd>
                     </div>
                   ))}

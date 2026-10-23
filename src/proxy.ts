@@ -7,7 +7,10 @@ import { NDA_COOKIE, NDA_ROUTE, ndaCleared } from "@/lib/nda";
  *   URL as typed (/, /reserve?tier=limited) and the page opens there once the gate sets the cookie;
  * - asset and API requests without it (/stills/*, /CREDITS.md, /api/*, any file) get an empty 403;
  * - the gate's own POST /api/nda always passes, and /nda with a valid cookie redirects to /.
- * With a valid cookie everything else passes untouched. Redirects only ever go to /, never to a URL from the request.
+ * With a valid cookie everything else passes. Pages then get `Cache-Control: private, no-cache`: no shared cache (a
+ * company proxy, a CDN in front of a self-hosted build) may store the presentation, and the browser revalidates before
+ * reuse; not no-store, so the back button's page cache keeps working. Assets and APIs keep their own headers (stills:
+ * next.config.ts). Redirects only ever go to /, never to a URL from the request.
  */
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -20,7 +23,7 @@ export function proxy(request: NextRequest) {
   if (pathname === NDA_ROUTE) {
     return cleared ? NextResponse.redirect(new URL("/", request.url)) : gated(NextResponse.next());
   }
-  if (cleared) return NextResponse.next();
+  if (cleared) return isAssetOrApi(pathname) ? NextResponse.next() : presentation(NextResponse.next());
 
   if (isAssetOrApi(pathname)) return gated(new NextResponse(null, { status: 403 }));
   return gated(NextResponse.rewrite(new URL(NDA_ROUTE, request.url)));
@@ -34,6 +37,12 @@ function isAssetOrApi(pathname: string) {
   if (pathname === "/api" || pathname.startsWith("/api/") || pathname.startsWith("/_next/")) return true;
   const last = pathname.slice(pathname.lastIndexOf("/") + 1);
   return /\.[A-Za-z0-9]+$/.test(last);
+}
+
+/** A cleared page: kept out of shared caches and revalidated before reuse (the header comment above). */
+function presentation(res: NextResponse) {
+  res.headers.set("Cache-Control", "private, no-cache");
+  return res;
 }
 
 /** Gate responses depend on the cookie: never cached, never indexed. */

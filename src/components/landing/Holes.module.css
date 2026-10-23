@@ -87,13 +87,14 @@
 
 @media (max-width: 699px) {
   /* The stats and the drilled-vs-moulded pair they introduce stay one chapter: about 80 px between them (the band's
-     foot and the pair's top), under the breaks between chapters. */
+     foot and the pair's top), under the breaks between chapters. The 4vw at the top, the band's own flat --stage, is
+     more than the scrub's 3% lift of the frame (3.75vw), so the band never clips the frame's top feather. */
   .band {
     display: flex;
     flex-direction: column;
     gap: 32px;
     min-height: 0;
-    padding-top: 0;
+    padding-top: 4vw;
     padding-bottom: 48px;
   }
   /* The frame feathers at both ends (it is in the flow here, so the scrub's ±3% moves the mask with it): it rises out

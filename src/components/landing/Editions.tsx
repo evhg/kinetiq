@@ -88,7 +88,7 @@ function CardBody({ t, after, end }: { t: Tier; after?: ReactNode; end: ReactNod
   return (
     <>
       <div className={styles.media} aria-hidden="true">
-        <Still id={IMAGE[t.id].id} crop={IMAGE[t.id].crop} alt="" sizes="(max-width: 699px) 84vw, 33vw" className={styles.still} />
+        <Still id={IMAGE[t.id].id} crop={IMAGE[t.id].crop} alt="" sizes="(max-width: 599px) 84vw, (max-width: 899px) 57vw, 33vw" className={styles.still} />
       </div>
       <div className={styles.body}>
         <div className={styles.head}>

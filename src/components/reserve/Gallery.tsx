@@ -20,7 +20,8 @@ type Slide =
       position?: string;
       /**
        * The whole product stays in frame on wide galleries, its edges feathered into the slide:
-       * "contain" for wide shots (letterboxed), "portrait" for a tall crop (pillarboxed).
+       * "contain" for wide shots (letterboxed), "portrait" for a tall crop (pillarboxed). Below 1024 px a "contain"
+       * slide without a phoneFit shows its square phone crop (K07's trio) whole, across the frame's width.
        */
       fit?: "contain" | "portrait";
       /**
