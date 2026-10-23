@@ -81,6 +81,14 @@
     mask-image: linear-gradient(to bottom, transparent, #000 10%, #000 78%, transparent);
   }
 }
+/* Tablet portrait: one column, but the certificate stays an object on the floor (about its desktop size), not a sheet
+   across the screen: card and Reserve Now fit on one screen under the header. */
+@media (min-width: 700px) and (max-width: 899px) {
+  .card {
+    justify-self: center;
+    width: min(100%, 460px);
+  }
+}
 @media (min-width: 900px) {
   .grid {
     grid-template-columns: repeat(12, minmax(0, 1fr));

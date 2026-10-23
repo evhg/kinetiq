@@ -30,8 +30,9 @@ export function Identical() {
           {/* The certificate, then the payoff of the same weight and balance: the second Reserve Now, right under it. */}
           <div className={styles.card}>
             <MeasurementCard rotate />
-            <Reveal className={styles.cta}>
-              {/* data-cta: the header's compact Reserve Now hides while this one is on screen (HeaderClient) */}
+            {/* Only the price line rises in: the button is never invisible while on screen, since the header's compact
+                Reserve Now hides as soon as it enters (data-cta, HeaderClient) */}
+            <Reveal className={styles.cta} items=":scope > p">
               <Link href="/reserve" className="btn btn-primary" data-cta="">
                 {site.ctaLabel}
               </Link>
