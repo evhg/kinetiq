@@ -31,8 +31,7 @@
 .yTick,
 .xTick,
 .refLabel,
-.limitLabel,
-.captionText {
+.limitLabel {
   font-family: var(--font-data);
   font-size: var(--fs-label);
   font-variant-numeric: tabular-nums lining-nums;
@@ -267,18 +266,6 @@
     transparent 70%
   );
   opacity: 0;
-}
-
-.caption {
-  margin-top: clamp(20px, 1.4vw + 8px, 48px);
-  padding-left: var(--y-col);
-}
-
-.captionText {
-  display: block;
-  font-size: var(--fs-label);
-  color: var(--muted);
-  white-space: normal;
 }
 
 .phoneOnly {

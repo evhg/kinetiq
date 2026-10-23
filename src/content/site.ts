@@ -41,3 +41,22 @@ export const feels: Record<FeelId, { name: string; sub: string; spec: string }> 
 export function isFeelId(v: string | null | undefined): v is FeelId {
   return v === "command" || v === "pace";
 }
+
+/** The feel the site opens on (owner, 2026-10-23: Command), wherever no choice has been made yet. */
+export const DEFAULT_FEEL: FeelId = "command";
+
+/**
+ * Where a site-wide feel choice is kept in the visitor's own browser (a per-visitor convenience, never sent anywhere).
+ * Nothing writes it yet: the feel toggle beside Reserve Now (a later release) will, and /reserve already reads it when
+ * the link carries no ?feel= (ReserveExperience). Reads fail quietly (private windows, blocked storage).
+ */
+export const FEEL_PREFERENCE_KEY = "kq-feel";
+
+export function storedFeel(): FeelId | null {
+  try {
+    const v = window.localStorage.getItem(FEEL_PREFERENCE_KEY);
+    return isFeelId(v) ? v : null;
+  } catch {
+    return null;
+  }
+}

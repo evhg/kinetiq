@@ -102,7 +102,7 @@ type Props = {
 };
 
 /**
- * The options column: edition, feel, Due Today and Pay with Card. Pay with Card opens the delivery
+ * The options column: feel (first, owner 2026-10-23), edition, Due Today and Pay with Card. Pay with Card opens the delivery
  * and card form in place, ending in one Place Reservation button that charges the card right here.
  */
 export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initialInvite = null, preselected = false }: Props) {
@@ -160,7 +160,12 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
   useEffect(() => {
     if (!preselected || !window.matchMedia("(min-width: 1024px) and (aspect-ratio > 4/5)").matches) return;
     const card = tiersRef.current?.querySelector<HTMLElement>('[data-checked="true"]');
-    if (card && card.getBoundingClientRect().bottom > window.innerHeight - 120) scrollToY(topBelowHeader(card, PRESELECT_GUTTER), false);
+    if (!card || card.getBoundingClientRect().bottom <= window.innerHeight - 120) return;
+    // The feel picker sits above the editions: keep as much of it in view as the card leaves room for.
+    const cardTop = topBelowHeader(card, PRESELECT_GUTTER);
+    const cardFits = card.getBoundingClientRect().bottom + window.scrollY - (window.innerHeight - 120);
+    const feelTop = feelRef.current ? topBelowHeader(feelRef.current, PRESELECT_GUTTER) : cardTop;
+    scrollToY(Math.min(cardTop, Math.max(feelTop, cardFits)), false);
   }, [preselected]);
 
   // Brings the code field and its message into view (centred, clear of the phone's Pay with Card bar), or
@@ -467,8 +472,45 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
         <Confirmation tier={paid.tier} feel={paid.feel} email={paid.email} reference={paid.reference} />
       ) : (
         <>
+          <fieldset ref={feelRef} className={styles.feel} disabled={stage === "processing"} data-missing={feelMissing && !feel}>
+            <legend className={styles.feelLegend}>{reserveCopy.feelLegend(tier.rackets)}</legend>
+            <div className={styles.feelOptions}>
+              {(Object.keys(feels) as FeelId[]).map((id) => (
+                <label key={id} className={styles.feelOption} data-checked={feel === id}>
+                  <input
+                    type="radio"
+                    className="visually-hidden"
+                    name={`${uid}-feel`}
+                    value={id}
+                    checked={feel === id}
+                    onChange={() => {
+                      onFeel(id);
+                      setFeelMissing(false);
+                    }}
+                    // Command is checked before any choice: a click on it is still a choice (the gallery shows it).
+                    onClick={() => onFeel(id)}
+                  />
+                  <Swatch weave={id} />
+                  <span className={styles.feelText}>
+                    <span className={styles.feelTitle}>
+                      <span className={styles.feelName}>{feels[id].name}</span>
+                      <span className={styles.feelSub}>{feels[id].sub}</span>
+                    </span>
+                    <span className={styles.feelSpec}>{feels[id].spec}</span>
+                    <span className={styles.feelLine}>{reserveCopy.feelLines[id]}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+            <p className={styles.feelHelper}>{reserveCopy.feelHelper}</p>
+            <p className={styles.hint} aria-live="polite">
+              {feelMissing && !feel ? reserveCopy.feelRequired : reserveCopy.feelHint(tier.rackets)}
+            </p>
+          </fieldset>
+
           <fieldset ref={tiersRef} className={styles.tiers} disabled={open}>
-            <legend className="visually-hidden">{reserveCopy.chooseLegend}</legend>
+            <legend className={styles.tiersLegend}>{reserveCopy.chooseLegend}</legend>
+            <p className={styles.tiersHelper}>{reserveCopy.editionHelper}</p>
             {tiers.map((t) => {
               const checked = tierId === t.id;
               const can = isSelectable(t.id);
@@ -486,6 +528,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
                       </span>
                     </span>
                   ))}
+                  {t.note ? <span className={styles.tierNote}>{t.note}</span> : null}
                 </span>
               );
               const head = (
@@ -604,39 +647,6 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
             })}
           </fieldset>
 
-          <fieldset ref={feelRef} className={styles.feel} disabled={stage === "processing"} data-missing={feelMissing && !feel}>
-            <legend className={styles.feelLegend}>{reserveCopy.feelLegend(tier.rackets)}</legend>
-            <div className={styles.feelOptions}>
-              {(Object.keys(feels) as FeelId[]).map((id) => (
-                <label key={id} className={styles.feelOption} data-checked={feel === id}>
-                  <input
-                    type="radio"
-                    className="visually-hidden"
-                    name={`${uid}-feel`}
-                    value={id}
-                    checked={feel === id}
-                    onChange={() => {
-                      onFeel(id);
-                      setFeelMissing(false);
-                    }}
-                  />
-                  <Swatch weave={id} />
-                  <span className={styles.feelText}>
-                    <span className={styles.feelTitle}>
-                      <span className={styles.feelName}>{feels[id].name}</span>
-                      <span className={styles.feelSub}>{feels[id].sub}</span>
-                    </span>
-                    <span className={styles.feelSpec}>{feels[id].spec}</span>
-                    <span className={styles.feelLine}>{reserveCopy.feelLines[id]}</span>
-                  </span>
-                </label>
-              ))}
-            </div>
-            <p className={styles.feelHelper}>{reserveCopy.feelHelper}</p>
-            <p className={styles.hint} aria-live="polite">
-              {feelMissing && !feel ? reserveCopy.feelRequired : reserveCopy.feelHint(tier.rackets)}
-            </p>
-          </fieldset>
 
           <ul className={styles.trust}>
             {reserveCopy.trustLines.map((l, n) => (

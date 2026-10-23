@@ -13,6 +13,9 @@ type Props = {
   y?: number;
   stagger?: number;
   start?: string;
+  /** When the reveal plays (default: whenever motion is on). A pinned chapter that scrubs the same block passes a query
+      that excludes its pin. */
+  media?: string;
   id?: string;
   "aria-labelledby"?: string;
 };
@@ -21,14 +24,14 @@ type Props = {
  * Plays a short fade-and-rise once when the block enters the viewport. Server render and
  * reduced motion show the final state; only transform and opacity move.
  */
-export function Reveal({ as: Tag = "div", className, children, items = ":scope > *", y = 16, stagger = 0.06, start = "top 78%", ...rest }: Props) {
+export function Reveal({ as: Tag = "div", className, children, items = ":scope > *", y = 16, stagger = 0.06, start = "top 78%", media = "(prefers-reduced-motion: no-preference)", ...rest }: Props) {
   const root = useRef<HTMLElement>(null);
   const { motionOn } = useMotion();
   useGSAP(
     () => {
       if (!motionOn || !root.current) return;
       const mm = gsap.matchMedia();
-      mm.add("(prefers-reduced-motion: no-preference)", () => {
+      mm.add(media, () => {
         // Already at or past its start line when the page hydrates (a reload mid-page, a hash link):
         // the server-rendered content stays as it is instead of vanishing and fading back.
         const line = /^top (\d+(?:\.\d+)?)%$/.exec(start);

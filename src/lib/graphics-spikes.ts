@@ -1,5 +1,6 @@
-// G04 consistency spikes (illustrative, not measured): a narrow distribution inside a ±1.0
-// tolerance window, for mass (355.0 g reference) and balance (250.0 mm reference).
+// G04 consistency spikes (not measured): a narrow distribution inside its tolerance window, ±1.0 g for mass (355.0 g
+// reference) and ±0.1 mm for balance (250.0 mm reference; owner, 2026-10-23). Each axis spans five windows either side
+// of the reference, so the two windows draw the same width and the spikes read alike.
 import { VB, n1, seeded } from "./graphics-plot";
 
 export type SpikeSpec = {
@@ -8,14 +9,16 @@ export type SpikeSpec = {
   /** Half-width of the x axis, either side of the reference. */
   span: number;
   window: number;
+  /** Minor tick spacing along the axis. */
+  step: number;
   sigma: number;
   unit: string;
   seed: number;
 };
 
 export const SPIKES: SpikeSpec[] = [
-  { id: "mass", reference: 355, span: 5, window: 1, sigma: 0.24, unit: "g", seed: 3550 },
-  { id: "balance", reference: 250, span: 5, window: 1, sigma: 0.27, unit: "mm", seed: 2504 },
+  { id: "mass", reference: 355, span: 5, window: 1, step: 1, sigma: 0.24, unit: "g", seed: 3550 },
+  { id: "balance", reference: 250, span: 0.5, window: 0.1, step: 0.1, sigma: 0.027, unit: "mm", seed: 2504 },
 ];
 
 /** Peak height as a share of the plot. */
@@ -66,7 +69,7 @@ export function spikeGeometry(s: SpikeSpec) {
     centre: X(s.reference),
     /** Faint horizontal rules, as shares of the plot height from the top. */
     rules: [0, 0.25, 0.5, 0.75].map((f) => f * VB),
-    /** Minor ticks every whole unit across the axis. */
-    minor: Array.from({ length: Math.round(s.span * 2) + 1 }, (_, i) => X(lo + i)),
+    /** Minor ticks every `step` across the axis. */
+    minor: Array.from({ length: Math.round((s.span * 2) / s.step) + 1 }, (_, i) => X(lo + i * s.step)),
   };
 }

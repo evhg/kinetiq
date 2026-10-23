@@ -1,5 +1,9 @@
-/* isolates, so the points' pool light stays under the section's own content (globals .pool). The G10 lift (globals
+/* Feel is a pinned chapter from 900 px (Feel.tsx; PinnedChapter, globals .pin): the section below is its stage. It
+   isolates, so the points' pool light stays under the section's own content (globals .pool). The G10 lift (globals
    .lift) fades out to flat --stage at the foot, where Born whole begins on --stage, so the two meet with no line. */
+.chapter {
+  background: var(--stage);
+}
 .section {
   isolation: isolate;
   display: grid;
@@ -15,6 +19,10 @@
 .head {
   display: grid;
   gap: 24px;
+}
+.title {
+  display: grid;
+  gap: clamp(14px, 1vw + 6px, 28px);
 }
 /* G10: a graphite lift behind the graph, so its thin lines sit on light rather than in a dark band. */
 .graph {
@@ -62,5 +70,39 @@
     grid-row: span 2;
     grid-template-rows: subgrid;
     row-gap: 12px;
+  }
+}
+
+/* One screen from 900 px wide and 560 px tall (owner, 2026-10-23: the headline, the graph and the three points are
+   never off screen together), pinned or not: the stage is the screen below the header, the words and the points keep
+   their size, and the graph (VibrationGraph's fill mode, same query) takes the height between them. The headline is
+   capped by the height as well as the width, so short laptop windows (1536 x 730) keep it to two lines with room for
+   the plot. */
+@media (min-width: 900px) and (min-height: 560px) {
+  .section {
+    box-sizing: border-box;
+    height: 100svh;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    gap: clamp(20px, 3.4svh, 72px);
+    padding: calc(var(--chrome-h) + clamp(12px, 3svh, 56px)) var(--margin) clamp(24px, 5svh, 96px);
+  }
+  /* the headline in two lines beside the lead */
+  .head {
+    grid-template-columns: 7fr 5fr;
+  }
+  .head :global(.t-h2) {
+    font-size: min(var(--fs-h2), 6.6svh);
+  }
+  .head :global(.t-lead) {
+    font-size: max(1.0625rem, min(var(--fs-lead), 2.8svh));
+  }
+  .graph {
+    min-height: 0;
+  }
+  .figure {
+    height: 100%;
+  }
+  .point {
+    padding-top: clamp(14px, 2.2svh, 32px);
   }
 }

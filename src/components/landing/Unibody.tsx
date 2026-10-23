@@ -2,20 +2,18 @@
 
 import { Still } from "@/components/media/Still";
 import { PinnedChapter } from "@/components/motion/PinnedChapter";
-import { SealedCoreTrace } from "@/components/graphics/SealedCoreTrace";
 import { GluedSection, KinetiqSection, buildSectionTimeline } from "@/components/graphics/SectionComparison";
 import { unibody } from "@/content/copy";
 import { gsap } from "@/lib/gsap";
 import styles from "./Unibody.module.css";
 
-const { edge, section, sealed } = unibody;
+const { edge, section } = unibody;
 
 /**
- * Unibody, pinned on wide screens (two screens): beat A is the edge-on racket, with what we left out and three
- * callouts beside the parts they name; beat B the cut-through head between a tubular section and the KINETIQ shell;
- * then the sealed core (words on the left, the cut-through moved right so its lined holes and closed edge face them),
- * where the chapter ends. Beat C (three proofs) is retired: its points are told by beat A, the sweet-spot section
- * and Feel, so the chapter is half a screen shorter.
+ * Unibody, pinned on wide screens (1.6 screens): beat A is the edge-on racket, with what we left out and three
+ * callouts beside the parts they name; beat B the cut-through head between a tubular section and the KINETIQ shell,
+ * where the chapter ends. The sealed core, once its last beat, is its own chapter after Holes (SealedCore.tsx; owner,
+ * 2026-10-23), and beat C (three proofs) is retired: its points are told by beat A, the sweet-spot section and Feel.
  */
 export function Unibody() {
   return (
@@ -24,7 +22,7 @@ export function Unibody() {
       nextId="feel"
       labelledBy="unibody-title"
       className={`pin-layered ${styles.chapter}`}
-      length={2}
+      length={1.6}
       build={(tl) => {
         // fromTo with explicit start values throughout: a scrubbed .from() can record its end state late
         // (after a refresh) and blink. A staggered fromTo only renders its first target immediately, so
@@ -32,9 +30,6 @@ export function Unibody() {
         const show = { autoAlpha: 1, y: 0, immediateRender: true } as const;
         gsap.set(`.${styles.beatA} .${styles.callout}`, { autoAlpha: 0, y: 12 });
         gsap.set(`.${styles.side}`, { autoAlpha: 0, y: 16 });
-        gsap.set(`.${styles.sealedCallout}`, { autoAlpha: 0, y: 12 });
-        gsap.set(`.${styles.trace}`, { autoAlpha: 0 });
-        gsap.set(`.${styles.trace} [data-seal-line]`, { strokeDasharray: 1, strokeDashoffset: 1 });
         // Beat A holds whole for about 0.38 of the timeline (over 400 px of scroll on a 900 px screen): the light line
         // runs from the handle to the rim at once, and the callouts follow it in a quick stagger.
         tl.fromTo(`.${styles.edgeLight}`, { scaleX: 0 }, { scaleX: 1, duration: 0.22, immediateRender: true }, 0.02)
@@ -59,27 +54,8 @@ export function Unibody() {
         tl
           // The conventional tubular cut dissolves into the KINETIQ shell (both stills share one camera).
           .fromTo(`.${styles.tubular}`, { autoAlpha: 1 }, { autoAlpha: 0, duration: 0.1, immediateRender: true }, 0.98)
-          // Sealed core: the words and drawings leave the shell first (no overlapping fades), then the cut-through
-          // moves right and closer while the sealed-core words rise on the left.
-          .to(`.${styles.beatB} .${styles.copy}, .${styles.compare}`, { autoAlpha: 0, duration: 0.08 }, 1.18)
-          .to(
-            `.${styles.beatB} .${styles.media}`,
-            { xPercent: 19, yPercent: 4, y: 0, scale: 0.92, duration: 0.14, ease: "power2.inOut" },
-            1.18,
-          )
-          .fromTo(`.${styles.beatS}`, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.02, immediateRender: true }, 1.26)
-          .fromTo(`.${styles.beatS} .${styles.copy}`, { autoAlpha: 0, y: 16 }, { ...show, duration: 0.08 }, 1.28)
-          .fromTo(`.${styles.sealedCallout}`, { autoAlpha: 0, y: 12 }, { ...show, stagger: 0.03, duration: 0.08 }, 1.36)
-          // The proof on the still: the shell's line draws once around the core, and the bores light up lined.
-          .fromTo(`.${styles.trace}`, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.04, immediateRender: true }, 1.34)
-          .fromTo(
-            `.${styles.trace} [data-seal-line]`,
-            { strokeDashoffset: 1 },
-            { strokeDashoffset: 0, duration: 0.14, immediateRender: true },
-            1.34,
-          )
-          // The sealed core is the last beat: it holds while the stage is still pinned, then scrolls away into Feel.
-          .to({}, { duration: 0.14 });
+          // Beat B is the last beat: it holds while the stage is still pinned, then scrolls away into Feel.
+          .to({}, { duration: 0.22 });
       }}
     >
       <div className={`beat ${styles.beatA}`}>
@@ -113,7 +89,6 @@ export function Unibody() {
         <div className={styles.media} aria-hidden="true">
           <Still id="K03" crop="wide" phoneCrop="card" alt="" sizes="100vw" className={styles.still} />
           <Still id="K03b-tubular" alt="" sizes="100vw" className={`${styles.still} ${styles.tubular}`} />
-          <SealedCoreTrace className={styles.trace} />
         </div>
         <div className={styles.copy}>
           <p className="t-eyebrow">{section.eyebrow}</p>
@@ -130,20 +105,6 @@ export function Unibody() {
         </div>
       </div>
 
-      <div className={`beat ${styles.beatS}`}>
-        <div className={`${styles.copy} ${styles.sealedCopy}`}>
-          <p className="t-eyebrow">{sealed.eyebrow}</p>
-          <h3 className={`t-h2 ${styles.title}`}>{sealed.headline}</h3>
-          <p className="t-lead">{sealed.body}</p>
-          <ul className={styles.sealedCallouts}>
-            {sealed.callouts.map((c) => (
-              <li key={c} className={`t-label ${styles.callout} ${styles.sealedCallout}`}>
-                {c}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
     </PinnedChapter>
   );
 }

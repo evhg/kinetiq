@@ -10,19 +10,17 @@ import styles from "./ConsistencySpikes.module.css";
 
 const MINUS = "−";
 
-/** Strings this graphic adds on top of identical.stats and identical.graphCaption (copy.ts). */
+/** Strings this graphic adds on top of identical.stats (copy.ts). */
 export const LABELS = {
   axis: { mass: "Weight", balance: "Balance" },
   summary:
-    "Illustrative graph. Every racket's weight sits within 1.0 g of the 355.0 g reference, and its balance within 1.0 mm of the 250.0 mm reference: a tall, narrow spike well inside each tolerance window.",
+    "Graph. Every racket's weight sits within 1.0 g of the 355.0 g reference, and its balance within 0.1 mm of the 250.0 mm reference: a tall, narrow spike well inside each tolerance window.",
 };
 
 type Props = {
   className?: string;
   /** "row" puts the two graphs side by side from tablet up; "stack" always stacks them. */
   layout?: "row" | "stack";
-  /** Show the "Illustrative" caption. Default true. */
-  caption?: boolean;
 };
 
 const V = `0 0 ${VB} ${VB}`;
@@ -30,10 +28,10 @@ const fmt = (v: number) => v.toFixed(1);
 
 /**
  * G04, Identical chapter. Two small multiples: mass and balance, each a glowing distribution
- * spike inside its ±1.0 window, under a large stat numeral. Server render and reduced motion
+ * spike inside its window (±1.0 g, ±0.1 mm), under a large stat numeral. Server render and reduced motion
  * show the finished graphs; motion lets each spike rise once on entry.
  */
-export function ConsistencySpikes({ className, layout = "row", caption = true }: Props) {
+export function ConsistencySpikes({ className, layout = "row" }: Props) {
   const root = useRef<HTMLElement>(null);
   const { motionOn } = useMotion();
   const gid = useId().replace(/:/g, "");
@@ -159,8 +157,7 @@ export function ConsistencySpikes({ className, layout = "row", caption = true }:
           );
         })}
       </div>
-      <figcaption className={styles.caption}>
-        {caption ? <span className={styles.captionText}>{identical.graphCaption}</span> : null}
+      <figcaption>
         <span className="visually-hidden">{LABELS.summary}</span>
       </figcaption>
     </figure>

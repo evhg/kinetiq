@@ -17,7 +17,7 @@ export const LABELS = {
   limitTop: `+${precision.graph.limitLabel}`,
   limitBottom: `${MINUS}${precision.graph.limitLabel}`,
   summary:
-    "Illustrative graph. Along the full 455 mm of the racket, the KINETIQ surface stays inside the plus or minus 15 micron limit. For scale, a human hair is 70 microns and a sheet of paper 100 microns.",
+    "Graph. Along the full 455 mm of the racket, the KINETIQ surface stays inside the plus or minus 15 micron limit. For scale, a human hair is 70 microns and a sheet of paper 100 microns.",
   /** A scale reference's label: "Human hair, 70 µm thick". */
   reference: (label: string, um: number) => `${label}, ${um} µm thick`,
 };
@@ -26,8 +26,6 @@ const um = (v: number) => (v > 0 ? `+${v}` : v < 0 ? `${MINUS}${Math.abs(v)}` : 
 
 type Props = {
   className?: string;
-  /** Show the "Illustrative" caption under the plot. Default true. */
-  caption?: boolean;
 };
 
 const V = `0 0 ${VB} ${VB}`;
@@ -37,7 +35,7 @@ const V = `0 0 ${VB} ${VB}`;
  * with a human hair and a sheet of paper for scale. Server render and reduced motion show the
  * finished graph; motion fades the limits in, then wipes the trace on behind a glow head.
  */
-export function ToleranceGraph({ className, caption = true }: Props) {
+export function ToleranceGraph({ className }: Props) {
   const root = useRef<HTMLElement>(null);
   const { motionOn } = useMotion();
   const gid = useId().replace(/:/g, "");
@@ -227,8 +225,7 @@ export function ToleranceGraph({ className, caption = true }: Props) {
         <span className={styles.xTitle}>{LABELS.xAxis}</span>
       </div>
 
-      <figcaption className={styles.caption}>
-        {caption ? <span className={styles.captionText}>{precision.graph.caption}</span> : null}
+      <figcaption>
         <span className="visually-hidden">{LABELS.summary}</span>
       </figcaption>
     </figure>

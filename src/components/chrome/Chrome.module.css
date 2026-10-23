@@ -68,9 +68,3 @@
   color: var(--muted);
   font-size: var(--fs-fine);
 }
-.footer a {
-  color: var(--muted);
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-}

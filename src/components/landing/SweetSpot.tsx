@@ -113,7 +113,6 @@ export function SweetSpot() {
         ) : (
           <SweetSpotField className={styles.graphic} />
         )}
-        <p className={`t-fine ${styles.caption}`}>{sweetSpot.caption}</p>
       </div>
 
       <div className={styles.body} data-rise="">

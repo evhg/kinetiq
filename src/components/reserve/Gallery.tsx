@@ -31,12 +31,15 @@ type Slide =
       phoneFit?: "portrait";
       /** The racket in the buyer's feel (K08's crop, K11's set): the slide a change of feel shows. */
       feel?: FeelId;
+      /** K08 whole: Command and Pace together, the first slide until the buyer chooses a feel. */
+      both?: boolean;
+      /** A separate still for phones and tablets (the stacked layout), e.g. K07's trio, which fits a 4:5 frame. */
+      phoneId?: string;
       alt: string;
     }
   | {
       /**
-       * K12's base render alone: its lit pass is an illustration and keeps its "Illustrative" caption on the landing,
-       * so the checkout never shows it. One crop at every size, contained and centred (Reserve.module.css .reveal).
+       * K12's base render alone: its lit pass illustrates the sweet spot on the landing, so the checkout never shows it. One crop at every size, contained and centred (Reserve.module.css .reveal).
        */
       kind: "reveal";
       base: string;
@@ -68,7 +71,30 @@ const SWEET_SPOT: Slide | null = hasStill("K12-base", "portrait")
   ? { kind: "reveal", base: "K12-base", crop: "portrait", alt: "A white KINETIQ Command racket face-on" }
   : null;
 
-function slidesFor(tier: TierId, feel: FeelId): Slide[] {
+/**
+ * Until the buyer chooses a feel, every edition's gallery opens on the two feels together (owner, 2026-10-23): K08's
+ * wide render, Command's white 3K face beside Pace's black 12K, kept whole. Once a feel is chosen it gives way, and the
+ * gallery shows that feel's renders where they exist (K08's half, K11's set) and the Command renders otherwise (a later
+ * release adds Pace versions of every still).
+ */
+const BOTH_FEELS: Slide = {
+  kind: "still",
+  id: "K08",
+  both: true,
+  fit: "contain",
+  // Stacked (phones, tablets): K08's 16:9 frame would sit small in the 4:5 track, so K07's square trio (Pace, Command,
+  // Pace) shows both feels instead.
+  phoneId: "K07",
+  phoneCrop: "trio",
+  alt: "Command and Pace together: white 3K carbon twill faces beside black 12K spread-tow faces",
+};
+
+function slidesFor(tier: TierId, feel: FeelId, chosen: boolean): Slide[] {
+  const slides = feelSlides(tier, feel);
+  return chosen ? slides : [BOTH_FEELS, ...slides];
+}
+
+function feelSlides(tier: TierId, feel: FeelId): Slide[] {
   const name = tierById(tier)!.name;
   const feelName = feels[feel].name;
   switch (tier) {
@@ -153,7 +179,8 @@ function slidesFor(tier: TierId, feel: FeelId): Slide[] {
 }
 
 /** A slide's identity, the same in both feels: the chosen feel's racket (K08's crop, K11's set) is one slide. */
-const slideKey = (s: Slide) => (s.kind === "still" ? (s.feel ? "feel" : s.id) : s.kind === "reveal" ? s.base : s.kind);
+const slideKey = (s: Slide) =>
+  s.kind === "still" ? (s.both ? "both" : s.feel ? "feel" : s.id) : s.kind === "reveal" ? s.base : s.kind;
 
 /** Whether a slide changes with the feel: the chosen feel's racket, and the measurement card in that feel. */
 const showsFeel = (s: Slide) => s.kind === "card" || (s.kind === "still" && Boolean(s.feel));
@@ -172,17 +199,19 @@ function keyAfterFeel(slides: Slide[], key: string | null): string | null {
 const noSubscribe = () => () => {};
 
 /** Tesla-style gallery: crossfading slides with prev and next, dots and a counter; swipe on phones. */
-export function Gallery({ tierId, feel }: { tierId: TierId; feel: FeelId }) {
-  const slides = slidesFor(tierId, feel);
+export function Gallery({ tierId, feel, chosen }: { tierId: TierId; feel: FeelId; chosen: boolean }) {
+  const slides = slidesFor(tierId, feel, chosen);
   // The two measurement cards are about 160 KB of markup and sit on the last slide: they render after hydration, so
   // the server HTML (and the edition a link asked for) reaches the screen sooner.
   const hydrated = useSyncExternalStore(noSubscribe, () => true, () => false);
   // The slide on show, by identity rather than position, as a change of feel changes the slides (K12 is Command's
   // alone, and Pace's racket leads): the index can never point past the end or at another picture. A new edition
   // starts from its first slide; a new feel shows its own racket (keyAfterFeel).
-  const [view, setView] = useState<{ tierId: TierId; feel: FeelId; key: string | null }>({ tierId, feel, key: null });
-  if (view.tierId !== tierId || view.feel !== feel) {
-    setView({ tierId, feel, key: view.tierId !== tierId ? null : keyAfterFeel(slides, view.key) });
+  // Choosing a feel (even Command, already on show) counts as a change of feel: the two-feel slide gives way.
+  const shown = chosen ? feel : null;
+  const [view, setView] = useState<{ tierId: TierId; feel: FeelId | null; key: string | null }>({ tierId, feel: shown, key: null });
+  if (view.tierId !== tierId || view.feel !== shown) {
+    setView({ tierId, feel: shown, key: view.tierId !== tierId ? null : keyAfterFeel(slides, view.key) });
   }
   const index = Math.max(0, slides.findIndex((s) => slideKey(s) === view.key));
   const track = useRef<HTMLDivElement>(null);
@@ -195,13 +224,13 @@ export function Gallery({ tierId, feel }: { tierId: TierId; feel: FeelId }) {
   }, [tierId]);
 
   // Phones: a change of feel moves the track to the slide on show at once (wide screens show only that slide).
-  const trackFeel = useRef(feel);
+  const trackFeel = useRef(shown);
   useLayoutEffect(() => {
     const el = track.current;
-    if (!el || trackFeel.current === feel) return;
-    trackFeel.current = feel;
+    if (!el || trackFeel.current === shown) return;
+    trackFeel.current = shown;
     if (getComputedStyle(el).overflowX === "auto") el.scrollTo({ left: index * el.clientWidth, behavior: "instant" });
-  }, [feel, index]);
+  }, [shown, index]);
 
   // Phones swipe with scroll-snap: follow the scroll to keep the dots in step. The track is keyed
   // by edition, so the listener moves to each new track; it reads the slide from the DOM, which always
@@ -246,7 +275,7 @@ export function Gallery({ tierId, feel }: { tierId: TierId; feel: FeelId }) {
       <div ref={track} key={tierId} className={styles.track} tabIndex={-1}>
         {slides.map((s, i) => (
           <div
-            key={"id" in s ? s.id : slideKey(s)}
+            key={s.kind === "still" && s.both ? "both" : "id" in s ? s.id : slideKey(s)}
             className={styles.slide}
             data-key={slideKey(s)}
             data-active={i === index}
@@ -264,6 +293,7 @@ export function Gallery({ tierId, feel }: { tierId: TierId; feel: FeelId }) {
                 id={s.id}
                 crop={s.crop}
                 phoneCrop={s.phoneCrop}
+                phoneId={s.phoneId}
                 phoneMedia={STACKED}
                 alt={s.alt}
                 sizes={SIZES}

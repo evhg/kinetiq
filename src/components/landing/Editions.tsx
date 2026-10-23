@@ -109,6 +109,7 @@ function CardBody({ t, after, end }: { t: Tier; after?: ReactNode; end: ReactNod
             </li>
           ))}
         </ul>
+        {t.note ? <p className={styles.note}>{t.note}</p> : null}
         {after}
         <div className={styles.foot}>
           <p className={`t-num ${styles.price}`}>{priceLabel(t.priceEur)}</p>

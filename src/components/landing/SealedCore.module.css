@@ -1,0 +1,175 @@
+/* The sealed core (SealedCore.tsx), after Holes. Stacked by default (phones, reduced motion, below 900 px): words,
+   callouts, then K03. Pinned from 900 px: the words in the left columns, K03 on the right, where Unibody's beat B
+   left it. The floor is graphite with a lift, never the near-black void (fill rule). */
+.chapter {
+  background: var(--stage);
+}
+.beat {
+  display: grid;
+  overflow: hidden;
+  isolation: isolate;
+  padding-top: clamp(64px, 6vw, 160px);
+  /* a lift that reaches luma 40 behind the headline, so the words' screen never reads as flat graphite; it fades out
+     before the beat's top and bottom edges, so it meets Holes' pair and Durability with no seam */
+  background:
+    radial-gradient(ellipse 70% 40% at 50% 28%, rgb(58 58 64 / 0.9), rgb(50 50 56 / 0.88) 35%, transparent 95%),
+    var(--stage);
+}
+.copy {
+  display: grid;
+  justify-items: center;
+  gap: clamp(14px, 1vw + 6px, 28px);
+  text-align: center;
+  padding: 0 var(--margin);
+}
+.title {
+  max-width: 18ch;
+}
+.copy :global(.t-lead) {
+  max-width: 44ch;
+}
+/* one left-aligned list, centred as a block, so the amber dashes line up */
+.callouts {
+  display: grid;
+  justify-self: center;
+  justify-items: start;
+  gap: 12px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+.callout {
+  position: relative;
+  padding-left: 22px;
+  color: var(--steel);
+  font-size: clamp(1rem, 0.4vw + 0.85rem, 1.375rem);
+  text-wrap: balance;
+}
+.callout::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.65em;
+  width: 12px;
+  height: 1px;
+  background: var(--amber);
+  box-shadow: 0 0 6px var(--amber);
+}
+.media {
+  position: relative;
+  z-index: -1;
+}
+.frame {
+  position: relative;
+}
+.still img {
+  width: 100%;
+  height: auto;
+}
+/* Phones: a square window on K03's 4:5 card crop, as in Unibody's beat B, the slab clear of the feathers at both ends;
+   the trace is drawn on the 16:9 crop, so it waits for the wider screens. */
+.trace {
+  display: none;
+}
+@media (max-width: 699px) {
+  .callouts {
+    max-width: 26ch;
+  }
+  .still img {
+    aspect-ratio: 1;
+    object-fit: cover;
+    object-position: 50% 60%;
+    -webkit-mask-image: linear-gradient(transparent, #000 14%, #000 88%, transparent);
+    mask-image: linear-gradient(transparent, #000 14%, #000 88%, transparent);
+  }
+}
+/* From 700 px, stacked: the 16:9 cut-through under the words, its lit floor feathered into the stage at both ends,
+   with the trace drawn on it in its final state (it sits on the render: same box, same 16:9). */
+@media (min-width: 700px) {
+  .beat {
+    padding-bottom: 0;
+  }
+  .media {
+    margin-top: clamp(8px, 1vw, 32px);
+  }
+  .still img {
+    -webkit-mask-image: linear-gradient(transparent, #000 8%, #000 86%, transparent);
+    mask-image: linear-gradient(transparent, #000 8%, #000 86%, transparent);
+  }
+  .trace {
+    display: block;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+@media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
+  /* Pinned: the beat paints no floor (the chapter shows its lit graphite) and centres the words in the left
+     columns, beside the shell. */
+  :global(html[data-motion="on"]) .chapter {
+    background:
+      radial-gradient(ellipse 60% 70% at 24% 52%, rgb(52 52 58 / 0.85), transparent 75%),
+      radial-gradient(ellipse 70% 60% at 62% 58%, rgb(43 43 49 / 0.8), transparent 75%),
+      var(--stage);
+  }
+  :global(html[data-motion="on"]) .beat {
+    background: none;
+    align-content: center;
+    padding: calc(var(--chrome-h) + clamp(24px, 3vh, 64px)) 0 clamp(32px, 6vh, 112px);
+  }
+  /* no right padding: the column ends short of the shell, and the headline keeps two lines up to 2560 */
+  :global(html[data-motion="on"]) .copy {
+    justify-items: start;
+    width: min(48vw, 1240px);
+    text-align: left;
+    padding-right: 0;
+  }
+  :global(html[data-motion="on"]) .title {
+    max-width: 30ch;
+    font-size: min(var(--fs-h2), 7.2svh);
+  }
+  :global(html[data-motion="on"]) .copy :global(.t-lead) {
+    max-width: 36ch;
+    font-size: max(1.0625rem, min(var(--fs-lead), 2.7svh));
+  }
+  :global(html[data-motion="on"]) .callouts {
+    justify-self: start;
+    gap: clamp(10px, 1.4vh, 22px);
+    margin-top: clamp(4px, 1vh, 20px);
+  }
+  /* K03 covers the stage, moved right and a little smaller, so its lined holes and closed edge face the words. Its
+     frame feathers 24% at both sides and 8% top and foot into the stage (the render's border is a flat graphite):
+     its left edge falls behind the words and its right edge is on screen, so neither stands as a wall. */
+  :global(html[data-motion="on"]) .media {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    transform: translate(19%, 4%) scale(0.92);
+    -webkit-mask-image:
+      linear-gradient(to right, transparent, #000 24%, #000 76%, transparent),
+      linear-gradient(transparent, #000 8%, #000 92%, transparent);
+    -webkit-mask-composite: source-in;
+    mask-image:
+      linear-gradient(to right, transparent, #000 24%, #000 76%, transparent),
+      linear-gradient(transparent, #000 8%, #000 92%, transparent);
+    mask-composite: intersect;
+  }
+  :global(html[data-motion="on"]) .frame {
+    position: absolute;
+    inset: 0;
+  }
+  :global(html[data-motion="on"]) .still img {
+    height: 100%;
+    object-fit: cover;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  /* drawn in K03's own pixel space and fitted like the image (cover, centred), so it sits on the render; hidden
+     until the timeline draws it */
+  :global(html[data-motion="on"]) .trace {
+    visibility: hidden;
+  }
+}

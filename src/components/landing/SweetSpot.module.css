@@ -59,10 +59,6 @@
   /* 700 to 999 px use the wide master: this crops it to the portrait crop's window (x 0.435 to 0.885) */
   object-position: 79% 50%;
 }
-.caption {
-  margin-top: 12px;
-  text-align: center;
-}
 .body {
   display: grid;
   gap: 16px;
@@ -164,13 +160,6 @@
   .graphic {
     width: min(100%, calc((100svh - var(--chrome-h)) * 0.9 * 446 / 494));
   }
-  .caption {
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    margin: 0;
-    text-align: right;
-  }
   /* K12 full bleed: grid-area auto makes the section's padding box the containing block (an absolutely placed grid
      child with a grid area would fill only that area). Below the header, so the head never sits under it. */
   .section[data-media="still"] .media {
@@ -204,31 +193,7 @@
   .section[data-media="still"] .full img {
     object-position: 50% 50%;
   }
-  /* The caption under the lockup in columns 1 to 5, off the racket; the lockup keeps a line clear for it. */
-  .section[data-media="still"] .caption {
-    left: var(--margin);
-    right: auto;
-    bottom: clamp(32px, 5vh, 96px);
-    text-align: left;
-  }
-  .section[data-media="still"] .lockup {
-    margin-bottom: calc(var(--fs-fine) * 1.55 + clamp(16px, 2vh, 32px));
-  }
 }
-/* Where it clears the grip (from 1200 px and 3:2: the grip ends at least 28 px to its left, measured 1200x800 to
-   2560x1440), the caption stands with the racket it describes, at the right margin by the butt cap, so it never
-   reads as fine print under the numbers. Narrower or taller windows keep it under the lockup, off the racket. */
-@media (min-width: 1200px) and (min-aspect-ratio: 3/2) {
-  .section[data-media="still"] .caption {
-    left: auto;
-    right: var(--margin);
-    text-align: right;
-  }
-  .section[data-media="still"] .lockup {
-    margin-bottom: 0;
-  }
-}
-
 /* Below 1000 px K12's own backdrop is the lift (its pool of light behind the racket): a lift under it would only
    show as a lighter rim around the frame. */
 @media (max-width: 999px) {

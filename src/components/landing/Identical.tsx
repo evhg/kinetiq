@@ -7,7 +7,7 @@ import { site } from "@/content/site";
 import { Reveal } from "./Reveal";
 import styles from "./Identical.module.css";
 
-/** Identical: five rackets, one standard; the distribution, the certificate, and the second CTA. */
+/** Identical: five rackets (K07, Command and Pace alternating), one standard; the distribution, the certificate, and the second CTA. */
 export function Identical() {
   return (
     <>
