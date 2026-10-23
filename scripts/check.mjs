@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // Check harness: builds and serves the production site (or targets --url),
 // then screenshots every 10% of the page at phone (390x844, and 390x664 as Safari shows it), tablet (768x1024),
-// desktop and wide (2560) sizes, with motion on and with reduced motion. Records console errors, LCP, CLS,
-// horizontal overflow, long frames while scrolling, blank frames and the fill
+// laptop (1536x730, a browser window), desktop and wide (2560) sizes, with motion on and with reduced motion.
+// Records console errors, LCP, CLS, horizontal overflow, long frames while scrolling, blank frames and the fill
 // rule (no mostly-black viewport, no dead black strip). By keyboard: every Skip
 // link. And no footnote markers or small print anywhere in the page's text (owner, 2026-10-22).
 //
@@ -12,7 +12,7 @@
 //   node scripts/check.mjs --url=https://x.app  test a deployed URL
 //   node scripts/check.mjs --path=/reserve      test another page
 //   node scripts/check.mjs --only=wide          one viewport, or several: --only=phone,phone-short
-//                                               (phone|phone-short|tablet|desktop|wide)
+//                                               (phone|phone-short|tablet|laptop|desktop|wide)
 //   node scripts/check.mjs --mode=reduced       one mode (motion|reduced)
 //   node scripts/check.mjs --url=... --study    reference mode: also detect
 //                                               animation libraries and pins
@@ -67,12 +67,15 @@ const outDir = join(process.cwd(), ".checks", label);
 const BUDGET = { lcpMs: 2500, cls: 0.1 };
 // Browser viewports, not screens. "phone" is the iPhone's whole 390x844 screen; Safari's toolbars take about 180 px
 // of it, so "phone-short" (390x664) is what a visitor on an iPhone actually sees (others: 393x659, 375x667). "tablet"
-// is an iPad in portrait in Safari. `throttled` cases run PHONE_THROTTLE, settle longer and are held to the LCP
+// is an iPad in portrait in Safari. "laptop" is a real laptop browser window (a 1920x1080 screen at 125% on Windows,
+// minus the browser's toolbars): shorter than 16:10, where layouts sized by width alone meet the stills (Precision's
+// record line on K05), held to the desktop budgets. `throttled` cases run PHONE_THROTTLE, settle longer and are held to the LCP
 // budget; every case is held to the CLS budget.
 const VIEWPORTS = [
   { name: "phone", width: 390, height: 844, isMobile: true, hasTouch: true, deviceScaleFactor: 2, throttled: true },
   { name: "phone-short", width: 390, height: 664, isMobile: true, hasTouch: true, deviceScaleFactor: 2, throttled: true },
   { name: "tablet", width: 768, height: 1024, isMobile: true, hasTouch: true, deviceScaleFactor: 2, throttled: false },
+  { name: "laptop", width: 1536, height: 730, isMobile: false, hasTouch: false, deviceScaleFactor: 1, throttled: false },
   { name: "desktop", width: 1440, height: 900, isMobile: false, hasTouch: false, deviceScaleFactor: 1, throttled: false },
   { name: "wide", width: 2560, height: 1440, isMobile: false, hasTouch: false, deviceScaleFactor: 1, throttled: false },
 ];

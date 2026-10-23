@@ -158,7 +158,7 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
 
   // A buyer who clicked an edition on the landing page sees that edition's card, not the first one.
   useEffect(() => {
-    if (!preselected || !window.matchMedia("(min-width: 1024px)").matches) return;
+    if (!preselected || !window.matchMedia("(min-width: 1024px) and (aspect-ratio > 4/5)").matches) return;
     const card = tiersRef.current?.querySelector<HTMLElement>('[data-checked="true"]');
     if (card && card.getBoundingClientRect().bottom > window.innerHeight - 120) scrollToY(topBelowHeader(card, PRESELECT_GUTTER), false);
   }, [preselected]);

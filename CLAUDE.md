@@ -16,7 +16,7 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
 ## Scripts
 - `npm run dev` (local), `npm run build` / `npm start` (production), `npm run lint`, `npm run typecheck`.
 - `npm run check`: the harness (Definition of done). `--skip-build`, `--url=<url>`, `--study` (reference mode),
-  `--only=phone|phone-short|tablet|desktop|wide` (or a comma list), `--mode=motion|reduced`, `--verbose`,
+  `--only=phone|phone-short|tablet|laptop|desktop|wide` (or a list), `--mode=motion|reduced`, `--verbose`,
   `--path=/reserve` (any page), `--gate` (the NDA gate, no cookie). Output in `.checks/<label>/`.
 - `node scripts/stills.mjs <masters dir> [id ...]`: export Blender masters to `public/stills/` (AVIF + WebP).
 - Vercel runs `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm ci` (no browsers); locally `npx playwright install chromium`.
@@ -145,9 +145,9 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
 ## Definition of done
 1. `npm run lint`, `npm run typecheck` and `npm run build` pass.
 2. `npm run check` passes for `/`, `--path=/reserve` and `--gate`: phone (390x844), phone-short (390x664, Safari on an
-   iPhone), tablet (768x1024), desktop and wide (2560), motion and reduced motion, 0 console errors, no blank frames,
-   the fill rule, no horizontal overflow, budgets met, Skip links reached by Tab work, no footnote markers, the gate
-   opens the page by keyboard, and assets and APIs answer 403 without the cookie.
+   iPhone), tablet (768x1024), laptop (1536x730, a browser window), desktop (1440x900) and wide (2560), motion and
+   reduced motion, 0 console errors, no blank frames, the fill rule, no horizontal overflow, budgets met, Skip links
+   reached by Tab work, no footnote markers, the gate opens by keyboard, and assets and APIs answer 403 without it.
 3. Review the screenshots yourself, plus a 375x667 spot check: fix anything blank, overlapping, cropped or unreadable.
 4. After pushing, run `npm run check -- --url=<production url>` (and `--path=/reserve`, `--gate`) on the live site.
 

@@ -35,12 +35,11 @@ type Slide =
     }
   | {
       /**
-       * Two registered renders of one camera: the base, then the full variant crossfading in once the slide shows.
-       * One crop at every size, contained and centred (Reserve.module.css .reveal).
+       * K12's base render alone: its lit pass is an illustration and keeps its "Illustrative" caption on the landing,
+       * so the checkout never shows it. One crop at every size, contained and centred (Reserve.module.css .reveal).
        */
       kind: "reveal";
       base: string;
-      full: string;
       crop: string;
       alt: string;
     }
@@ -52,21 +51,22 @@ type Slide =
   | { kind: "court"; alt: string };
 
 /**
- * K12, the sweet spot lit to 4 mm from the edge (a face-on Command racket, white 3K twill, with its own serial on the
- * throat): only once it is exported, and only for a single Command racket, as the render shows one. A set's throats
- * carry its set number instead, and Pace is black 12K. Its 4:5 portrait crop at every size, so the whole racket shows,
- * from the crown to the engraved cap, clear of the arrows and dots.
+ * K12's base pass (a face-on Command racket, white 3K twill, with its own serial on the throat), uncaptioned: the lit
+ * pass is an illustration of the sweet spot and stays on the landing with its "Illustrative" caption, so at the
+ * payment the racket always looks as the feel picker says. Only once it is exported, and only for a single Command
+ * racket, as the render shows one. A set's throats carry its set number instead, and Pace is black 12K. Its 4:5
+ * portrait crop at every size, so the whole racket shows, from the crown to the engraved cap, clear of the controls.
  */
-const SWEET_SPOT: Slide | null =
-  hasStill("K12-base", "portrait") && hasStill("K12-full", "portrait")
-    ? {
-        kind: "reveal",
-        base: "K12-base",
-        full: "K12-full",
-        crop: "portrait",
-        alt: "A white KINETIQ Command racket face-on, its face lit almost to the edge: the sweet spot as designed",
-      }
-    : null;
+/**
+ * Where the gallery stacks above the options at the screen's full width (Reserve.module.css): below 1024 px, and any
+ * portrait window (the 12.9-inch iPad Pro at 1024 x 1366), as the Hero treats it. Side by side it is about 66vw.
+ */
+const STACKED = "(max-width: 1023px), (max-aspect-ratio: 4/5)";
+const SIZES = "(max-width: 1023px) 100vw, (max-aspect-ratio: 4/5) 100vw, 66vw";
+
+const SWEET_SPOT: Slide | null = hasStill("K12-base", "portrait")
+  ? { kind: "reveal", base: "K12-base", crop: "portrait", alt: "A white KINETIQ Command racket face-on" }
+  : null;
 
 function slidesFor(tier: TierId, feel: FeelId): Slide[] {
   const name = tierById(tier)!.name;
@@ -259,28 +259,21 @@ export function Gallery({ tierId, feel }: { tierId: TierId; feel: FeelId }) {
             style={"position" in s && s.position ? ({ "--pos": s.position } as CSSProperties) : undefined}
           >
             {s.kind === "still" ? (
-              // Below 1024 px the frame is full width, 4:5 to square: phones and tablets get the 4:5 crops.
+              // Stacked (below 1024 px, or a portrait window), the frame is full width, 4:5 to square: the 4:5 crops.
               <Still
                 id={s.id}
                 crop={s.crop}
                 phoneCrop={s.phoneCrop}
-                phoneMedia="(max-width: 1023px)"
+                phoneMedia={STACKED}
                 alt={s.alt}
-                sizes="(max-width: 1023px) 100vw, 66vw"
+                sizes={SIZES}
                 className={styles.slideStill}
                 priority={i === 0}
               />
             ) : s.kind === "reveal" ? (
-              // The base render, then the lit variant fading in over it (pixel for pixel the same camera).
+              // K12's base render alone, contained and feathered (the lit pass stays on the landing).
               <div className={styles.reveal}>
-                <Still id={s.base} crop={s.crop} alt="" sizes="(max-width: 1023px) 100vw, 66vw" className={styles.slideStill} />
-                <Still
-                  id={s.full}
-                  crop={s.crop}
-                  alt={s.alt}
-                  sizes="(max-width: 1023px) 100vw, 66vw"
-                  className={`${styles.slideStill} ${styles.revealFull}`}
-                />
+                <Still id={s.base} crop={s.crop} alt={s.alt} sizes={SIZES} className={styles.slideStill} />
               </div>
             ) : s.kind === "card" ? (
               <div className={`${styles.slideGraphic} ${styles.slideCard}`} role="img" aria-label={s.alt}>

@@ -204,7 +204,16 @@
     order: 3;
     justify-self: end;
     padding-right: 0;
+    padding-left: 0;
     text-align: right;
+  }
+  /* Right-aligned and balanced, the rim's callout can wrap short of its box's left edge: its dash is inline, so it
+     always leads the first line instead of floating at the box's edge (stacked and pinned alike). */
+  .callouts .rim::before {
+    position: static;
+    display: inline-block;
+    vertical-align: 0.3em;
+    margin-right: 10px;
   }
 }
 

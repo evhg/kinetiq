@@ -67,6 +67,17 @@
     background: linear-gradient(transparent, var(--stage));
   }
 }
+/* Landscape windows from 700 px: the numeral is sized by the width, but the racket head under it is placed by the
+   height of the covered 16:9 frame, so on any window shorter than about 16:10 (laptop browsers: 1366 x 657, 1536 x
+   730, 1920 x 955) the line would run into the rim. The numeral is capped by the height too: the second term holds
+   windows up to 16:9 (the frame's height is the screen's), the third wider ones (the frame is the width's 9/16,
+   centred), so the line ends 16 px or more above the rim at its right end, where the head rises (measured: 1280 x
+   720 to 2560 x 1305). 1440 x 900 and 2560 x 1440 keep 14vw. */
+@media (min-width: 700px) and (aspect-ratio > 1/1) {
+  .number {
+    font-size: clamp(5.5rem, min(14vw, 39svh - 130px, 54.5svh - 8.75vw - 140px), 22.5rem);
+  }
+}
 /* Portrait windows from 700 px (iPads): the 16:9 scan, covered into a stage taller than wide, would show only its
    middle and cut the head and the cap off at the screen's sides, so the portrait frame (K05-phone, Precision.tsx)
    takes over. As on phones it starts under the numeral and its line, on the stage tone, and the racket (y 21% to

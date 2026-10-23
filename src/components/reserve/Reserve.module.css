@@ -25,7 +25,7 @@
    view holds the whole frame and its arrows, dots and counter (56 px), clear of the fixed Due Today bar (74 px with
    its rule, plus the safe area) and of its 40 px fade: 390 x 664, 393 x 659, 375 x 667 and 768 x 1024 alike. Every
    slide keeps its subject whole from 4:5 to square (Gallery.tsx positions and phoneFit; the cards fit the height). */
-@media (max-width: 1023px) {
+@media (max-width: 1023px), (max-aspect-ratio: 4/5) {
   .track {
     aspect-ratio: auto;
     height: min(125vw, max(100vw, calc(100svh - var(--chrome-h) - 56px - 74px - env(safe-area-inset-bottom) - 40px)));
@@ -98,7 +98,7 @@
 }
 /* First 500: the set's two cards. B rests behind A and only its top shows above A (header, serial and "Set No. 027 /
    500 B"; MeasurementCard's peek renders nothing below that), under one soft shadow and no mount plates. Phones and
-   tablets (below 1024 px) show the pair whole in the frame, its text at the 16 px floor: A at the single card's
+   tablets (stacked: below 1024 px, or portrait) show the pair whole in the frame, its text at the 16 px floor: A at the single card's
    width (18.75 times the card's font size, 300 px on a phone) in the dense rhythm, and above it only B's set number
    ("Set No. 027 / 500 B"), never a card cut off by the frame. */
 .cardPair {
@@ -126,7 +126,7 @@
   width: min(100%, calc(100cqh / 1.42));
   filter: drop-shadow(0 18px 34px rgb(0 0 0 / 0.55));
 }
-@media (max-width: 1023px) {
+@media (max-width: 1023px), (max-aspect-ratio: 4/5) {
   /* each card fits the frame whole, so nothing fades under its foot */
   .slideCard {
     place-items: center;
@@ -177,9 +177,9 @@
     --fs: var(--single-fs);
   }
 }
-/* K12: the base render, then the lit variant fading in over it once its slide shows (exits faster than it enters).
-   Its 4:5 portrait crop, contained and centred at every size, so the whole racket shows, from the crown to the
-   engraved cap. The picture is sized to fit (both renders alike) and its own edges feather into the slide, so no box
+/* K12: the base render alone (the lit pass is an illustration and stays on the landing, with its caption). Its 4:5
+   portrait crop, contained and centred at every size, so the whole racket shows, from the crown to the
+   engraved cap. The picture is sized to fit and its own edges feather into the slide, so no box
    edge shows: in the crop the racket, rim included, spans 18% to 82% across and 5.7% to 94.2% down, clear of the
    feathers (15% at the sides, 5% at the top and foot). */
 .reveal {
@@ -212,17 +212,9 @@
     linear-gradient(transparent, #000 5%, #000 95%, transparent);
   mask-composite: intersect;
 }
-.revealFull {
-  opacity: 0;
-  transition: opacity 200ms var(--ease-out);
-}
-.slide[data-active="true"] .revealFull {
-  opacity: 1;
-  transition: opacity 900ms var(--ease-out) 350ms;
-}
 /* Wide screens: the controls float over the slide's foot, so K12's frame ends 16 px above them (as the court's does)
    and the cap stays clear of the arrows and dots. */
-@media (min-width: 1024px) {
+@media (min-width: 1024px) and (aspect-ratio > 4/5) {
   .reveal {
     height: calc(100% - (32px + clamp(48px, 0.6vw + 40px, 56px) + 16px));
   }
@@ -307,7 +299,7 @@
   }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 1024px) and (aspect-ratio > 4/5) {
   .layout {
     display: grid;
     grid-template-columns: minmax(0, 1fr) clamp(500px, 34vw, 860px);
@@ -449,7 +441,7 @@
   mask-image: linear-gradient(#000, transparent);
   pointer-events: none;
 }
-@media (min-width: 1024px) {
+@media (min-width: 1024px) and (aspect-ratio > 4/5) {
   .options {
     padding: clamp(40px, 2.2vw + 8px, 64px) clamp(40px, 2.8vw, 72px) clamp(64px, 6vw, 120px);
     border-left: 1px solid var(--hairline);
@@ -461,7 +453,7 @@
 .topFade {
   display: none;
 }
-@media (min-width: 1024px) {
+@media (min-width: 1024px) and (aspect-ratio > 4/5) {
   .topFade {
     display: block;
     position: fixed;
@@ -481,7 +473,7 @@
 }
 /* Phones and tablets: the column ends on a soft graphite light (the G10 pool) under Due Today and Pay with
    Card, so the page's last screen keeps a lit floor (fill rule) as the sets' longer includes push it down. */
-@media (max-width: 1023px) {
+@media (max-width: 1023px), (max-aspect-ratio: 4/5) {
   .options {
     background:
       radial-gradient(ellipse 90% 30% at 50% 0%, var(--lift), transparent 75%),
@@ -1250,7 +1242,7 @@
   opacity: 0.55;
   cursor: not-allowed;
 }
-@media (min-width: 1024px) {
+@media (min-width: 1024px) and (aspect-ratio > 4/5) {
   /* Desktop: Due Today and Pay with Card stay in view at the foot of the column (Tesla shows both in the
      first screen). It bleeds to the column's edges and hides while the in-page Pay with Card shows. */
   .options {
