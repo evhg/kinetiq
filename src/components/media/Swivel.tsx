@@ -100,7 +100,8 @@ function loaded(img: HTMLImageElement) {
 async function decode(url: string): Promise<Frame> {
   if (bitmaps !== false && typeof createImageBitmap === "function") {
     try {
-      const res = await fetch(url, { credentials: "same-origin" });
+      // Low priority: the frames are an enhancement and never come before the page's own images.
+      const res = await fetch(url, { credentials: "same-origin", priority: "low" } as RequestInit);
       if (!res.ok) throw new Error(String(res.status));
       const frame = await createImageBitmap(await res.blob());
       bitmaps = true;
@@ -194,10 +195,16 @@ type Props = {
   portraitQuery: string;
   /** Where the swivel plays at all (omitted: everywhere); elsewhere the still shows alone and nothing loads. */
   media?: string;
+  /**
+   * Load only while the still is within this many screens of the viewport (and after the load triggers), so a swivel
+   * further down the page never takes a slow phone's bandwidth from the images around the visitor. Omitted: at once,
+   * whatever the scroll position (the hero's).
+   */
+  lead?: number;
   className?: string;
 };
 
-export function Swivel({ ref, sequence, portraitQuery, media, className }: Props) {
+export function Swivel({ ref, sequence, portraitQuery, media, lead, className }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { motionOn } = useMotion();
   const { feel } = useFeel();
@@ -320,15 +327,19 @@ export function Swivel({ ref, sequence, portraitQuery, media, className }: Props
       }
       seq = s;
       s.onChange.add(schedule);
-      if (started) pump(s, () => alive && seq === s);
+      if (started) pump(s, () => alive && seq === s && near);
       schedule();
     };
 
+    // `lead`: the load triggers below only arm the start; the still coming near fires it (and vice versa).
+    let armed = false;
+    let near = lead === undefined;
     const start = () => {
-      if (!alive || started) return;
+      armed = true;
+      if (!alive || started || !near) return;
       started = true;
       const s = seq;
-      if (s) pump(s, () => alive && seq === s);
+      if (s) pump(s, () => alive && seq === s && near);
     };
     pick();
     // After the load event (the hero's stills are in), when the main thread is idle: never ahead of the LCP. But never
@@ -345,6 +356,25 @@ export function Swivel({ ref, sequence, portraitQuery, media, className }: Props
     window.addEventListener("scroll", start, intent);
     window.addEventListener("touchstart", start, intent);
     const fallback = window.setTimeout(start, 1500);
+    const nearby =
+      lead === undefined
+        ? null
+        : new IntersectionObserver(
+            (entries) => {
+              // Loads only while the still is near: a visitor who has scrolled on past it pauses its frames (the
+              // ones in flight finish), so the images where they are now come first; coming back resumes them.
+              near = entries[entries.length - 1].isIntersecting;
+              if (!near) return;
+              if (!started) {
+                if (armed) start();
+              } else if (seq) {
+                const s = seq;
+                pump(s, () => alive && seq === s && near);
+              }
+            },
+            { rootMargin: `${Math.round(lead * 100)}% 0px` },
+          );
+    nearby?.observe(box);
 
     const resize = new ResizeObserver(() => {
       laidOut = false;
@@ -364,6 +394,7 @@ export function Swivel({ ref, sequence, portraitQuery, media, className }: Props
       window.removeEventListener("scroll", start);
       window.removeEventListener("touchstart", start);
       window.clearTimeout(fallback);
+      nearby?.disconnect();
       resize.disconnect();
       portrait.removeEventListener("change", pick);
       playing?.removeEventListener("change", pick);
@@ -373,7 +404,7 @@ export function Swivel({ ref, sequence, portraitQuery, media, className }: Props
       seq?.onChange.delete(schedule);
       show(false);
     };
-  }, [motionOn, feel, sequence, portraitQuery, media]);
+  }, [motionOn, feel, sequence, portraitQuery, media, lead]);
 
   return <canvas ref={canvasRef} className={className} aria-hidden="true" data-on="false" />;
 }

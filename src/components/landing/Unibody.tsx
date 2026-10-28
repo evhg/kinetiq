@@ -127,7 +127,7 @@ export function Unibody() {
           {/* The still and, over it, its swivel's canvas (frame 0 is this still), in one box the still fills. */}
           <div className={styles.still}>
             <Still id="K02" phoneCrop="portrait" alt="" sizes="100vw" className={styles.picture} />
-            <Swivel ref={swivel} sequence={SWIVEL} portraitQuery={PHONE} media={SWIVEL_MEDIA} className={styles.swivel} />
+            <Swivel ref={swivel} sequence={SWIVEL} portraitQuery={PHONE} media={SWIVEL_MEDIA} lead={1} className={styles.swivel} />
           </div>
           <span className={styles.edgeLight} />
         </div>

@@ -158,8 +158,11 @@
     row-gap: 0;
     padding-top: 0;
     padding-bottom: clamp(80px, 8vw, 200px);
+    /* a second, lower lift behind the words and the numbers (fill rule at 2560: the band under the macro read as flat
+       floor), ending well above the foot so the section still meets Feel on --stage */
     background:
       radial-gradient(ellipse 70% 40% at 50% 30%, rgb(50 50 55 / 0.9), rgb(36 36 40 / 0.55) 50%, transparent 82%),
+      radial-gradient(ellipse 85% 26% at 50% 68%, rgb(64 64 70 / 0.9), rgb(42 42 47 / 0.55) 55%, transparent 100%),
       var(--stage);
   }
   .section[data-media="still"] .media {
