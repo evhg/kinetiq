@@ -71,8 +71,8 @@
   /* keep the floor: any crop comes off the empty backdrop above the racket */
   object-position: 50% 100%;
 }
-/* The floor ends on the sweet-spot section's first colour (SweetSpot.module.css), painted over the scroll-away veil,
-   so the hand-off reads as one room at every scroll position (the veil would otherwise darken the floor's last row
+/* The floor ends on the Unibody chapter's first colour, rgb(19 20 22) (Unibody.module.css), painted over the scroll-away
+   veil, so the hand-off reads as one room at every scroll position (the veil would otherwise darken the floor's last row
    and leave a step). Under the words and Reserve Now. */
 .hero::after {
   content: "";
@@ -80,7 +80,7 @@
   inset: auto 0 0;
   z-index: -1;
   height: 12%;
-  background: linear-gradient(rgb(26 25 25 / 0), rgb(26 25 25 / 0.7) 55%, rgb(26 25 25));
+  background: linear-gradient(rgb(19 20 22 / 0), rgb(19 20 22 / 0.7) 55%, rgb(19 20 22));
   pointer-events: none;
 }
 /* The lit layer waits for the reveal when motion is on; otherwise it shows at once. */
@@ -144,14 +144,14 @@
     width: 100%;
     gap: 8px;
   }
-  /* Phones: the feel toggle above a full-width Reserve Now (side by side at 375 px the button would be narrower than
-     the toggle). The racket scales to 0.88 about its crown's height, so its foot clears the toggle; the scaled frame's
+  /* Phones: the feel toggle (two small swatches with their names, owner 2026-10-28) above a full-width Reserve Now,
+     under the racket like a caption. The racket scales to 0.88 about its crown's height, so its foot clears the toggle; the scaled frame's
      sides and top feather into the studio backdrop the hero paints. */
   .actions {
     width: 100%;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+    gap: 4px;
   }
   .actions > [role="radiogroup"] {
     order: -1;

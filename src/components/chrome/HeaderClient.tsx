@@ -15,9 +15,9 @@ export type FeelToggleCopy = { label: string; labels: Record<FeelId, string> };
  * "hero") nor an in-page Reserve Now (marked data-cta) is on screen, so two never show at once. The label comes in
  * as a prop from the server (Chrome.tsx), so this client module carries no site copy: the root not-found renders
  * the header too, and its tree ships with every page, the NDA gate included.
- * Beside it, from 700 px, the Command | Pace toggle (`feelToggle`, its words passed in the same way), shown and hidden
- * with it: below 700 px the wordmark, the toggle and Reserve Now do not fit one row at 375 px, and the hero's own
- * toggle stays (DESIGN.md "Feel toggle"). Reserve Now carries the chosen feel into checkout (?feel=).
+ * Beside it, the Command and Pace toggle (`feelToggle`, its words passed in the same way), shown and hidden with it: on
+ * phones its two swatches alone, from 700 px with their names (DESIGN.md "Feel toggle"). Reserve Now carries the
+ * chosen feel into checkout (?feel=).
  */
 export function HeaderClient({ ctaLabel, feelToggle }: { ctaLabel?: string; feelToggle?: FeelToggleCopy }) {
   const compactCta = Boolean(ctaLabel);

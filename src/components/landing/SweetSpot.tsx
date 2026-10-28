@@ -9,9 +9,12 @@ import { SWEET_CLAIM } from "@/lib/graphics-sweetspot";
 import { gsap, useGSAP } from "@/lib/gsap";
 import styles from "./SweetSpot.module.css";
 
-/** K12 takes the image's place once scripts/stills.mjs has exported both its passes; until then, G15. */
-const K12 = hasStill("K12-base") && hasStill("K12-full");
-const SIZES = "(min-width: 1000px) 100vw, (min-width: 700px) 1250px, 100vw";
+/**
+ * K14 (a raking-light macro of the face running out to the rim, in the K04 language the owner feels) takes the
+ * image's place once scripts/stills.mjs has exported it; until then G15, the drawing. The upright K12 racket is off the
+ * landing (owner, 2026-10-28: "I dont like the edge to edge hero"); /reserve keeps K12-base.
+ */
+const K14 = hasStill("K14");
 
 /** Already at or past a reveal's line when the page hydrates (a reload mid-page, a hash link): leave it be. */
 const past = (el: Element, pct: number) => el.getBoundingClientRect().top < (window.innerHeight * pct) / 100;
@@ -33,11 +36,12 @@ function rise(targets: Element[], trigger: Element, pct: number) {
 }
 
 /**
- * Sweet spot, the first idea after the hero: "Edge to edge." On wide screens the words take the left five
- * columns and the racket stands face-on on the right, where the hero's racket stood; as the section scrolls in,
- * the racket rises and the light spreads across its face to 4 mm from the edge, then the words arrive. Phones:
- * the headline, the image, then the words. Not pinned. The image is K12 (base, then the lit pass crossfading
- * over it) once exported, G15 until then. Reduced motion and the server render: the final state.
+ * Sweet spot, the payoff (owner, 2026-10-28: a climactic rise): after how it is made, from the unibody to the sealed
+ * core, "Edge to edge." says what all of it gives the player. With G15: on wide screens the words take the left five
+ * columns and the drawing stands on the right; as the section scrolls in, the light spreads across its face to 4 mm
+ * from the edge, then the words arrive. With K14: the macro full bleed across the top, settling as it scrolls in, the
+ * words and the numbers under it. Phones: the headline, the image, then the words. Not pinned. Reduced motion and the
+ * server render: the final state.
  */
 export function SweetSpot() {
   const root = useRef<HTMLElement>(null);
@@ -52,16 +56,11 @@ export function SweetSpot() {
       const blocks = q("[data-rise]");
       const mm = gsap.matchMedia();
       const image = (tl: gsap.core.Timeline, scrub: boolean) => {
-        // Wide screens: the racket rises only as the hero's fades out (Hero.tsx, gone at 32% of the hero scrolled), so
-        // the two cross in a short, low-light fade and are never both seen whole (0.12 here is about 0.1 of a screen).
-        const at = scrub ? 0.12 : 0;
-        if (K12) {
-          // the base carries the alt text: opacity only, so it stays in the accessibility tree
-          tl.fromTo(q(`.${styles.base}`), { opacity: 0, scale: 1.03 }, { opacity: 1, scale: 1, duration: scrub ? 0.25 : 0.8, ease: scrub ? "none" : "power2.out", immediateRender: true }, at)
-            // the lit pass: the sweet spot lights up over the dark racket
-            .fromTo(q(`.${styles.full}`), { autoAlpha: 0 }, { autoAlpha: 1, duration: scrub ? 0.45 : 1.2, ease: scrub ? "none" : "power2.inOut", immediateRender: true }, scrub ? at + 0.25 : 0.5);
+        if (K14) {
+          // the macro settles as it arrives (scale only: it carries the alt text, so it is never hidden)
+          tl.fromTo(q(`.${styles.still}`), { scale: 1.08 }, { scale: 1, duration: scrub ? 1 : 1.6, ease: scrub ? "none" : "power2.out", immediateRender: true }, 0);
         } else {
-          addSweetSpotReveal(tl, el, scrub ? "scrub" : "fade", at);
+          addSweetSpotReveal(tl, el, scrub ? "scrub" : "fade", 0);
         }
       };
       mm.add("(prefers-reduced-motion: no-preference) and (min-width: 1000px)", () => {
@@ -89,9 +88,10 @@ export function SweetSpot() {
   return (
     <section
       ref={root}
-      id="sweet-spot"
       className={styles.section}
-      data-media={K12 ? "still" : "graphic"}
+      id="sweet-spot"
+      tabIndex={-1}
+      data-media={K14 ? "still" : "graphic"}
       aria-labelledby="sweet-spot-eyebrow sweet-spot-title"
     >
       <div className={styles.head} data-rise="">
@@ -104,11 +104,9 @@ export function SweetSpot() {
       </div>
 
       <div className={styles.media}>
-        {K12 ? (
-          <div className={styles.still}>
-            {/* 700 to 999 px draw the wide master about 1250 px wide (cover in the 560 px 4:5 box, SweetSpot.module.css) */}
-            <Still id="K12-base" phoneCrop="portrait" alt={sweetSpot.imageAlt(SWEET_CLAIM)} className={styles.base} sizes={SIZES} phoneSizes="100vw" />
-            <Still id="K12-full" phoneCrop="portrait" alt="" className={styles.full} sizes={SIZES} phoneSizes="100vw" />
+        {K14 ? (
+          <div className={styles.frame}>
+            <Still id="K14" phoneCrop="portrait" alt={sweetSpot.imageAlt(SWEET_CLAIM)} className={styles.still} sizes="100vw" />
           </div>
         ) : (
           <SweetSpotField className={styles.graphic} />

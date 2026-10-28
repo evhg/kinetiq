@@ -67,7 +67,8 @@ export function Hero() {
       // The swivel (owner, 2026-10-23): the racket turns about its handle as the hero scrolls away (HeroSwivel draws the
       // frames; until they are decoded, or without a sequence, this only moves a number). Wide screens finish the turn by
       // 26% of the hero scrolled, while the racket is still in view (it fades out between 10% and 32%); phones and
-      // portrait tablets, where it stays in the middle of the screen, by 60%.
+      // portrait tablets by 30% (iPhone, 2026-10-28: at 60% the racket had already slid up under the header, so most of
+      // the turn happened off screen; at 30% of a 664 px hero the whole racket is still below the header).
       const turn = (end: string) => {
         const state = { p: 0 };
         gsap.to(state, {
@@ -78,16 +79,21 @@ export function Hero() {
         });
         return () => swivel.current?.progress(0);
       };
-      mm.add("(prefers-reduced-motion: no-preference) and (min-width: 1000px)", () => turn("top -26%"));
-      mm.add("(prefers-reduced-motion: no-preference) and (max-width: 999px)", () => turn("top -60%"));
-      // Wide screens: the sweet spot's racket rises beside where this one stands, so this one fades out first (between
-      // 10% and 32% of the hero scrolled) and the two only cross at low light (SweetSpot.tsx starts its racket late).
-      mm.add("(prefers-reduced-motion: no-preference) and (min-width: 1000px)", () => {
-        gsap.fromTo(
-          `.${styles.drift}`,
-          { opacity: 1 },
-          { opacity: 0, ease: "none", scrollTrigger: { trigger: root.current, start: "top -10%", end: "top -32%", scrub: 0.4 } },
-        );
+      // The layout decides, not the width alone: a portrait window from 1000 px (an iPad Pro) has the phone layout. One
+      // conditions object, never CSS range syntax here (older iOS Safari's matchMedia cannot parse it, so it never matched).
+      mm.add({ portrait: PORTRAIT, motion: "(prefers-reduced-motion: no-preference)" }, (ctx) => {
+        const { portrait, motion } = ctx.conditions as { portrait: boolean; motion: boolean };
+        if (!motion) return;
+        const reset = turn(portrait ? "top -30%" : "top -26%");
+        // Wide screens: the racket fades out between 10% and 32% of the hero scrolled, once it has turned, so the Unibody
+        // chapter's edge-on racket (K02) arrives on a dark stage and the two rackets never stand side by side.
+        if (!portrait)
+          gsap.fromTo(
+            `.${styles.drift}`,
+            { opacity: 1 },
+            { opacity: 0, ease: "none", scrollTrigger: { trigger: root.current, start: "top -10%", end: "top -32%", scrub: 0.4 } },
+          );
+        return reset;
       });
       return () => mm.revert();
     },
@@ -121,8 +127,9 @@ export function Hero() {
         </p>
       </div>
       <div className={styles.bottom}>
-        {/* Reserve Now and, beside it, the Command | Pace toggle (owner, 2026-10-23): one row from 700 px, the toggle
-            above the button on phones. The stills with a Pace version and the checkout follow it (DESIGN.md
+        {/* Reserve Now and, beside it, the feel toggle (owner, 2026-10-23; made minimal 2026-10-28: two face swatches
+            with their names): one row from 700 px, the toggle above the button on phones, under the racket like a
+            caption. The stills with a Pace version and the checkout follow it (DESIGN.md
             "Feel toggle"). */}
         <div className={styles.actions}>
           <ReserveLink href="/reserve" className={`btn btn-primary ${styles.cta}`}>

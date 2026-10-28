@@ -4,7 +4,7 @@ import { Reveal } from "./Reveal";
 import styles from "./Specifications.module.css";
 
 /**
- * Specifications, the recap at the end of "Prove it": the claim and its lead, six numbers (three by two, two by
+ * Specifications, the whole racket in numbers, just before the editions (since 2026-10-28, after Two feels): the claim and its lead, six numbers (three by two, two by
  * three on phones), then the engineering drawing that backs them, whole and in its own band: the full sheet with
  * its title block on wide screens, the dimensioned front view on narrow ones.
  */

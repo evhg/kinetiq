@@ -14,12 +14,13 @@ const { edge, section } = unibody;
  * callouts beside the parts they name; beat B the cut-through head between a tubular section and the KINETIQ shell,
  * where the chapter ends. The sealed core, once its last beat, is its own chapter after Holes (SealedCore.tsx; owner,
  * 2026-10-23), and beat C (three proofs) is retired: its points are told by beat A, the sweet-spot section and Feel.
+ * Since 2026-10-28 it opens the story, straight after the hero, and its Skip link lands on Space-grade carbon.
  */
 export function Unibody() {
   return (
     <PinnedChapter
       id="unibody"
-      nextId="feel"
+      nextId="space-grade"
       labelledBy="unibody-title"
       className={`pin-layered ${styles.chapter}`}
       length={1.6}

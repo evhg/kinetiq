@@ -1,9 +1,8 @@
-/* Sweet spot. Phones and tablets (below 1000 px): one column, the headline, the image, then the words. Wide: the
-   words in the left five columns, the racket on the right where the hero's stood (see below).
-   The floor picks up where the hero's studio leaves off (a warm graphite, never the void), with a lift behind
-   the racket, so the hand-off from the hero reads as one room (fill rule). Its top is the hero floor's last colour,
-   rgb(26 25 25), and its foot ends on Unibody's first, rgb(19 20 22) (the pinned chapter's floor; stacked, beat A
-   feathers in from it), so neither boundary is a step. Check with a pixel probe, not by eye. */
+/* Sweet spot, the payoff after the sealed core (owner, 2026-10-28). Phones and tablets (below 1000 px): one column, the
+   headline, the image, then the words. Wide: with G15, the words in the left five columns and the drawing on the
+   right; with K14, the macro full bleed across the top and the words under it (see below).
+   The floor is --stage at both ends, the sealed core's floor above and Feel's below, with a lift behind the image
+   (fill rule: never flat black), so neither boundary is a step. Check with a pixel probe, not by eye. */
 .section {
   position: relative;
   isolation: isolate;
@@ -13,7 +12,7 @@
   padding: clamp(72px, 14vw, 128px) var(--margin) clamp(80px, 16vw, 144px);
   background:
     radial-gradient(ellipse 90% 34% at 50% 34%, rgb(50 50 55 / 0.9), rgb(36 36 40 / 0.55) 50%, transparent 82%),
-    linear-gradient(180deg, rgb(26 25 25), rgb(19 19 21) 40%, var(--stage) 80%, rgb(19 20 22));
+    var(--stage);
 }
 .head {
   display: grid;
@@ -31,33 +30,23 @@
 .graphic {
   width: 100%;
 }
-/* K12: the base render, the lit pass over it (both 4:5 portrait crops on phones). Its edges feather into the
-   floor, so its darker backdrop never shows as a box; the racket spans x 18 to 84% and y 6 to 94% of the crop. */
-.still {
+/* K14: the macro, its 4:5 portrait crop on phones, feathered into the floor at its top and foot (and at its sides
+   where the frame is narrower than the screen), so its backdrop never shows as a box. */
+.frame {
   position: relative;
   aspect-ratio: 4 / 5;
   overflow: hidden;
-  -webkit-mask-image:
-    linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent),
-    linear-gradient(transparent, #000 4%, #000 96%, transparent);
-  -webkit-mask-composite: source-in;
-  mask-image:
-    linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent),
-    linear-gradient(transparent, #000 4%, #000 96%, transparent);
-  mask-composite: intersect;
+  -webkit-mask-image: linear-gradient(transparent, #000 10%, #000 88%, transparent);
+  mask-image: linear-gradient(transparent, #000 10%, #000 88%, transparent);
 }
-.base,
-.full {
+.still {
   position: absolute;
   inset: 0;
 }
-.base img,
-.full img {
+.still img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  /* 700 to 999 px use the wide master: this crops it to the portrait crop's window (x 0.435 to 0.885) */
-  object-position: 79% 50%;
 }
 .body {
   display: grid;
@@ -117,8 +106,8 @@
   text-wrap: balance;
 }
 
-/* Wide: the words in columns 1 to 5, centred in the screen; the racket on the right at the height of the screen.
-   G15 stands in columns 6 to 12; K12 is full bleed, its own left side kept clear for the words. */
+/* Wide: the words in columns 1 to 5, centred in the screen; G15 in columns 6 to 12 at the height of the screen. K14
+   instead runs full bleed across the top (below). */
 @media (min-width: 1000px) {
   .section {
     min-height: 100svh;
@@ -128,7 +117,7 @@
     padding: calc(var(--chrome-h) + clamp(16px, 3vh, 64px)) var(--margin) clamp(32px, 5vh, 96px);
     background:
       radial-gradient(ellipse 30% 48% at 66% 54%, rgb(54 53 58 / 0.95), rgb(38 38 42 / 0.6) 48%, transparent 80%),
-      linear-gradient(180deg, rgb(26 25 25), rgb(20 20 22) 30%, var(--stage) 70%, rgb(19 20 22));
+      var(--stage);
   }
   .head,
   .body,
@@ -160,54 +149,53 @@
   .graphic {
     width: min(100%, calc((100svh - var(--chrome-h)) * 0.9 * 446 / 494));
   }
-  /* K12 full bleed: grid-area auto makes the section's padding box the containing block (an absolutely placed grid
-     child with a grid area would fill only that area). Below the header, so the head never sits under it. */
-  .section[data-media="still"] .media {
-    position: absolute;
-    grid-area: auto;
-    inset: var(--chrome-h) 0 0;
-    z-index: -1;
-    margin: 0;
-  }
-  /* The whole 16:9 frame, never cropped by a wider screen: as tall as the space below the header, centred, and no
-     taller than keeps the rim (x 0.81 of the frame) inside the right margin on a tall screen. Screens narrower than
-     16:9 crop its sides only (x 0 to 0.45 is backdrop). The racket spans y 0.056 to 0.936 of the frame, so the
-     feathers stop short of it and blend the frame into the floor on every side (fill rule, the hero's hand-off). */
-  .section[data-media="still"] .still {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    height: min(100%, (50vw - var(--margin)) * 1.8);
-    aspect-ratio: 16 / 9;
-    translate: -50% -50%;
-    -webkit-mask-image:
-      linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent),
-      linear-gradient(transparent, #000 5%, #000 94%, transparent);
-    -webkit-mask-composite: source-in;
-    mask-image:
-      linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent),
-      linear-gradient(transparent, #000 5%, #000 94%, transparent);
-    mask-composite: intersect;
-  }
-  .section[data-media="still"] .base img,
-  .section[data-media="still"] .full img {
-    object-position: 50% 50%;
-  }
-}
-/* Below 1000 px K12's own backdrop is the lift (its pool of light behind the racket): a lift under it would only
-   show as a lighter rim around the frame. */
-@media (max-width: 999px) {
+  /* K14 full bleed across the top: the 16:9 frame at the screen's width, no taller than 72% of the screen (a wider
+     screen crops its top and foot), feathered into the floor at both ends; the words and the numbers under it, the
+     head and the lines in columns 1 to 6 and the numbers in columns 7 to 12, level with the lines. */
   .section[data-media="still"] {
-    background: linear-gradient(180deg, rgb(26 25 25), rgb(19 19 21) 40%, var(--stage) 80%, rgb(19 20 22));
+    min-height: 0;
+    grid-template-rows: auto auto auto;
+    row-gap: 0;
+    padding-top: 0;
+    padding-bottom: clamp(80px, 8vw, 200px);
+    background:
+      radial-gradient(ellipse 70% 40% at 50% 30%, rgb(50 50 55 / 0.9), rgb(36 36 40 / 0.55) 50%, transparent 82%),
+      var(--stage);
+  }
+  .section[data-media="still"] .media {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    margin: 0 calc(var(--margin) * -1) clamp(32px, 3vw, 80px);
+    display: block;
+  }
+  .section[data-media="still"] .frame {
+    aspect-ratio: auto;
+    height: min(56.25vw, 72svh);
+    -webkit-mask-image: linear-gradient(transparent, #000 14%, #000 82%, transparent);
+    mask-image: linear-gradient(transparent, #000 14%, #000 82%, transparent);
+  }
+  .section[data-media="still"] .head {
+    grid-column: 1 / span 6;
+    grid-row: 2;
+  }
+  .section[data-media="still"] .body {
+    grid-column: 1 / span 6;
+    grid-row: 3;
+  }
+  .section[data-media="still"] .lockup {
+    grid-column: 7 / -1;
+    grid-row: 2 / span 2;
+    align-self: end;
+    margin-top: 0;
   }
 }
-
 @media (max-width: 699px) {
-  .base img,
-  .full img {
-    object-position: 50% 50%;
-  }
   .title {
     font-size: 2.75rem;
+  }
+  /* K14 runs the full width of the phone */
+  .section[data-media="still"] .media {
+    width: 100vw;
+    margin-inline: calc(var(--margin) * -1);
   }
 }

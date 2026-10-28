@@ -8,7 +8,8 @@ import { gsap } from "@/lib/gsap";
 import styles from "./SealedCore.module.css";
 
 /**
- * The sealed core, its own pinned chapter right after Holes (owner, 2026-10-23: the core never touching the air
+ * The sealed core, its own pinned chapter right after Holes, the last of how it is made (its Skip link lands on the
+ * sweet spot) (owner, 2026-10-23: the core never touching the air
  * follows from the 42 moulded, lined holes). Pinned, the words take the left columns and the K03 cut-through stands on
  * the right, where Unibody's beat B left it; the scrub settles the frame, lists the three callouts and draws the
  * shell's amber line around the core once, then holds. The heading and the image are on screen from the first frame,
@@ -19,7 +20,7 @@ export function SealedCore() {
   return (
     <PinnedChapter
       id="sealed-core"
-      nextId="durability"
+      nextId="sweet-spot"
       labelledBy="sealed-core-title"
       className={`pin-layered ${styles.chapter}`}
       length={1}
@@ -38,7 +39,7 @@ export function SealedCore() {
             { strokeDashoffset: 0, duration: 0.3, immediateRender: true },
             0.24,
           )
-          // It holds while the stage is still pinned, then scrolls away into Durability.
+          // It holds while the stage is still pinned, then scrolls away into the sweet spot, the payoff.
           .to({}, { duration: 0.36 });
       }}
     >

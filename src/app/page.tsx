@@ -25,26 +25,26 @@ export default function Home() {
   return (
     <>
       <SiteHeader compactCta />
-      {/* Three movements, one idea per screen (DESIGN.md "Page"): meet it, prove it, choose it. */}
+      {/* A climactic rise (owner, 2026-10-28: "Re-plan the storytelling ... to create a climactic rise"): meet it, see how
+          it is made, reach the peak, feel the payoff, choose it (DESIGN.md "Page"). */}
       <main id="main">
-        {/* Meet it: what the racket does for you, then why. */}
         <Hero />
-        <SweetSpot />
+        {/* How it is made, rising: what it is (the first unibody), what it is made of, the one mould, 15 microns, then the
+            peak, the moulded holes, and what they keep closed, the sealed core. */}
         <Unibody />
-        <Feel />
-        {/* Prove it, as one story (owner, 2026-10-23): the space-grade carbon it is made of, made whole in one mould,
-            exact to 15 microns, every hole moulded and lined, so the core never touches the air, so it lasts; then the
-            whole drawing as the recap. */}
         <SpaceGrade />
         <BornWhole />
         <Precision />
         <Holes />
         <SealedCore />
+        {/* The payoff, what all of that gives you: the sweet spot edge to edge, the feel, the five years. */}
+        <SweetSpot />
+        <Feel />
         <Durability />
-        <Specifications />
-        {/* Choose it: sameness, feel, edition. */}
+        {/* Choose it: sameness, feel, the whole drawing, edition. */}
         <Identical />
         <ChooseFeel />
+        <Specifications />
         <Editions />
         <Finale />
       </main>

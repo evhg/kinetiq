@@ -54,8 +54,8 @@
   align-items: center;
   gap: clamp(10px, 0.4vw + 8px, 16px);
 }
-/* Shown and hidden with the compact Reserve Now (HeaderClient), the same 200 ms ease-out. Below 700 px the three do not
-   fit one row at 375 px, so the hero's toggle is the phone's (DESIGN.md "Feel toggle"). */
+/* Shown and hidden with the compact Reserve Now (HeaderClient), the same 200 ms ease-out. On phones too (owner,
+   2026-10-28: "There is no toggle while scrolling down on iphone?"): there it is the two swatches alone, 88 px. */
 .end .feel {
   opacity: 0;
   transform: translateY(-4px);
@@ -69,9 +69,14 @@
   transform: none;
   pointer-events: auto;
 }
+/* Phones: the wordmark (its trailing tracking trimmed, the drawn mark unchanged), the two swatches (88 px) and the
+   compact Reserve Now on one row at 375 px: 128 + 88 + 2 + 117 in 335 px. */
 @media (max-width: 699px) {
-  .end .feel {
-    display: none;
+  .end {
+    gap: 2px;
+  }
+  .wordmark {
+    margin-right: -0.32em;
   }
 }
 /* Phones keep the compact Reserve Now too (the next one is many screens down), sized to sit by the wordmark. */
@@ -80,6 +85,13 @@
     min-height: 44px;
     padding: 0 14px;
     font-size: 1rem;
+    white-space: nowrap;
+  }
+}
+@media (max-width: 699px) {
+  .compact {
+    padding: 0 11px;
+    font-size: 0.9375rem;
   }
 }
 .footer {
