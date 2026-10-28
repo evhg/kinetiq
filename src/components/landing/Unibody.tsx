@@ -74,12 +74,12 @@ export function Unibody() {
         gsap.set(`.${styles.side}`, { autoAlpha: 0, y: 16 });
         // Beat A holds whole for about 0.16 of the timeline once the callouts are in (about 230 px of scroll on a 900 px
         // screen): the light line runs from the handle to the rim at once, and the callouts follow it in a quick
-        // stagger. Then the lead, the callouts and the light line step aside (they name the edge-on parts, and the
-        // turned face would pass behind them) and the racket turns about its handle until its face shows (K02's
-        // swivel, 0.42 to 0.60), under the headline. Without a sequence the beat holds whole, as before.
+        // stagger. Then the words, the callouts and the light line step aside (they name the edge-on parts, and the
+        // turned face rises behind the headline on short windows such as 1536 x 730) and the racket turns about its
+        // handle alone until its face shows (K02's swivel, 0.42 to 0.60). Without a sequence the beat holds whole.
         const turn = { p: 0 };
         if (TURNS) {
-          tl.to([`.${styles.ledeA}`, `.${styles.callouts}`, `.${styles.edgeLight}`], { autoAlpha: 0, duration: 0.05 }, 0.4).fromTo(
+          tl.to([`.${styles.beatA} .${styles.copy}`, `.${styles.callouts}`, `.${styles.edgeLight}`], { autoAlpha: 0, duration: 0.05 }, 0.4).fromTo(
             turn,
             { p: 0 },
             { p: 1, duration: 0.18, immediateRender: true, onUpdate: () => swivel.current?.progress(turn.p) },
