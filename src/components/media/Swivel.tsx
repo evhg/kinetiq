@@ -6,20 +6,23 @@ import generated from "@/content/sequences.generated.json";
 import { useFeel } from "@/lib/feel-store";
 
 /**
- * The hero's swivel (owner, 2026-10-23): as the hero scrolls away, the lit racket turns about its handle (yaw 0° to
- * about 35°), drawn from a frame sequence (scripts/sequence.mjs) onto a canvas over the lit still. Frame 0 is the lit
- * still's own composition, so the canvas only shows from frame 1 and the handover is invisible. Each frame holds only
- * the rectangle that ever changes (the racket, its shadow and its light on the floor); the canvas covers exactly that
- * rectangle of the still, placed with the still's own object-fit and object-position, and the still shows around it.
+ * A scroll-scrubbed swivel (owner, 2026-10-23; generalised 2026-10-28 for Unibody's K02): a racket turning, drawn from a
+ * frame sequence (scripts/sequence.mjs) onto a canvas over the still it starts from. The sequence for each feel and
+ * layout is `<sequence>-<feel>-desktop|phone` (sequences.generated.json). Frame 0 is the still's own composition, so
+ * the canvas only shows from frame 1 and the handover is invisible. Each frame holds only the rectangle that ever
+ * changes; the canvas covers exactly that rectangle of the still, placed with the still's own object-fit (cover) and
+ * object-position inside the canvas's parent (the box the still fills), and the still shows around it. The owner
+ * drives it through the ref: progress(0..1).
  * Frames load in the background, coarse first (every 32nd, then every 16th ... every one), from the page's load event,
- * the visitor's first scroll or touch, or 1.5 s after the hero mounts, whichever comes first (iPhone, 2026-10-28: a
- * visitor who scrolls at once must not outrun a late load event, which in-app browsers can hold back for seconds); the
- * swivel starts once no gap between decoded frames is wider than 4, and draws the nearest decoded frame meanwhile.
+ * the visitor's first scroll or touch, or 1.5 s after mount, whichever comes first (iPhone, 2026-10-28: a visitor who
+ * scrolls at once must not outrun a late load event, which in-app browsers can hold back for seconds); the swivel
+ * starts once no gap between decoded frames is wider than 4, and draws the nearest decoded frame meanwhile.
  * Safari: no requestIdleCallback (a timeout stands in), and each frame decodes through createImageBitmap where it
  * works, else through an <img> (older WebKit cannot make a bitmap from a WebP blob); a frame that fails is retried
  * once, and the nearest decoded frame stands in for it. Missing sequence (the feel's or the layout's not exported
- * yet), Save-Data, a quarter of the frames failing, or reduced motion (on an iPhone, Settings > Accessibility >
- * Motion > Reduce Motion): the canvas stays hidden and the hero is the still, exactly as before.
+ * yet), a layout the swivel does not play in (`media`), Save-Data, a quarter of the frames failing, or reduced motion
+ * (on an iPhone, Settings > Accessibility > Motion > Reduce Motion): the canvas stays hidden and the still shows,
+ * exactly as before.
  */
 
 type Entry = {
@@ -97,7 +100,8 @@ function loaded(img: HTMLImageElement) {
 async function decode(url: string): Promise<Frame> {
   if (bitmaps !== false && typeof createImageBitmap === "function") {
     try {
-      const res = await fetch(url, { credentials: "same-origin" });
+      // Low priority: the frames are an enhancement and never come before the page's own images.
+      const res = await fetch(url, { credentials: "same-origin", priority: "low" } as RequestInit);
       if (!res.ok) throw new Error(String(res.status));
       const frame = await createImageBitmap(await res.blob());
       bitmaps = true;
@@ -185,12 +189,22 @@ function objectPosition(img: HTMLImageElement | null) {
 
 type Props = {
   ref?: Ref<SwivelHandle>;
-  /** The hero's portrait layout (phones and portrait tablets), the same query as the still's phoneMedia. */
+  /** The sequences' common name: `<sequence>-<feel>-desktop|phone`, e.g. "K01-swivel". */
+  sequence: string;
+  /** Where the phone sequence (the still's phone master) applies: the same query as the still's phoneMedia. */
   portraitQuery: string;
+  /** Where the swivel plays at all (omitted: everywhere); elsewhere the still shows alone and nothing loads. */
+  media?: string;
+  /**
+   * Load only while the still is within this many screens of the viewport (and after the load triggers), so a swivel
+   * further down the page never takes a slow phone's bandwidth from the images around the visitor. Omitted: at once,
+   * whatever the scroll position (the hero's).
+   */
+  lead?: number;
   className?: string;
 };
 
-export function HeroSwivel({ ref, portraitQuery, className }: Props) {
+export function Swivel({ ref, sequence, portraitQuery, media, lead, className }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { motionOn } = useMotion();
   const { feel } = useFeel();
@@ -215,6 +229,7 @@ export function HeroSwivel({ ref, portraitQuery, className }: Props) {
     if (conn?.saveData) return;
     const box = canvas.parentElement!;
     const portrait = window.matchMedia(portraitQuery);
+    const playing = media ? window.matchMedia(media) : null;
     const ctx = canvas.getContext("2d", { alpha: false });
     if (!ctx) return;
 
@@ -287,8 +302,9 @@ export function HeroSwivel({ ref, portraitQuery, className }: Props) {
     redraw.current = schedule;
 
     const pick = () => {
-      const name = `K01-swivel-${feel}-${portrait.matches ? "phone" : "desktop"}`;
-      const entry = manifest[name];
+      // Outside `media` no sequence plays (and none loads): the still shows alone.
+      const name = playing && !playing.matches ? "" : `${sequence}-${feel}-${portrait.matches ? "phone" : "desktop"}`;
+      const entry = name ? manifest[name] : undefined;
       if (seq && seq.name === name) return;
       // The other layout (a turned tablet): hide, then load this one; the other's frames go once this one exists.
       seq?.onChange.delete(schedule);
@@ -297,7 +313,8 @@ export function HeroSwivel({ ref, portraitQuery, className }: Props) {
       laidOut = false;
       show(false);
       if (!entry) return;
-      for (const s of cache.values()) if (s.name !== name) release(s);
+      // Only this swivel's other sequences (another feel or layout): another swivel on the page keeps its own.
+      for (const s of cache.values()) if (s.name !== name && s.name.startsWith(`${sequence}-`)) release(s);
       // The narrowest export that covers the drawn frame (within 15%) at the screen's density, capped at 2.
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const drawnW = Math.max(box.clientWidth / entry.w, box.clientHeight / entry.h) * entry.w * dpr;
@@ -310,15 +327,19 @@ export function HeroSwivel({ ref, portraitQuery, className }: Props) {
       }
       seq = s;
       s.onChange.add(schedule);
-      if (started) pump(s, () => alive && seq === s);
+      if (started) pump(s, () => alive && seq === s && near);
       schedule();
     };
 
+    // `lead`: the load triggers below only arm the start; the still coming near fires it (and vice versa).
+    let armed = false;
+    let near = lead === undefined;
     const start = () => {
-      if (!alive || started) return;
+      armed = true;
+      if (!alive || started || !near) return;
       started = true;
       const s = seq;
-      if (s) pump(s, () => alive && seq === s);
+      if (s) pump(s, () => alive && seq === s && near);
     };
     pick();
     // After the load event (the hero's stills are in), when the main thread is idle: never ahead of the LCP. But never
@@ -335,6 +356,25 @@ export function HeroSwivel({ ref, portraitQuery, className }: Props) {
     window.addEventListener("scroll", start, intent);
     window.addEventListener("touchstart", start, intent);
     const fallback = window.setTimeout(start, 1500);
+    const nearby =
+      lead === undefined
+        ? null
+        : new IntersectionObserver(
+            (entries) => {
+              // Loads only while the still is near: a visitor who has scrolled on past it pauses its frames (the
+              // ones in flight finish), so the images where they are now come first; coming back resumes them.
+              near = entries[entries.length - 1].isIntersecting;
+              if (!near) return;
+              if (!started) {
+                if (armed) start();
+              } else if (seq) {
+                const s = seq;
+                pump(s, () => alive && seq === s && near);
+              }
+            },
+            { rootMargin: `${Math.round(lead * 100)}% 0px` },
+          );
+    nearby?.observe(box);
 
     const resize = new ResizeObserver(() => {
       laidOut = false;
@@ -343,6 +383,7 @@ export function HeroSwivel({ ref, portraitQuery, className }: Props) {
     });
     resize.observe(box);
     portrait.addEventListener("change", pick);
+    playing?.addEventListener("change", pick);
 
     return () => {
       alive = false;
@@ -353,15 +394,22 @@ export function HeroSwivel({ ref, portraitQuery, className }: Props) {
       window.removeEventListener("scroll", start);
       window.removeEventListener("touchstart", start);
       window.clearTimeout(fallback);
+      nearby?.disconnect();
       resize.disconnect();
       portrait.removeEventListener("change", pick);
+      playing?.removeEventListener("change", pick);
       redraw.current = () => {};
       // The frames stay decoded for Back (a half-loaded sequence resumes where it stopped); a change of feel releases
       // them once the other feel's sequence is picked.
       seq?.onChange.delete(schedule);
       show(false);
     };
-  }, [motionOn, feel, portraitQuery]);
+  }, [motionOn, feel, sequence, portraitQuery, media, lead]);
 
   return <canvas ref={canvasRef} className={className} aria-hidden="true" data-on="false" />;
+}
+
+/** Whether any sequence of this swivel is exported (`<sequence>-<feel>-<layout>`). */
+export function hasSequence(sequence: string) {
+  return Object.keys(manifest).some((k) => k.startsWith(`${sequence}-`));
 }

@@ -51,7 +51,7 @@
   position: absolute;
   inset: 0;
 }
-/* The swivel's canvas (HeroSwivel.tsx places and sizes it over the part of the still that turns). It shows from the
+/* The swivel's canvas (media/Swivel.tsx places and sizes it over the part of the still that turns). It shows from the
    swivel's second frame, once its frames are decoded: exit 150 ms, entry 240 ms, opacity only. */
 .swivel {
   position: absolute;
