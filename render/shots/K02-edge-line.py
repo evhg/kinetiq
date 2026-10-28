@@ -116,7 +116,7 @@ SWIVEL_AXIS = "X"     # "X": about the handle (the racket's long axis); "Z": abo
 # (0 at frame 0), so frame 0 stays the K02 still exactly. SW_C / SW_P: the ring's strength for Command / Pace.
 SW_AZ, SW_EL = 70.0, (9.0, 82.0)
 SW_BAND, SW_BAND_W, SW_FLOOR = 0.42, 0.07, 0.15
-SW_C, SW_P = 1.2, 3.0
+SW_C, SW_P = 1.2, 2.2
 SW_RAMP = 8.0
 GROUPS = ["lg_top", "lg_under", "lg_face", "lg_fill", "lg_grip", "lg_cap", "lg_etch", "lg_wall", "lg_wkey", "lg_wtop",
           "lg_whot", "lg_band"]
