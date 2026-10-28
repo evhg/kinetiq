@@ -51,6 +51,9 @@ type Seq = {
   failed: boolean;
   ready: boolean;
   onChange: Set<() => void>;
+  /** Cancels the downloads in flight when the visitor scrolls past (`lead`); their frames go back in the queue. */
+  ctrl: AbortController;
+  requeue: number[];
 };
 
 export type SwivelHandle = { progress: (p: number) => void };
@@ -97,16 +100,17 @@ function loaded(img: HTMLImageElement) {
   });
 }
 
-async function decode(url: string): Promise<Frame> {
+async function decode(url: string, signal: AbortSignal): Promise<Frame> {
   if (bitmaps !== false && typeof createImageBitmap === "function") {
     try {
       // Low priority: the frames are an enhancement and never come before the page's own images.
-      const res = await fetch(url, { credentials: "same-origin", priority: "low" } as RequestInit);
+      const res = await fetch(url, { credentials: "same-origin", priority: "low", signal } as RequestInit);
       if (!res.ok) throw new Error(String(res.status));
       const frame = await createImageBitmap(await res.blob());
       bitmaps = true;
       return frame;
     } catch (e) {
+      if (signal.aborted) throw e;
       // A bitmap that has worked before means the network failed: let the caller retry. Otherwise this browser cannot
       // make one from a WebP blob: every frame goes through an <img> from now on.
       if (bitmaps) throw e;
@@ -130,13 +134,18 @@ function maxGap(s: Seq) {
 
 /** Starts (or resumes) loading while the sequence is wanted; `active` says whether it still is. */
 function pump(s: Seq, active: () => boolean) {
-  while (!s.failed && active() && s.inFlight < CONCURRENCY && s.next < s.order.length) {
-    const i = s.order[s.next++];
+  while (!s.failed && active() && s.inFlight < CONCURRENCY && (s.requeue.length || s.next < s.order.length)) {
+    const i = s.requeue.length ? s.requeue.shift()! : s.order[s.next++];
     s.inFlight++;
     const url = frameUrl(s, i);
-    // One retry, a moment later, for a frame lost to the network (a phone between cells).
-    decode(url)
-      .catch(() => new Promise<Frame>((resolve, reject) => window.setTimeout(() => decode(url).then(resolve, reject), 800)))
+    const { signal } = s.ctrl;
+    // One retry, a moment later, for a frame lost to the network (a phone between cells); none for a cancelled one.
+    decode(url, signal)
+      .catch((e) =>
+        signal.aborted
+          ? Promise.reject(e)
+          : new Promise<Frame>((resolve, reject) => window.setTimeout(() => decode(url, signal).then(resolve, reject), 800)),
+      )
       .then(
       (frame) => {
         s.inFlight--;
@@ -153,6 +162,11 @@ function pump(s: Seq, active: () => boolean) {
       () => {
         s.inFlight--;
         if (s.failed) return;
+        // Cancelled because the visitor scrolled past: not lost, it loads again when the still comes back near.
+        if (signal.aborted) {
+          s.requeue.push(i);
+          return;
+        }
         // A lost frame: its neighbours stand in (maxGap skips it). Too many lost and the still stays.
         s.lost.add(i);
         if (s.lost.size > s.frames.length / 4 || i === 0 || i === s.frames.length - 1) s.failed = true;
@@ -322,7 +336,7 @@ export function Swivel({ ref, sequence, portraitQuery, media, lead, className }:
       const key = `${name}@${width}`;
       let s = cache.get(key);
       if (!s) {
-        s = { key, name, entry, width, frames: Array(entry.frames).fill(null), order: loadOrder(entry.frames), next: 0, inFlight: 0, lost: new Set(), failed: false, ready: false, onChange: new Set() };
+        s = { key, name, entry, width, frames: Array(entry.frames).fill(null), order: loadOrder(entry.frames), next: 0, inFlight: 0, lost: new Set(), failed: false, ready: false, onChange: new Set(), ctrl: new AbortController(), requeue: [] };
         cache.set(key, s);
       }
       seq = s;
@@ -364,7 +378,14 @@ export function Swivel({ ref, sequence, portraitQuery, media, lead, className }:
               // Loads only while the still is near: a visitor who has scrolled on past it pauses its frames (the
               // ones in flight finish), so the images where they are now come first; coming back resumes them.
               near = entries[entries.length - 1].isIntersecting;
-              if (!near) return;
+              if (!near) {
+                // Cancel the frames in flight too, so the images the visitor is scrolling towards get the bandwidth.
+                if (seq && seq.inFlight) {
+                  seq.ctrl.abort();
+                  seq.ctrl = new AbortController();
+                }
+                return;
+              }
               if (!started) {
                 if (armed) start();
               } else if (seq) {
