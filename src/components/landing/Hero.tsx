@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import { HeroSwivel, type SwivelHandle } from "./HeroSwivel";
 import { FeelToggle } from "@/components/chrome/FeelToggle";
 import { ReserveLink } from "@/components/chrome/ReserveLink";
 import { Still } from "@/components/media/Still";
@@ -20,13 +21,14 @@ const PORTRAIT = "(max-width: 699px), (max-width: 999px) and (max-aspect-ratio: 
 const PORTRAIT_SIZES = "(min-width: 700px) 140vw, 100vw";
 
 /**
- * Hero: K01 rises out of the dark (base, then the beam), one CTA. Wide screens set the words, Reserve Now
+ * Hero: K01 rises out of the dark (base, then the beam) and turns as the page scrolls (HeroSwivel), one CTA. Wide screens set the words, Reserve Now
  * and the price line in the left seven columns beside the racket, which stands large on the right; phones and
  * portrait tablets keep the words above the racket and Reserve Now on the floor below it.
  */
 export function Hero() {
   const root = useRef<HTMLElement>(null);
   const { motionOn } = useMotion();
+  const swivel = useRef<SwivelHandle>(null);
 
   useGSAP(
     (_, contextSafe) => {
@@ -62,6 +64,22 @@ export function Hero() {
           live = false;
         };
       });
+      // The swivel (owner, 2026-10-23): the racket turns about its handle as the hero scrolls away (HeroSwivel draws the
+      // frames; until they are decoded, or without a sequence, this only moves a number). Wide screens finish the turn by
+      // 26% of the hero scrolled, while the racket is still in view (it fades out between 10% and 32%); phones and
+      // portrait tablets, where it stays in the middle of the screen, by 60%.
+      const turn = (end: string) => {
+        const state = { p: 0 };
+        gsap.to(state, {
+          p: 1,
+          ease: "none",
+          scrollTrigger: { trigger: root.current, start: "top top", end, scrub: 0.4 },
+          onUpdate: () => swivel.current?.progress(state.p),
+        });
+        return () => swivel.current?.progress(0);
+      };
+      mm.add("(prefers-reduced-motion: no-preference) and (min-width: 1000px)", () => turn("top -26%"));
+      mm.add("(prefers-reduced-motion: no-preference) and (max-width: 999px)", () => turn("top -60%"));
       // Wide screens: the sweet spot's racket rises beside where this one stands, so this one fades out first (between
       // 10% and 32% of the hero scrolled) and the two only cross at low light (SweetSpot.tsx starts its racket late).
       mm.add("(prefers-reduced-motion: no-preference) and (min-width: 1000px)", () => {
@@ -83,7 +101,12 @@ export function Hero() {
           {/* Wide: the close beam camera (the racket spans 27-80% of the frame). Phones and portrait tablets: their own
               9:16 master (PORTRAIT, the same condition as Hero.module.css's portrait layouts). */}
           <Still id="K01-base" phoneId="K01-hero-base-phone" phoneCrop="portrait" phoneMedia={PORTRAIT} phoneSizes={PORTRAIT_SIZES} alt="" priority className={styles.base} />
-          <Still id="K01-full" phoneId="K01-hero-full-phone" phoneCrop="portrait" phoneMedia={PORTRAIT} phoneSizes={PORTRAIT_SIZES} alt="" loading="eager" fetchPriority="low" className={styles.full} />
+          {/* The lit layer: the K01-full still and, over it, the swivel's canvas (frame 0 is this still), faded in
+              together by the beam. */}
+          <div className={styles.full}>
+            <Still id="K01-full" phoneId="K01-hero-full-phone" phoneCrop="portrait" phoneMedia={PORTRAIT} phoneSizes={PORTRAIT_SIZES} alt="" loading="eager" fetchPriority="low" className={styles.layer} />
+            <HeroSwivel ref={swivel} portraitQuery={PORTRAIT} className={styles.swivel} />
+          </div>
         </div>
       </div>
       <div className={styles.veil} aria-hidden="true" />

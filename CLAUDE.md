@@ -19,6 +19,7 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
   `--only=phone|phone-short|tablet|laptop|desktop|wide` (or a list), `--mode=motion|reduced`, `--verbose`,
   `--path=/reserve` (any page), `--gate` (the NDA gate, no cookie). Output in `.checks/<label>/`.
 - `node scripts/stills.mjs <masters dir> [id ...]`: export Blender masters to `public/stills/` (AVIF + WebP).
+- `node scripts/sequence.mjs <seq dir> [name ...]`: hero swivel frames (`f000.png`…) to `public/stills/seq/`.
 - Vercel runs `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm ci` (no browsers); locally `npx playwright install chromium`.
 
 ## Folders
