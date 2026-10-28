@@ -1,62 +1,28 @@
-/* Command | Pace (FeelToggle.tsx). Two equal segments (an inline grid of two 1fr columns, each as wide as the wider
-   label), a thumb that slides between them, and the state read from html[data-feel] so every toggle agrees from the
-   first paint. Quiet beside Reserve Now: a hairline pill on a dark glass, the thumb a lighter graphite, the chosen
-   label --text and the other --muted (7:1 on the void); never a second white button. */
+/* Command and Pace (FeelToggle.tsx; owner, 2026-10-28: more minimal). Two face swatches, white 3K and black 12K, each
+   with its name; the chosen swatch is ringed in --text and its name --text, the other's --muted (7:1 on the void). No
+   pill, thumb or fill: it sits quietly by Reserve Now and never reads as a second button. Every option is at least
+   44 px square to the touch through its padding. The state is read from html[data-feel], so every toggle on the page
+   agrees from the first paint. */
 .toggle {
-  --pad: 4px;
-  position: relative;
-  display: inline-grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 1fr;
+  display: inline-flex;
   align-items: stretch;
+  justify-content: center;
   flex: none;
-  padding: var(--pad);
-  border: 1px solid var(--edge);
-  border-radius: 999px;
-  background: rgb(6 6 7 / 0.45);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  font-family: var(--font-display);
-  font-variation-settings: "wdth" 110;
-  font-weight: 560;
+  gap: 2px;
+  font-family: var(--font-data);
+  font-weight: 400;
+  letter-spacing: 0.04em;
   line-height: 1;
-  isolation: isolate;
-}
-.toggle[data-size="hero"] {
-  min-height: clamp(56px, 0.7vw + 54px, 72px);
-  font-size: clamp(1rem, 0.25vw + 0.9rem, 1.25rem);
-}
-.toggle[data-size="compact"] {
-  min-height: clamp(44px, 0.4vw + 40px, 48px);
-  font-size: 1rem;
-}
-.thumb {
-  position: absolute;
-  z-index: -1;
-  top: var(--pad);
-  bottom: var(--pad);
-  left: var(--pad);
-  width: calc(50% - var(--pad));
-  border-radius: 999px;
-  background: var(--graphite-2);
-  box-shadow:
-    inset 0 0 0 1px rgb(245 245 243 / 0.28),
-    0 1px 10px rgb(0 0 0 / 0.35);
-  transition: transform 220ms var(--ease-out);
-}
-:global(html[data-feel="pace"]) .thumb {
-  transform: translateX(100%);
-}
-.toggle[data-instant] .thumb {
-  transition: none;
 }
 .option {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 9px;
-  padding: 0 clamp(14px, 0.6vw + 10px, 26px);
+  gap: 10px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 10px;
   border-radius: 999px;
   color: var(--muted);
   cursor: pointer;
@@ -66,6 +32,13 @@
     color 180ms var(--ease-out),
     transform 160ms var(--ease-out);
 }
+.toggle[data-size="hero"] {
+  font-size: clamp(0.9375rem, 0.15vw + 0.875rem, 1.125rem);
+  min-height: clamp(44px, 0.7vw + 42px, 72px);
+}
+.toggle[data-size="compact"] {
+  font-size: 0.9375rem;
+}
 .option:active {
   transform: scale(0.97);
 }
@@ -73,7 +46,7 @@
 :global(html[data-feel="pace"]) .option[data-option="pace"] {
   color: var(--text);
 }
-/* The radio itself is invisible but covers its label, so a click, a tap and the screen reader all reach it. */
+/* The radio itself is invisible but covers its option, so a click, a tap and the screen reader all reach it. */
 .input {
   position: absolute;
   inset: 0;
@@ -83,23 +56,39 @@
 }
 .option:has(.input:focus-visible) {
   outline: 2px solid var(--text);
-  outline-offset: 2px;
+  outline-offset: 0;
 }
-/* The face each feel shows: white 3K twill, black 12K (a dot, so the word is never the only cue). */
+/* The face each feel shows: white 3K twill, black 12K. The ring around the chosen one is its own layer, so it can fade
+   and settle (opacity and scale only); it is 4 px clear of the swatch, so it reads on any floor. */
 .swatch {
-  width: 10px;
-  height: 10px;
+  position: relative;
+  width: 14px;
+  height: 14px;
   flex: none;
   border-radius: 50%;
-  background: var(--paper);
-  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.2);
+  background: linear-gradient(135deg, #fbfaf7, #d9d8d3);
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.18);
 }
 .option[data-option="pace"] .swatch {
-  background: #0a0a0a;
-  box-shadow: 0 0 0 1px rgb(245 245 243 / 0.55);
+  background: linear-gradient(135deg, #2a2a2e, #050506);
+  box-shadow: inset 0 0 0 1px rgb(245 245 243 / 0.5);
 }
-.text {
-  position: relative;
+.swatch::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border: 1px solid var(--text);
+  border-radius: 50%;
+  opacity: 0;
+  transform: scale(0.95);
+  transition:
+    opacity 200ms var(--ease-out),
+    transform 200ms var(--ease-out);
+}
+:global(html[data-feel="command"]) .option[data-option="command"] .swatch::after,
+:global(html[data-feel="pace"]) .option[data-option="pace"] .swatch::after {
+  opacity: 1;
+  transform: none;
 }
 @media (hover: hover) and (pointer: fine) {
   .option:hover {
@@ -110,13 +99,21 @@
     color: var(--text);
   }
 }
-/* Phones: the hero's toggle sits above its Reserve Now, a step lower than the button. */
+/* The header's on phones: the swatches alone, 44 px square each (the names stay the radios' labels, visually hidden). */
 @media (max-width: 699px) {
-  .toggle[data-size="hero"] {
-    min-height: 46px;
-    font-size: 1rem;
+  .toggle[data-size="compact"] {
+    gap: 0;
   }
-  .option {
-    padding: 0 16px;
+  .toggle[data-size="compact"] .option {
+    padding: 0;
+    width: 44px;
+  }
+  .toggle[data-size="compact"] .text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 }

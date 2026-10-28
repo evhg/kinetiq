@@ -8,7 +8,7 @@ import styles from "./Chrome.module.css";
 
 /**
  * Wordmark only; `compactCta` adds the compact Reserve Now that appears after the hero (landing page), with the
- * Command | Pace toggle beside it from 700 px.
+ * Command and Pace toggle beside it (swatches alone on phones).
  */
 export function SiteHeader({ compactCta = false }: { compactCta?: boolean }) {
   return (

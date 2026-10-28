@@ -73,9 +73,11 @@ export type SweetNumbers = { share: string; nearly: boolean; exact: string; inse
 export const sweetSpot = {
   eyebrow: "Sweet spot",
   headline: "Edge to edge.",
-  // No-break spaces keep "flat face" and "sweet spot" whole wherever line 1 wraps.
+  // The payoff (owner, 2026-10-28: a climactic rise), told after how it is made: line 1 opens on what all of that gives
+  // the player, then says what is counted and that it is a design (CLAIMS.md row 6b). No-break spaces keep "flat face"
+  // and "sweet spot" whole wherever line 1 wraps.
   lines: [
-    "The face stays flat right out to where the edge begins to curve, and we designed all of that flat\u00a0face to be sweet\u00a0spot.",
+    "This is what all of that gives you on court. The face stays flat right out to where the edge begins to curve, and we designed all of that flat\u00a0face to be sweet\u00a0spot.",
     "That matters most on the shots you can't set up, when you meet the ball late, high or off the glass.",
   ],
   /**
@@ -85,9 +87,9 @@ export const sweetSpot = {
    */
   share: { nearly: "Nearly", unit: "%", label: "of the face is sweet\u00a0spot" },
   inset: { unit: "mm", label: "from the sweet\u00a0spot to the edge" },
-  /** K12 (K12-base, then K12-full): a face-on white Command racket whose face lights up to 4 mm from the edge. */
+  /** K14: a raking-light macro of the face running out to the rim, in the K04 language (the landing drops K12). */
   imageAlt: (n: SweetNumbers) =>
-    `A white KINETIQ Command racket face-on. Its face lights up evenly to within ${n.inset}\u00a0mm of the edge: the sweet spot as designed.`,
+    `A KINETIQ face up close in raking light: the carbon weave runs flat to within ${n.inset}\u00a0mm of the edge, where the rim begins to curve.`,
   graphic: {
     /** G15's detail: the edge magnified, with the band between the light and the edge dimensioned. */
     detail: (n: SweetNumbers) => `${n.inset} mm`,
@@ -100,7 +102,7 @@ export const sweetSpot = {
  * Specifications, the recap before the buy (CLAIMS.md row 6c): six cells, then G01 whole. The outer dimensions
  * sit at the FIP limits (length 45.5 cm, width 26 cm, thickness 38 mm; `racket-shape.ts` peaks at exactly
  * 260.0 mm). Never "the largest face the rules allow": head length is free under the rules. The tolerances
- * (±1.0 g, ±0.1 mm) are told by Identical, which follows.
+ * (±1.0 g, ±0.1 mm) are told by Identical, two sections before it (the order since 2026-10-28).
  */
 export const specifications = {
   eyebrow: "Specifications",

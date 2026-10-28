@@ -12,7 +12,7 @@
     radial-gradient(ellipse 90% 55% at 50% 30%, rgb(43 43 49 / 0.7), transparent 75%),
     var(--stage);
 }
-/* Beat A's top starts on the sweet spot's last colour, rgb(19 20 22), and feathers into its lift, so the hand-off is
+/* Beat A's top starts on the hero floor's last colour, rgb(19 20 22), and feathers into its lift, so the hand-off is
    not a line across the screen (pinned, the chapter's own floor is that colour). */
 .beatA {
   background:
@@ -57,7 +57,7 @@
   max-width: 56ch;
 }
 /* Beat A's words come in two parts: the eyebrow and headline, then the lead. On phones K02 stands between them, so
-   the chapter opens on its own heading, never on a bare image straight after the sweet spot's numbers. */
+   the chapter opens on its own heading, never on a bare image straight after the hero. */
 .headA {
   padding-bottom: 20px;
 }
@@ -201,7 +201,7 @@
     padding-top: calc(var(--chrome-h) + clamp(24px, 3vh, 64px));
   }
   /* Layered: the beats paint no floor of their own (beat A's K02 feathers into it); the chapter shows its lit graphite,
-     flat rgb(19 20 22) at its top, where the sweet spot's foot ends. */
+     flat rgb(19 20 22) at its top, where the hero's floor ends. */
   :global(html[data-motion="on"]) .chapter {
     background:
       radial-gradient(ellipse 70% 60% at 50% 55%, rgb(43 43 49 / 0.8), transparent 75%),

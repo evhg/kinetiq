@@ -11,10 +11,15 @@ import { useFeel } from "@/lib/feel-store";
  * still's own composition, so the canvas only shows from frame 1 and the handover is invisible. Each frame holds only
  * the rectangle that ever changes (the racket, its shadow and its light on the floor); the canvas covers exactly that
  * rectangle of the still, placed with the still's own object-fit and object-position, and the still shows around it.
- * Frames load after the page's load event, in the background, coarse first (every 32nd, then every 16th ... every
- * one); the swivel starts once no gap between decoded frames is wider than 4, and draws the nearest decoded frame
- * meanwhile. Missing sequence (the feel's or the layout's not exported yet), Save-Data, a failed frame or reduced
- * motion: the canvas stays hidden and the hero is the still, exactly as before.
+ * Frames load in the background, coarse first (every 32nd, then every 16th ... every one), from the page's load event,
+ * the visitor's first scroll or touch, or 1.5 s after the hero mounts, whichever comes first (iPhone, 2026-10-28: a
+ * visitor who scrolls at once must not outrun a late load event, which in-app browsers can hold back for seconds); the
+ * swivel starts once no gap between decoded frames is wider than 4, and draws the nearest decoded frame meanwhile.
+ * Safari: no requestIdleCallback (a timeout stands in), and each frame decodes through createImageBitmap where it
+ * works, else through an <img> (older WebKit cannot make a bitmap from a WebP blob); a frame that fails is retried
+ * once, and the nearest decoded frame stands in for it. Missing sequence (the feel's or the layout's not exported
+ * yet), Save-Data, a quarter of the frames failing, or reduced motion (on an iPhone, Settings > Accessibility >
+ * Motion > Reduce Motion): the canvas stays hidden and the hero is the still, exactly as before.
  */
 
 type Entry = {
@@ -38,6 +43,8 @@ type Seq = {
   order: number[];
   next: number;
   inFlight: number;
+  /** Frames that failed twice; past a quarter of the sequence the swivel gives up (the still stays). */
+  lost: Set<number>;
   failed: boolean;
   ready: boolean;
   onChange: Set<() => void>;
@@ -65,23 +72,52 @@ function loadOrder(n: number) {
 
 const frameUrl = (s: Seq, i: number) => `/stills/seq/${s.name}/${String(i).padStart(3, "0")}-${s.width}.${s.entry.hash}.webp`;
 
-async function decode(url: string): Promise<Frame> {
-  if (typeof createImageBitmap === "function") {
-    const res = await fetch(url, { credentials: "same-origin" });
-    if (!res.ok) throw new Error(String(res.status));
-    return createImageBitmap(await res.blob());
-  }
+/** Whether createImageBitmap has decoded a WebP blob on this browser (null until the first frame tries). */
+let bitmaps: boolean | null = null;
+
+async function viaImage(url: string): Promise<Frame> {
   const img = new Image();
+  img.decoding = "async";
   img.src = url;
-  await img.decode();
+  // Safari can reject decode() for an image that loads fine (and older WebKit has no decode()): wait for load instead.
+  if (typeof img.decode === "function") await img.decode().catch(() => (img.complete && img.naturalWidth ? undefined : loaded(img)));
+  else await loaded(img);
+  if (!img.naturalWidth) throw new Error("empty frame");
   return img;
+}
+
+function loaded(img: HTMLImageElement) {
+  return new Promise<void>((resolve, reject) => {
+    if (img.complete && img.naturalWidth) return resolve();
+    img.addEventListener("load", () => resolve(), { once: true });
+    img.addEventListener("error", () => reject(new Error("frame failed")), { once: true });
+  });
+}
+
+async function decode(url: string): Promise<Frame> {
+  if (bitmaps !== false && typeof createImageBitmap === "function") {
+    try {
+      const res = await fetch(url, { credentials: "same-origin" });
+      if (!res.ok) throw new Error(String(res.status));
+      const frame = await createImageBitmap(await res.blob());
+      bitmaps = true;
+      return frame;
+    } catch (e) {
+      // A bitmap that has worked before means the network failed: let the caller retry. Otherwise this browser cannot
+      // make one from a WebP blob: every frame goes through an <img> from now on.
+      if (bitmaps) throw e;
+      bitmaps = false;
+    }
+  }
+  return viaImage(url);
 }
 
 function maxGap(s: Seq) {
   let gap = 0;
   let last = -1;
   s.frames.forEach((f, i) => {
-    if (!f) return;
+    // a lost frame counts as covered: its neighbours stand in for it
+    if (!f && !s.lost.has(i)) return;
     if (last >= 0) gap = Math.max(gap, i - last);
     last = i;
   });
@@ -93,7 +129,11 @@ function pump(s: Seq, active: () => boolean) {
   while (!s.failed && active() && s.inFlight < CONCURRENCY && s.next < s.order.length) {
     const i = s.order[s.next++];
     s.inFlight++;
-    decode(frameUrl(s, i)).then(
+    const url = frameUrl(s, i);
+    // One retry, a moment later, for a frame lost to the network (a phone between cells).
+    decode(url)
+      .catch(() => new Promise<Frame>((resolve, reject) => window.setTimeout(() => decode(url).then(resolve, reject), 800)))
+      .then(
       (frame) => {
         s.inFlight--;
         // Released (the other feel was picked) or failed meanwhile: drop it.
@@ -108,8 +148,13 @@ function pump(s: Seq, active: () => boolean) {
       },
       () => {
         s.inFlight--;
-        s.failed = true;
+        if (s.failed) return;
+        // A lost frame: its neighbours stand in (maxGap skips it). Too many lost and the still stays.
+        s.lost.add(i);
+        if (s.lost.size > s.frames.length / 4 || i === 0 || i === s.frames.length - 1) s.failed = true;
+        else if (!s.ready && maxGap(s) <= READY_GAP) s.ready = true;
         s.onChange.forEach((f) => f());
+        pump(s, active);
       },
     );
   }
@@ -260,7 +305,7 @@ export function HeroSwivel({ ref, portraitQuery, className }: Props) {
       const key = `${name}@${width}`;
       let s = cache.get(key);
       if (!s) {
-        s = { key, name, entry, width, frames: Array(entry.frames).fill(null), order: loadOrder(entry.frames), next: 0, inFlight: 0, failed: false, ready: false, onChange: new Set() };
+        s = { key, name, entry, width, frames: Array(entry.frames).fill(null), order: loadOrder(entry.frames), next: 0, inFlight: 0, lost: new Set(), failed: false, ready: false, onChange: new Set() };
         cache.set(key, s);
       }
       seq = s;
@@ -276,13 +321,20 @@ export function HeroSwivel({ ref, portraitQuery, className }: Props) {
       if (s) pump(s, () => alive && seq === s);
     };
     pick();
-    // After the load event (the hero's stills are in), when the main thread is idle: never ahead of the LCP.
+    // After the load event (the hero's stills are in), when the main thread is idle: never ahead of the LCP. But never
+    // later than the visitor's first scroll or touch, or 1.5 s after mount: Safari's load event waits for every eager
+    // resource, in-app browsers (Telegram, Instagram, Claude) can hold it back for seconds, and a visitor who scrolls at
+    // once would otherwise pass the whole turn before a frame exists. Safari has no requestIdleCallback.
     let idle = 0;
     const later = () => {
-      idle = window.requestIdleCallback ? window.requestIdleCallback(start, { timeout: 2000 }) : window.setTimeout(start, 300);
+      idle = window.requestIdleCallback ? window.requestIdleCallback(start, { timeout: 1000 }) : window.setTimeout(start, 200);
     };
     if (document.readyState === "complete") later();
     else window.addEventListener("load", later, { once: true });
+    const intent = { once: true, passive: true } as const;
+    window.addEventListener("scroll", start, intent);
+    window.addEventListener("touchstart", start, intent);
+    const fallback = window.setTimeout(start, 1500);
 
     const resize = new ResizeObserver(() => {
       laidOut = false;
@@ -298,6 +350,9 @@ export function HeroSwivel({ ref, portraitQuery, className }: Props) {
       if (window.cancelIdleCallback) window.cancelIdleCallback(idle);
       window.clearTimeout(idle);
       window.removeEventListener("load", later);
+      window.removeEventListener("scroll", start);
+      window.removeEventListener("touchstart", start);
+      window.clearTimeout(fallback);
       resize.disconnect();
       portrait.removeEventListener("change", pick);
       redraw.current = () => {};

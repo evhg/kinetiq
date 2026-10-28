@@ -17,7 +17,7 @@ export type Tier = {
   id: TierId;
   name: string;
   /** A state, never a verb: "Reserve" read as a second button beside Reserve Now. */
-  availability: "Available" | "Limited" | "Invite Only";
+  availability: "First Edition" | "Limited" | "Invite Only";
   priceEur: number;
   /** One line on the option card. */
   cardLine: string;
@@ -134,7 +134,7 @@ export const tiers: Tier[] = [
   {
     id: "reserve",
     name: "KINETIQ",
-    availability: "Available",
+    availability: "First Edition",
     priceEur: 410,
     // The owner's sentence (2026-10-23), a "first" claim (CLAIMS.md). "Every edition holds the same racket" is said by
     // the Editions h2 and lead, and on /reserve by the edition legend.

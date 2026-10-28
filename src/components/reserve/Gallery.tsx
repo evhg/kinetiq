@@ -39,7 +39,7 @@ type Slide =
     }
   | {
       /**
-       * K12's base render alone: its lit pass illustrates the sweet spot on the landing, so the checkout never shows it. One crop at every size, contained and centred (Reserve.module.css .reveal).
+       * K12's base render alone: its lit pass is shown nowhere (the landing dropped K12 on 2026-10-28), so the checkout never shows it. One crop at every size, contained and centred (Reserve.module.css .reveal).
        */
       kind: "reveal";
       base: string;
@@ -55,7 +55,7 @@ type Slide =
 
 /**
  * K12's base pass (a face-on Command racket, white 3K twill, with its own serial on the throat), uncaptioned: the lit
- * pass is an illustration of the sweet spot and stays on the landing with its "Illustrative" caption, so at the
+ * pass, an illustration of the sweet spot, is shown nowhere (the landing dropped K12 on 2026-10-28), so at the
  * payment the racket always looks as the feel picker says. Only once it is exported, and only for a single Command
  * racket, as the render shows one. A set's throats carry its set number instead, and Pace is black 12K. Its 4:5
  * portrait crop at every size, so the whole racket shows, from the crown to the engraved cap, clear of the controls.
@@ -299,7 +299,7 @@ export function Gallery({ tierId, feel, chosen }: { tierId: TierId; feel: FeelId
                 feel={feel}
               />
             ) : s.kind === "reveal" ? (
-              // K12's base render alone, contained and feathered (the lit pass stays on the landing).
+              // K12's base render alone, contained and feathered (its lit pass is shown nowhere).
               <div className={styles.reveal}>
                 <Still id={s.base} crop={s.crop} alt={s.alt} sizes={SIZES} className={styles.slideStill} />
               </div>

@@ -5,7 +5,7 @@ import { Reveal } from "./Reveal";
 import styles from "./Durability.module.css";
 
 /**
- * Durability, after Holes: a sealed core, no seams and no drilled holes. The claim and its lead beside G14
+ * Durability, the payoff's last beat after the sweet spot and Feel: a sealed core, no seams and no drilled holes. The claim and its lead beside G14
  * (five years against the one to two most padel rackets last), then the four reasons. The only place the page
  * says five years (owner, 2026-10-22); no fine print: the usage profile and the promised tests are point 4.
  */
