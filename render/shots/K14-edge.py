@@ -28,6 +28,10 @@ Preview settings that worked (p13/p14, 640x360 24 spp, about 22 s a preview):
   --set BG_GLOW=0.04 --set BG_GX=0.35 --set BG_GY=0.35 --set BG_GRX=0.4 --set BG_GRY=0.35
   (backdrop: linear 0.0045 renders as luma ~1-4 through AgX Punchy and fails the fill rule; 0.03-0.05 reads mid-grey;
   0.015-0.03 is the target range, untested at the moment of the wipe)
+Finals (v2, 2026-10-28; DEFAULTS and PACE_SET hold every setting):
+  flock render.lock $PY shots/K14-edge.py --w 2560 --h 1440 --spp 64 --out final/K14-edge
+  flock render.lock $PY shots/K14-edge.py --feel pace --w 2560 --h 1440 --spp 64 --out final/K14-edge-pace
+  then render/link-masters.sh and node scripts/stills.mjs $KQ_RENDER_OUT/masters K14 K14-pace
 Usage (from the blender dir, through the lock):
   flock render.lock ../bpyenv/bin/python shots/K14-edge.py --w 960 --h 540 --spp 32 --out k14/K14_p01 [--feel pace]
   [--set NAME=value ...]; --comp k14/K14_p01.exr --out k14/K14_p01c [--set g_<group>=k ...]; --solo
@@ -95,7 +99,25 @@ DEFAULTS = dict(
     # gains in the comp
     g_pool=1.0, g_gloss=1.0, g_rim=1.0, g_rake=1.0, g_fill=1.0, g_line=1.0,
 )
-PACE_SET = dict()
+# v2 (2026-10-28, the Release 4 final): the recovered p13 preview look, then the edge-to-edge composition and light
+# judged in out/k14/ (sheet_d1.png, f1.png, sheet_g.png): the head's upper-right shoulder from 32 deg above the face,
+# looking 35 deg along the edge, a 85 mm frame (the rim a diagonal arc from lower left to upper right, two crown holes on
+# the face, the graphite void upper left); a hard-edged 8 deg pool hugging the rim, so the light runs right out to the
+# edge and the face falls into shade lower left, where the rake draws the twill's relief; the 1.5 mm roll as one crisp
+# line (RIM 150). Fill rule (fillcheck): Command dark 14 % lit 53 %, Pace dark 39 % lit 31 %.
+DEFAULTS.update(
+    SHIFT_Y=-0.12, DIST=0.26, FW=0.085, FSTOP=32.0, EL=32.0, YAW=-35.0, PHI=38.0,
+    RIM_EL=10.0, RIM_W=0.15, RIM=150.0, RAKE=2.0, RAKE_AZ=80.0, FILL=0.15,
+    GLOSS_LEN=0.35, GLOSS_W=0.04, GLOSS=20.0,
+    POOL=40.0, POOL_AZ=165.0, POOL_EL=45.0, POOL_DEG=8.0, POOL_BLEND=0.6, POOL_TX=-0.022, POOL_TN=-0.004,
+    LIP_LEN=0.15, LIP=80.0,
+    BG_TOP=0.015, BG_HOR=0.03, BG_GLOW=0.04, BG_GX=0.35, BG_GY=0.35, BG_GRX=0.4, BG_GRY=0.35,
+    g_pool=1.1, g_gloss=0.8, g_rake=0.45, g_fill=0.6,
+)
+# Pace: the 12K tapes only show near the coat's mirror direction (canon Pace v6), so the gloss card is a wide graded
+# panel a little below the mirror band, its soft edge across the face: black lacquer with one graded sheen, the tapes
+# faint in it (out/k14/g2.png; a hard 0.3 m band, g1, drew a grey stripe).
+PACE_SET = dict(GLOSS_W=0.5, GLOSS=6.0, GLOSS_DEL=-8.0, GLOSS_EDGE0=-1.0, GLOSS_EDGE1=0.6, g_gloss=1.0)
 
 
 def parse_args():

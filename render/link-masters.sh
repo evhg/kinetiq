@@ -52,3 +52,5 @@ l K04-hole-macro-pace-base.png K04-base-pace
 l K04-hole-macro-pace-full.png K04-full-pace
 l K13-layup.png K13
 l K11-pair-pace.png K11-command-pace
+l K14-edge.png K14
+l K14-edge-pace.png K14-pace
