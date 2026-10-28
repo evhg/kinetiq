@@ -377,3 +377,8 @@ export function Swivel({ ref, sequence, portraitQuery, media, className }: Props
 
   return <canvas ref={canvasRef} className={className} aria-hidden="true" data-on="false" />;
 }
+
+/** Whether any sequence of this swivel is exported (`<sequence>-<feel>-<layout>`). */
+export function hasSequence(sequence: string) {
+  return Object.keys(manifest).some((k) => k.startsWith(`${sequence}-`));
+}

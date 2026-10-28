@@ -28,6 +28,26 @@
   width: 100%;
   height: auto;
 }
+/* Beat A: K02's box holds the still and its swivel canvas (Unibody.tsx), so its feathers (masks) cover both. */
+.beatA .still {
+  position: relative;
+}
+.picture {
+  display: block;
+  height: 100%;
+}
+/* The swivel's canvas (media/Swivel.tsx places and sizes it over the part of the still that turns). It shows from the
+   swivel's second frame, once its frames are decoded: exit 150 ms, entry 240 ms, opacity only. */
+.swivel {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 150ms var(--ease-out);
+}
+.swivel[data-on="true"] {
+  opacity: 1;
+  transition-duration: 240ms;
+}
 .edgeLight {
   display: none;
 }
@@ -66,7 +86,7 @@
 }
 /* K02's top and bottom feather into the stage (its own backdrop is the same graphite), so the image has no hard
    edge where the words begin and end. */
-.beatA .still img {
+.beatA .still {
   -webkit-mask-image: linear-gradient(transparent, #000 14%, #000 86%, transparent);
   mask-image: linear-gradient(transparent, #000 14%, #000 86%, transparent);
 }
@@ -145,6 +165,8 @@
   .beatA .still img {
     aspect-ratio: 18 / 5;
     object-fit: cover;
+  }
+  .beatA .still {
     -webkit-mask-image: linear-gradient(transparent, #000 20%, #000 78%, transparent);
     mask-image: linear-gradient(transparent, #000 20%, #000 78%, transparent);
   }
