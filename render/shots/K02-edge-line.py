@@ -28,8 +28,11 @@ further toward the camera). 0 (the default) changes nothing. SWIVEL_AXIS="Z" tur
 $KQ_RENDER_OUT/out/seq/<name>-desktop/f000.png ..; with --phone each frame is also written rotated 90 deg CCW into
 <name>-phone/ (the K02 portrait crop is the wide master rotated, stills.json). Frames on disk are skipped (resume).
 Final (one lock per feel; scripts/sequence.mjs exports them):
-  flock render.lock $PY shots/K02-edge-line.py --w 1920 --h 1080 --spp 128 --seq 36 --range 0 35 --phone --out seq/K02-swivel-command
-  flock render.lock $PY shots/K02-edge-line.py --feel pace --w 1920 --h 1080 --spp 128 --seq 25 --range 0 24 --phone --out seq/K02-swivel-pace
+  flock render.lock $PY shots/K02-edge-line.py --w 1280 --h 720 --spp 24 --seq 30 --range 0 35 --phone --out seq/K02-swivel-command
+  flock render.lock $PY shots/K02-edge-line.py --feel pace --w 1280 --h 720 --spp 24 --seq 30 --range 0 35 --phone --out seq/K02-swivel-pace
+  (2026-10-28: 1920 x 1080 cost 3 min of path tracing a frame at 20 spp on 4 cores, so the finals are 1280 x 720, the
+  width sequence.mjs exports anyway below 1920; one frame per lock via --only i lets other shots interleave.) Pace
+  holds to 35 degrees here: lg_swivel keeps its face lit (out/k02dev/sheetswP2.png), unlike the hero's 24.
 v1 (k12 racket, collar, chrome cap, "SWISS MADE No. 0001"): K02-edge-line.v1.bak
 """
 import json
