@@ -20,6 +20,16 @@ Usage (from the blender dir, through the lock):
   final: flock render.lock ../bpyenv/bin/python shots/K02-edge-line.py --w 2560 --h 1440 --spp 192 --out final/K02-edge-line --phone
   re-comp: ../bpyenv/bin/python shots/K02-edge-line.py --comp --out k02v2/K02_p01 [--gain fill=1.2 ...] [--phone]
 Dev: --set NAME=value, --crop x0 x1 y0 y1. --phone also writes <out>-phone.png, pre-rotated 90 deg CCW (handle down).
+Swivel (Release 4, 2026-10-28: the Unibody chapter's scroll-scrubbed turn, as K01's hero swivel): --swivel DEG turns
+the racket about its handle axis (world X through the racket's centre line) by DEG on top of ROLL, AFTER the studio is
+built, so every card and lamp stays fixed and the light sweeps over the wall and face as it turns (+ = the face tips
+further toward the camera). 0 (the default) changes nothing. SWIVEL_AXIS="Z" turns it about the vertical instead (dev).
+--seq N --range A B --out seq/<name> renders N frames (A..B, linear) from ONE scene build into
+$KQ_RENDER_OUT/out/seq/<name>-desktop/f000.png ..; with --phone each frame is also written rotated 90 deg CCW into
+<name>-phone/ (the K02 portrait crop is the wide master rotated, stills.json). Frames on disk are skipped (resume).
+Final (one lock per feel; scripts/sequence.mjs exports them):
+  flock render.lock $PY shots/K02-edge-line.py --w 1920 --h 1080 --spp 128 --seq 36 --range 0 35 --phone --out seq/K02-swivel-command
+  flock render.lock $PY shots/K02-edge-line.py --feel pace --w 1920 --h 1080 --spp 128 --seq 25 --range 0 24 --phone --out seq/K02-swivel-pace
 v1 (k12 racket, collar, chrome cap, "SWISS MADE No. 0001"): K02-edge-line.v1.bak
 """
 import json
@@ -96,6 +106,8 @@ P_WEAVE_S = 5.0                   # Pace weave card (W); 0 = off. 5: the tapes r
 P_WEAVE_AT, P_WEAVE_SIZE = (0.0, -1.45, 0.55), (2.4, 0.9)
 P_WEAVE_K = 6500.0
 P_CLAMP = 4.0                     # Pace: indirect clamp (K08 CLAMP_IND); 0 = off
+SWIVEL = 0.0          # deg: the scroll swivel's turn about the handle axis, on top of ROLL (see the docstring)
+SWIVEL_AXIS = "X"     # "X": about the handle (the racket's long axis); "Z": about the vertical through its centre (dev)
 GROUPS = ["lg_top", "lg_under", "lg_face", "lg_fill", "lg_grip", "lg_cap", "lg_etch", "lg_wall", "lg_wkey", "lg_wtop",
           "lg_whot", "lg_band"]
 GAINS = {g: 1.0 for g in GROUPS}
@@ -119,6 +131,12 @@ def parse_args(argv, default_out):
             o[a[2:]].append(argv[i + 1]); i += 2
         elif a in ("--phone", "--comp"):
             o[a[2:]] = True; i += 1
+        elif a == "--swivel":
+            o["swivel"] = float(argv[i + 1]); i += 2
+        elif a == "--seq":
+            o["seq"] = int(argv[i + 1]); i += 2
+        elif a == "--range":
+            o["range"] = (float(argv[i + 1]), float(argv[i + 2])); i += 3
         else:
             i += 1
     g = globals()
@@ -131,7 +149,19 @@ def parse_args(argv, default_out):
         assert k in g, k
         g[k] = eval(v)
         print("set", k, "=", g[k], flush=True)
+    if o.get("swivel") is not None:
+        g["SWIVEL"] = o["swivel"]
+        print("swivel", SWIVEL, flush=True)
     return o
+
+
+def swivel(sc, deg):
+    """Turn the racket (its root; every part is parented to it) by deg about the handle axis: world X through the
+    racket's centre line (y = z = 0), where build() lays it. Cards, lamps and the camera stay where build() put them."""
+    root = bpy.data.objects[sc["racket_root"]]
+    base = Matrix(json.loads(sc["racket_base"]))
+    root.matrix_world = Matrix.Rotation(math.radians(deg), 4, SWIVEL_AXIS) @ base
+    bpy.context.view_layer.update()
 
 
 def build(o):
@@ -345,6 +375,10 @@ def build(o):
     shift_y = 0.02 * (o["h"] / max(o["w"], o["h"]))
     cam = studio.camera((0, -D, 0), (0, 0, 0), lens=135, shift=(0, shift_y))
     cam.data.sensor_fit = "HORIZONTAL"
+    sc["racket_root"] = root.name
+    sc["racket_base"] = json.dumps([list(r) for r in M])
+    if SWIVEL:
+        swivel(sc, SWIVEL)
     return sc
 
 
@@ -441,8 +475,60 @@ def comp(o, sc=None):
     return final
 
 
+def render_seq(o):
+    """The swivel sequence: one build, then per frame: turn, render the light-group passes, comp (as a still), and
+    move the frame (and its phone rotation) into place. Frames already on disk are skipped."""
+    from PIL import Image
+    n = o["seq"]
+    a, b = o.get("range") or (0.0, 35.0)
+    name = os.path.basename(o["out"])
+    base = os.path.join(studio.OUT, os.path.dirname(o["out"]))
+    dirs = {"desktop": os.path.join(base, name + "-desktop")}
+    if o["phone"]:
+        dirs["phone"] = os.path.join(base, name + "-phone")
+    for d in dirs.values():
+        os.makedirs(d, exist_ok=True)
+    angles = [a + (b - a) * i / max(1, n - 1) for i in range(n)]
+    todo = [i for i in range(n) if not all(os.path.exists(os.path.join(d, "f%03d.png" % i)) for d in dirs.values())]
+    print("seq %s: %d frames, %.2f..%.2f deg, %d to render" % (name, n, a, b, len(todo)), flush=True)
+    if not todo:
+        return
+    t0 = time.time()
+    sc = build(o)
+    print("scene built %.1f s" % (time.time() - t0), flush=True)
+    work = os.path.join(o["out"] + "_w")
+    for i in todo:
+        t1 = time.time()
+        swivel(sc, angles[i])
+        oi = dict(o, out=os.path.join(work, "f%03d" % i), phone=False)
+        od, stem = _dirs(oi)
+        os.makedirs(od, exist_ok=True)
+        setup_passes(sc, od, stem)
+        studio.render(os.path.join(work, "passes", stem + "__all"))
+        L.collect_passes(od, stem, GROUPS + ["index"])
+        with open(os.path.join(od, stem + "_meta.json"), "w") as fh:
+            json.dump(dict(w=o["w"], h=o["h"], spp=o["spp"], crop=None, set=o["set"], white=bool(sc["white"]),
+                           swivel=angles[i]), fh)
+        final = comp(oi, sc)
+        if "phone" in dirs:
+            Image.open(final).rotate(90, expand=True).save(os.path.join(dirs["phone"], "f%03d.png" % i))
+        os.replace(final, os.path.join(dirs["desktop"], "f%03d.png" % i))
+        for f in os.listdir(od):
+            if f.startswith(stem + "_") or f.startswith(stem + "__"):
+                os.remove(os.path.join(od, f))
+        dt = time.time() - t1
+        with open(os.path.join(dirs["desktop"], "frames.jsonl"), "a") as fh:
+            fh.write(json.dumps(dict(i=i, deg=round(angles[i], 4), sec=round(dt, 1), spp=o["spp"], w=o["w"], h=o["h"],
+                                     feel=FEEL)) + "\n")
+        print("frame %d %.2f deg %.1f s" % (i, angles[i], dt), flush=True)
+    print("seq done %.1f s" % (time.time() - t0), flush=True)
+
+
 def main():
     o = parse_args(sys.argv[1:], "K02-edge-line")
+    if o.get("seq"):
+        render_seq(o)
+        return
     if o["comp"]:
         comp(o)
         return
