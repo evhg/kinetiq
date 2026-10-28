@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { HeroSwivel, type SwivelHandle } from "./HeroSwivel";
+import { Swivel, type SwivelHandle } from "@/components/media/Swivel";
 import { FeelToggle } from "@/components/chrome/FeelToggle";
 import { ReserveLink } from "@/components/chrome/ReserveLink";
 import { Still } from "@/components/media/Still";
@@ -21,7 +21,7 @@ const PORTRAIT = "(max-width: 699px), (max-width: 999px) and (max-aspect-ratio: 
 const PORTRAIT_SIZES = "(min-width: 700px) 140vw, 100vw";
 
 /**
- * Hero: K01 rises out of the dark (base, then the beam) and turns as the page scrolls (HeroSwivel), one CTA. Wide screens set the words, Reserve Now
+ * Hero: K01 rises out of the dark (base, then the beam) and turns as the page scrolls (Swivel), one CTA. Wide screens set the words, Reserve Now
  * and the price line in the left seven columns beside the racket, which stands large on the right; phones and
  * portrait tablets keep the words above the racket and Reserve Now on the floor below it.
  */
@@ -64,7 +64,7 @@ export function Hero() {
           live = false;
         };
       });
-      // The swivel (owner, 2026-10-23): the racket turns about its handle as the hero scrolls away (HeroSwivel draws the
+      // The swivel (owner, 2026-10-23): the racket turns about its handle as the hero scrolls away (Swivel draws the
       // frames; until they are decoded, or without a sequence, this only moves a number). Wide screens finish the turn by
       // 26% of the hero scrolled, while the racket is still in view (it fades out between 10% and 32%); phones and
       // portrait tablets by 30% (iPhone, 2026-10-28: at 60% the racket had already slid up under the header, so most of
@@ -111,7 +111,7 @@ export function Hero() {
               together by the beam. */}
           <div className={styles.full}>
             <Still id="K01-full" phoneId="K01-hero-full-phone" phoneCrop="portrait" phoneMedia={PORTRAIT} phoneSizes={PORTRAIT_SIZES} alt="" loading="eager" fetchPriority="low" className={styles.layer} />
-            <HeroSwivel ref={swivel} portraitQuery={PORTRAIT} className={styles.swivel} />
+            <Swivel ref={swivel} sequence="K01-swivel" portraitQuery={PORTRAIT} className={styles.swivel} />
           </div>
         </div>
       </div>

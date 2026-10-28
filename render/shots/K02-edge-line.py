@@ -531,6 +531,15 @@ def render_seq(o):
     t0 = time.time()
     sc = build(o)
     print("scene built %.1f s" % (time.time() - t0), flush=True)
+    # Every group but the swivel's has gain 1 in the comp, so they render as one pass (lg_rest): 2 denoise passes a
+    # frame, not 13 (at 1920 x 1080 the per-group denoise took longer than the render). The light is the same.
+    global GROUPS
+    sc.view_layers[0].lightgroups.add(name="lg_rest")
+    for ob in sc.objects:
+        if ob.lightgroup and ob.lightgroup != "lg_swivel":
+            ob.lightgroup = "lg_rest"
+    GROUPS = ["lg_rest", "lg_swivel"]
+    GAINS["lg_rest"] = 1.0
     work = os.path.join(o["out"] + "_w")
     for i in todo:
         t1 = time.time()
