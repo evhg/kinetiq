@@ -108,6 +108,16 @@ P_WEAVE_K = 6500.0
 P_CLAMP = 4.0                     # Pace: indirect clamp (K08 CLAMP_IND); 0 = off
 SWIVEL = 0.0          # deg: the scroll swivel's turn about the handle axis, on top of ROLL (see the docstring)
 SWIVEL_AXIS = "X"     # "X": about the handle (the racket's long axis); "Z": about the vertical through its centre (dev)
+# The swivel's face light (lg_swivel, built only for --swivel / --seq): as the face tips toward the camera it mirrors
+# elevations 2 x (ROLL + swivel) behind the racket, far above the low FaceCard, and black Pace goes dark from about 10
+# degrees (out/k02dev/sheetP.png). A ring card behind and above (az 180 +- SW_AZ, el SW_EL), glossy only, linked to
+# the face + neck, gives the turning face a lacquer reflection that sweeps across it as it turns: a soft floor plus a
+# brighter band at SW_BAND (fraction of the elevation span). Its comp gain ramps in over the first SW_RAMP degrees
+# (0 at frame 0), so frame 0 stays the K02 still exactly. SW_C / SW_P: the ring's strength for Command / Pace.
+SW_AZ, SW_EL = 70.0, (9.0, 82.0)
+SW_BAND, SW_BAND_W, SW_FLOOR = 0.42, 0.07, 0.15
+SW_C, SW_P = 1.2, 3.0
+SW_RAMP = 8.0
 GROUPS = ["lg_top", "lg_under", "lg_face", "lg_fill", "lg_grip", "lg_cap", "lg_etch", "lg_wall", "lg_wkey", "lg_wtop",
           "lg_whot", "lg_band"]
 GAINS = {g: 1.0 for g in GROUPS}
@@ -135,6 +145,8 @@ def parse_args(argv, default_out):
             o["swivel"] = float(argv[i + 1]); i += 2
         elif a == "--seq":
             o["seq"] = int(argv[i + 1]); i += 2
+        elif a == "--only":
+            o["only"] = [int(v) for v in argv[i + 1].split(",")]; i += 2
         elif a == "--range":
             o["range"] = (float(argv[i + 1]), float(argv[i + 2])); i += 3
         else:
@@ -152,7 +164,16 @@ def parse_args(argv, default_out):
     if o.get("swivel") is not None:
         g["SWIVEL"] = o["swivel"]
         print("swivel", SWIVEL, flush=True)
+    if o.get("swivel") is not None or o.get("seq"):
+        g["GROUPS"] = GROUPS + ["lg_swivel"]
+        GAINS["lg_swivel"] = 1.0
     return o
+
+
+def swivel_gain(deg):
+    """The swivel face light's comp gain at this turn: 0 at the still, smoothly to 1 by SW_RAMP degrees."""
+    t = min(1.0, max(0.0, abs(deg) / SW_RAMP)) if SW_RAMP > 0 else 1.0
+    return t * t * (3 - 2 * t)
 
 
 def swivel(sc, deg):
@@ -375,6 +396,19 @@ def build(o):
     shift_y = 0.02 * (o["h"] / max(o["w"], o["h"]))
     cam = studio.camera((0, -D, 0), (0, 0, 0), lens=135, shift=(0, shift_y))
     cam.data.sensor_fit = "HORIZONTAL"
+    if "lg_swivel" in GROUPS:
+        sw_s = SW_P if pace else SW_C
+
+        def sw_fn(nb, u, v):
+            ends = nb.math("MULTIPLY", nb.smooth(u, 0.0, 0.3), nb.smooth(u, 1.0, 0.7))
+            low = nb.smooth(v, 0.0, 0.12)
+            band = nb.math("MULTIPLY_ADD", nb.gauss(v, SW_BAND, SW_BAND_W), 1.0 - SW_FLOOR, SW_FLOOR)
+            return nb.math("MULTIPLY", nb.math("MULTIPLY", nb.math("MULTIPLY", ends, low), band), sw_s)
+
+        sw = K.ring_card("SwivelFace", (0.0, 0.0, 0.0), 2.2, 180.0 - SW_AZ, 180.0 + SW_AZ, SW_EL[0], SW_EL[1], sw_fn,
+                         color=W6)
+        L.link_only(sw, C.objs(P, "face", "neck"), "recv_swivel")
+        group(sw, "lg_swivel")
     sc["racket_root"] = root.name
     sc["racket_base"] = json.dumps([list(r) for r in M])
     if SWIVEL:
@@ -489,7 +523,8 @@ def render_seq(o):
     for d in dirs.values():
         os.makedirs(d, exist_ok=True)
     angles = [a + (b - a) * i / max(1, n - 1) for i in range(n)]
-    todo = [i for i in range(n) if not all(os.path.exists(os.path.join(d, "f%03d.png" % i)) for d in dirs.values())]
+    todo = [i for i in range(n) if not all(os.path.exists(os.path.join(d, "f%03d.png" % i)) for d in dirs.values())
+            and (not o.get("only") or i in o["only"])]
     print("seq %s: %d frames, %.2f..%.2f deg, %d to render" % (name, n, a, b, len(todo)), flush=True)
     if not todo:
         return
@@ -500,7 +535,8 @@ def render_seq(o):
     for i in todo:
         t1 = time.time()
         swivel(sc, angles[i])
-        oi = dict(o, out=os.path.join(work, "f%03d" % i), phone=False)
+        oi = dict(o, out=os.path.join(work, "f%03d" % i), phone=False,
+                  gain=list(o["gain"]) + ["swivel=%.4f" % (GAINS["lg_swivel"] * swivel_gain(angles[i]))])
         od, stem = _dirs(oi)
         os.makedirs(od, exist_ok=True)
         setup_passes(sc, od, stem)
