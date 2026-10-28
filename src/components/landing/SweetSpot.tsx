@@ -106,7 +106,7 @@ export function SweetSpot() {
       <div className={styles.media}>
         {K14 ? (
           <div className={styles.frame}>
-            <Still id="K14" phoneCrop="portrait" alt={sweetSpot.imageAlt(SWEET_CLAIM)} className={styles.still} sizes="100vw" />
+            <Still id="K14" phoneCrop="portrait" phoneMedia="(max-width: 999px)" phoneSizes="(min-width: 700px) 560px, 100vw" alt={sweetSpot.imageAlt(SWEET_CLAIM)} className={styles.still} sizes="100vw" />
           </div>
         ) : (
           <SweetSpotField className={styles.graphic} />
