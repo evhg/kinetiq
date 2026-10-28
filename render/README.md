@@ -61,6 +61,8 @@ variants, `--feel pace`, `--both`, `--phone`, `--crops`); the last finals used:
 | K11 | `K11-pair.py --weave command --w 3200 --h 1800 --spp 256 --out final/K11-pair-command` (`--weave pace`); `K11-single.py --w 3200 --h 1800 --spp 256 --out final/K11-single` |
 | K12 | `K12-sweet-spot.py --w 3200 --h 1800 --spp 160 --out final/K12-sweet-spot` |
 | K13 | `K13-layup.py --w 3200 --h 1800 --spp 128 --out final/K13-layup` |
+| K14 | `K14-edge.py --w 2560 --h 1440 --spp 64 --out final/K14-edge` (Pace: `--feel pace --out final/K14-edge-pace`; about 45 min each) |
+| K02 swivel | `K02-edge-line.py --w 1280 --h 720 --spp 24 --seq 30 --range 0 35 --phone --out seq/K02-swivel-command` (and `--feel pace ... seq/K02-swivel-pace`; one frame per lock with `--only i`, about 2.5 min a frame); then `node scripts/sequence.mjs $KQ_RENDER_OUT/out/seq K02-swivel-command-desktop K02-swivel-command-phone ... --frames=30` |
 
 ## Export to the site
 ```sh
