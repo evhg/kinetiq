@@ -45,6 +45,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, ROOT)
 sys.path.insert(0, HERE)
+import kqpaths  # noqa: E402
 
 import bpy  # noqa: E402
 from mathutils import Matrix, Vector  # noqa: E402
@@ -302,7 +303,7 @@ def line_mask(p):
     from PIL import Image, ImageDraw
     import numpy as np
     from shapely.geometry import Polygon, box
-    d = os.path.join(HERE, "k14")
+    d = kqpaths.asset("k14")
     os.makedirs(d, exist_ok=True)
     key = "%.5f_%.6f_v1" % (p["LINE_INSET"], p["LINE_W"])
     path, meta_p = os.path.join(d, "line_mask.png"), os.path.join(d, "line_mask.json")

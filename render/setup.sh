@@ -13,4 +13,4 @@ if [ ! -x "$OUT/bpyenv/bin/python" ]; then
 fi
 "$OUT/bpyenv/bin/python" -c "import bpy; print('bpy', bpy.app.version_string)"
 export KQ_RENDER_OUT="$OUT"
-exec "$OUT/bpyenv/bin/python" "$KIT/prepare_assets.py"
+exec "$OUT/bpyenv/bin/python" "$KIT/prepare_assets.py" "$@"
