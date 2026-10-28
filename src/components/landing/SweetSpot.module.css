@@ -169,6 +169,7 @@
     display: block;
   }
   .section[data-media="still"] .frame {
+    width: 100%;
     aspect-ratio: auto;
     height: min(56.25vw, 72svh);
     -webkit-mask-image: linear-gradient(transparent, #000 14%, #000 82%, transparent);
