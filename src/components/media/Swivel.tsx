@@ -365,10 +365,13 @@ export function Swivel({ ref, sequence, portraitQuery, media, lead, className }:
     /** The width the canvas's crop is drawn at on screen, in device px, for this sequence (cover, as the still). */
     const drawnCropWidth = (entry: Entry) =>
       Math.max(box.clientWidth / entry.w, box.clientHeight / entry.h) * entry.crop.w * density();
-    /** The narrowest export whose crop is at least as wide as it is drawn (within 8%), else the widest. */
+    /** The narrowest export whose crop is about as wide as it is drawn, else the widest. */
     const widthFor = (entry: Entry) => {
       const need = drawnCropWidth(entry);
-      return entry.widths.find((w) => (entry.crop.w * w) / entry.w * 1.08 >= need) ?? entry.widths[entry.widths.length - 1];
+      // A 3x screen (an iPhone) resolves finer than the eye at arm's length: there a frame up to 18% short of the
+      // canvas looks the same and is a third fewer bytes on a phone's connection; elsewhere within 8%.
+      const slack = density() >= 2.5 ? 1.18 : 1.08;
+      return entry.widths.find((w) => (entry.crop.w * w) / entry.w * slack >= need) ?? entry.widths[entry.widths.length - 1];
     };
 
     const layout = () => {
