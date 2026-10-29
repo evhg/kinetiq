@@ -543,11 +543,26 @@ def render_seq(o):
             ob.lightgroup = "lg_rest"
     GROUPS = ["lg_rest", "lg_swivel"]
     GAINS["lg_rest"] = 1.0
+    # One scene sync for the whole sequence: only the racket's transform changes between frames.
+    sc.render.use_persistent_data = True
+    # --crop x0 x1 y0 y1 (2026-10-29, as k01_lib.render_seq): frame 0 whole, every other frame only that region,
+    # pasted into frame 0 with a feathered edge (the region must hold everything that moves, with margin).
+    crop = o.get("crop")
+    f0 = os.path.join(dirs["desktop"], "f000.png")
+    if crop and 0 not in todo and not os.path.exists(f0):
+        raise SystemExit("seq --crop: frame 0 must exist or be rendered first")
     work = os.path.join(o["out"] + "_w")
     for i in todo:
         t1 = time.time()
         swivel(sc, angles[i])
-        oi = dict(o, out=os.path.join(work, "f%03d" % i), phone=False,
+        fc = crop if (crop and i > 0) else None
+        sc.render.use_border = bool(fc)
+        sc.render.use_crop_to_border = bool(fc)
+        if fc:
+            x0, x1, y0, y1 = fc
+            sc.render.border_min_x, sc.render.border_max_x = x0, x1
+            sc.render.border_min_y, sc.render.border_max_y = 1 - y1, 1 - y0
+        oi = dict(o, out=os.path.join(work, "f%03d" % i), phone=False, crop=fc,
                   gain=list(o["gain"]) + ["swivel=%.4f" % (GAINS["lg_swivel"] * swivel_gain(angles[i]))])
         od, stem = _dirs(oi)
         os.makedirs(od, exist_ok=True)
@@ -555,11 +570,15 @@ def render_seq(o):
         studio.render(os.path.join(work, "passes", stem + "__all"))
         L.collect_passes(od, stem, GROUPS + ["index"])
         with open(os.path.join(od, stem + "_meta.json"), "w") as fh:
-            json.dump(dict(w=o["w"], h=o["h"], spp=o["spp"], crop=None, set=o["set"], white=bool(sc["white"]),
+            json.dump(dict(w=o["w"], h=o["h"], spp=o["spp"], crop=fc, set=o["set"], white=bool(sc["white"]),
                            swivel=angles[i]), fh)
         final = comp(oi, sc)
+        if fc:
+            whole = final.replace(".png", "-whole.png")
+            K.paste_region(f0, final, fc, whole)
+            os.replace(whole, final)
         if "phone" in dirs:
-            Image.open(final).rotate(90, expand=True).save(os.path.join(dirs["phone"], "f%03d.png" % i))
+            K.rotate_png(final, os.path.join(dirs["phone"], "f%03d.png" % i))   # 16-bit, as the desktop frame
         os.replace(final, os.path.join(dirs["desktop"], "f%03d.png" % i))
         for f in os.listdir(od):
             if f.startswith(stem + "_") or f.startswith(stem + "__"):

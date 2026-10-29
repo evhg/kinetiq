@@ -1,5 +1,6 @@
 // Export a Blender frame sequence (the hero's swivel) to WebP frames for the hero's scrub canvas (Hero.tsx).
-// Usage: node scripts/sequence.mjs <sequences dir> [name ...] [--frames=36]
+// Usage: node scripts/sequence.mjs <sequences dir> [name ...] [--frames=N] [--quality=84] [--format=webp|avif] [--out=<dir>]
+// (--out writes the frames and manifest under another root, for trials: <dir>/seq/... and <dir>/sequences.json)
 // Each <sequences dir>/<name>/ holds 16-bit PNG frames f000.png, f001.png, ... (desktop 1920x1080, phone
 // 1080x1920; frame 0 is the matching still's composition). A folder is exported only once all its frames are there and
 // decode (one still rendering is skipped, so it is safe to run while Blender works).
@@ -7,7 +8,7 @@
 // so the canvas draws that rectangle over the still and the rest of the frame stays the still's own pixels.
 // Writes public/stills/seq/<name>/<NNN>-<width>.<hash>.webp (one hash per sequence: the names change with the bytes,
 // served private and immutable to cleared visitors, next.config.ts) and src/content/sequences.generated.json.
-// WebP only: AVIF was measured at 4 to 6% smaller on these frames (2026-10-23), not worth a second set or its decode.
+// WebP by default: AVIF was measured at 4 to 6% smaller on these frames (2026-10-23), not worth a second set or its decode.
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -18,10 +19,18 @@ const args = process.argv.slice(2);
 const flags = Object.fromEntries(args.filter((a) => a.startsWith("--")).map((a) => a.slice(2).split("=")));
 const [src, ...only] = args.filter((a) => !a.startsWith("--"));
 if (!src) throw new Error("Pass the sequences directory.");
-const FRAMES = Number(flags.frames ?? 36);
-/** Exported widths of the whole frame, by orientation (the crop scales with them). */
-const WIDTHS = { landscape: [1280, 1920], portrait: [720, 1080] };
-const QUALITY = 84;
+/** Frames per sequence: --frames=N, else every f000.png ... in the folder (a frames.json from Blender may name N). */
+const FRAMES_FLAG = flags.frames ? Number(flags.frames) : 0;
+/**
+ * Exported widths of the whole frame, by orientation (the crop scales with them), up to the master's own width.
+ * 2026-10-29 (owner: the swivels looked low-res on iPad and iPhone): Swivel.tsx picks the narrowest export whose crop is
+ * as wide as the canvas on screen in device pixels (iPhone 3x, iPad 2x), so the set runs up to the masters' widths:
+ * portrait 1170 (an iPhone's 390 x 3) and 1440, landscape to 2560.
+ */
+const WIDTHS = { landscape: [1280, 1920, 2560], portrait: [828, 1170, 1440] };
+const QUALITY = Number(flags.quality ?? 84);
+/** webp (default) or avif: Safari decodes WebP everywhere the swivel plays (iOS 14+); AVIF only from iOS 16. */
+const FORMAT = flags.format ?? "webp";
 /** The change mask: frames compared at 1/8 size, a mean step above this counts as change, then padded (source px). */
 const SCALE = 8;
 const THRESHOLD = 2;
@@ -29,8 +38,8 @@ const PAD = 32;
 /** Crop edges snap to this many source pixels, so every exported width scales them to whole pixels. */
 const SNAP = 24;
 
-const outRoot = join(root, "public/stills/seq");
-const manifestFile = join(root, "src/content/sequences.generated.json");
+const outRoot = flags.out ? join(flags.out, "seq") : join(root, "public/stills/seq");
+const manifestFile = flags.out ? join(flags.out, "sequences.json") : join(root, "src/content/sequences.generated.json");
 const manifest = existsSync(manifestFile) ? JSON.parse(readFileSync(manifestFile, "utf8")) : {};
 const frameFile = (dir, i) => join(dir, `f${String(i).padStart(3, "0")}.png`);
 
@@ -59,6 +68,12 @@ const names = readdirSync(src, { withFileTypes: true })
 
 for (const name of names) {
   const dir = join(src, name);
+  let FRAMES = FRAMES_FLAG;
+  if (!FRAMES) while (existsSync(frameFile(dir, FRAMES))) FRAMES++;
+  if (FRAMES < 2) {
+    console.log(`skip ${name}: no frames`);
+    continue;
+  }
   const missing = [...Array(FRAMES).keys()].filter((i) => !existsSync(frameFile(dir, i)));
   if (missing.length) {
     console.log(`skip ${name}: ${FRAMES - missing.length} of ${FRAMES} frames`);
@@ -108,7 +123,11 @@ for (const name of names) {
     for (const w of widths) {
       const cw = Math.round((crop.w * w) / W);
       const ch = Math.round((crop.h * w) / W);
-      const buf = await sharp(flat).resize({ width: cw, height: ch, fit: "fill", kernel: "lanczos3" }).webp({ quality: QUALITY, effort: 5, smartSubsample: true }).toBuffer();
+      const resized = sharp(flat).resize({ width: cw, height: ch, fit: "fill", kernel: "lanczos3" });
+      const buf = await (FORMAT === "avif"
+        ? resized.avif({ quality: QUALITY, effort: 5, chromaSubsampling: "4:2:0" })
+        : resized.webp({ quality: QUALITY, effort: 5, smartSubsample: true })
+      ).toBuffer();
       encoded.push({ i, w, buf });
     }
   }
@@ -121,10 +140,10 @@ for (const name of names) {
   mkdirSync(out, { recursive: true });
   const bytes = Object.fromEntries(widths.map((w) => [w, 0]));
   for (const e of encoded) {
-    writeFileSync(join(out, `${String(e.i).padStart(3, "0")}-${e.w}.${hash}.webp`), e.buf);
+    writeFileSync(join(out, `${String(e.i).padStart(3, "0")}-${e.w}.${hash}.${FORMAT}`), e.buf);
     bytes[e.w] += e.buf.length;
   }
-  manifest[name] = { frames: FRAMES, w: W, h: H, crop, widths, hash, bytes };
+  manifest[name] = { frames: FRAMES, w: W, h: H, crop, widths, hash, bytes, ...(FORMAT === "webp" ? {} : { format: FORMAT }) };
   console.log(
     `${name}: ${FRAMES} frames ${W}x${H}, crop ${crop.w}x${crop.h} at ${crop.x},${crop.y}, ` +
       widths.map((w) => `${w}: ${Math.round(bytes[w] / 1024)} KB`).join(", ") +
