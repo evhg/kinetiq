@@ -255,4 +255,7 @@ no product copy, no claim.
     neutral shell is replaced by the linked edition). `components/nda/Arrival.tsx` clears the flag and the attribute.
 
 ## Languages
-English only at launch (`lang="en"`). Archivo and Saira load `latin` and `latin-ext`.
+English only at launch (`lang="en"`). Archivo and Saira load `latin` and `latin-ext`, but preload only `latin`
+(2026-10-29): no word on the site needs `latin-ext`, which keeps its unicode-range @font-face and loads only for a
+character it covers, so its 112 KB never share a phone's first second with the CSS and the hero still (phone LCP
+about 0.4 s sooner).

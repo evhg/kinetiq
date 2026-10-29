@@ -7,15 +7,18 @@ import { DEFAULT_FEEL } from "@/content/site";
 import { motionInitScript } from "@/lib/motion-preference";
 import "./globals.css";
 
+// Only `latin` is preloaded (2026-10-29): every word on the site is in it. latin-ext keeps its @font-face (unicode-range),
+// so a name or address that needs it still loads it on demand, but its 112 KB no longer share a phone's first second
+// with the CSS and the hero still (phone-profile LCP).
 const archivo = Archivo({
-  subsets: ["latin", "latin-ext"],
+  subsets: ["latin"],
   axes: ["wdth"],
   display: "swap",
   variable: "--font-archivo",
 });
 
 const saira = Saira({
-  subsets: ["latin", "latin-ext"],
+  subsets: ["latin"],
   display: "swap",
   variable: "--font-saira",
 });
