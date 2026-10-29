@@ -1,0 +1,6 @@
+60 seq2/K02-swivel-command-desktop shots/K02-edge-line.py --feel command --w 2560 --h 1440 --spp 32 --seq 60 --range 0 35 --phone --crop 0.09 0.92 0.20 0.86 --out seq2/K02-swivel-command
+36 seq2/K01-swivel-command-phone shots/K01-hero-frame.py --feel command --w 2160 --h 3840 --spp 24 --seq 36 --yaw-range 0 35 --crop 0.20 0.82 0.48 0.95 --out seq2/K01-swivel-command-phone
+45 seq2/K02-swivel-pace-desktop shots/K02-edge-line.py --feel pace --w 2560 --h 1440 --spp 32 --seq 45 --range 0 35 --phone --crop 0.09 0.92 0.20 0.86 --out seq2/K02-swivel-pace
+36 seq2/K01-swivel-pace-phone shots/K01-hero-frame.py --feel pace --set P_FOLLOW=0.85 --w 2160 --h 3840 --spp 24 --seq 36 --yaw-range 0 35 --crop 0.20 0.82 0.48 0.95 --out seq2/K01-swivel-pace-phone
+36 seq2/K01-swivel-command-desktop shots/K01-hero-beam.py --feel command --w 2560 --h 1440 --spp 24 --seq 36 --yaw-range 0 35 --crop 0.27 0.73 0.19 1.0 --out seq2/K01-swivel-command-desktop
+36 seq2/K01-swivel-pace-desktop shots/K01-hero-beam.py --feel pace --set P_FOLLOW=0.85 --w 2560 --h 1440 --spp 24 --seq 36 --yaw-range 0 35 --crop 0.27 0.73 0.19 1.0 --out seq2/K01-swivel-pace-desktop

@@ -158,6 +158,12 @@ P_LIP_K = 1.0           # Pace: multiplier on the hole-lip card
 P_TOP_K = 1.0           # Pace: multiplier on the white hairline and top card
 P_SIDE_K = 1.0          # Pace: multiplier on the right-wall card
 P_CLAMP = 4.0           # Pace: indirect clamp (K08 CLAMP_IND, fireflies on the 12K face); 0 = off
+# Pace swivel (2026-10-29): the black face reads only by what it reflects, and turning it 35 deg swings its mirror
+# direction 70 deg off the sweep, gloss and weave cards (the old Pace swivel stopped at 24 deg as the face went dark).
+# The swivel turns those three cards with the racket by P_FOLLOW of its angle, so their reflection slides across the
+# face (the turn still reads) but never leaves it. 0 at the still (swivel 0), so frame 0 is the still exactly.
+P_FOLLOW = 0.0
+SWIVEL_FOLLOW = ("FaceSweep", "FaceGloss", "PaceWeave")
 GLOSSY_FLOOR = 0.15     # the floor's albedo as seen by glossy rays (see mat_studio)
 # ------------------------------------------------------------------ swivel (Release 3 hero scrub, 2026-10-23)
 # --yaw DEG turns the racket about its handle axis (world Z through the handle; the cap stays on its floor mark) by
@@ -207,6 +213,8 @@ def parse_args(argv, default_out):
             o["yaw"] = float(argv[i + 1]); i += 2
         elif a == "--seq":
             o["seq"] = int(argv[i + 1]); i += 2
+        elif a == "--only":
+            o["only"] = [int(v) for v in argv[i + 1].split(",")]; i += 2
         elif a == "--yaw-range":
             o["yaw_range"] = (float(argv[i + 1]), float(argv[i + 2])); i += 3
         else:
@@ -737,6 +745,15 @@ def swivel(sc, deg):
     (the racket stands on its butt cap there; C.pose's translation is along Z only). Lights stay where build() put them."""
     root = bpy.data.objects[sc["racket_root"]]
     root.matrix_world = Matrix.Rotation(math.radians(-SWIVEL_SIGN * deg), 4, "Z") @ _BASE[sc.name]
+    if FEEL == "pace" and P_FOLLOW:
+        if not any(k.startswith(sc.name + "/") for k in _BASE):
+            bpy.context.view_layer.update()      # the cards' matrix_world must be current before it is recorded
+        for name in SWIVEL_FOLLOW:
+            ob = bpy.data.objects.get(name)
+            if ob is None:
+                continue
+            base = _BASE.setdefault(sc.name + "/" + name, ob.matrix_world.copy())
+            ob.matrix_world = Matrix.Rotation(math.radians(-SWIVEL_SIGN * deg * P_FOLLOW), 4, "Z") @ base
     bpy.context.view_layer.update()
 
 
@@ -753,7 +770,8 @@ def render_seq(o, mode, shot):
     seq_dir = os.path.join(studio.OUT, o["out"])
     os.makedirs(seq_dir, exist_ok=True)
     yaws = [a + (b - a) * i / max(1, n - 1) for i in range(n)]
-    todo = [i for i in range(n) if not os.path.exists(os.path.join(seq_dir, "f%03d.png" % i))]
+    todo = [i for i in range(n) if not os.path.exists(os.path.join(seq_dir, "f%03d.png" % i))
+            and (not o.get("only") or i in o["only"])]
     print("seq %s: %d frames, yaw %.2f..%.2f, %d to render" % (o["out"], n, a, b, len(todo)), flush=True)
     if not todo:
         return
@@ -776,23 +794,43 @@ def render_seq(o, mode, shot):
     for v in VARIANTS.values():
         v["lg_rest"] = 1
     sc.cycles.use_denoising = False    # the Combined pass is not used: the comp denoises the two group passes
+    # One scene sync for the whole sequence: only the racket's transform changes between frames.
+    sc.render.use_persistent_data = True
     work = os.path.join(seq_dir, "_w")
+    # --crop x0 x1 y0 y1 (2026-10-29): frame 0 renders whole; every other frame renders only that region (Cycles
+    # border, the comp told the full frame) and is pasted into frame 0 with a feathered edge, so the frames on disk are
+    # whole and sequence.mjs crops them as before. The region must hold everything that moves, with margin.
+    crop = o.get("crop")
+    if crop and 0 not in todo and not os.path.exists(os.path.join(seq_dir, "f000.png")):
+        raise SystemExit("seq --crop: frame 0 must exist or be rendered first")
     for i in todo:
         t1 = time.time()
         swivel(sc, yaws[i])
         bb = racket_bbox(sc)
-        oi = dict(o, out=os.path.join(o["out"], "_w", "f%03d" % i), variants=["full"], gain=[])
+        fc = crop if (crop and i > 0) else None
+        sc.render.use_border = bool(fc)
+        sc.render.use_crop_to_border = bool(fc)
+        if fc:
+            x0, x1, y0, y1 = fc
+            sc.render.border_min_x, sc.render.border_max_x = x0, x1
+            sc.render.border_min_y, sc.render.border_max_y = 1 - y1, 1 - y0
+        oi = dict(o, out=os.path.join(o["out"], "_w", "f%03d" % i), variants=["full"], gain=[], crop=fc)
         od, stem = _dirs(oi)
         os.makedirs(od, exist_ok=True)
         setup_passes(sc, od, stem)
         studio.render(os.path.join(o["out"], "_w", "f%03d__all" % i))
         collect(od, stem)
-        meta = dict(w=o["w"], h=o["h"], spp=o["spp"], crop=None, mode=mode, shot=shot, frame=json.loads(sc["frame"]),
+        meta = dict(w=o["w"], h=o["h"], spp=o["spp"], crop=fc, mode=mode, shot=shot, frame=json.loads(sc["frame"]),
                     bbox=bb, set=o["set"], white=bool(sc["white"]), yaw=yaws[i], feel=FEEL)
         with open(os.path.join(od, stem + "_meta.json"), "w") as fh:
             json.dump(meta, fh)
         comp(oi, shot, sc=sc)
-        os.replace(os.path.join(work, "f%03d-full.png" % i), os.path.join(seq_dir, "f%03d.png" % i))
+        if fc:
+            K.paste_region(os.path.join(seq_dir, "f000.png"), os.path.join(work, "f%03d-full.png" % i), fc,
+                         os.path.join(seq_dir, "f%03d.png" % i))
+            os.remove(os.path.join(work, "f%03d-full.png" % i))
+        else:
+            os.replace(os.path.join(work, "f%03d-full.png" % i), os.path.join(seq_dir, "f%03d.png" % i))
         for f in os.listdir(od):
             if f.startswith(stem + "_") and f.endswith(".exr"):
                 os.remove(os.path.join(od, f))

@@ -649,7 +649,7 @@ def finish_png(raw_path, out_path, floor_hex=None, floor_band=0.0, full_frame=No
         hi = np.clip((lum - thr) / (1 - thr), 0, 1)[..., None] * disp
         from PIL import Image, ImageFilter
         hb = Image.fromarray(np.uint8(np.clip(hi, 0, 1) * 255))
-        r = max(1, int(rad * h))
+        r = max(1, int(rad * (full_frame[1] if full_frame else h)))   # a crop blooms as its whole frame
         hb = np.asarray(hb.filter(ImageFilter.GaussianBlur(r))).astype(np.float32) / 255
         disp = 1 - (1 - disp) * (1 - amt * hb)  # screen
     if floor_hex:
@@ -679,6 +679,62 @@ def finish_png(raw_path, out_path, floor_hex=None, floor_band=0.0, full_frame=No
     sc.view_settings.view_transform, sc.view_settings.look = vt, lk
     bpy.data.images.remove(img)
     bpy.data.images.remove(res)
+
+
+def _save16(A, W, H, out_png):
+    res = bpy.data.images.new("out16", W, H, alpha=True, float_buffer=True)
+    res.pixels.foreach_set(np.ascontiguousarray(A).ravel())
+    sc = bpy.context.scene
+    vt, lk = sc.view_settings.view_transform, sc.view_settings.look
+    sc.view_settings.view_transform = "Standard"
+    sc.view_settings.look = "None"
+    sc.render.image_settings.file_format = "PNG"
+    sc.render.image_settings.color_mode = "RGB"
+    sc.render.image_settings.color_depth = "16"
+    res.save_render(out_png, scene=sc)
+    sc.view_settings.view_transform, sc.view_settings.look = vt, lk
+    bpy.data.images.remove(res)
+
+
+def rotate_png(src_png, out_png):
+    """A 16-bit PNG turned 90 degrees counter-clockwise, kept at 16 bits (PIL would make it 8-bit)."""
+    im = bpy.data.images.load(src_png, check_existing=False)
+    W, H = im.size
+    A = np.empty(W * H * 4, np.float32); im.pixels.foreach_get(A)
+    bpy.data.images.remove(im)
+    A = A.reshape(H, W, 4)[::-1]                 # top-down
+    A = np.rot90(A, 1)[::-1]                     # counter-clockwise, back to bottom-up
+    _save16(A, H, W, out_png)
+
+
+def paste_region(base_png, region_png, crop, out_png, feather=24):
+    """Paste a border-rendered region (crop = x0 x1 y0 y1, fractions, top-left origin) into a whole frame, blending
+    over `feather` px at every edge that is inside the frame; writes a 16-bit PNG (as K.finish_png)."""
+    b = bpy.data.images.load(base_png, check_existing=False)
+    r = bpy.data.images.load(region_png, check_existing=False)
+    W, H = b.size
+    w, h = r.size
+    A = np.empty(W * H * 4, np.float32); b.pixels.foreach_get(A); A = A.reshape(H, W, 4)
+    R = np.empty(w * h * 4, np.float32); r.pixels.foreach_get(R); R = R.reshape(h, w, 4)
+    x0 = int(round(crop[0] * W)); yt = int(round(crop[2] * H))
+    yb = H - yt - h                      # Blender rows run bottom-up
+    def ramp(n, lo_in, hi_in):
+        t = np.ones(n, np.float32)
+        k = np.arange(n, dtype=np.float32)
+        if lo_in:
+            t = np.minimum(t, (k + 0.5) / feather)
+        if hi_in:
+            t = np.minimum(t, (n - k - 0.5) / feather)
+        t = np.clip(t, 0, 1)
+        return t * t * (3 - 2 * t)
+    wx = ramp(w, x0 > 0, x0 + w < W)
+    wy = ramp(h, yb > 0, yb + h < H)
+    m = (wy[:, None] * wx[None, :])[..., None]
+    A[yb:yb + h, x0:x0 + w, :3] = R[..., :3] * m + A[yb:yb + h, x0:x0 + w, :3] * (1 - m)
+    A[..., 3] = 1.0
+    bpy.data.images.remove(b)
+    bpy.data.images.remove(r)
+    _save16(A, W, H, out_png)
 
 
 def render_and_finish(sc, o, **finish_kw):

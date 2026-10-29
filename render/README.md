@@ -62,7 +62,17 @@ variants, `--feel pace`, `--both`, `--phone`, `--crops`); the last finals used:
 | K12 | `K12-sweet-spot.py --w 3200 --h 1800 --spp 160 --out final/K12-sweet-spot` |
 | K13 | `K13-layup.py --w 3200 --h 1800 --spp 128 --out final/K13-layup` |
 | K14 | `K14-edge.py --w 2560 --h 1440 --spp 64 --out final/K14-edge` (Pace: `--feel pace --out final/K14-edge-pace`; about 45 min each) |
-| K02 swivel | `K02-edge-line.py --w 1280 --h 720 --spp 24 --seq 30 --range 0 35 --phone --out seq/K02-swivel-command` (and `--feel pace ... seq/K02-swivel-pace`; one frame per lock with `--only i`, about 2.5 min a frame); then `node scripts/sequence.mjs $KQ_RENDER_OUT/out/seq K02-swivel-command-desktop K02-swivel-command-phone ... --frames=30` |
+| K02 swivel (2026-10-29) | `K02-edge-line.py --w 2560 --h 1440 --spp 32 --seq 60 --range 0 35 --phone --crop 0.09 0.92 0.20 0.86 --only <i> --out seq2/K02-swivel-command` (Pace: `--feel pace --seq 45`); about 75 s a frame alone, 3 min with another shot rendering. The masters repo keeps the 2560 frames only; the phone sequence is them turned 90 deg counter-clockwise (`k12_lib.rotate_png`, 16-bit) |
+| K01 swivel (2026-10-29) | portrait `K01-hero-frame.py --w 2160 --h 3840 --spp 24 --seq 36 --yaw-range 0 35 --crop 0.20 0.82 0.48 0.95 --out seq2/K01-swivel-command-phone`; desktop `K01-hero-beam.py --w 2560 --h 1440 --crop 0.27 0.73 0.19 1.0 ...`; Pace adds `--feel pace --set P_FOLLOW=0.85` (k01_lib: the face cards turn with the racket, so the black face stays lit to 35 deg). About 5 min a portrait frame, 2 min a desktop one. Take the lock per frame (`flock render.lock ... --only i`, a few seconds' pause between frames, frames on disk skipped), frame 0 and the last first, so other shots slip in between |
+
+Swivel sequences (`--seq`): frame 0 renders whole, the rest only inside `--crop` (a Cycles border region, about a third
+of the frame) and are pasted into frame 0 with a feathered edge (`k12_lib.paste_region`), with persistent data so the
+scene syncs once. The region must hold everything that moves: check the last frame against frame 0 (`sequence.mjs`
+reports the change crop; it must sit inside the region). Then `node scripts/sequence.mjs $KQ_RENDER_OUT/out/seq2 <names>`
+(frames counted from the folder; widths up to 1440 portrait and 2560 landscape). OIDN makes 16 to 24 spp read as
+48 at 100% on these shots (2026-10-29 comparison).
+| K15 | `K15-space.py --w 2560 --h 1440 --spp 64 --out final/K15-space` (`--feel pace --out final/K15-space-pace`; about 5 to 6 min each; writes `-base` and `-full`; re-grade from the EXR with `--comp final/K15-space.exr --out ...`, adding `--feel pace` for Pace) |
+| K16 | `K16-pair.py --mode drilled --w 1440 --h 1620 --spp 80 --out final/K16-drilled` and `--mode moulded ... --out final/K16-moulded` (about 12 and 14 min), then `K16-pair.py --combine final/K16-drilled final/K16-moulded --out final/K16-pair --gutter 0` (bpy reads the PNGs, no render). Command only so far |
 
 ## Export to the site
 ```sh
@@ -73,8 +83,10 @@ node scripts/stills.mjs $KQ_RENDER_OUT/masters [id ...]  # AVIF + WebP crops int
 ## Rules
 - **Commit scripts immediately.** Every change to a shot, library or note is committed as soon as it renders, never
   left only on disk. The previous kit lived only in a scratchpad and was lost with it.
-- **Masters are uploaded off-machine right after each final** (16-bit PNGs are not committed: public repo, size). The
-  uploader is being added; until then, do not delete a final until it is exported and backed up.
+- **Masters go off-machine right after each final:** copy the final PNG (plus EXR under 100 MB and the settings JSON)
+  to the private repo `evhg/kinetiq-masters` (`stills/<id>/`, swivel frames in `sequences/<name>/`) and push it the
+  same session. Never put masters in this public repo. To render or export elsewhere, clone that repo and point
+  `link-masters.sh`/`stills.mjs` at it.
 - Same racket in every image: build it with `shots/kq_canon.py` (see `notes/canon.md` and the CLAUDE.md canon rule).
 
 ## Recovery status (2026-10-28)

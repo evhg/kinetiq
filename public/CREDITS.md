@@ -12,7 +12,7 @@ Nothing is added to the repo without an entry here.
 ## Images and graphics
 | File | Source | Licence | Notes |
 | --- | --- | --- | --- |
-| Product stills (`public/stills/K01` to `K12`, with `K03b` and the `og.jpg` crop, AVIF and WebP) | Rendered for this repo in Blender 4.2 Cycles from a procedural model of `src/lib/racket-shape.ts`; procedural carbon weave textures generated in code | Owned by KINETIQ | 16-bit masters are kept outside the repo and exported with `scripts/stills.mjs` |
+| Product stills (`public/stills/K01` to `K15`, with `K03b` and the `og.jpg` crop, AVIF and WebP; K15's planet, atmosphere and stars are composited in code by `render/shots/K15-space.py`) | Rendered for this repo in Blender 4.2 Cycles from a procedural model of `src/lib/racket-shape.ts`; procedural carbon weave textures generated in code | Owned by KINETIQ | 16-bit masters are kept outside the repo and exported with `scripts/stills.mjs` |
 | Data graphics G01 to G15 (`src/components/graphics/`) | Drawn in code (SVG and canvas) for this repo | Owned by KINETIQ | Values marked "Illustrative" are not yet measured. |
 | Swiss cross (Born whole lockup, badges, measurement card) | Drawn in code (national emblem geometry) | Public symbol; commercial use is governed by the Swiss Coat of Arms Protection Act | |
 | Weave swatches on /reserve | Drawn in code (SVG patterns) | Owned by KINETIQ | |

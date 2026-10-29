@@ -248,6 +248,12 @@ export const holes = {
     { value: "0", label: "fibres cut" },
   ],
   pair: { drilled: "Drilled: every fibre at the bore is cut.", moulded: "Moulded: every fibre flows around it." },
+  /** K16, the rendered pair above G06 (owner, 2026-10-29): the same white twill, drilled against moulded. Its alt text
+   * says only what the Holes copy says (drilling cuts the fibres and opens the core; moulding wraps them). */
+  render: {
+    drilled: { label: "Drilled", alt: "A drilled hole in white carbon: the woven fibres stop dead at a chipped edge, and the core shows in its wall." },
+    moulded: { label: "Moulded", alt: "A moulded hole in the same white carbon: the woven fibres flow around the hole and wrap smooth over its edge." },
+  },
 };
 
 // Durability (CLAIMS.md rows 26 to 28, 34, 8b and 9b). The owner's "first of its kind" (row 28) names its category
