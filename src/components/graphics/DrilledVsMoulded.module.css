@@ -255,3 +255,45 @@
     --u: calc(75cqw / 700);
   }
 }
+
+/* ---------- the scroll light (motion only; DrilledVsMoulded.tsx "The scroll light") ---------- */
+.sheen {
+  visibility: hidden;
+  opacity: 0;
+}
+.sheen path {
+  stroke-linecap: round;
+}
+.cometTail path,
+.cometCore path {
+  stroke-width: calc(var(--hair) * var(--w));
+}
+.cometTail {
+  opacity: var(--o);
+}
+.cometCore {
+  opacity: var(--o);
+}
+.sheenAmber .cometTail {
+  stroke: var(--amber);
+}
+.sheenAmber .cometCore {
+  stroke: var(--amber-hot);
+}
+.sheenSteel {
+  --dim: 1;
+}
+.sheenSteel .cometTail {
+  stroke: var(--steel);
+  opacity: calc(var(--o) * var(--dim));
+}
+.sheenSteel .cometCore {
+  stroke: var(--text);
+  opacity: calc(var(--o) * var(--dim));
+}
+/* the moulded bore's lip catching the light as the front wraps round it (opacity scrubbed; 0 at rest) */
+.svg .sheenLip {
+  stroke: var(--amber-hot);
+  stroke-width: calc(var(--hair) * 2.2);
+  opacity: 0;
+}

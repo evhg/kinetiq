@@ -99,6 +99,13 @@ DEFAULTS.update(
     SUN_PA=118.0, AT_GLOW=0.15, AT_GW=0.05, AT_LINE=0.6, AT_LW=0.0025, CR_W=0.04, CR_K=1.5,
     ST_N=420, ST_MAX=1.2, PL_NIGHT=0.015, PL_NW=0.25, CR=0.15,
 )
+# v2 framing (2026-10-29, out/k15/p21, p22, c5): pulled back so the planet reads: its limb a wide arc across the upper
+# frame (sunward side upper left), the crown's rim a second, tighter arc below it, the lit face lower right; the planet
+# body a dark graphite (fill rule), and a dim sun in the base pass so the cross-fade starts from a lit edge, not black.
+DEFAULTS.update(
+    FW=0.14, SHIFT_Y=-0.01, PL_U=0.894, PL_V=1.396, PL_R=1.4, SUN_PA=128.0, PL_BODY=0.009, PL_NIGHT=0.03, HZ=0.02,
+    SUN_BASE=0.2, SUN_SPOT=5.5,
+)
 # Pace: black 12K shows its tapes only near the coat's mirror direction (canon Pace v6): as K14-pace, a wide graded
 # neutral panel a little below the mirror band, its soft edge across the face.
 PACE_SET = dict(GLOSS_W=0.5, GLOSS=6.0, GLOSS_DEL=-8.0, GLOSS_E0=-1.0, GLOSS_E1=0.6, GLOSS_WARM=0.15)
@@ -381,7 +388,8 @@ def make_bg(stem, w, h, p, variant):
     inside = (d < 0)[..., None]
     img = np.where(inside, 0.0, img)
     body = p["PL_BODY"] + p["PL_NIGHT"] * lvl * np.exp(np.minimum(d, 0) / (p["PL_NW"] * R))
-    img += np.where(inside, body[..., None] * col * 0.8 + p["PL_BODY"] * 0.2, 0.0)
+    graphite = np.array([0.80, 0.80, 0.84])
+    img += np.where(inside, body[..., None] * (graphite * 0.75 + col * 0.25), 0.0)
     # the day side: a thin crescent inside the sunward limb, narrowing away from the sun
     cw = p["CR_W"] * R * np.maximum(sunw, 1e-3) ** p["CR_K"]
     cres = p["CR"] * np.exp(np.minimum(d, 0) / cw) * sunw * (d < 0)

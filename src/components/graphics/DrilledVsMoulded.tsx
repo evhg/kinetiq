@@ -37,6 +37,44 @@ const M = moulded();
 const ELBOW_Y = 112;
 const LEAD = { drilled: D.target, moulded: M.target };
 
+/**
+ * The scroll light (owner, 2026-10-29: "add some lighting animation in the unbroken fibre image as user scrolls past
+ * it"). A soft comet of light runs left to right along the fibres as each plate scrolls through: on the moulded plate
+ * it follows the inner streamlines round the bore and on out the other side (and the bore's lip catches it as it
+ * passes); on the drilled plate a dimmer one runs along the same tows and dies at the cut. Each comet is three dashes
+ * of one stroke-dasharray (wide and faint, middle, a bright core), their heads aligned, set on group elements so a
+ * frame writes six inherited stroke-dashoffsets, never the paths. Path lengths are normalised so 1 unit is the plate's
+ * width on both sides (pathLength), so the two fronts stand at the same x. Hidden on the server render and with reduced
+ * motion: the finished drawing is the static state.
+ */
+const SHEEN_RANK = 0.42;
+const COMET = [
+  { L: 0.34, w: 3.8, o: 0.07 },
+  { L: 0.21, w: 3.0, o: 0.1 },
+  { L: 0.13, w: 2.3, o: 0.16 },
+  { L: 0.075, w: 1.7, o: 0.28 },
+  { L: 0.035, w: 1.25, o: 0.9 },
+] as const;
+/** The lines nearest the bore run ahead (a shorter pathLength moves the dash faster), so the front bows round the
+ * hole instead of crossing the plate as a straight block. */
+const LEAD_K = 0.16;
+const pace = (rank: number) => 1 - LEAD_K * (1 - rank / SHEEN_RANK);
+/** Where the comet heads start and end (plate widths): before the plate, and past it with the tail too. */
+const SHEEN_FROM = -0.02;
+const SHEEN_TO = 1 + COMET[0].L + 0.04;
+const MAX_ABS = (PLATE.h - 28) / 2;
+const mouldedSheen = M.lines
+  .filter((l) => l.rank < SHEEN_RANK)
+  .map((l) => ({ d: l.d, len: pace(l.rank), o: 1 - 0.75 * (l.rank / SHEEN_RANK) }));
+const drilledSheen = D.lines.flatMap((l) => {
+  const m = /^M0 (-?[\d.]+)H(-?[\d.]+)/.exec(l.d);
+  if (!m) return [];
+  const rank = Math.abs(Number(m[1]) - CY) / MAX_ABS;
+  if (rank >= SHEEN_RANK) return [];
+  // Only up to the cut: the light never crosses the bore.
+  return [{ d: `M0 ${m[1]}H${m[2]}`, len: (Number(m[2]) / W) * pace(rank), o: 1 - 0.75 * (rank / SHEEN_RANK) }];
+});
+
 /** Opacity for inline styles, rounded so server and client markup match exactly (Math.pow and
  * friends may differ in the last bit between Node and the browser). */
 const op = (v: number) => String(Math.round(v * 1000) / 1000);
@@ -94,6 +132,36 @@ export function DrilledVsMoulded({ className, callouts = true }: Props) {
           .to(ticks, { opacity: 1, duration: 0.2, ease: "power2.out", stagger: { each: 0.018, from: "random" } }, ">-0.35")
           .to(loose, { opacity: 1, duration: 0.3, ease: "power2.out" }, "<0.2")
           .to(notes, { opacity: 1, duration: 0.5, ease: "power3.out", stagger: 0.08 }, ">-0.1");
+
+        // The scroll light: one scrubbed timeline per plate (the plates stack on phones), its comet heads crossing
+        // from the plate's left edge to past its right as the plate runs from 85% to 15% of the screen.
+        q("[data-sheen]").forEach((sheen) => {
+          const plate = sheen.closest(`.${styles.plate}`);
+          gsap.set(sheen, { autoAlpha: 1 });
+          const st = gsap.timeline({
+            defaults: { ease: "none" },
+            scrollTrigger: { trigger: plate, start: "top 85%", end: "bottom 15%", scrub: 0.6 },
+          });
+          sheen.querySelectorAll<SVGGElement>("[data-comet]").forEach((g) => {
+            const L = Number(g.dataset.comet);
+            st.fromTo(
+              g,
+              { attr: { "stroke-dashoffset": L - SHEEN_FROM } },
+              { attr: { "stroke-dashoffset": L - SHEEN_TO }, duration: 1 },
+              0,
+            );
+          });
+          // The moulded bore's lip catches the light as the front wraps round it, and keeps a little of it.
+          const lip = plate?.querySelector("[data-lip]");
+          if (lip) {
+            const at = (x: number) => (x - SHEEN_FROM) / (SHEEN_TO - SHEEN_FROM);
+            st.fromTo(lip, { opacity: 0 }, { opacity: 1, duration: at(0.55) - at(0.3) }, at(0.3)).to(
+              lip,
+              { opacity: 0.3, duration: at(0.85) - at(0.55) },
+              ">",
+            );
+          }
+        });
       });
       return () => mm.revert();
     },
@@ -117,6 +185,7 @@ export function DrilledVsMoulded({ className, callouts = true }: Props) {
               {D.lines.map((l, i) => (
                 <path key={i} d={l.d} className={styles.tow} stroke={`url(#${uid}-ds)`} style={{ strokeOpacity: op(l.o) }} />
               ))}
+              <Sheen lines={drilledSheen} tone="steel" />
               <path d={D.rim} className={styles.boreFill} />
               {D.walls.map((wl, i) => (
                 <path key={i} d={wl.d} className={styles.dWall} style={{ strokeOpacity: op(wl.o) }} />
@@ -175,11 +244,13 @@ export function DrilledVsMoulded({ className, callouts = true }: Props) {
                   data-order={l.order}
                 />
               ))}
+              <Sheen lines={mouldedSheen} tone="amber" />
               <circle cx={CX} cy={CY} r={R} className={styles.boreFill} />
               <circle cx={CX} cy={CY} r={R} fill={`url(#${uid}-bore)`} />
               {M.walls.map((wl, i) => (
                 <circle key={i} cx={CX} cy={CY} r={wl.r} className={i === 0 ? styles.mRim : styles.mWall} style={i === 0 ? undefined : { strokeOpacity: op(wl.o) }} data-wall />
               ))}
+              <circle cx={CX} cy={CY} r={R} className={styles.sheenLip} data-lip />
               <Crosshair />
               {callouts ? <Leader to={ml} /> : null}
             </svg>
@@ -193,6 +264,28 @@ export function DrilledVsMoulded({ className, callouts = true }: Props) {
       </div>
       <figcaption className="visually-hidden">{LABELS.summary}</figcaption>
     </figure>
+  );
+}
+
+/** The comet layers for one plate (see COMET). Hidden until the scroll light runs (motion only). */
+function Sheen({ lines, tone }: { lines: { d: string; len: number; o: number }[]; tone: "amber" | "steel" }) {
+  return (
+    <g className={`${styles.sheen} ${tone === "amber" ? styles.sheenAmber : styles.sheenSteel}`} data-sheen>
+      {COMET.map((c, k) => (
+        <g
+          key={k}
+          data-comet={c.L}
+          className={k === COMET.length - 1 ? styles.cometCore : styles.cometTail}
+          strokeDasharray={`${c.L} 3`}
+          strokeDashoffset={c.L - SHEEN_FROM}
+          style={{ "--w": String(c.w), "--o": String(c.o) } as CSSProperties}
+        >
+          {lines.map((l, i) => (
+            <path key={i} d={l.d} pathLength={l.len} style={{ strokeOpacity: op(l.o) }} />
+          ))}
+        </g>
+      ))}
+    </g>
   );
 }
 
