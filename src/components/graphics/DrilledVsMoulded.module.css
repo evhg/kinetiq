@@ -294,6 +294,7 @@
 /* the moulded bore's lip catching the light as the front wraps round it (opacity scrubbed; 0 at rest) */
 .svg .sheenLip {
   stroke: var(--amber-hot);
-  stroke-width: calc(var(--hair) * 2.2);
+  stroke-width: calc(var(--hair) * 2.6);
   opacity: 0;
+  filter: drop-shadow(0 0 6px rgb(227 164 103 / 0.8));
 }

@@ -59,3 +59,6 @@ l K15-space-full.png K15-full
 l K15-space-pace-base.png K15-base-pace
 l K15-space-pace-full.png K15-full-pace
 true
+l K16-pair-base.png K16-base
+l K16-pair-full.png K16-full
+true

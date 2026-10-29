@@ -49,11 +49,12 @@ const LEAD = { drilled: D.target, moulded: M.target };
  */
 const SHEEN_RANK = 0.42;
 const COMET = [
-  { L: 0.34, w: 3.8, o: 0.07 },
+  { L: 0.62, w: 5.0, o: 0.045 },
+  { L: 0.34, w: 3.8, o: 0.08 },
   { L: 0.21, w: 3.0, o: 0.1 },
   { L: 0.13, w: 2.3, o: 0.16 },
   { L: 0.075, w: 1.7, o: 0.28 },
-  { L: 0.035, w: 1.25, o: 0.9 },
+  { L: 0.035, w: 1.4, o: 1 },
 ] as const;
 /** The lines nearest the bore run ahead (a shorter pathLength moves the dash faster), so the front bows round the
  * hole instead of crossing the plate as a straight block. */
