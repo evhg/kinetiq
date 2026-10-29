@@ -1,35 +1,52 @@
-import { CarbonLayup } from "@/components/graphics/CarbonLayup";
-import { Still, hasStill } from "@/components/media/Still";
+"use client";
+
+import { Still } from "@/components/media/Still";
 import { spaceGrade } from "@/content/copy";
 import { Reveal } from "./Reveal";
+import { Scrub } from "./Scrub";
 import styles from "./SpaceGrade.module.css";
 
-/** K13, the carbon layup up close, once the render team's still is exported; until then G16 carries the section. */
-const K13 = hasStill("K13");
-
 /**
- * Space-grade carbon (owner, 2026-10-23), the opening of Prove it: what the racket is made of, before the mould that
- * makes it (Born whole). K13 full bleed as the chapter's photograph when it exists; the copy beside G16 (standard
- * carbon against ours, cut through and magnified), then three points. Reads whole without K13. Not pinned.
+ * Space-grade carbon (owner, 2026-10-23), right after Unibody: what the racket is made of, before the mould that makes
+ * it (Born whole). Owner, 2026-10-29: "rather show a piece of great looking carbon in a space setting", so K15 carries
+ * the section, full bleed above the words: the racket's crown in white 3K twill (black 12K in Pace) floating over a
+ * planet's limb. Two passes of one render: K15-base (before sunrise: the limb's glow on the edge) and K15-full (the sun
+ * on the weave). As the section scrolls in, the sun comes up: the lit pass fades in over the base and the frame settles
+ * (scale 1.06 to 1). Server render and reduced motion: the lit pass, at rest. G16 (CarbonLayup) lives on in /lab/g16.
+ * Not pinned.
  */
 export function SpaceGrade() {
   return (
-    <section id="space-grade" tabIndex={-1} className={styles.section} aria-labelledby="space-grade-title">
-      {K13 ? (
-        <div className={styles.band} aria-hidden="true">
-          <Still id="K13" phoneCrop="card" alt="" sizes="100vw" className={styles.still} />
+    <Scrub
+      id="space-grade"
+      aria-labelledby="space-grade-title"
+      className={styles.section}
+      start="top 92%"
+      end="top 12%"
+      build={(tl) => {
+        tl.fromTo(`.${styles.media}`, { scale: 1.06 }, { scale: 1, duration: 1 }, 0).fromTo(
+          `.${styles.sun}`,
+          { opacity: 0 },
+          { opacity: 1, duration: 0.7, ease: "power1.inOut" },
+          0.15,
+        );
+      }}
+    >
+      <div className={styles.band} aria-hidden="true">
+        <div className={styles.media}>
+          <Still id="K15-base" phoneCrop="card" alt="" sizes="100vw" className={styles.layer} />
+          <Still id="K15-full" phoneCrop="card" alt="" sizes="100vw" className={`${styles.layer} ${styles.sun}`} />
         </div>
-      ) : null}
+      </div>
       <div className={styles.grid}>
         <Reveal className={styles.head}>
           <p className="t-eyebrow">{spaceGrade.eyebrow}</p>
           <h2 id="space-grade-title" className="t-h2">
             {spaceGrade.headline}
           </h2>
-          <p className="t-lead">{spaceGrade.lead}</p>
         </Reveal>
-        <Reveal className={styles.graph} y={12}>
-          <CarbonLayup />
+        <Reveal className={styles.lead} y={12}>
+          <p className="t-lead">{spaceGrade.lead}</p>
         </Reveal>
       </div>
       <Reveal as="ul" className={`pool ${styles.points}`}>
@@ -40,6 +57,6 @@ export function SpaceGrade() {
           </li>
         ))}
       </Reveal>
-    </section>
+    </Scrub>
   );
 }
