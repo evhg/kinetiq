@@ -272,6 +272,8 @@ def build(o, p):
         return (h * math.cos(e) + z * math.sin(e)).normalized()
 
     head = [parts[k] for k in ("face", "rim", "wall", "holes", "back", "throat", "bridgewall") if k in parts]
+    # the sun reaches into the bores on purpose: their white carbon lining reads, lit on one side, shaded on the other
+    # (the v2 test with the bores excluded, as K14, turned every hole into a flat black void)
     # sun: a sun lamp; its direction is where the light comes FROM
     sdir = dirv(p["SUN_AZ"], p["SUN_EL"])
     if p["SUN"] > 0 and p["SUN_SPOT"] > 0:
