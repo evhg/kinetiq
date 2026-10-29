@@ -113,3 +113,12 @@ any more. How to switch, part names, lighting notes: `../renders4/canon.md`. Pro
 - Lessons: a planet drawn as a thin limb line alone reads as a line, not a planet: it needs the body a shade above
   black, the glow outside and a crescent. A 0.5 m panel greys the whole Pace face; 0.15 m draws pillowy tiles.
   Excluding the bores from the sun (as K14) turned the holes into flat black voids: the sun reaches them here.
+
+## K16 drilled against moulded (2026-10-29)
+- `shots/K16-pair.py` runs K04's own scene twice with one camera and rig, centred on the hero hole (K04's copy-side
+  shift, gobo, flag and burn off: K16_DEFAULTS). `--mode drilled` installs `shots/k16_drilled.py`: straight holes with
+  chipped edges, the canon twill on planar coordinates (K04's white_sleeve source re-coordinated), a crazed resin band,
+  fibre stubs (curves), and a wall of cut plies over a bond line and an EVA core; no bore glow. `--combine` pastes
+  drilled base | moulded base/full (png16.py: 16-bit in through bpy, out through zlib).
+- Lessons: a light foam wall reads as a closed cup: the core darkens to graphite by 3.5 mm. The crazed band must be
+  1.4 mm wide to show at this framing. Pace needs a planar 12K face for the drilled half (not built).
