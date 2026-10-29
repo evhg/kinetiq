@@ -54,3 +54,11 @@ l K13-layup.png K13
 l K11-pair-pace.png K11-command-pace
 l K14-edge.png K14
 l K14-edge-pace.png K14-pace
+l K15-space-base.png K15-base
+l K15-space-full.png K15-full
+l K15-space-pace-base.png K15-base-pace
+l K15-space-pace-full.png K15-full-pace
+true
+l K16-pair-base.png K16-base
+l K16-pair-full.png K16-full
+true

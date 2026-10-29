@@ -7,6 +7,7 @@ import { useMotion } from "@/components/motion/MotionProvider";
 import { PinnedChapter } from "@/components/motion/PinnedChapter";
 import { holes } from "@/content/copy";
 import { gsap, useGSAP } from "@/lib/gsap";
+import { HolesRender } from "./HolesRender";
 import { Reveal } from "./Reveal";
 import styles from "./Holes.module.css";
 
@@ -18,8 +19,8 @@ const FLOW = "(max-width: 899px) and (prefers-reduced-motion: no-preference)";
  * 900 px for 1.4 screens: K04 fills the screen alone, close on the lit hole, and slowly draws back while the ring of
  * light around the bore comes up; only then the shade and the words arrive over its left side, and the screen holds.
  * Phones and tablets: K04 large (its whole card crop at the full width on phones), settling as it scrolls through,
- * then the words. Then drilled against moulded (G06). The sealed core follows (SealedCore.tsx): the lined holes are
- * what keep the core closed. Reduced motion and the server render: the final state, every word visible.
+ * then the words. Then drilled against moulded, rendered (K16, owner 2026-10-29), then drawn (G06). The sealed core
+ * follows (SealedCore.tsx): the lined holes are what keep the core closed. Reduced motion and the server render: the final state, every word visible.
  */
 export function Holes() {
   const flow = useRef<HTMLDivElement>(null);
@@ -89,6 +90,8 @@ export function Holes() {
         </div>
       </PinnedChapter>
       <section id="holes-pair" tabIndex={-1} className={`lift ${styles.pair}`} aria-label="Drilled holes compared with moulded holes">
+        {/* The rendered pair (K16, the "wow"), then the drawing that explains it (G06). */}
+        <HolesRender />
         <DrilledVsMoulded />
       </section>
     </>

@@ -1,5 +1,5 @@
-/* Space-grade carbon: the graphite floor, from the Unibody chapter's graphite (since 2026-10-28), with the G10 lift behind G16 (fill rule: the drawing's
-   fibres and the lift keep well over 8% of the screen at luma 40 or more). Ends on --stage, Born whole's first colour. */
+/* Space-grade carbon: K15 (the racket's crown over a planet's limb) feathers into the graphite floor; the lift behind
+   the words keeps the fill rule where the image has scrolled away. Ends on --stage, Born whole's first colour. */
 .section {
   position: relative;
   display: grid;
@@ -12,38 +12,78 @@
     radial-gradient(ellipse 90% 70% at 40% 60%, rgb(34 34 39 / 0.55), transparent 80%),
     var(--stage);
 }
-/* K13, full bleed above the words, feathered into the floor at both ends. */
+/* K15, full bleed above the words, feathered into the floor at both ends: 16:9 at the screen's width (at most 86svh,
+   cropped about the racket's crown), the 4:5 card crop on phones. The band clips the scrubbed settle of .media, so the
+   scale never moves a feathered edge into view. */
 .band {
+  position: relative;
+  overflow: hidden;
   margin: calc(-1 * clamp(96px, 7vw, 200px)) calc(-1 * var(--margin)) 0;
-  -webkit-mask-image: linear-gradient(transparent, #000 14%, #000 80%, transparent);
-  mask-image: linear-gradient(transparent, #000 14%, #000 80%, transparent);
+  -webkit-mask-image: linear-gradient(transparent, #000 16%, #000 78%, transparent);
+  mask-image: linear-gradient(transparent, #000 16%, #000 78%, transparent);
 }
-.still img {
+.media {
+  position: relative;
+  height: min(56.25vw, 86svh);
+  transform-origin: 62% 62%;
+}
+.layer {
+  position: absolute;
+  inset: 0;
+}
+.layer img {
   width: 100%;
-  height: auto;
-  max-height: 86svh;
+  height: 100%;
   object-fit: cover;
+  object-position: 50% 62%;
+}
+/* The lit pass (K15-full): the scrub brings the sun up from 0 (SpaceGrade.tsx); at rest and with reduced motion it
+   shows at full strength. */
+.sun {
+  opacity: 1;
+}
+/* Phones: the 4:5 card crop; a shorter feather at the top, so the planet's limb still shows above the crown. */
+@media (max-width: 699px) {
+  .band {
+    -webkit-mask-image: linear-gradient(transparent, #000 7%, #000 80%, transparent);
+    mask-image: linear-gradient(transparent, #000 7%, #000 80%, transparent);
+  }
+  .media {
+    height: auto;
+    aspect-ratio: 4 / 5;
+  }
 }
 .grid {
   display: grid;
-  gap: clamp(40px, 4vw, 96px);
-  align-items: center;
+  gap: clamp(14px, 1vw + 6px, 28px);
+  align-items: end;
+  margin-top: calc(-1 * clamp(24px, 6vw, 140px));
+  position: relative;
 }
 .head {
   display: grid;
   gap: clamp(14px, 1vw + 6px, 28px);
-  align-content: center;
+  align-content: end;
 }
 .head :global(.t-h2) {
   max-width: 14ch;
   text-wrap: balance;
 }
-.head :global(.t-lead) {
-  max-width: 40ch;
+.lead :global(.t-lead) {
+  max-width: 44ch;
   text-wrap: pretty;
 }
-.graph {
-  min-width: 0;
+@media (min-width: 1000px) {
+  .grid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+  }
+  .head {
+    grid-column: 1 / span 6;
+  }
+  .lead {
+    grid-column: 7 / span 6;
+  }
 }
 .points {
   display: grid;
@@ -58,18 +98,6 @@
 }
 .point :global(.t-h3) {
   text-wrap: balance;
-}
-@media (min-width: 1000px) {
-  .grid {
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    column-gap: var(--gutter);
-  }
-  .head {
-    grid-column: 1 / span 5;
-  }
-  .graph {
-    grid-column: 6 / span 7;
-  }
 }
 /* Three points across from 900 px, each a title row and a body row (subgrid), so the bodies share one top line. */
 @media (min-width: 900px) {
