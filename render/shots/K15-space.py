@@ -78,7 +78,7 @@ DEFAULTS = dict(
     # stars
     ST_N=260, ST_SEED=7, ST_MAX=0.5, ST_SIGMA=0.55,
     # haze: a soft warm wash in frame space toward the sun's side (linear, behind everything)
-    HZ=0.010, HZ_U=1.0, HZ_V=0.0, HZ_R=0.9,
+    HZ=0.010, HZ_U=1.0, HZ_V=0.0, HZ_R=0.9, HZ_BASE=0.0,
     # gloss: a warm band card in the coat's mirror direction (the atmosphere seen in the lacquer)
     GLOSS=6.0, GLOSS_D=0.6, GLOSS_W=0.25, GLOSS_LEN=1.2, GLOSS_DEL=2.0, GLOSS_AZ=0.0, GLOSS_E0=-1.0, GLOSS_E1=-0.5,
     GLOSS_WARM=1.0,                      # 1 = the atmosphere's amber, 0 = neutral white
@@ -108,7 +108,12 @@ DEFAULTS.update(
 )
 # Pace: black 12K shows its tapes only near the coat's mirror direction (canon Pace v6): as K14-pace, a wide graded
 # neutral panel a little below the mirror band, its soft edge across the face.
-PACE_SET = dict(GLOSS_W=0.5, GLOSS=6.0, GLOSS_DEL=-8.0, GLOSS_E0=-1.0, GLOSS_E1=0.6, GLOSS_WARM=0.15)
+# v2 (out/k15/p25; p18 at K14's 0.5 m / strength 6 greyed the whole face, p27 at 0.15 m drew pillowy tiles): a 0.3 m panel
+# 6 deg below the mirror band, its edge softened to 0.2, so the lacquer carries one graded sheen near the rim with the
+# 12K tapes in it, and the face falls to black below. Base pass: the sheen at 0.35 (the sun barely lights black).
+# Fill rule (the base pass shows alone as the section enters): the limb, the haze and the sheen stay up in Pace's base.
+PACE_SET = dict(GLOSS_W=0.3, GLOSS=3.0, GLOSS_DEL=-6.0, GLOSS_E0=-1.0, GLOSS_E1=0.2, GLOSS_WARM=0.15, GLOSS_BASE=0.6,
+                SUN_BASE=0.4, AT_BASE=0.9, HZ_BASE=1.0, PL_BODY=0.015)
 
 
 def parse_args():
@@ -399,10 +404,11 @@ def make_bg(stem, w, h, p, variant):
     line = p["AT_LINE"] * np.exp(-(d / p["AT_LW"]) ** 2)
     glow = p["AT_GLOW"] * np.exp(-np.maximum(d, 0) / p["AT_GW"]) * (d > -p["AT_LW"])
     img += ((line + glow) * lvl * lev)[..., None] * col
-    if variant == "full":
+    hz_k = 1.0 if variant == "full" else p["HZ_BASE"]
+    if hz_k > 0:
         vv = yy
         r2 = ((xx - p["HZ_U"]) ** 2 + (vv - p["HZ_V"]) ** 2) / max(p["HZ_R"], 1e-3) ** 2
-        img += (p["HZ"] * np.exp(-r2 * 2.0))[..., None] * np.array([1.0, 0.78, 0.6])[None, None, :]
+        img += (hz_k * p["HZ"] * np.exp(-r2 * 2.0))[..., None] * np.array([1.0, 0.78, 0.6])[None, None, :]
     if p["BG_BLUR"] > 0:
         sg = p["BG_BLUR"] * s
         r = int(math.ceil(sg * 3))
