@@ -73,8 +73,10 @@ node scripts/stills.mjs $KQ_RENDER_OUT/masters [id ...]  # AVIF + WebP crops int
 ## Rules
 - **Commit scripts immediately.** Every change to a shot, library or note is committed as soon as it renders, never
   left only on disk. The previous kit lived only in a scratchpad and was lost with it.
-- **Masters are uploaded off-machine right after each final** (16-bit PNGs are not committed: public repo, size). The
-  uploader is being added; until then, do not delete a final until it is exported and backed up.
+- **Masters go off-machine right after each final:** copy the final PNG (plus EXR under 100 MB and the settings JSON)
+  to the private repo `evhg/kinetiq-masters` (`stills/<id>/`, swivel frames in `sequences/<name>/`) and push it the
+  same session. Never put masters in this public repo. To render or export elsewhere, clone that repo and point
+  `link-masters.sh`/`stills.mjs` at it.
 - Same racket in every image: build it with `shots/kq_canon.py` (see `notes/canon.md` and the CLAUDE.md canon rule).
 
 ## Recovery status (2026-10-28)
