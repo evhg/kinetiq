@@ -95,6 +95,10 @@ function dropDecoded(k: string) {
   decodedBytes -= d.bytes;
   decoded.delete(k);
 }
+/** Every decoded frame of one sequence (its downloaded frames stay, so it decodes again in a moment). */
+function dropSequence(s: Seq) {
+  for (let i = 0; i < s.blobs.length; i++) dropDecoded(decodedKey(s, i));
+}
 function evict(keep: Set<string>) {
   if (decodedBytes <= decodeBudget()) return;
   const order = [...decoded.entries()].filter(([k]) => !keep.has(k)).sort((a, b) => a[1].used - b[1].used);
@@ -245,7 +249,8 @@ function decodedFrame(s: Seq, i: number, now: number): Frame | null {
   decodeBlob(blob).then(
     ({ frame, url }) => {
       s.decoding.delete(i);
-      if (s.failed || cache.get(s.key) !== s) {
+      // Released, or no swivel draws this sequence any more (unmounted, or scrolled far away): keep nothing decoded.
+      if (s.failed || cache.get(s.key) !== s || !s.onChange.size) {
         if ("close" in frame) frame.close();
         if (url) URL.revokeObjectURL(url);
         return;
@@ -550,6 +555,17 @@ export function Swivel({ ref, sequence, portraitQuery, media, lead, className }:
             { rootMargin: `${Math.round(lead * 100)}% 0px` },
           );
     nearby?.observe(box);
+    // Memory (2026-10-29): once the still is a screen or more out of view, its decoded frames go (the canvas keeps the
+    // picture it holds, and the compressed frames stay), so an iPhone scrolling on through the page's large stills
+    // never carries up to the whole decode budget of bitmaps it is not drawing. Coming back decodes around the frame
+    // on screen again; until then the canvas shows what it last drew.
+    const away = new IntersectionObserver(
+      (entries) => {
+        if (!entries[entries.length - 1].isIntersecting && seq) dropSequence(seq);
+      },
+      { rootMargin: "100% 0px" },
+    );
+    away.observe(box);
 
     const resize = new ResizeObserver(() => {
       // A size that needs another export (a turned iPad, a window made larger) loads that one; a smaller one keeps
@@ -574,13 +590,15 @@ export function Swivel({ ref, sequence, portraitQuery, media, lead, className }:
       window.clearTimeout(fallback);
       still?.removeEventListener("load", afterStill);
       nearby?.disconnect();
+      away.disconnect();
       resize.disconnect();
       portrait.removeEventListener("change", pick);
       playing?.removeEventListener("change", pick);
       redraw.current = () => {};
-      // The frames stay decoded for Back (a half-loaded sequence resumes where it stopped); a change of feel releases
-      // them once the other feel's sequence is picked.
+      // The downloaded frames stay for Back (a half-loaded sequence resumes where it stopped), but none stays decoded:
+      // /reserve's gallery gets the memory. A change of feel releases them once the other feel's sequence is picked.
       seq?.onChange.delete(schedule);
+      if (seq && !seq.onChange.size) dropSequence(seq);
       show(false);
     };
   }, [motionOn, feel, sequence, portraitQuery, media, lead]);
