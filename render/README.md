@@ -62,7 +62,15 @@ variants, `--feel pace`, `--both`, `--phone`, `--crops`); the last finals used:
 | K12 | `K12-sweet-spot.py --w 3200 --h 1800 --spp 160 --out final/K12-sweet-spot` |
 | K13 | `K13-layup.py --w 3200 --h 1800 --spp 128 --out final/K13-layup` |
 | K14 | `K14-edge.py --w 2560 --h 1440 --spp 64 --out final/K14-edge` (Pace: `--feel pace --out final/K14-edge-pace`; about 45 min each) |
-| K02 swivel | `K02-edge-line.py --w 1280 --h 720 --spp 24 --seq 30 --range 0 35 --phone --out seq/K02-swivel-command` (and `--feel pace ... seq/K02-swivel-pace`; one frame per lock with `--only i`, about 2.5 min a frame); then `node scripts/sequence.mjs $KQ_RENDER_OUT/out/seq K02-swivel-command-desktop K02-swivel-command-phone ... --frames=30` |
+| K02 swivel (2026-10-29) | `K02-edge-line.py --w 2560 --h 1440 --spp 32 --seq 60 --range 0 35 --phone --crop 0.09 0.92 0.20 0.86 --only <i,...> --out seq2/K02-swivel-command` (and `--feel pace`); about 75 s a frame |
+| K01 swivel (2026-10-29) | portrait `K01-hero-frame.py --w 2160 --h 3840 --spp 24 --seq 36 --yaw-range 0 35 --crop 0.20 0.82 0.48 0.95 --out seq2/K01-swivel-command-phone`; desktop `K01-hero-beam.py --w 2560 --h 1440 ...`; Pace adds `--feel pace --set P_FOLLOW=...` (k01_lib). Driver: `$KQ_RENDER_OUT/logs/sw-k01.sh`-style chunks of 4 frames per lock, frame 0 and the last first |
+
+Swivel sequences (`--seq`): frame 0 renders whole, the rest only inside `--crop` (a Cycles border region, about a third
+of the frame) and are pasted into frame 0 with a feathered edge (`k12_lib.paste_region`), with persistent data so the
+scene syncs once. The region must hold everything that moves: check the last frame against frame 0 (`sequence.mjs`
+reports the change crop; it must sit inside the region). Then `node scripts/sequence.mjs $KQ_RENDER_OUT/out/seq2 <names>`
+(frames counted from the folder; widths up to 1440 portrait and 2560 landscape). OIDN makes 16 to 24 spp read as
+48 at 100% on these shots (2026-10-29 comparison).
 
 ## Export to the site
 ```sh

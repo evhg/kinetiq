@@ -158,6 +158,12 @@ P_LIP_K = 1.0           # Pace: multiplier on the hole-lip card
 P_TOP_K = 1.0           # Pace: multiplier on the white hairline and top card
 P_SIDE_K = 1.0          # Pace: multiplier on the right-wall card
 P_CLAMP = 4.0           # Pace: indirect clamp (K08 CLAMP_IND, fireflies on the 12K face); 0 = off
+# Pace swivel (2026-10-29): the black face reads only by what it reflects, and turning it 35 deg swings its mirror
+# direction 70 deg off the sweep, gloss and weave cards (the old Pace swivel stopped at 24 deg as the face went dark).
+# The swivel turns those three cards with the racket by P_FOLLOW of its angle, so their reflection slides across the
+# face (the turn still reads) but never leaves it. 0 at the still (swivel 0), so frame 0 is the still exactly.
+P_FOLLOW = 0.0
+SWIVEL_FOLLOW = ("FaceSweep", "FaceGloss", "PaceWeave")
 GLOSSY_FLOOR = 0.15     # the floor's albedo as seen by glossy rays (see mat_studio)
 # ------------------------------------------------------------------ swivel (Release 3 hero scrub, 2026-10-23)
 # --yaw DEG turns the racket about its handle axis (world Z through the handle; the cap stays on its floor mark) by
@@ -739,6 +745,15 @@ def swivel(sc, deg):
     (the racket stands on its butt cap there; C.pose's translation is along Z only). Lights stay where build() put them."""
     root = bpy.data.objects[sc["racket_root"]]
     root.matrix_world = Matrix.Rotation(math.radians(-SWIVEL_SIGN * deg), 4, "Z") @ _BASE[sc.name]
+    if FEEL == "pace" and P_FOLLOW:
+        if not any(k.startswith(sc.name + "/") for k in _BASE):
+            bpy.context.view_layer.update()      # the cards' matrix_world must be current before it is recorded
+        for name in SWIVEL_FOLLOW:
+            ob = bpy.data.objects.get(name)
+            if ob is None:
+                continue
+            base = _BASE.setdefault(sc.name + "/" + name, ob.matrix_world.copy())
+            ob.matrix_world = Matrix.Rotation(math.radians(-SWIVEL_SIGN * deg * P_FOLLOW), 4, "Z") @ base
     bpy.context.view_layer.update()
 
 
