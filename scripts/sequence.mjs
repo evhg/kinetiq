@@ -25,9 +25,9 @@ const FRAMES_FLAG = flags.frames ? Number(flags.frames) : 0;
  * Exported widths of the whole frame, by orientation (the crop scales with them), up to the master's own width.
  * 2026-10-29 (owner: the swivels looked low-res on iPad and iPhone): Swivel.tsx picks the narrowest export whose crop is
  * as wide as the canvas on screen in device pixels (iPhone 3x, iPad 2x), so the set runs up to the masters' widths:
- * portrait 1170 (an iPhone's 390 x 3) and 1440, landscape to 2560.
+ * portrait 1170 (an iPhone's 390 x 3), 1440 and 2160 (an iPad in portrait), landscape to 2560.
  */
-const WIDTHS = { landscape: [1280, 1920, 2560], portrait: [828, 1170, 1440] };
+const WIDTHS = { landscape: [1280, 1920, 2560], portrait: [828, 1170, 1440, 2160] };
 const QUALITY = Number(flags.quality ?? 84);
 /** webp (default) or avif: Safari decodes WebP everywhere the swivel plays (iOS 14+); AVIF only from iOS 16. */
 const FORMAT = flags.format ?? "webp";
