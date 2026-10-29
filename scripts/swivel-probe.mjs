@@ -132,8 +132,21 @@ for (const d of DEVICES) {
       lastFrame: maxI,
       pxPerFrame: maxI ? +(turnPx / maxI).toFixed(1) : null,
     };
-    if (shotsDir) {
-      await page.evaluate((y) => scrollTo(0, y), label === "hero" ? 0 : info.top);
+    if (shotsDir && ds.length) {
+      // A strip: the swivel at about a quarter, half and three quarters of its turn (blended between frames), at 100%.
+      for (const q of [0.25, 0.5, 0.75]) {
+        const target = maxI * q;
+        const hit = ds.reduce((a, b) => (Math.abs(b.i - target) < Math.abs(a.i - target) ? b : a));
+        await page.evaluate((y) => scrollTo(0, y), hit.y + 2);
+        await page.waitForTimeout(900);
+        const rect = await page.evaluate((label) => {
+          const c = [...document.querySelectorAll("canvas[aria-hidden]")].find((c) => (label === "hero" ? !c.closest("#unibody") : c.closest("#unibody")));
+          const r = c.getBoundingClientRect();
+          return { x: Math.max(0, r.x), y: Math.max(0, r.y), width: Math.min(innerWidth, r.right) - Math.max(0, r.x), height: Math.min(innerHeight, r.bottom) - Math.max(0, r.y) };
+        }, label);
+        if (rect.width > 4 && rect.height > 4) await page.screenshot({ path: `${shotsDir}/${d.name}-${label}-${Math.round(q * 100)}.png`, clip: rect });
+      }
+      await page.screenshot({ path: `${shotsDir}/${d.name}-${label}-view.png` });
     }
   }
   out.requests = Object.fromEntries([...new Set(requests.map((r) => r.seq))].map((s) => [s, { n: requests.filter((r) => r.seq === s).length, widths: [...new Set(requests.filter((r) => r.seq === s).map((r) => r.w))], fmt: [...new Set(requests.filter((r) => r.seq === s).map((r) => r.fmt))], kb: Math.round((bytes[s] ?? 0) / 1024) }]));
