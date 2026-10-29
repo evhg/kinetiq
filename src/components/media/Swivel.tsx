@@ -14,7 +14,7 @@ import { useFeel } from "@/lib/feel-store";
  * object-position inside the canvas's parent (the box the still fills), and the still shows around it. The owner
  * drives it through the ref: progress(0..1).
  * Frames load in the background, coarse first (every 32nd, then every 16th ... every one), from the page's load event,
- * the visitor's first scroll or touch, or 1.5 s after mount, whichever comes first (iPhone, 2026-10-28: a visitor who
+ * the visitor's first scroll or touch, or once the still under it has loaded, whichever comes first (iPhone, 2026-10-28: a visitor who
  * scrolls at once must not outrun a late load event, which in-app browsers can hold back for seconds); the swivel
  * starts once no gap between downloaded frames is wider than 4, and draws the nearest frame meanwhile.
  * Fluid and sharp (owner, 2026-10-29: "blurry and not fluid" on iPad, "low res" on iPhone): between two frames the
@@ -515,7 +515,15 @@ export function Swivel({ ref, sequence, portraitQuery, media, lead, className }:
     const intent = { once: true, passive: true } as const;
     window.addEventListener("scroll", start, intent);
     window.addEventListener("touchstart", start, intent);
-    const fallback = window.setTimeout(start, 1500);
+    // The fallback waits for the still under the canvas too (2026-10-29: the high-resolution frames must never share a
+    // phone's bandwidth with the hero's first images): 1.5 s after mount, or 0.4 s after that still has loaded.
+    let fallback = 0;
+    const still = box.querySelector("img");
+    const afterStill = () => {
+      fallback = window.setTimeout(start, 400);
+    };
+    if (!still || (still.complete && still.naturalWidth)) fallback = window.setTimeout(start, 1500);
+    else still.addEventListener("load", afterStill, { once: true });
     const nearby =
       lead === undefined
         ? null
@@ -564,6 +572,7 @@ export function Swivel({ ref, sequence, portraitQuery, media, lead, className }:
       window.removeEventListener("scroll", start);
       window.removeEventListener("touchstart", start);
       window.clearTimeout(fallback);
+      still?.removeEventListener("load", afterStill);
       nearby?.disconnect();
       resize.disconnect();
       portrait.removeEventListener("change", pick);
