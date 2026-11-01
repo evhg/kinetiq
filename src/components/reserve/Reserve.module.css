@@ -362,7 +362,14 @@
       linear-gradient(transparent, #000 14%, #000 86%, transparent);
     mask-composite: intersect;
   }
-  /* a tall crop: the racket fills its middle half, so its sides can fade far into the slide */
+  /* a tall crop: the racket fills its middle half, so its sides can fade far into the slide. Behind it a wider,
+     brighter lift than other slides (fill rule): Pace's black racket alone (K08's right half, the first slide a Pace
+     buyer sees) left a wide window under 8% lit, and the lift reads as the beam's spill on the backdrop. */
+  .slide[data-fit="portrait"] {
+    background:
+      radial-gradient(ellipse 56% 72% at 50% 46%, rgb(62 62 68), rgb(54 54 60 / 0.9) 40%, transparent 100%),
+      var(--stage);
+  }
   .slide[data-fit="portrait"] .slideStill img {
     -webkit-mask-image: linear-gradient(to right, transparent, #000 28%, #000 72%, transparent);
     mask-image: linear-gradient(to right, transparent, #000 28%, #000 72%, transparent);
