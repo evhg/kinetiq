@@ -1,14 +1,23 @@
-// Export a Blender frame sequence (the hero's swivel) to WebP frames for the hero's scrub canvas (Hero.tsx).
-// Usage: node scripts/sequence.mjs <sequences dir> [name ...] [--frames=N] [--quality=84] [--format=webp|avif] [--out=<dir>]
+// Export a Blender frame sequence (the swivels) to AVIF and WebP frames for the scrub canvas (media/Swivel.tsx).
+// Usage: node scripts/sequence.mjs <sequences dir> [name ...] [--frames=N] [--formats=avif,webp] [--quality=84]
+//   [--avif-quality=58] [--keep=N] [--out=<dir>]
+// (--keep=N: export N frames spread evenly over the source's, first and last kept; e.g. Command's 60-frame K02 phone
+// sequence as 45, like Pace's, for the phone load budget)
+// (--formats: the encodings to write now; any other encoding already exported for the sequence is kept, if its crop
+// is unchanged, so AVIF can be added to a sequence without re-encoding its WebP)
 // (--out writes the frames and manifest under another root, for trials: <dir>/seq/... and <dir>/sequences.json)
 // Each <sequences dir>/<name>/ holds 16-bit PNG frames f000.png, f001.png, ... (desktop 1920x1080, phone
 // 1080x1920; frame 0 is the matching still's composition). A folder is exported only once all its frames are there and
 // decode (one still rendering is skipped, so it is safe to run while Blender works).
 // Only the part of the frame that ever changes is kept: the union of every frame's difference from frame 0, padded,
 // so the canvas draws that rectangle over the still and the rest of the frame stays the still's own pixels.
-// Writes public/stills/seq/<name>/<NNN>-<width>.<hash>.webp (one hash per sequence: the names change with the bytes,
-// served private and immutable to cleared visitors, next.config.ts) and src/content/sequences.generated.json.
-// WebP by default: AVIF was measured at 4 to 6% smaller on these frames (2026-10-23), not worth a second set or its decode.
+// Writes public/stills/seq/<name>/<NNN>-<width>.<hash>.<avif|webp> (one hash per sequence and format: the names change
+// with the bytes, served private and immutable to cleared visitors, next.config.ts) and
+// src/content/sequences.generated.json (per sequence: frames, size, crop, widths, and `formats`: hash, quality, bytes).
+// AVIF and WebP (2026-11-01, the phone load budget): compared at the same quality number AVIF was only 4 to 6% smaller
+// (2026-10-23), but compared at the same sharpness (SSIM against the dithered frame, and side-by-side crops at 100%
+// on a 3x screen) AVIF 58 matches WebP 84 at about 40% fewer bytes. Swivel.tsx takes AVIF where the browser decodes it
+// (iOS 16+) and WebP elsewhere, so both are exported.
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -21,6 +30,7 @@ const [src, ...only] = args.filter((a) => !a.startsWith("--"));
 if (!src) throw new Error("Pass the sequences directory.");
 /** Frames per sequence: --frames=N, else every f000.png ... in the folder (a frames.json from Blender may name N). */
 const FRAMES_FLAG = flags.frames ? Number(flags.frames) : 0;
+const KEEP = flags.keep ? Number(flags.keep) : 0;
 /**
  * Exported widths of the whole frame, by orientation (the crop scales with them), up to the master's own width.
  * 2026-10-29 (owner: the swivels looked low-res on iPad and iPhone): Swivel.tsx picks the narrowest export whose crop is
@@ -28,9 +38,11 @@ const FRAMES_FLAG = flags.frames ? Number(flags.frames) : 0;
  * portrait 1170 (an iPhone's 390 x 3), 1440 and 2160 (an iPad in portrait), landscape to 2560.
  */
 const WIDTHS = { landscape: [1280, 1920, 2560], portrait: [828, 1170, 1440, 2160] };
-const QUALITY = Number(flags.quality ?? 84);
-/** webp (default) or avif: Safari decodes WebP everywhere the swivel plays (iOS 14+); AVIF only from iOS 16. */
-const FORMAT = flags.format ?? "webp";
+/** Quality by format: WebP 84 (the 2026-10-29 pass); AVIF 58, as sharp as WebP 84 on these frames (above). */
+const QUALITY = { webp: Number(flags.quality ?? 84), avif: Number(flags["avif-quality"] ?? 58) };
+/** avif and webp: Safari decodes WebP everywhere the swivel plays (iOS 14+), AVIF from iOS 16. */
+const FORMATS = (flags.formats ?? flags.format ?? "avif,webp").split(",");
+for (const f of FORMATS) if (!(f in QUALITY)) throw new Error(`Unknown format ${f}`);
 /** The change mask: frames compared at 1/8 size, a mean step above this counts as change, then padded (source px). */
 const SCALE = 8;
 const THRESHOLD = 2;
@@ -41,6 +53,14 @@ const SNAP = 24;
 const outRoot = flags.out ? join(flags.out, "seq") : join(root, "public/stills/seq");
 const manifestFile = flags.out ? join(flags.out, "sequences.json") : join(root, "src/content/sequences.generated.json");
 const manifest = existsSync(manifestFile) ? JSON.parse(readFileSync(manifestFile, "utf8")) : {};
+// Entries from before 2026-11-01 name one encoding (hash, bytes, format): as `formats`.
+for (const e of Object.values(manifest))
+  if (!e.formats) {
+    e.formats = { [e.format ?? "webp"]: { hash: e.hash, bytes: e.bytes } };
+    delete e.hash;
+    delete e.bytes;
+    delete e.format;
+  }
 const frameFile = (dir, i) => join(dir, `f${String(i).padStart(3, "0")}.png`);
 
 // Triangular-PDF dither of about one 8-bit step (as scripts/stills.mjs): no banding in the dark gradients.
@@ -114,41 +134,60 @@ for (const name of names) {
   const bottom = snapUp(((y1 + 1) * H) / sh + PAD, H);
   const crop = { x: left, y: top, w: right - left, h: bottom - top };
 
-  // Encode every frame at every width.
-  const encoded = [];
-  for (let i = 0; i < FRAMES; i++) {
-    const img = sharp(frameFile(dir, i)).removeAlpha().extract({ left: crop.x, top: crop.y, width: crop.w, height: crop.h });
-    const d = await dithered(img, 1234567 + i);
+  // The frames exported: every one, or --keep of them spread evenly (source frame round(k * (FRAMES - 1) / (KEEP - 1))).
+  const OUT = KEEP && KEEP < FRAMES ? KEEP : FRAMES;
+  const source = [...Array(OUT).keys()].map((k) => (OUT === FRAMES ? k : Math.round((k * (FRAMES - 1)) / (OUT - 1))));
+  // Encode every frame at every width, in every format asked for.
+  const encoded = Object.fromEntries(FORMATS.map((f) => [f, []]));
+  for (let i = 0; i < OUT; i++) {
+    const img = sharp(frameFile(dir, source[i])).removeAlpha().extract({ left: crop.x, top: crop.y, width: crop.w, height: crop.h });
+    const d = await dithered(img, 1234567 + source[i]);
     const flat = await d.png({ compressionLevel: 0 }).toBuffer();
     for (const w of widths) {
       const cw = Math.round((crop.w * w) / W);
       const ch = Math.round((crop.h * w) / W);
-      const resized = sharp(flat).resize({ width: cw, height: ch, fit: "fill", kernel: "lanczos3" });
-      const buf = await (FORMAT === "avif"
-        ? resized.avif({ quality: QUALITY, effort: 5, chromaSubsampling: "4:2:0" })
-        : resized.webp({ quality: QUALITY, effort: 5, smartSubsample: true })
-      ).toBuffer();
-      encoded.push({ i, w, buf });
+      const resized = await sharp(flat).resize({ width: cw, height: ch, fit: "fill", kernel: "lanczos3" }).raw().toBuffer({ resolveWithObject: true });
+      for (const format of FORMATS) {
+        const img = sharp(resized.data, { raw: resized.info });
+        const buf = await (format === "avif"
+          ? img.avif({ quality: QUALITY.avif, effort: 5, chromaSubsampling: "4:2:0" })
+          : img.webp({ quality: QUALITY.webp, effort: 5, smartSubsample: true })
+        ).toBuffer();
+        encoded[format].push({ i, w, buf });
+      }
     }
   }
-  const digest = createHash("sha256");
-  for (const e of encoded) digest.update(e.buf);
-  const hash = digest.digest("hex").slice(0, 10);
 
   const out = join(outRoot, name);
-  rmSync(out, { recursive: true, force: true });
   mkdirSync(out, { recursive: true });
-  const bytes = Object.fromEntries(widths.map((w) => [w, 0]));
-  for (const e of encoded) {
-    writeFileSync(join(out, `${String(e.i).padStart(3, "0")}-${e.w}.${hash}.${FORMAT}`), e.buf);
-    bytes[e.w] += e.buf.length;
+  // The other encodings already exported stay if they share this crop and frame count; otherwise they go.
+  const prev = manifest[name];
+  const keep =
+    prev && prev.frames === OUT && prev.w === W && prev.h === H && JSON.stringify([prev.crop, prev.widths]) === JSON.stringify([crop, widths])
+      ? Object.fromEntries(Object.entries(prev.formats).filter(([f]) => !FORMATS.includes(f)))
+      : {};
+  for (const file of readdirSync(out)) if (!Object.keys(keep).includes(file.split(".").pop())) rmSync(join(out, file));
+  const formats = { ...keep };
+  for (const format of FORMATS) {
+    const digest = createHash("sha256");
+    for (const e of encoded[format]) digest.update(e.buf);
+    const hash = digest.digest("hex").slice(0, 10);
+    const bytes = Object.fromEntries(widths.map((w) => [w, 0]));
+    for (const e of encoded[format]) {
+      writeFileSync(join(out, `${String(e.i).padStart(3, "0")}-${e.w}.${hash}.${format}`), e.buf);
+      bytes[e.w] += e.buf.length;
+    }
+    formats[format] = { hash, quality: QUALITY[format], bytes };
+    console.log(
+      `${name} ${format}: ${OUT} of ${FRAMES} frames ${W}x${H}, crop ${crop.w}x${crop.h} at ${crop.x},${crop.y}, ` +
+        widths.map((w) => `${w}: ${Math.round(bytes[w] / 1024)} KB`).join(", ") +
+        `, hash ${hash}`,
+    );
   }
-  manifest[name] = { frames: FRAMES, w: W, h: H, crop, widths, hash, bytes, ...(FORMAT === "webp" ? {} : { format: FORMAT }) };
-  console.log(
-    `${name}: ${FRAMES} frames ${W}x${H}, crop ${crop.w}x${crop.h} at ${crop.x},${crop.y}, ` +
-      widths.map((w) => `${w}: ${Math.round(bytes[w] / 1024)} KB`).join(", ") +
-      `, hash ${hash}`,
-  );
+  if (Object.keys(keep).length) console.log(`${name}: kept ${Object.keys(keep).join(", ")}`);
+  // AVIF first: Swivel.tsx takes the first format the browser decodes.
+  const order = ["avif", "webp"].filter((f) => formats[f]);
+  manifest[name] = { frames: OUT, w: W, h: H, crop, widths, formats: Object.fromEntries(order.map((f) => [f, formats[f]])) };
 }
 const sorted = Object.fromEntries(Object.keys(manifest).sort().map((k) => [k, manifest[k]]));
 writeFileSync(manifestFile, JSON.stringify(sorted, null, 1) + "\n");
