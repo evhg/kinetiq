@@ -54,12 +54,24 @@ export function isFeelId(v: string | null | undefined): v is FeelId {
 export const DEFAULT_FEEL: FeelId = "command";
 
 /**
- * Where a site-wide feel choice is kept in the visitor's own browser (a per-visitor convenience, never sent anywhere).
+ * Where a site-wide feel choice is kept in the visitor's own browser (a per-visitor convenience, never recorded by us).
  * The feel toggles beside Reserve Now and the /reserve feel picker write it (lib/feel-store.ts), the head script mirrors
  * it on html[data-feel] before the first paint, and /reserve reads it when the link carries no ?feel=
  * (ReserveExperience). Reads and writes fail quietly (private windows, blocked storage).
+ * A first-party cookie of the same name mirrors it (FEEL_COOKIE_MAX_AGE, SameSite=Lax, not HttpOnly: the head script
+ * keeps it in step with localStorage), so src/proxy.ts can serve a returning visitor the page already rendered in their
+ * feel (app/feel/<feel>/): the hero arrives in Pace without downloading Command first. Nothing stores or logs it.
  */
 export const FEEL_PREFERENCE_KEY = "kq-feel";
+/** One year, renewed on every choice and on every page load that finds the cookie missing or out of step. */
+export const FEEL_COOKIE_MAX_AGE = 31536000;
+
+/** The `kq-feel` cookie's value in a Cookie header (or document.cookie), when it names a feel. */
+export function feelFromCookie(header: string | null | undefined): FeelId | null {
+  const m = header?.match(new RegExp(`(?:^|; *)${FEEL_PREFERENCE_KEY}=([a-z]+)`));
+  const v = m?.[1];
+  return isFeelId(v) ? v : null;
+}
 
 export function storedFeel(): FeelId | null {
   try {

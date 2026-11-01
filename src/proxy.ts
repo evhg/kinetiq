@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { FEEL_PREFERENCE_KEY, isFeelId } from "@/content/site";
 import { NDA_COOKIE, NDA_ROUTE, ndaCleared } from "@/lib/nda";
 
 /**
@@ -11,6 +12,12 @@ import { NDA_COOKIE, NDA_ROUTE, ndaCleared } from "@/lib/nda";
  * company proxy, a CDN in front of a self-hosted build) may store the presentation, and the browser revalidates before
  * reuse; not no-store, so the back button's page cache keeps working. Assets and APIs keep their own headers (stills:
  * next.config.ts). Redirects only ever go to /, never to a URL from the request.
+ * A cleared request for /, /reserve or /reserved that carries the `kq-feel` cookie (the visitor's feel, lib/feel-store.ts)
+ * is rewritten to the same page prerendered in that feel (app/feel/<feel>/), so a returning Pace visitor's hero is Pace
+ * in the HTML and Command is never fetched; the URL stays as typed. No cache may reuse a page without asking (private,
+ * no-cache below), so a changed choice always gets the page in the new feel. (A Vary: Cookie set here would be replaced
+ * by Next's own Vary on rendered pages.)
+ * /feel/* asked for directly is a 404: those pages exist only behind this rewrite.
  */
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -23,11 +30,27 @@ export function proxy(request: NextRequest) {
   if (pathname === NDA_ROUTE) {
     return cleared ? NextResponse.redirect(new URL("/", request.url)) : gated(NextResponse.next());
   }
-  if (cleared) return isAssetOrApi(pathname) ? NextResponse.next() : presentation(NextResponse.next());
+  if (cleared) {
+    if (isAssetOrApi(pathname)) return NextResponse.next();
+    if (pathname === FEEL_ROOT || pathname.startsWith(`${FEEL_ROOT}/`)) {
+      return presentation(NextResponse.rewrite(new URL(FEEL_ROOT, request.url)));
+    }
+    const feel = request.cookies.get(FEEL_PREFERENCE_KEY)?.value;
+    if (isFeelId(feel) && FEEL_PAGES.has(pathname)) {
+      const url = request.nextUrl.clone();
+      url.pathname = `${FEEL_ROOT}/${feel}${pathname === "/" ? "" : pathname}`;
+      return presentation(NextResponse.rewrite(url));
+    }
+    return presentation(NextResponse.next());
+  }
 
   if (isAssetOrApi(pathname)) return gated(new NextResponse(null, { status: 403 }));
   return gated(NextResponse.rewrite(new URL(NDA_ROUTE, request.url)));
 }
+
+/** The pages with a variant per feel (app/feel/<feel>/), and where those live (no page of its own: a 404). */
+const FEEL_ROOT = "/feel";
+const FEEL_PAGES = new Set(["/", "/reserve", "/reserved"]);
 
 /**
  * /api/*, Next's own endpoints other than its static files (/_next/image and the like), and any path whose last

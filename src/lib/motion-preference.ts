@@ -1,4 +1,4 @@
-import { DEFAULT_FEEL, FEEL_PREFERENCE_KEY } from "@/content/site";
+import { DEFAULT_FEEL, FEEL_COOKIE_MAX_AGE, FEEL_PREFERENCE_KEY } from "@/content/site";
 import { NDA_ARRIVE_MS, NDA_TRIED_KEY } from "./nda";
 
 /**
@@ -8,7 +8,10 @@ import { NDA_ARRIVE_MS, NDA_TRIED_KEY } from "./nda";
  * the same void the gate faded into, which then lifts (globals.css), so leaving the gate and arriving read as one
  * move. Reduced motion: no veil.
  * And html[data-feel] (command or pace): the visitor's stored feel (lib/feel-store.ts), else Command, so the feel
- * toggles and the stills with a Pace version paint the right feel from the first frame.
+ * toggles and the stills with a Pace version paint the right feel from the first frame. It keeps the `kq-feel` cookie
+ * in step with the stored choice (lib/feel-store.ts writes both on a choice), so a visitor whose choice predates the
+ * cookie, or whose cookie expired, gets the page in their feel from the server on the next load (src/proxy.ts); with
+ * nothing stored (storage blocked or cleared) the cookie alone stands for the choice.
  */
 export const motionInitScript = `(() => {
   var reduce = false;
@@ -22,10 +25,25 @@ export const motionInitScript = `(() => {
     var tried = Number(sessionStorage.getItem(${JSON.stringify(NDA_TRIED_KEY)})) || 0;
     if (!reduce && tried && Date.now() - tried < ${NDA_ARRIVE_MS}) document.documentElement.dataset.arrive = "";
   } catch (e) {}
+  var key = ${JSON.stringify(FEEL_PREFERENCE_KEY)};
   var feel = ${JSON.stringify(DEFAULT_FEEL)};
+  var stored = null;
   try {
-    var f = localStorage.getItem(${JSON.stringify(FEEL_PREFERENCE_KEY)});
-    if (f === "command" || f === "pace") feel = f;
+    stored = localStorage.getItem(key);
   } catch (e) {}
+  var cookie = null;
+  try {
+    var m = document.cookie.match(new RegExp("(?:^|; *)" + key + "=([a-z]+)"));
+    if (m) cookie = m[1];
+  } catch (e) {}
+  if (stored === "command" || stored === "pace") {
+    feel = stored;
+    if (cookie !== stored) {
+      try {
+        document.cookie = key + "=" + stored + "; Path=/; Max-Age=${FEEL_COOKIE_MAX_AGE}; SameSite=Lax" +
+          (location.protocol === "https:" ? "; Secure" : "");
+      } catch (e) {}
+    }
+  } else if (cookie === "command" || cookie === "pace") feel = cookie;
   document.documentElement.dataset.feel = feel;
 })();`;

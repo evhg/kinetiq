@@ -69,7 +69,8 @@ const entry = (key: string | null): [string, Size] | null => (key && sizes[key] 
  * A product still (own Blender render) as AVIF with a WebP fallback and a phone art-direction crop.
  * Renders nothing until scripts/stills.mjs has exported the still.
  * Where a Pace version is exported (the id plus "-pace", per crop), the still follows the feel (FeelPicture): the
- * server paints Command, and a stored or chosen Pace swaps in on the client. A crop without a Pace export keeps its
+ * server paints the page's feel (a returning visitor's, through the cookie and src/proxy.ts; else Command), and a
+ * choice it did not know swaps in on the client. A crop without a Pace export keeps its
  * Command file, silently; a still with none renders exactly as before.
  */
 export function Still({
