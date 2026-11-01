@@ -11,9 +11,10 @@ import styles from "./HolesRender.module.css";
 export const K16 = hasStill("K16-base", "left");
 
 /**
- * K16 (owner, 2026-10-29: "one 2D and one 3D visualization"): the same white twill plate at the same scale, a drilled
- * hole (left) beside a moulded one (right), rendered in K04's language with one camera and one light. Two crops of one
- * master per pass. As the pair scrolls through, the light comes up through the moulded hole only (K16-full's right
+ * K16 (owner, 2026-10-29: "one 2D and one 3D visualization"): the same carbon plate at the same scale, a drilled hole
+ * (left) beside a moulded one (right), rendered in K04's language with one camera and one light. Two crops of one
+ * master per pass. Command shows white 3K twill; Pace its own pair in black 12K (K16-base-pace / K16-full-pace, same
+ * crops), swapped in by <Still> through FeelPicture. As the pair scrolls through, the light comes up through the moulded hole only (K16-full's right
  * half fades in over the base) and both frames settle; the drilled hole stays as it is. Reduced motion and the server
  * render: the lit pass at rest. Side by side from 700 px, stacked on phones.
  */
