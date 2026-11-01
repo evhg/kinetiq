@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import type { Metadata, Viewport } from "next";
 import { Archivo, Saira } from "next/font/google";
 import { MotionProvider } from "@/components/motion/MotionProvider";
@@ -29,6 +30,17 @@ const saira = Saira({
   variable: "--font-saira",
 });
 
+// Only the web font's own family goes into the stacks. Under Turbopack (Next 16's default build) adjustFontFallback: false
+// is ignored, so var(--font-archivo) is still "Archivo, Archivo Fallback" and that local(Arial) face, sized for wdth 100 at
+// weight 400, would win over the KQ faces wherever Arial is installed (iOS, macOS, Windows). globals.css reads these.
+function webFace(fontFamily: string) {
+  return fontFamily.split(",")[0].trim();
+}
+const fontFaces = {
+  "--font-archivo-face": webFace(archivo.style.fontFamily),
+  "--font-saira-face": webFace(saira.style.fontFamily),
+} as CSSProperties;
+
 const launched = process.env.NEXT_PUBLIC_LAUNCHED === "true";
 
 // Absolute URLs for social cards: the configured site URL, else Vercel's production domain.
@@ -57,7 +69,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${archivo.variable} ${saira.variable}`} data-motion="off" data-feel={DEFAULT_FEEL} suppressHydrationWarning>
+    <html lang="en" className={`${archivo.variable} ${saira.variable}`} data-motion="off" data-feel={DEFAULT_FEEL} style={fontFaces} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: motionInitScript }} />
       </head>

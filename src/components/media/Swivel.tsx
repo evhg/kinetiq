@@ -42,6 +42,10 @@ type Entry = {
   widths: number[];
   /** The frames' encodings by file type (avif, webp): AVIF where the browser decodes it, else WebP (2026-11-01). */
   formats: Record<string, Encoding>;
+  /** A subsampled export (sequence.mjs --keep): the render's frame count and each kept frame's source frame, so the
+   * turn keeps the render's speed (60 to 45 cannot step evenly: steps of 1 and 2 source frames, a rhythmic wobble). */
+  sourceFrames?: number;
+  source?: number[];
 };
 const manifest = generated as Record<string, Entry>;
 
@@ -115,6 +119,17 @@ function evict(keep: Set<string>) {
   }
 }
 
+/** Progress (0..1) as a position between exported frames: the render's own timing for a subsampled export. */
+function framePosition(entry: Entry, p: number) {
+  const n = entry.frames;
+  const src = entry.source;
+  if (!src || src.length !== n || !entry.sourceFrames) return p * (n - 1);
+  const t = p * (entry.sourceFrames - 1);
+  let i = 0;
+  while (i < n - 2 && src[i + 1] <= t) i++;
+  return i + Math.min(1, Math.max(0, (t - src[i]) / (src[i + 1] - src[i])));
+}
+
 function loadOrder(n: number) {
   const order: number[] = [0, n - 1];
   const seen = new Set(order);
@@ -132,6 +147,8 @@ function loadOrder(n: number) {
  * their WebP, which on the phone profile (1.6 Mbps) is the difference between the page completing in about 20 s and
  * in 28. Safari decodes AVIF from iOS 16; older WebKit, and any browser that fails this probe, take the WebP frames.
  * The probe is a 1 x 1 AVIF decoded through an <img>, once per page, before the first frame is requested.
+ * The frames decode through createImageBitmap(blob), not an <img>, and the two can disagree (Safari 16.0 to 16.3):
+ * the per-frame downgrade (`downgrade`) covers that.
  */
 const AVIF_PROBE =
   "data:image/avif;base64,AAAAHGZ0eXBhdmlmAAAAAG1pZjFhdmlmbWlhZgAAANZtZXRhAAAAAAAAACFoZGxyAAAAAAAAAABwaWN0AAAAAAAAAAAAAAAAAAAAACJpbG9jAAAAAERAAAEAAQAAAAAA+gABAAAAAAAAAB4AAAAjaWluZgAAAAAAAQAAABVpbmZlAgAAAAABAABhdjAxAAAAAA5waXRtAAAAAAABAAAAVmlwcnAAAAA4aXBjbwAAAAxhdjFDgSACAAAAABRpc3BlAAAAAAAAAAEAAAABAAAAEHBpeGkAAAAAAwgICAAAABZpcG1hAAAAAAAAAAEAAQOBAgMAAAAmbWRhdBIACgc4AAbQENBpMhEZQmMEwAA0AAAAkEDJHGFCvg==";
@@ -320,6 +337,8 @@ function decodedFrame(s: Seq, i: number, now: number): Frame | null {
 /** The sequence starts again in WebP: the AVIF frames go (those in flight are dropped as they arrive). */
 function downgrade(s: Seq) {
   avifWorks = false;
+  // A first AVIF frame that failed in createImageBitmap set `bitmaps` false; WebP bitmaps may well work, so ask again.
+  if (!bitmaps) bitmaps = null;
   for (let i = 0; i < s.blobs.length; i++) dropDecoded(decodedKey(s, i));
   s.ctrl.abort();
   s.ctrl = new AbortController();
@@ -483,7 +502,7 @@ export function Swivel({ ref, sequence, portraitQuery, media, lead, className }:
       if (!alive) return;
       const s = seq;
       const n = s ? s.entry.frames : 0;
-      const f = s ? Math.min(1, Math.max(0, progress.current)) * (n - 1) : 0;
+      const f = s ? framePosition(s.entry, Math.min(1, Math.max(0, progress.current))) : 0;
       // Frame 0 is the still: the canvas shows only once the racket has begun to turn.
       if (!s || !s.ready || s.failed || f < 0.01) return show(false);
       if (!laidOut) layout();

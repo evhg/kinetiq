@@ -2,7 +2,9 @@
 // Usage: node scripts/sequence.mjs <sequences dir> [name ...] [--frames=N] [--formats=avif,webp] [--quality=84]
 //   [--avif-quality=58] [--keep=N] [--out=<dir>]
 // (--keep=N: export N frames spread evenly over the source's, first and last kept; e.g. Command's 60-frame K02 phone
-// sequence as 45, like Pace's, for the phone load budget)
+// sequence as 45, like Pace's, for the phone load budget; the manifest then names each kept frame's source frame)
+// (the phone sets, *-phone, are exported with --avif-quality=50 since 2026-11-01; the desktop sets keep 58:
+//   node scripts/sequence.mjs <dir> K01-swivel-command-phone ... --formats=avif --avif-quality=50 [--keep=45])
 // (--formats: the encodings to write now; any other encoding already exported for the sequence is kept, if its crop
 // is unchanged, so AVIF can be added to a sequence without re-encoding its WebP)
 // (--out writes the frames and manifest under another root, for trials: <dir>/seq/... and <dir>/sequences.json)
@@ -187,7 +189,9 @@ for (const name of names) {
   if (Object.keys(keep).length) console.log(`${name}: kept ${Object.keys(keep).join(", ")}`);
   // AVIF first: Swivel.tsx takes the first format the browser decodes.
   const order = ["avif", "webp"].filter((f) => formats[f]);
-  manifest[name] = { frames: OUT, w: W, h: H, crop, widths, formats: Object.fromEntries(order.map((f) => [f, formats[f]])) };
+  // A subsampled export names its source frames, so Swivel.tsx keeps the render's timing (the steps are uneven).
+  const sub = OUT < FRAMES ? { sourceFrames: FRAMES, source } : {};
+  manifest[name] = { frames: OUT, w: W, h: H, crop, widths, ...sub, formats: Object.fromEntries(order.map((f) => [f, formats[f]])) };
 }
 const sorted = Object.fromEntries(Object.keys(manifest).sort().map((k) => [k, manifest[k]]));
 writeFileSync(manifestFile, JSON.stringify(sorted, null, 1) + "\n");

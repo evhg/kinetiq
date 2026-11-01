@@ -29,12 +29,12 @@
   /* Each Archivo width has its own metric-matched fallback (font-fallbacks.css): a rule that sets
      font-variation-settings "wdth" N uses --font-display-N, so the text keeps its lines when Archivo swaps in. */
   --font-sans-tail: ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-archivo), "KQ Archivo", "KQ Archivo Roboto", var(--font-sans-tail);
-  --font-display-108: var(--font-archivo), "KQ Archivo 108", "KQ Archivo 108 Roboto", var(--font-sans-tail);
-  --font-display-110: var(--font-archivo), "KQ Archivo 110", "KQ Archivo 110 Roboto", var(--font-sans-tail);
-  --font-display-112: var(--font-archivo), "KQ Archivo 112", "KQ Archivo 112 Roboto", var(--font-sans-tail);
-  --font-display-125: var(--font-archivo), "KQ Archivo 125", "KQ Archivo 125 Roboto", var(--font-sans-tail);
-  --font-data: var(--font-saira), "KQ Saira", "KQ Saira Roboto", var(--font-display);
+  --font-display: var(--font-archivo-face), "KQ Archivo", "KQ Archivo Roboto", var(--font-sans-tail);
+  --font-display-108: var(--font-archivo-face), "KQ Archivo 108", "KQ Archivo 108 Roboto", var(--font-sans-tail);
+  --font-display-110: var(--font-archivo-face), "KQ Archivo 110", "KQ Archivo 110 Roboto", var(--font-sans-tail);
+  --font-display-112: var(--font-archivo-face), "KQ Archivo 112", "KQ Archivo 112 Roboto", var(--font-sans-tail);
+  --font-display-125: var(--font-archivo-face), "KQ Archivo 125", "KQ Archivo 125 Roboto", var(--font-sans-tail);
+  --font-data: var(--font-saira-face), "KQ Saira", "KQ Saira Roboto", var(--font-display);
 
   /* 12-col grid: margins 20 / 64 / 128, gutters 16 / 24 / 40 (390 / 1440 / 2560) */
   --margin: clamp(20px, 5vw - 4px, 128px);

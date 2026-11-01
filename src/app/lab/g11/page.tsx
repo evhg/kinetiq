@@ -28,7 +28,7 @@ const cell: CSSProperties = {
 };
 const pair: CSSProperties = { display: "flex", alignItems: "center", gap: "clamp(18px, 1vw + 10px, 36px)" };
 const logotype: CSSProperties = {
-  fontFamily: "var(--font-display)",
+  fontFamily: "var(--font-display-125)",
   fontVariationSettings: '"wdth" 125',
   fontWeight: 500,
   textTransform: "uppercase",

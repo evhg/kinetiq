@@ -373,9 +373,9 @@
   font-family: "KQ Saira";
   src: local("Arial"), local("ArialMT"), local("Liberation Sans"), local("LiberationSans"), local("Arimo"), local("Arimo-Regular");
   font-weight: 351 425;
-  size-adjust: 103.66%;
-  ascent-override: 109.49%;
-  descent-override: 42.35%;
+  size-adjust: 102.50%;
+  ascent-override: 110.73%;
+  descent-override: 42.83%;
   line-gap-override: 0%;
 }
 @font-face {
@@ -409,9 +409,9 @@
   font-family: "KQ Saira Roboto";
   src: local("Roboto"), local("Roboto-Regular");
   font-weight: 351 425;
-  size-adjust: 103.66%;
-  ascent-override: 109.49%;
-  descent-override: 42.35%;
+  size-adjust: 102.50%;
+  ascent-override: 110.73%;
+  descent-override: 42.83%;
   line-gap-override: 0%;
 }
 @font-face {

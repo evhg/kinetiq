@@ -27,11 +27,15 @@ import { join } from "node:path";
 // factor of their semibold for their other weights.
 const ARCHIVO_100 = { light: 1.003, regular: 0.9815, semi: 0.9616, bold: 1.025 };
 const ARCHIVO_SEMI = { 108: 1.0277, 110: 1.0744, 112: 1.085, 125: 1.2974 };
-const SAIRA = { light: 1.0558, regular: 1.0366, medium: 1.049, bold: 0.979 };
+// Saira regular is set 1% under its measured average (1.0366): the /reserve feel card's "Two-density core, black 12K
+// face" fills its 242 px column at 2560 to within 5 px in Saira, and at the average it wrapped to 2 lines in the
+// fallback, so both cards grew 25 px above the fold until the swap (integration review, 2026-11-01).
+const SAIRA = { light: 1.0558, regular: 1.025, medium: 1.049, bold: 0.979 };
 
 const ARCHIVO = { ascent: 0.878, descent: 0.21 };
 const SAIRA_METRICS = { ascent: 1.135, descent: 0.439 };
-// Roboto Bold's average width against Arial Bold's (capsize metrics, latin).
+// Roboto Bold's average width against Arial Bold's (capsize metrics, latin). Android 12+ ships Roboto as one variable
+// font, where local("Roboto Bold") may not match: the face is then skipped and the next family (the system font) paints.
 const ROBOTO_BOLD = 983 / 926;
 
 const SRC = {

@@ -23,8 +23,8 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // The hero's swivel frames (scripts/sequence.mjs): hashed names too, under the same rule.
-        source: "/stills/seq/:name([A-Za-z0-9-]+)/:file([0-9]{3}-[0-9]+\\.[0-9a-f]{10}\\.webp)",
+        // The hero's swivel frames (scripts/sequence.mjs): hashed names too, AVIF and WebP, under the same rule.
+        source: "/stills/seq/:name([A-Za-z0-9-]+)/:file([0-9]{3}-[0-9]+\\.[0-9a-f]{10}\\.(?:avif|webp))",
         has: [{ type: "cookie", key: "kq_nda" }],
         headers: [
           { key: "Cache-Control", value: "private, max-age=31536000, immutable" },
