@@ -383,3 +383,15 @@
     padding-top: 0;
   }
 }
+
+/* Pinned in a portrait window (the 12.9-inch iPad Pro, 1024 x 1366; 2026-11-01): covering the stage would draw K02
+   2.4 screens wide, the racket's ends cropped and the frames upscaled 1.9x. Here K02 is sized by the width instead, so
+   the whole racket (x 11.7% to 88.3% of the still) spans the screen inside the margins: about 1.2 screens wide, the
+   2560 frames drawn at 0.95x, and each callout under the part it names. The still feathers into the graphite above
+   and below its band as before. */
+@media (min-width: 900px) and (max-aspect-ratio: 1/1) and (prefers-reduced-motion: no-preference) {
+  :global(html[data-motion="on"]) .beatA {
+    --img-w: calc((100vw - 2 * var(--margin)) / 0.766);
+    --img-h: calc(0.5625 * var(--img-w));
+  }
+}

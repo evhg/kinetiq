@@ -22,6 +22,8 @@ import { useFeel } from "@/lib/feel-store";
  * screen's density (up to 3, never more pixels than the frame has); the export is the narrowest whose crop is as
  * wide as the canvas in device pixels. Frames stay compressed once downloaded and decode around the one on screen,
  * within a shared memory budget (`decoded`), so high-resolution sequences fit in an iPhone's memory.
+ * Bytes (2026-11-01, the phone budget: the whole page within 15 to 20 s at 1.6 Mbps): AVIF frames where the browser
+ * decodes them (a probe, `avifSupported`), else WebP; a frame that fails to decode as AVIF switches to WebP.
  * Safari: no requestIdleCallback (a timeout stands in), and each frame decodes through createImageBitmap where it
  * works, else through an <img> (older WebKit cannot make a bitmap from a WebP blob); a frame that fails to download
  * is retried once, and the nearest frame stands in for a lost one. Missing sequence (the feel's or the layout's not exported
@@ -30,15 +32,16 @@ import { useFeel } from "@/lib/feel-store";
  * exactly as before.
  */
 
+/** One encoding of a sequence's frames: the file names' hash (it changes with the bytes) and the bytes per width. */
+type Encoding = { hash: string; quality?: number; bytes?: Record<string, number> };
 type Entry = {
   frames: number;
   w: number;
   h: number;
   crop: { x: number; y: number; w: number; h: number };
   widths: number[];
-  hash: string;
-  /** The frames' file type (default webp). */
-  format?: string;
+  /** The frames' encodings by file type (avif, webp): AVIF where the browser decodes it, else WebP (2026-11-01). */
+  formats: Record<string, Encoding>;
 };
 const manifest = generated as Record<string, Entry>;
 
@@ -48,6 +51,8 @@ type Seq = {
   name: string;
   entry: Entry;
   width: number;
+  /** The file type this sequence downloads (`formatFor`), fixed when its first frame is requested. */
+  format: string | null;
   /** The downloaded (still compressed) frames: decoded only around the frame on screen (`decoded`, below). */
   blobs: (Blob | null)[];
   /** Frames being decoded now. */
@@ -64,6 +69,8 @@ type Seq = {
   /** Cancels the downloads in flight when the visitor scrolls past (`lead`); their frames go back in the queue. */
   ctrl: AbortController;
   requeue: number[];
+  /** Restarts the loader (after `downgrade`), set by the swivel that loads it. */
+  resume?: () => void;
 };
 
 export type SwivelHandle = { progress: (p: number) => void };
@@ -120,10 +127,39 @@ function loadOrder(n: number) {
   return order;
 }
 
-const frameUrl = (s: Seq, i: number) =>
-  `/stills/seq/${s.name}/${String(i).padStart(3, "0")}-${s.width}.${s.entry.hash}.${s.entry.format ?? "webp"}`;
+/**
+ * AVIF (2026-11-01, the phone load budget): at the same sharpness the swivels' AVIF frames are about 40% smaller than
+ * their WebP, which on the phone profile (1.6 Mbps) is the difference between the page completing in about 20 s and
+ * in 28. Safari decodes AVIF from iOS 16; older WebKit, and any browser that fails this probe, take the WebP frames.
+ * The probe is a 1 x 1 AVIF decoded through an <img>, once per page, before the first frame is requested.
+ */
+const AVIF_PROBE =
+  "data:image/avif;base64,AAAAHGZ0eXBhdmlmAAAAAG1pZjFhdmlmbWlhZgAAANZtZXRhAAAAAAAAACFoZGxyAAAAAAAAAABwaWN0AAAAAAAAAAAAAAAAAAAAACJpbG9jAAAAAERAAAEAAQAAAAAA+gABAAAAAAAAAB4AAAAjaWluZgAAAAAAAQAAABVpbmZlAgAAAAABAABhdjAxAAAAAA5waXRtAAAAAAABAAAAVmlwcnAAAAA4aXBjbwAAAAxhdjFDgSACAAAAABRpc3BlAAAAAAAAAAEAAAABAAAAEHBpeGkAAAAAAwgICAAAABZpcG1hAAAAAAAAAAEAAQOBAgMAAAAmbWRhdBIACgc4AAbQENBpMhEZQmMEwAA0AAAAkEDJHGFCvg==";
+let avif: Promise<boolean> | null = null;
+function avifSupported() {
+  avif ??= new Promise<boolean>((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(img.naturalWidth === 1);
+    img.onerror = () => resolve(false);
+    img.src = AVIF_PROBE;
+  });
+  return avif;
+}
+/** False once an AVIF frame has failed to decode on this page: every sequence then takes WebP. */
+let avifWorks = true;
+let avifProbed = false;
+/** The file type a sequence downloads: AVIF where it decodes and is exported, else WebP (else whatever there is). */
+function formatFor(entry: Entry) {
+  if (avifProbed && avifWorks && entry.formats.avif) return "avif";
+  return entry.formats.webp ? "webp" : Object.keys(entry.formats)[0];
+}
 
-/** Whether createImageBitmap has decoded a WebP blob on this browser (null until the first frame tries). */
+const frameUrl = (s: Seq, i: number) => {
+  const format = (s.format ??= formatFor(s.entry));
+  return `/stills/seq/${s.name}/${String(i).padStart(3, "0")}-${s.width}.${s.entry.formats[format].hash}.${format}`;
+};
+
+/** Whether createImageBitmap has decoded a frame's blob on this browser (null until the first frame tries). */
 let bitmaps: boolean | null = null;
 
 async function viaImage(url: string): Promise<HTMLImageElement> {
@@ -189,10 +225,15 @@ function maxGap(s: Seq) {
 
 /** Starts (or resumes) loading while the sequence is wanted; `active` says whether it still is. */
 function pump(s: Seq, active: () => boolean) {
+  // Not before the AVIF probe has answered (start, below): the sequence's format is fixed by its first request.
+  if (!avifProbed) return;
+  // Another sequence's AVIF failed to decode: this one switches before it downloads any more.
+  if (s.format === "avif" && !avifWorks && s.entry.formats.webp) return downgrade(s);
   while (!s.failed && active() && s.inFlight < CONCURRENCY && (s.requeue.length || s.next < s.order.length)) {
     const i = s.requeue.length ? s.requeue.shift()! : s.order[s.next++];
     s.inFlight++;
     const url = frameUrl(s, i);
+    const format = s.format;
     const { signal } = s.ctrl;
     // One retry, a moment later, for a frame lost to the network (a phone between cells); none for a cancelled one.
     download(url, signal)
@@ -204,8 +245,9 @@ function pump(s: Seq, active: () => boolean) {
       .then(
         (blob) => {
           s.inFlight--;
-          // Released (the other feel was picked) or failed meanwhile: drop it.
+          // Released (the other feel was picked) or failed meanwhile, or the other format's: drop it.
           if (s.failed) return;
+          if (s.format !== format) return pump(s, active);
           s.blobs[i] = blob;
           if (!s.ready && maxGap(s) <= READY_GAP) s.ready = true;
           s.onChange.forEach((f) => f());
@@ -214,6 +256,7 @@ function pump(s: Seq, active: () => boolean) {
         () => {
           s.inFlight--;
           if (s.failed) return;
+          if (s.format !== format) return pump(s, active);
           // Cancelled because the visitor scrolled past: not lost, it loads again when the still comes back near.
           if (signal.aborted) {
             s.requeue.push(i);
@@ -246,11 +289,13 @@ function decodedFrame(s: Seq, i: number, now: number): Frame | null {
   const blob = s.blobs[i];
   if (!blob || s.decoding.has(i) || s.failed) return null;
   s.decoding.add(i);
+  const format = s.format;
   decodeBlob(blob).then(
     ({ frame, url }) => {
       s.decoding.delete(i);
-      // Released, or no swivel draws this sequence any more (unmounted, or scrolled far away): keep nothing decoded.
-      if (s.failed || cache.get(s.key) !== s || !s.onChange.size) {
+      // Released, or no swivel draws this sequence any more (unmounted, or scrolled far away), or the frame is in the
+      // format given up since (`downgrade`): keep nothing decoded.
+      if (s.failed || cache.get(s.key) !== s || !s.onChange.size || s.format !== format) {
         if ("close" in frame) frame.close();
         if (url) URL.revokeObjectURL(url);
         return;
@@ -263,10 +308,29 @@ function decodedFrame(s: Seq, i: number, now: number): Frame | null {
     },
     () => {
       s.decoding.delete(i);
-      if (!s.failed) lose(s, i);
+      if (s.failed || s.format !== format) return;
+      // An AVIF frame this browser cannot decode (it passed the probe, but a full frame may not): WebP from now on.
+      if (s.format === "avif" && s.entry.formats.webp) return downgrade(s);
+      lose(s, i);
     },
   );
   return null;
+}
+
+/** The sequence starts again in WebP: the AVIF frames go (those in flight are dropped as they arrive). */
+function downgrade(s: Seq) {
+  avifWorks = false;
+  for (let i = 0; i < s.blobs.length; i++) dropDecoded(decodedKey(s, i));
+  s.ctrl.abort();
+  s.ctrl = new AbortController();
+  s.format = "webp";
+  s.blobs.fill(null);
+  s.lost.clear();
+  s.requeue = [];
+  s.next = 0;
+  s.ready = false;
+  s.onChange.forEach((f) => f());
+  s.resume?.();
 }
 
 /** The downloaded frame nearest to i (a lost or late frame's neighbour stands in), or -1. */
@@ -291,6 +355,8 @@ function nearestDecoded(s: Seq, f: number) {
 
 function release(s: Seq) {
   s.failed = true;
+  // The frames in flight stop too (a change of feel mid-load): never both feels' frames on a phone's connection.
+  s.ctrl.abort();
   for (let i = 0; i < s.blobs.length; i++) dropDecoded(decodedKey(s, i));
   s.blobs.fill(null);
   cache.delete(s.key);
@@ -487,12 +553,13 @@ export function Swivel({ ref, sequence, portraitQuery, media, lead, className }:
       for (const s of cache.values()) if (s.key !== key && s.name.startsWith(`${sequence}-`)) release(s);
       let s = cache.get(key);
       if (!s) {
-        s = { key, name, entry, width: width || entry.widths[0], blobs: Array(entry.frames).fill(null), decoding: new Set(), order: loadOrder(entry.frames), next: 0, inFlight: 0, lost: new Set(), failed: false, ready: false, onChange: new Set(), ctrl: new AbortController(), requeue: [] };
+        s = { key, name, entry, width: width || entry.widths[0], format: null, blobs: Array(entry.frames).fill(null), decoding: new Set(), order: loadOrder(entry.frames), next: 0, inFlight: 0, lost: new Set(), failed: false, ready: false, onChange: new Set(), ctrl: new AbortController(), requeue: [] };
         cache.set(key, s);
       }
       seq = s;
       s.onChange.add(schedule);
-      if (started) pump(s, () => alive && seq === s && near);
+      s.resume = () => pump(s, () => alive && seq === s && near);
+      if (started) s.resume();
       schedule();
     };
 
@@ -503,8 +570,12 @@ export function Swivel({ ref, sequence, portraitQuery, media, lead, className }:
       armed = true;
       if (!alive || started || !near) return;
       started = true;
-      const s = seq;
-      if (s) pump(s, () => alive && seq === s && near);
+      // The first frame waits for the AVIF probe (a data URI: a moment), so the sequence downloads one format.
+      avifSupported().then((ok) => {
+        avifProbed = true;
+        if (!ok) avifWorks = false;
+        if (alive) seq?.resume?.();
+      });
     };
     pick();
     // After the load event (the hero's stills are in), when the main thread is idle: never ahead of the LCP. But never
