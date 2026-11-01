@@ -2,6 +2,7 @@ import { useContext, useSyncExternalStore } from "react";
 import {
   DEFAULT_FEEL,
   FEEL_COOKIE_MAX_AGE,
+  FEEL_COOKIE_RENEW_URL,
   FEEL_PREFERENCE_KEY,
   feelFromCookie,
   isFeelId,
@@ -43,7 +44,30 @@ function writeCookie(f: FeelId) {
     document.cookie = `${FEEL_PREFERENCE_KEY}=${f}; Path=/; Max-Age=${FEEL_COOKIE_MAX_AGE}; SameSite=Lax${secure}`;
   } catch {
     // cookies blocked: the page still follows the choice; the next visit simply opens on the default page
+    return;
   }
+  renewFeelCookie();
+}
+
+let renewTimer: ReturnType<typeof setTimeout> | undefined;
+
+/**
+ * Safari holds a cookie written by script to 7 days (ITP); one set by the server keeps its year. So once the choice
+ * settles (a second after the last toggle, so a quick back-and-forth sends one request, never two that could land out
+ * of order), a HEAD of / carries the new cookie to src/proxy.ts, which sends it back with Set-Cookie: the choice holds
+ * even if the visitor opens no other page for a week. Fails quietly (offline, gate not cleared: no Set-Cookie).
+ */
+function renewFeelCookie() {
+  clearTimeout(renewTimer);
+  renewTimer = setTimeout(() => {
+    try {
+      void fetch(FEEL_COOKIE_RENEW_URL, { method: "HEAD", cache: "no-store", credentials: "same-origin", keepalive: true }).catch(
+        () => {},
+      );
+    } catch {
+      // no fetch: the next page load renews the cookie instead
+    }
+  }, 1000);
 }
 
 function mark(f: FeelId) {

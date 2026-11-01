@@ -214,9 +214,14 @@ option, the focus ring on the option). The site opens on Command.
   swatches alone, 44 px each (their names stay the radios' labels, visually hidden): the wordmark (about 130 px), the
   swatches (88 px) and the compact Reserve Now fit 335 px at 375 px; from 700 px the swatches carry their names.
 - State: `lib/feel-store.ts` (`useFeel`, `setFeel`, useSyncExternalStore) writes `kq-feel` in localStorage (try/catch;
-  in memory when blocked), a first-party `kq-feel` cookie (Path=/, one year, SameSite=Lax, Secure on https; the head
-  script re-writes it whenever it is missing or out of step with localStorage) and `html[data-feel]`, which the head
-  script sets before the first paint (from localStorage, else the cookie); every toggle's
+  in memory when blocked), a first-party `kq-feel` cookie (Path=/, one year, SameSite=Lax, Secure on https, not
+  HttpOnly) and `html[data-feel]`, which the head script sets before the first paint (from localStorage, else the
+  cookie). Safari on iPhone (ITP) holds a cookie written by script to 7 days, so script writes only bridge to the
+  server: `src/proxy.ts` sends the cookie back with Set-Cookie and a fresh year on every cleared page load that carries
+  it; a choice (a second after the last toggle) and the head script's restore of a missing or out-of-step cookie (after
+  the load event) send a HEAD of / so the server renews it at once; the head script never rewrites a cookie already in
+  step, which would put it back under the cap. So a Pace visitor keeps the Pace page however long ago they chose,
+  as long as they come back within a year. Every toggle's
   thumb and labels read that attribute, so all of them agree and a stored Pace never flashes Command. Reserve Now
   links (hero, header, Identical, finale, the edition cards) carry the choice into checkout (`?feel=`, `ReserveLink`);
   the /reserve feel picker writes the same preference, and its gallery shows a still's Pace version in its own feel.

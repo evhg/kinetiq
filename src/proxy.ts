@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { FEEL_PREFERENCE_KEY, isFeelId } from "@/content/site";
+import { FEEL_COOKIE_MAX_AGE, FEEL_PREFERENCE_KEY, isFeelId, type FeelId } from "@/content/site";
 import { NDA_COOKIE, NDA_ROUTE, ndaCleared } from "@/lib/nda";
 
 /**
@@ -18,6 +18,9 @@ import { NDA_COOKIE, NDA_ROUTE, ndaCleared } from "@/lib/nda";
  * no-cache below), so a changed choice always gets the page in the new feel. (A Vary: Cookie set here would be replaced
  * by Next's own Vary on rendered pages.)
  * /feel/* asked for directly is a 404: those pages exist only behind this rewrite.
+ * Every cleared page response to a request carrying `kq-feel` sends it back with a fresh year (refreshFeel below): Safari's
+ * Intelligent Tracking Prevention caps a cookie written by script (document.cookie) at 7 days, and one set by the
+ * server's Set-Cookie at its own Max-Age, so a Pace visitor keeps the Pace page however rarely they choose.
  */
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -32,16 +35,17 @@ export function proxy(request: NextRequest) {
   }
   if (cleared) {
     if (isAssetOrApi(pathname)) return NextResponse.next();
+    const value = request.cookies.get(FEEL_PREFERENCE_KEY)?.value;
+    const feel = isFeelId(value) ? value : null;
     if (pathname === FEEL_ROOT || pathname.startsWith(`${FEEL_ROOT}/`)) {
-      return presentation(NextResponse.rewrite(new URL(FEEL_ROOT, request.url)));
+      return presentation(NextResponse.rewrite(new URL(FEEL_ROOT, request.url)), request, feel);
     }
-    const feel = request.cookies.get(FEEL_PREFERENCE_KEY)?.value;
-    if (isFeelId(feel) && FEEL_PAGES.has(pathname)) {
+    if (feel && FEEL_PAGES.has(pathname)) {
       const url = request.nextUrl.clone();
       url.pathname = `${FEEL_ROOT}/${feel}${pathname === "/" ? "" : pathname}`;
-      return presentation(NextResponse.rewrite(url));
+      return presentation(NextResponse.rewrite(url), request, feel);
     }
-    return presentation(NextResponse.next());
+    return presentation(NextResponse.next(), request, feel);
   }
 
   if (isAssetOrApi(pathname)) return gated(new NextResponse(null, { status: 403 }));
@@ -62,10 +66,30 @@ function isAssetOrApi(pathname: string) {
   return /\.[A-Za-z0-9]+$/.test(last);
 }
 
-/** A cleared page: kept out of shared caches and revalidated before reuse (the header comment above). */
-function presentation(res: NextResponse) {
+/**
+ * A cleared page: kept out of shared caches and revalidated before reuse, and the visitor's feel cookie renewed (the
+ * header comment above).
+ */
+function presentation(res: NextResponse, request: NextRequest, feel: FeelId | null) {
   res.headers.set("Cache-Control", "private, no-cache");
+  if (feel) refreshFeel(res, request, feel);
   return res;
+}
+
+/**
+ * Sends `kq-feel` back as the request carried it, with the attributes lib/feel-store.ts and the head script write
+ * (Path=/, one year, SameSite=Lax, Secure on https, not HttpOnly so they can still change it): a server-set cookie is
+ * not held to ITP's 7-day cap on script-written ones, so the cap restarts at one year on every visit.
+ */
+function refreshFeel(res: NextResponse, request: NextRequest, feel: FeelId) {
+  res.cookies.set({
+    name: FEEL_PREFERENCE_KEY,
+    value: feel,
+    path: "/",
+    maxAge: FEEL_COOKIE_MAX_AGE,
+    sameSite: "lax",
+    secure: request.nextUrl.protocol === "https:" || request.headers.get("x-forwarded-proto") === "https",
+  });
 }
 
 /** Gate responses depend on the cookie: never cached, never indexed. */

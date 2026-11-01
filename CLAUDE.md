@@ -33,7 +33,8 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
   invitations, countries), `reserve.ts`, `site.ts` (CTAs, price note, ship date, refund, feels; `DEFAULT_FEEL` Command,
   `FEEL_PREFERENCE_KEY` "kq-feel", `storedFeel()`; the toggle's store is `lib/feel-store.ts`), `stills.json` (crops).
   The feel is in localStorage and a `kq-feel` cookie: `src/proxy.ts` serves /, /reserve, /reserved from `app/feel/<feel>/`
-  (the same pages, rendered in that feel), so a returning Pace visitor never loads Command. `check.mjs --feel=pace`.
+  (the same pages, rendered in that feel), so a returning Pace visitor never loads Command, and renews the cookie with
+  Set-Cookie (Safari caps script-written cookies at 7 days; DESIGN.md "Feel toggle"). `check.mjs --feel=pace`.
 - Flow (Tesla Roadster reserve page): "Reserve Now" → `/reserve?tier=` (feel, edition, trust lines, Due Today, "Pay
   with Card" expands the form in place; the gallery opens on K08, both feels, until a feel is chosen) → "Place
   Reservation" posts to `src/app/api/reserve/route.ts` (PaymentIntent via REST, amount from `lineup.ts`; enforces
