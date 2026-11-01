@@ -11,6 +11,13 @@
 - white_sleeve   -> the drilled wall: the cut laminate skin (plies of cut tow ends, white fibre in resin, matte) over a
                     dark bond line and the EVA core exposed below it (foam cells), darkening with depth.
 - bore_emission  -> nothing (no light comes up a foam wall).
+Pace (--feel pace, 2026-11-01): K04 builds Pace through pace_face / pace_sleeve, so those are swapped too:
+- pace_face      -> the canon Pace 12K (kq_canon.mat_pace) on PLANAR coordinates (u = x, v = y in metres, tangent +x):
+                    8 mm tapes running straight to every rim and stopping dead there, plus a crazed band round each rim
+                    where the glass coat is broken (matte, a grey stress-whitened resin with radial micro-cracks).
+- pace_sleeve    -> the same drilled wall with BLACK cut plies (dark fibre ends in resin, a little sheen) over the bond
+                    line and the EVA core (the core reads as it does in Command: it is the same racket).
+Stubs turn black and glossy (cut 12K tow ends catching the light).
 """
 import inspect
 import math
@@ -24,10 +31,11 @@ FRAY_W = 0.0014      # stress-whitened band round each rim (m)
 LIP_D = 0.00025       # the cut edge band ('Lips' objects), m below the face
 
 
-def install(K04, skin=0.0016, chip=0.00012, seed=16):
+def install(K04, skin=0.0016, chip=0.00012, seed=16, feel="command"):
     R, ZT, ZB, U = K04.R, K04.ZT, K04.ZB, K04.U
     rng = random.Random(seed)
     state = {"holes": []}
+    pace = feel == "pace"
 
     def rim_fn(hero):
         """Radius of the cut edge at angle a: R plus chips (notches torn out by the drill) and a fine ragged noise."""
@@ -169,8 +177,14 @@ def install(K04, skin=0.0016, chip=0.00012, seed=16):
         m = bpy.data.materials.new("K16_Stub")
         m.use_nodes = True
         b = m.node_tree.nodes["Principled BSDF"]
-        b.inputs["Base Color"].default_value = (0.62, 0.61, 0.58, 1)
-        b.inputs["Roughness"].default_value = 0.45
+        if pace:
+            # cut black 12K tow ends: black fibre, a satin sheen that catches the key and the pool
+            b.inputs["Base Color"].default_value = (0.05, 0.05, 0.052, 1)
+            b.inputs["Roughness"].default_value = 0.28
+            b.inputs["Metallic"].default_value = 0.4
+        else:
+            b.inputs["Base Color"].default_value = (0.62, 0.61, 0.58, 1)
+            b.inputs["Roughness"].default_value = 0.45
         b.inputs["Coat Weight"].default_value = 0.0
         _stub["m"] = m
         return m
@@ -324,7 +338,8 @@ def install(K04, skin=0.0016, chip=0.00012, seed=16):
         links.new(ply_a, skin_tone.inputs["Factor"])
         links.new(dots, skin_tone.inputs["A"])
         links.new(streaks, skin_tone.inputs["B"])
-        skin_v = math_("MULTIPLY", skin_tone.outputs["Result"], float(o.get("skin_tone", 0.62)))
+        skin_v = math_("MULTIPLY", skin_tone.outputs["Result"],
+                       float(o.get("skin_tone", 0.10 if pace else 0.62)))
         # resin lines between plies
         resin = ramp(math_("ABSOLUTE", math_("SUBTRACT", ply, 0.5)), 0.44, 0.5, 1.0, 0.55)
         skin_v = math_("MULTIPLY", skin_v, resin)
@@ -359,7 +374,7 @@ def install(K04, skin=0.0016, chip=0.00012, seed=16):
         rgh = nodes.new("ShaderNodeMix")
         rgh.data_type = "FLOAT"
         links.new(in_core, rgh.inputs["Factor"])
-        rgh.inputs["A"].default_value = 0.5
+        rgh.inputs["A"].default_value = float(o.get("skin_rough", 0.32 if pace else 0.5))
         rgh.inputs["B"].default_value = 0.85
         links.new(rgh.outputs["Result"], b.inputs["Roughness"])
         b.inputs["Coat Weight"].default_value = 0.0
@@ -378,6 +393,110 @@ def install(K04, skin=0.0016, chip=0.00012, seed=16):
     def bore_emission(mat, stria_sock, hero_xy, o, left_x=0.32):
         return None
 
+    # ---------------------------------------------------------------- Pace: planar 12K face, black cut plies
+    def pace_face(o):
+        import kq_canon
+        m = kq_canon.mat_pace("K16_PacePlanar", o=K04._pace_opts(o))
+        canon_nodes = list(m.node_tree.nodes)
+        nodes, links = m.node_tree.nodes, m.node_tree.links
+        geo = nodes.new("ShaderNodeNewGeometry")
+        sp = nodes.new("ShaderNodeSeparateXYZ")
+        links.new(geo.outputs["Position"], sp.inputs[0])
+        uv = nodes.new("ShaderNodeCombineXYZ")
+        ph = float(o.get("p_phase", 0.0)) / 1000.0     # tape phase (mm): where the tape edges fall against the holes
+        for k_, ax in ((0, "X"), (1, "Y")):
+            ad = nodes.new("ShaderNodeMath")
+            ad.operation = "ADD"
+            ad.inputs[1].default_value = ph
+            links.new(sp.outputs[ax], ad.inputs[0])
+            links.new(ad.outputs[0], uv.inputs[k_])
+        tx = nodes.new("ShaderNodeCombineXYZ")
+        tx.inputs["X"].default_value = 1.0
+        K04._pace_relink(m, uv.outputs[0], tx.outputs[0], canon_nodes)
+        pace_fray(m, state["holes"], o)
+        return m
+
+    def pace_fray(m, holes, o):
+        """The coat broken round each rim: a matte, grey stress-whitened band with radial micro-cracks, mixed over the
+        whole canon surface (coat and fibre lobe both stop where the resin is crazed)."""
+        nt = m.node_tree
+        nodes, links = nt.nodes, nt.links
+        out = next(n for n in nodes if n.type == "OUTPUT_MATERIAL")
+        surf = out.inputs["Surface"].links[0].from_socket
+        tc = nodes.new("ShaderNodeTexCoord")
+        geo = nodes.new("ShaderNodeNewGeometry")
+        dmin = None
+        for (hx, hy) in holes:
+            d = nodes.new("ShaderNodeVectorMath")
+            d.operation = "DISTANCE"
+            d.inputs[1].default_value = (hx, hy, ZT)
+            links.new(geo.outputs["Position"], d.inputs[0])
+            if dmin is None:
+                dmin = d.outputs["Value"]
+            else:
+                mn = nodes.new("ShaderNodeMath")
+                mn.operation = "MINIMUM"
+                links.new(dmin, mn.inputs[0])
+                links.new(d.outputs["Value"], mn.inputs[1])
+                dmin = mn.outputs[0]
+        band = nodes.new("ShaderNodeMapRange")
+        band.interpolation_type = "SMOOTHSTEP"
+        band.inputs["From Min"].default_value = R + chip * 0.2
+        band.inputs["From Max"].default_value = R + float(o.get("fray_w", FRAY_W))
+        band.inputs["To Min"].default_value = 1.0
+        band.inputs["To Max"].default_value = 0.0
+        links.new(dmin, band.inputs["Value"])
+        nz = nodes.new("ShaderNodeTexNoise")
+        nz.noise_dimensions = "3D"
+        nz.inputs["Scale"].default_value = 9000.0
+        nz.inputs["Detail"].default_value = 6.0
+        nz.inputs["Roughness"].default_value = 0.65
+        links.new(tc.outputs["Object"], nz.inputs["Vector"])
+        crack = nodes.new("ShaderNodeMapRange")
+        crack.inputs["From Min"].default_value = 0.45
+        crack.inputs["From Max"].default_value = 0.62
+        links.new(nz.outputs["Fac"], crack.inputs["Value"])
+        # factor: the band, ragged by the cracks (the outer edge of the band breaks up into crazing)
+        fr = nodes.new("ShaderNodeMath")
+        fr.operation = "MULTIPLY"
+        links.new(band.outputs["Result"], fr.inputs[0])
+        links.new(crack.outputs["Result"], fr.inputs[1])
+        fb = nodes.new("ShaderNodeMath")
+        fb.operation = "MULTIPLY"
+        fb.inputs[1].default_value = float(o.get("p_fray_base", 0.55))
+        links.new(band.outputs["Result"], fb.inputs[0])
+        fray = nodes.new("ShaderNodeMath")
+        fray.operation = "MAXIMUM"
+        links.new(fr.outputs[0], fray.inputs[0])
+        links.new(fb.outputs[0], fray.inputs[1])
+        # the crazed resin: dark grey between the cracks, chalky grey in them
+        col = nodes.new("ShaderNodeMix")
+        col.data_type = "RGBA"
+        c0 = float(o.get("p_fray_lo", 0.035))
+        c1 = float(o.get("p_fray_hi", 0.20))
+        col.inputs["A"].default_value = (c0, c0, c0 * 1.02, 1)
+        col.inputs["B"].default_value = (c1, c1 * 0.985, c1 * 0.96, 1)
+        links.new(crack.outputs["Result"], col.inputs["Factor"])
+        fb_ = nodes.new("ShaderNodeBsdfPrincipled")
+        links.new(col.outputs["Result"], fb_.inputs["Base Color"])
+        fb_.inputs["Roughness"].default_value = 0.72
+        fb_.inputs["Coat Weight"].default_value = 0.0
+        bump = nodes.new("ShaderNodeBump")
+        bump.inputs["Strength"].default_value = 0.5
+        bump.inputs["Distance"].default_value = 0.00002
+        links.new(crack.outputs["Result"], bump.inputs["Height"])
+        links.new(bump.outputs["Normal"], fb_.inputs["Normal"])
+        mx = nodes.new("ShaderNodeMixShader")
+        links.new(fray.outputs[0], mx.inputs[0])
+        links.new(surf, mx.inputs[1])
+        links.new(fb_.outputs[0], mx.inputs[2])
+        links.new(mx.outputs[0], out.inputs["Surface"])
+
+    def pace_sleeve(name, o, bore=False):
+        return white_sleeve(name.replace("PaceK04", "CarbonW_K04"), o, bore=bore)
+
+    K04.pace_face = pace_face
+    K04.pace_sleeve = pace_sleeve
     K04.build_patch = build_patch
     K04.carbon_white_baked = carbon_white_baked
     K04.white_sleeve = white_sleeve

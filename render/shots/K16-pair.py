@@ -114,7 +114,7 @@ def main():
     K04.studio.camera = camera
     if mode == "drilled":
         import k16_drilled as D
-        D.install(K04, skin=skin, chip=chip)
+        D.install(K04, skin=skin, chip=chip, feel=str(_argval(argv, "feel", "command")))
     K04.main()
 
 
