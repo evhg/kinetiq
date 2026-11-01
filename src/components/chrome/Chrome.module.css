@@ -23,7 +23,7 @@
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  font-family: var(--font-display);
+  font-family: var(--font-display-125);
   font-variation-settings: "wdth" 125;
   font-weight: 600;
   font-size: clamp(1.0625rem, 0.4vw + 0.95rem, 1.5rem);

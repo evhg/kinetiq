@@ -315,7 +315,7 @@
   letter-spacing: 0.02em;
 }
 .letter {
-  font-family: var(--font-display);
+  font-family: var(--font-display-110);
   font-variation-settings: "wdth" 110;
   font-weight: 560;
   font-size: calc(var(--lab-fs) * 1.2);
@@ -417,7 +417,7 @@
 }
 .wordmark {
   display: block;
-  font-family: var(--font-display);
+  font-family: var(--font-display-125);
   font-variation-settings: "wdth" 125;
   font-weight: 600;
   letter-spacing: 0.32em;

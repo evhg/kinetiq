@@ -75,7 +75,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4em;
-  font-family: var(--font-display);
+  font-family: var(--font-display-112);
   font-variation-settings: "wdth" 112;
   font-weight: 560;
   font-size: clamp(2rem, 2.6vw + 0.5rem, 4.5rem);

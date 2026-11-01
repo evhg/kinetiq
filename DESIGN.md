@@ -93,6 +93,11 @@ owner loves: light every face-on shot so the tows resolve (K05, K08, K11).
 Archivo (OFL, variable weight and width) for display and text; Saira (OFL) for data, labels and numerals.
 Headlines Archivo wdth 112 wght 580; record numerals wght 200–220, tabular; wordmark wdth 125 tracking 0.32em.
 Fluid scale up to 2560 in `globals.css` (`--fs-record` … `--fs-fine`); classes `.t-h1` … `.t-fine`.
+Font swap (2026-11-01): until Archivo and Saira arrive (`display: swap`), text paints in metric-matched local fallbacks
+(`src/app/font-fallbacks.css`, written by `scripts/font-fallbacks.mjs`): Arial, Liberation Sans or Arimo, then Roboto on
+Android, one family per Archivo width and a face per weight range, each size-adjusted to the site's own words, so the
+swap re-wraps nothing (CLS from fonts ~0). A rule that sets `font-variation-settings: "wdth" N` uses
+`font-family: var(--font-display-N)` (108, 110, 112, 125); a new width needs its family in the script first.
 
 ## Page
 A climactic rise (owner, 2026-10-28: "Re-plan the storytelling and introducing the features and claims to create a
