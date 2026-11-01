@@ -84,6 +84,7 @@ DEFAULTS = dict(
     POOL_GLOSS=0.0,
     # gloss band (mirror of the face)
     GLOSS=14.0, GLOSS_D=0.6, GLOSS_W=0.05, GLOSS_LEN=1.2, GLOSS_DEL=0.0, GLOSS_AZ=0.0, GLOSS_EDGE0=-1.0, GLOSS_EDGE1=-0.2,
+    GLOSS_B0=0.0, GLOSS_B1=0.0,      # > 0: the card's far edge fades out from B0 to B1 (no hard cut in its reflection)
     # rim line
     RIM=30.0, RIM_EL=6.0, RIM_D=0.5, RIM_W=0.012, RIM_LEN=1.2, RIM_AZ=0.0,
     # lip line: a glossy-only card high beyond the holes, linked to the bores' lips (K04's lg_lipline)
@@ -117,7 +118,10 @@ DEFAULTS.update(
 # Pace: the 12K tapes only show near the coat's mirror direction (canon Pace v6), so the gloss card is a wide graded
 # panel a little below the mirror band, its soft edge across the face: black lacquer with one graded sheen, the tapes
 # faint in it (out/k14/g2.png; a hard 0.3 m band, g1, drew a grey stripe).
-PACE_SET = dict(GLOSS_W=0.5, GLOSS=6.0, GLOSS_DEL=-8.0, GLOSS_EDGE0=-1.0, GLOSS_EDGE1=0.6, g_gloss=1.0)
+# 2026-11-01: the gloss card's far edge fades (B0..B1) and the card is 20 % wider: its hard cut drew a dark wedge lower
+# right on the 12K face (previews out/pr/k14/pa..pf; pe chosen: checker kept, wedge gone, fill rule passes)
+PACE_SET = dict(GLOSS_W=0.6, GLOSS=6.0, GLOSS_DEL=-8.0, GLOSS_EDGE0=-1.0, GLOSS_EDGE1=0.6, GLOSS_B0=0.7, GLOSS_B1=1.0,
+                g_gloss=1.0)
 
 
 def parse_args():
@@ -282,7 +286,7 @@ def build(o, p):
     if p["GLOSS"] > 0:
         gb = K04.panel("lg_gloss", tuple(P + dirv(maz, mel) * p["GLOSS_D"]), (p["GLOSS_W"], p["GLOSS_LEN"]), p["GLOSS"],
                        tuple(P), color=(0.94, 0.96, 1.0), roll=0.0, edge=(p["GLOSS_EDGE0"], p["GLOSS_EDGE1"]),
-                       fade=(0, 1.0))
+                       fade=(0, 1.0), band=(p["GLOSS_B0"], p["GLOSS_B1"], 0.0) if p["GLOSS_B1"] > 0 else None)
         _orient_card(gb, P, t)
         gb.visible_diffuse = False
         gb.lightgroup = "gloss"

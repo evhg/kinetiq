@@ -20,6 +20,7 @@ Usage (from render/, one Blender at a time through the lock):
   flock render.lock $PY shots/K16-pair.py --mode drilled --w 720 --h 810 --spp 24 --out k16/d01
   flock render.lock $PY shots/K16-pair.py --mode moulded --w 720 --h 810 --spp 24 --out k16/m01
   $PY shots/K16-pair.py --combine k16/d01 k16/m01 --out k16/pair01      (no render: bpy reads the PNGs)
+Pace: add --feel pace to all three (the drilled half on a planar 12K face, k16_drilled; K16_PACE_DEFAULTS).
 Extra K04 flags pass straight through (e.g. --pool 30 --fstop 48). K16-only: --mode, --shift_x (default 0),
 --yaw, --fw (mm, default 30), --skin (mm, cut carbon skin depth, default 1.6), --chip (mm, default 0.35).
 """
@@ -38,6 +39,9 @@ sys.path.insert(0, HERE)
 # K16 defaults on top of K04's (a K04 flag given on the command line still wins)
 K16_DEFAULTS = dict(fw="30", gobo="0", burn="1.0", flag_x="-1", shade="0", pool="26", pool_x="0.78", pool_y="0.42",
                     focus="1.0", fstop="48", glow_left="1.0", sheen_u="0.5", sheen_v="0.16")
+# Pace (2026-11-01): the same rig; the pool lights diffuse only (the drilled wall, the crazed band and the core: on black
+# 12K it never touches the coat), a narrower, ragged crazed band (previews out/pr/k16/pd1..pd3, pm1)
+K16_PACE_DEFAULTS = dict(pace_pool="1", p_fray_base="0.3", p_fray_hi="0.16")
 
 
 def _argval(argv, key, default=None):
@@ -94,7 +98,10 @@ def main():
             next(it, None)
             continue
         k04_argv.append(argv[i])
-    for k, v in K16_DEFAULTS.items():
+    defaults = dict(K16_DEFAULTS)
+    if _argval(argv, "feel", "command") == "pace":
+        defaults.update(K16_PACE_DEFAULTS)
+    for k, v in defaults.items():
         if "--" + k not in k04_argv:
             k04_argv += ["--" + k, v]
     if "--variant" not in k04_argv:
@@ -114,7 +121,7 @@ def main():
     K04.studio.camera = camera
     if mode == "drilled":
         import k16_drilled as D
-        D.install(K04, skin=skin, chip=chip)
+        D.install(K04, skin=skin, chip=chip, feel=str(_argval(argv, "feel", "command")))
     K04.main()
 
 

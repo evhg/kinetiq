@@ -1530,7 +1530,8 @@ def main():
         wv.lightgroup = "fill"
         wv.visible_shadow = False
         flagged.append(wv)
-    if white and float(o.get("pool", 0.0)) > 0:
+    pace_pool = is_pace(o) and float(o.get("pace_pool", 0.0)) > 0
+    if (white or pace_pool) and float(o.get("pool", 0.0)) > 0:
         # white Command needs real diffuse light (canon lighting note 8): a soft spot pool from behind the camera's
         # right shoulder, in the key group. It lights the white face with a falloff toward the text zone on the left
         # and the far inner lip of every hole (the white lip crescent); its mirror image never lands on the flat face.
@@ -1542,6 +1543,11 @@ def main():
                                  float(o.get("pool_deg", 10.0)), blend=1.0, color=(1.0, 0.985, 0.97), target=tuple(tgt),
                                  radius=float(o.get("pool_r", 0.012)))
         pool.lightgroup = str(o.get("pool_lg", "key"))
+        if pace_pool:
+            # K16 Pace (2026-11-01): the same pool, diffuse only and scaled by --pace_pool: on black 12K it lights only
+            # what diffuses (the drilled wall, the crazed band, the core), never a glint on the coat
+            pool.data.energy *= float(o["pace_pool"])
+            pool.visible_glossy = False
         if float(o.get("pool_gloss", 1.0)) <= 0:
             # v5: diffuse only. Its 10 deg disc mirrored in the lip lacquer read as a pinpoint flash (glossy ceramic);
             # the lips' highlights are the reflection-only strips' job (lg_lipline, lg_sheen)
