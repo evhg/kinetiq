@@ -118,7 +118,10 @@ DEFAULTS.update(
 # Pace: the 12K tapes only show near the coat's mirror direction (canon Pace v6), so the gloss card is a wide graded
 # panel a little below the mirror band, its soft edge across the face: black lacquer with one graded sheen, the tapes
 # faint in it (out/k14/g2.png; a hard 0.3 m band, g1, drew a grey stripe).
-PACE_SET = dict(GLOSS_W=0.5, GLOSS=6.0, GLOSS_DEL=-8.0, GLOSS_EDGE0=-1.0, GLOSS_EDGE1=0.6, g_gloss=1.0)
+# 2026-11-01: the gloss card's far edge fades (B0..B1) and the card is 20 % wider: its hard cut drew a dark wedge lower
+# right on the 12K face (previews out/pr/k14/pa..pf; pe chosen: checker kept, wedge gone, fill rule passes)
+PACE_SET = dict(GLOSS_W=0.6, GLOSS=6.0, GLOSS_DEL=-8.0, GLOSS_EDGE0=-1.0, GLOSS_EDGE1=0.6, GLOSS_B0=0.7, GLOSS_B1=1.0,
+                g_gloss=1.0)
 
 
 def parse_args():
