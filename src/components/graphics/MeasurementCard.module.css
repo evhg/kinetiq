@@ -149,7 +149,7 @@
   gap: 1em;
 }
 .wordmark {
-  font-family: var(--font-display);
+  font-family: var(--font-display-125);
   font-variation-settings: "wdth" 125;
   font-weight: 600;
   font-size: 1.02em;
@@ -171,7 +171,7 @@
 .title {
   position: relative;
   margin-top: var(--title-gap);
-  font-family: var(--font-display);
+  font-family: var(--font-display-112);
   font-variation-settings: "wdth" 112;
   font-weight: 560;
   font-size: var(--title-size);

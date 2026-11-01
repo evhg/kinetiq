@@ -90,7 +90,7 @@ a.card:active {
   color: var(--steel);
 }
 .name {
-  font-family: var(--font-display);
+  font-family: var(--font-display-112);
   font-variation-settings: "wdth" 112;
   font-weight: 580;
   font-size: clamp(1.625rem, 1vw + 1rem, 2.5rem);

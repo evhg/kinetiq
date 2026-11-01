@@ -106,7 +106,8 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
 - Phone profile (4× CPU, 150 ms RTT, 1.6 Mbps; the `phone` and `phone-short` cases): LCP ≤ 2.5 s, CLS ≤ 0.1, INP ≤ 200
   ms, no dropped frames while scrolling. LCP element: the hero still or the h1. Keep hero JavaScript small; graphics
   load with their sections. Quality first (owner, 2026-10-29: Apple/Tesla level): below the fold, large sharp assets,
-  sequences and renders may load in the background (lazy, low priority), all complete within 15–20 s on this profile. Fonts: `next/font` (self-hosted), `display: swap`, every language in `DESIGN.md`.
+  sequences and renders may load in the background (lazy, low priority), all complete within 15–20 s on this profile. Fonts: `next/font` (self-hosted), `display: swap`, every language in `DESIGN.md`; a `"wdth" N` rule uses
+  `var(--font-display-N)`, the metric-matched fallback (DESIGN.md "Type"), or the swap shifts the page.
 - Semantic HTML, one `h1`, landmarks, real buttons and links; visible `:focus-visible` outline, full keyboard use,
   logical tab order; no scroll traps (pins end, Skip links work, no hijacked keys). WCAG AA contrast (4.5:1 body, 3:1
   large text and UI; check new colour tokens). Decorative canvases get `aria-hidden`; fallbacks real `alt` text.

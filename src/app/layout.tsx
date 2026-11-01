@@ -5,21 +5,27 @@ import { Arrival } from "@/components/nda/Arrival";
 import { SmoothScroll } from "@/components/motion/SmoothScroll";
 import { DEFAULT_FEEL } from "@/content/site";
 import { motionInitScript } from "@/lib/motion-preference";
+import "./font-fallbacks.css";
 import "./globals.css";
 
 // Only `latin` is preloaded (2026-10-29): every word on the site is in it. latin-ext keeps its @font-face (unicode-range),
 // so a name or address that needs it still loads it on demand, but its 112 KB no longer share a phone's first second
 // with the CSS and the hero still (phone-profile LCP).
+// adjustFontFallback is off for both: next/font's one Arial fallback is sized for Archivo at wdth 100 and weight 400, and
+// the headings are wider and heavier, so the swap re-wrapped the hero. font-fallbacks.css (scripts/font-fallbacks.mjs)
+// has one metric-matched fallback family per wdth and weight range instead; globals.css names them (--font-display-*).
 const archivo = Archivo({
   subsets: ["latin"],
   axes: ["wdth"],
   display: "swap",
+  adjustFontFallback: false,
   variable: "--font-archivo",
 });
 
 const saira = Saira({
   subsets: ["latin"],
   display: "swap",
+  adjustFontFallback: false,
   variable: "--font-saira",
 });
 
