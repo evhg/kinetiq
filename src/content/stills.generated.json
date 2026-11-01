@@ -454,14 +454,15 @@
   "hash": "004df3f0ea"
  },
  "K01-hero-full-phone-pace-portrait": {
-  "w": 1440,
-  "h": 2560,
+  "w": 2160,
+  "h": 3840,
   "widths": [
    828,
    1170,
-   1440
+   1440,
+   2160
   ],
-  "hash": "2e82dfa6c6"
+  "hash": "b52451bb58"
  },
  "K01-full-pace-wide": {
   "w": 2560,
@@ -531,14 +532,15 @@
   "hash": "d4510f3808"
  },
  "K01-hero-base-phone-pace-portrait": {
-  "w": 1440,
-  "h": 2560,
+  "w": 2160,
+  "h": 3840,
   "widths": [
    828,
    1170,
-   1440
+   1440,
+   2160
   ],
-  "hash": "c6196d97cc"
+  "hash": "7d0dfd3dd6"
  },
  "K02-pace-wide": {
   "w": 2560,
