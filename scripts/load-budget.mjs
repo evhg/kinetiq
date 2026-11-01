@@ -4,7 +4,12 @@
 // wire (CDP encodedDataLength), so the report gives the bytes by type (document, script, font, still, swivel frame)
 // and the time the last byte arrived after navigation (the page is "complete" when nothing has loaded for 4 s).
 // Usage: node scripts/load-budget.mjs <base url> [--device=iphone|iphone-short|ipad-pro|desktop] [--feel=command|pace]
-//   [--dwell=quiet|<ms per screen>] (default quiet: each screen waits for the network) [--json=<file>]
+//   [--feel-store=both|local] [--dwell=quiet|<ms per screen>] (default quiet: each screen waits for the network)
+//   [--json=<file>]
+// --feel sets the stored choice the way a returning visitor has it: localStorage and the `kq-feel` cookie (both, the
+// default), or localStorage alone (--feel-store=local: a choice made before the cookie existed).
+// LCP is read once the hero's first still shows its final version (its <picture> in the stored feel, loaded), before
+// any scrolling, so a still that swaps feel after hydration counts at the time it really paints.
 import { writeFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 import { ndaCookie } from "./nda-cookie.mjs";
@@ -36,11 +41,21 @@ const context = await browser.newContext({
   hasTouch: device.mobile,
 });
 await context.addCookies([ndaCookie(base)]);
-if (flags.feel) await context.addInitScript((f) => localStorage.setItem("kq-feel", f), flags.feel);
+if (flags.feel) {
+  await context.addInitScript((f) => localStorage.setItem("kq-feel", f), flags.feel);
+  if (flags["feel-store"] !== "local") {
+    const u = new URL(base);
+    await context.addCookies([{ name: "kq-feel", value: flags.feel, domain: u.hostname, path: "/", sameSite: "Lax" }]);
+  }
+}
 await context.addInitScript(() => {
   window.__lcp = 0;
+  window.__lcpEl = "";
   new PerformanceObserver((l) => {
-    for (const e of l.getEntries()) window.__lcp = e.startTime;
+    for (const e of l.getEntries()) {
+      window.__lcp = e.startTime;
+      window.__lcpEl = e.url ? e.url.split("/").pop() : (e.element?.tagName ?? "").toLowerCase();
+    }
   }).observe({ type: "largest-contentful-paint", buffered: true });
 });
 const page = await context.newPage();
@@ -83,7 +98,22 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 await page.goto(new URL("/", base).href, { waitUntil: "load", timeout: 120000 });
 const loadAt = lastByte;
 await wait(2500);
-const lcp = await page.evaluate(() => window.__lcp);
+// The hero's first still in its final version: its <picture> showing the stored feel (FeelPicture), image loaded.
+const settled = await page
+  .waitForFunction(
+    (feel) => {
+      const pic = document.querySelector("main picture");
+      const img = pic?.querySelector("img");
+      if (!pic || !img || !img.complete || img.naturalWidth === 0) return false;
+      if (!pic.hasAttribute("data-feel-swap")) return true;
+      return pic.getAttribute("data-feel-shown") === (feel ?? "command") && pic.getAttribute("data-feel-ready") === "true";
+    },
+    flags.feel,
+    { timeout: 20000, polling: 100 },
+  )
+  .then(() => true, () => false);
+await wait(600);
+const [lcp, lcpEl] = await page.evaluate(() => [window.__lcp, window.__lcpEl]);
 // Scroll a screen at a time, lingering, like a visitor reading the page; by default (--dwell=quiet) each screen
 // waits until the network is quiet, so every lazy asset and every swivel frame is requested and arrives (nothing is
 // cancelled by scrolling past it), and the network's busy time is the page's complete-load time.
@@ -148,6 +178,13 @@ const report = {
   device: flags.device ?? "iphone",
   feel: flags.feel ?? "default",
   lcpMs: Math.round(lcp),
+  lcpElement: lcpEl,
+  heroSettled: settled,
+  feelStore: flags.feel ? (flags["feel-store"] ?? "both") : undefined,
+  // Hero stills (K01) fetched, by feel: a Pace visitor should fetch none of Command's.
+  heroFiles: [...reqs.values()]
+    .filter((r) => /\/stills\/K01-(base|full|hero)/.test(r.url))
+    .map((r) => `${r.url.split("/stills/")[1]} ${r.done ? `${Math.round(r.bytes / 1024)}KB ${r.start.toFixed(2)}-${r.end.toFixed(2)}s` : r.failed ?? "pending"}`),
   loadEventS: Number(loadAt.toFixed(1)),
   completeS: Number(lastByte.toFixed(1)),
   busyS: Number(busy.toFixed(1)),

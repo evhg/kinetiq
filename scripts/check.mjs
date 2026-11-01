@@ -20,6 +20,11 @@
 //                                               cookie, checks the gate screen, walks it by
 //                                               keyboard to the real page, and checks that
 //                                               assets and APIs answer 403 without the cookie
+//   node scripts/check.mjs --feel=pace          a returning visitor with a stored feel (command|pace): the
+//                                               `kq-feel` cookie and localStorage are set before the first
+//                                               navigation, as the feel toggle leaves them
+// Every case also checks the feel of the stills it fetched: a still or swivel frame with a version in the other feel
+// (the Command file of a still that has a Pace export, or the reverse) must never be downloaded.
 // Every other case carries the NDA cookie (scripts/nda-cookie.mjs), so it sees the real site.
 // Output: .checks/<label>/ (git-ignored): PNGs, report.json, report.md.
 // Exit code 1 when a budget or check fails (not in --study mode).
@@ -55,13 +60,20 @@ function freePort() {
   });
 }
 const study = Boolean(args.study);
+// --feel=command|pace: the stored feel of a returning visitor (lib/feel-store.ts writes localStorage and the cookie).
+const feelArg = typeof args.feel === "string" ? args.feel : null;
+if (feelArg !== null && feelArg !== "command" && feelArg !== "pace") {
+  console.error(`--feel must be command or pace, not ${feelArg}`);
+  process.exit(2);
+}
+const pageFeel = feelArg ?? "command";
 const gateMode = Boolean(args.gate);
 // --path=/reserve tests another page on the same site.
 const pagePath = typeof args.path === "string" ? args.path : "/";
 const targetUrl = new URL(pagePath, baseUrl).toString();
 const label =
   args.label ??
-  `${remote ? new URL(baseUrl).hostname : "local"}${pagePath === "/" ? "" : pagePath.replace(/[/?=&]/g, "-")}${gateMode ? "-gate" : ""}`;
+  `${remote ? new URL(baseUrl).hostname : "local"}${pagePath === "/" ? "" : pagePath.replace(/[/?=&]/g, "-")}${gateMode ? "-gate" : ""}${feelArg ? `-feel-${feelArg}` : ""}`;
 const outDir = join(process.cwd(), ".checks", label);
 
 const BUDGET = { lcpMs: 2500, cls: 0.1 };
@@ -369,8 +381,19 @@ async function runCase(browser, statsPage, vp, mode) {
   });
   // Past the NDA gate (src/proxy.ts): the cookie is set before the first navigation.
   await context.addCookies([ndaCookie(baseUrl)]);
+  if (feelArg) {
+    const { hostname } = new URL(baseUrl);
+    await context.addCookies([{ name: "kq-feel", value: feelArg, domain: hostname, path: "/", sameSite: "Lax", secure: baseUrl.startsWith("https:") }]);
+    await context.addInitScript((f) => {
+      try {
+        if (!localStorage.getItem("kq-feel")) localStorage.setItem("kq-feel", f);
+      } catch {}
+    }, feelArg);
+  }
   await context.addInitScript(metricsInit);
   const page = await context.newPage();
+  const stillRequests = [];
+  page.on("request", (r) => r.url().includes("/stills/") && stillRequests.push(r.url()));
   const consoleErrors = [];
   const failedRequests = [];
   const scriptBodies = [];
@@ -396,6 +419,7 @@ async function runCase(browser, statsPage, vp, mode) {
   await page.waitForTimeout(2500); // idle-loaded 3D and late layout
 
   const load = await page.evaluate(() => ({ ...window.__check }));
+  const shownFeel = await page.evaluate(() => document.documentElement.dataset.feel ?? null);
   const sceneState = await page.evaluate(() => document.querySelector("[data-scene]")?.getAttribute("data-scene") ?? null);
   const overflowX = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
 
@@ -448,11 +472,45 @@ async function runCase(browser, statsPage, vp, mode) {
     interactions,
     consoleErrors,
     failedRequests,
+    feel: pageFeel,
+    shownFeel,
+    wrongFeel: wrongFeelFiles(stillRequests, pageFeel),
     blankSteps: steps.filter((s) => s.blank).map((s) => s.pct),
     fillSteps: steps.filter((s) => s.fillFail.length).map((s) => `${s.pct}% (${s.fillFail.join(", ")})`),
     steps,
     libs,
   };
+}
+
+// Stills and frames fetched in the wrong feel. A still's Pace export is its key with "-pace" after the id
+// ("K01-full-pace-wide" beside "K01-full-wide"; Still.tsx), files are `/stills/<key>-<width>.<hash>.<type>`; a swivel's
+// frames live under `/stills/seq/<sequence>-<feel>-<layout>/`. In Pace no Command file of a still with a Pace export may
+// load, in Command no "-pace" file and no Pace frame. Stills that name a feel themselves (K08, K11-command) are left out.
+const STILL_KEYS = new Set(Object.keys(JSON.parse(readFileSync(join(process.cwd(), "src/content/stills.generated.json"), "utf8"))));
+function wrongFeelFiles(urls, feel) {
+  const wrong = new Set();
+  for (const u of urls) {
+    const path = new URL(u).pathname;
+    const seq = path.match(/^\/stills\/seq\/[^/]+-(command|pace)-(?:desktop|phone)[^/]*\//);
+    if (seq) {
+      if (seq[1] !== feel) wrong.add(path.split("/").slice(0, 4).join("/"));
+      continue;
+    }
+    const m = path.match(/^\/stills\/(.+)-\d+(?:\.[0-9a-f]{10})?\.(?:avif|webp)$/);
+    if (!m) continue;
+    const key = m[1];
+    if (feel === "command") {
+      if (/-pace(-|$)/.test(key) && STILL_KEYS.has(key)) wrong.add(path);
+      continue;
+    }
+    for (let i = key.indexOf("-"); i > 0; i = key.indexOf("-", i + 1)) {
+      if (STILL_KEYS.has(`${key.slice(0, i)}-pace${key.slice(i)}`)) {
+        wrong.add(path);
+        break;
+      }
+    }
+  }
+  return [...wrong];
 }
 
 // Functional checks for the shared UI: the Skip link of every pinned chapter, reached by keyboard as a visitor would.
@@ -614,6 +672,9 @@ async function runGateCase(browser, statsPage, vp, mode) {
   });
   await context.addInitScript(metricsInit);
   const page = await context.newPage();
+  // Past the gate the page opens in the default feel (no stored choice): its stills must be Command's.
+  const stillRequests = [];
+  page.on("request", (r) => r.url().includes("/stills/") && stillRequests.push(r.url()));
   const consoleErrors = [];
   const failedRequests = [];
   const stillsRequested = [];
@@ -757,6 +818,9 @@ async function runGateCase(browser, statsPage, vp, mode) {
     interactions: { gate: g },
     consoleErrors,
     failedRequests,
+    feel: pageFeel,
+    shownFeel: null,
+    wrongFeel: wrongFeelFiles(stillRequests, pageFeel),
     blankSteps: steps.filter((s) => s.blank).map((s) => s.pct),
     fillSteps: steps.filter((s) => s.fillFail.length).map((s) => `${s.file} (${s.fillFail.join(", ")})`),
     steps,
@@ -828,6 +892,8 @@ function evaluate(results) {
     if (r.interactions?.skip && !r.interactions.skip.ok) failures.push(`${r.id}: Skip links: ${r.interactions.skip.problems.join("; ")}`);
     if (r.interactions?.marks && !r.interactions.marks.ok) failures.push(`${r.id}: footnote markers: ${r.interactions.marks.problems.join("; ")}`);
     if (r.interactions?.gate && !r.interactions.gate.ok) failures.push(`${r.id}: gate: ${r.interactions.gate.problems.join("; ")}`);
+    if (r.wrongFeel?.length) failures.push(`${r.id}: ${r.wrongFeel.length} file(s) in the wrong feel for ${r.feel}: ${r.wrongFeel.slice(0, 4).join(", ")}`);
+    if (r.shownFeel && r.shownFeel !== r.feel) failures.push(`${r.id}: html[data-feel] is ${r.shownFeel}, expected ${r.feel}`);
     if (r.fillSteps.length) failures.push(`${r.id}: fill rule broken at ${r.fillSteps.join("; ")}`);
   }
   return failures;
@@ -836,7 +902,7 @@ function evaluate(results) {
 function markdown(results, failures, server = []) {
   const rows = results.map(
     (r) =>
-      `| ${r.id} | ${r.lcpMs} (${r.lcpElement || "?"}) | ${r.clsAfterScroll} | ${r.longFrames}/${r.frames} (worst ${r.worstFrameMs} ms) | ${r.sceneState ?? "-"} (${r.sceneStd ?? "-"}) | ${r.interactions?.skip ? (r.interactions.skip.ok ? `ok (${r.interactions.skip.links.length}, by Tab)` : "FAIL") : r.interactions?.gate ? (r.interactions.gate.ok ? "gate ok" : "gate FAIL") : "-"}${r.interactions?.marks ? (r.interactions.marks.ok ? "; no markers" : "; markers FAIL") : ""} | ${r.consoleErrors.length} | ${r.blankSteps.length ? r.blankSteps.join(",") : "none"} | ${r.fillSteps.length ? r.fillSteps.length : "ok"} |`,
+      `| ${r.id} | ${r.lcpMs} (${r.lcpElement || "?"}) | ${r.clsAfterScroll} | ${r.longFrames}/${r.frames} (worst ${r.worstFrameMs} ms) | ${r.sceneState ?? "-"} (${r.sceneStd ?? "-"}) | ${r.interactions?.skip ? (r.interactions.skip.ok ? `ok (${r.interactions.skip.links.length}, by Tab)` : "FAIL") : r.interactions?.gate ? (r.interactions.gate.ok ? "gate ok" : "gate FAIL") : "-"}${r.interactions?.marks ? (r.interactions.marks.ok ? "; no markers" : "; markers FAIL") : ""} | ${r.consoleErrors.length} | ${r.blankSteps.length ? r.blankSteps.join(",") : "none"} | ${r.fillSteps.length ? r.fillSteps.length : "ok"} | ${r.shownFeel ?? "?"}${r.wrongFeel?.length ? `, ${r.wrongFeel.length} wrong` : ", ok"} |`,
   );
   return [
     `# Check report: ${targetUrl}`,
@@ -845,8 +911,10 @@ function markdown(results, failures, server = []) {
     `Throttled runs (${VIEWPORTS.filter((v) => v.throttled).map((v) => v.name).join(", ")}) use 4x CPU slowdown, 150 ms RTT, 1.6 Mbps and are held to the ${BUDGET.lcpMs} ms LCP budget; every run to CLS ${BUDGET.cls}.`,
     "Long frames are measured in headless Chromium with software WebGL, so treat them as a smoke signal, not a device measurement.",
     "",
-    "| Case | LCP ms (element) | CLS | Long frames >50 ms | Scene (contrast) | Skip link / gate | Console errors | Blank steps | Fill rule |",
-    "| --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+    `Feel: ${feelArg ? `a returning visitor's stored ${feelArg} (cookie and localStorage)` : "none stored (Command)"}; the Feel column is html[data-feel] and any still or frame fetched in the other feel.`,
+    "",
+    "| Case | LCP ms (element) | CLS | Long frames >50 ms | Scene (contrast) | Skip link / gate | Console errors | Blank steps | Fill rule | Feel |",
+    "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     ...rows,
     "",
     ...(server.length ? ["## Gate, server side (no cookie unless stated)", "", ...server.map((c) => `- ${c.ok ? "ok" : "FAIL"}: ${c.name} (${c.detail})`), ""] : []),

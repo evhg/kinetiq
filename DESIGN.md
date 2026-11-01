@@ -214,19 +214,33 @@ option, the focus ring on the option). The site opens on Command.
   swatches alone, 44 px each (their names stay the radios' labels, visually hidden): the wordmark (about 130 px), the
   swatches (88 px) and the compact Reserve Now fit 335 px at 375 px; from 700 px the swatches carry their names.
 - State: `lib/feel-store.ts` (`useFeel`, `setFeel`, useSyncExternalStore) writes `kq-feel` in localStorage (try/catch;
-  in memory when blocked) and `html[data-feel]`, which the head script sets before the first paint; every toggle's
+  in memory when blocked), a first-party `kq-feel` cookie (Path=/, one year, SameSite=Lax, Secure on https, not
+  HttpOnly) and `html[data-feel]`, which the head script sets before the first paint (from localStorage, else the
+  cookie). Safari on iPhone (ITP) holds a cookie written by script to 7 days, so script writes only bridge to the
+  server: `src/proxy.ts` sends the cookie back with Set-Cookie and a fresh year on every cleared page load that carries
+  it; a choice (a second after the last toggle) and the head script's restore of a missing or out-of-step cookie (after
+  the load event) send a HEAD of / so the server renews it at once; the head script never rewrites a cookie already in
+  step, which would put it back under the cap. So a Pace visitor keeps the Pace page however long ago they chose,
+  as long as they come back within a year. Every toggle's
   thumb and labels read that attribute, so all of them agree and a stored Pace never flashes Command. Reserve Now
   links (hero, header, Identical, finale, the edition cards) carry the choice into checkout (`?feel=`, `ReserveLink`);
   the /reserve feel picker writes the same preference, and its gallery shows a still's Pace version in its own feel.
 - Stills: a still's Pace version is its id plus "-pace" with the same crops (`K01-full-pace`, `K01-hero-full-phone-pace`,
   `K02-pace`, `K05-pace`, `K05-phone-pace`, `K06-base-pace` so far, `stills.json`). Where one is exported, `<Still>`
   follows the feel (`FeelPicture`): one <picture> holding one version at a time (never both downloading), the server
-  painting Command; after hydration a stored Pace replaces it, hidden from the first paint by html[data-feel], and a
+  painting the page's feel. Server feel (2026-11-01, phone LCP for a returning Pace visitor 5.5 s → Command's): with the
+  `kq-feel` cookie, `src/proxy.ts` rewrites /, /reserve and /reserved to the same page prerendered in that feel
+  (`app/feel/command|pace/`, re-exporting the pages under a `ServerFeel` layout, `lib/feel-context.tsx`; the URL stays,
+  pages stay `private, no-cache`, so they are revalidated against the current cookie; /feel/* directly is a 404), and
+  `useFeel` hydrates from it, so the HTML already points the hero and every Pace-capable still at its Pace files and
+  Command is never fetched. Without the cookie (a first visit, or a choice made before the cookie existed: the head
+  script sets it for the next load) the server paints Command; after hydration a stored Pace replaces it, hidden from the first paint by html[data-feel], and a
   change fades the image out (150 ms) and the other version in once loaded (240 ms ease-out, opacity only; reduced
   motion: instant). The box keeps its size, so nothing shifts. A crop without a Pace export keeps its Command file
   silently. Stills that name a feel keep their own logic (K08's pair, K11-command / -pace, K07 alternating, K12 and the
-  measurement cards). Known cost: a Pace visitor's browser may fetch an eager still's Command file once before
-  hydration (the hero's lit pass, low priority); lazy stills load only their Pace file.
+  measurement cards). Known cost, only without the cookie: the browser fetches the hero's Command files once before
+  hydration; lazy stills load only their Pace file. `check.mjs --feel=pace` (and every case, in its own feel) fails
+  on any still or swivel frame fetched in the other feel.
 
 ## Micro-interactions
 Pressables scale 0.97 on `:active`; hover only behind `(hover: hover) and (pointer: fine)`; transform and

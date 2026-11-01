@@ -29,7 +29,9 @@ const EXIT_MS = 150;
 
 /**
  * A still with a Command and a Pace version, one <picture> that only ever holds one of them, so the two never both
- * download. The server and the hydrating render paint Command; after hydration a stored or chosen Pace swaps in.
+ * download. The server and the hydrating render paint the page's feel (useFeel: the visitor's, on the feel variants that
+ * src/proxy.ts serves from the `kq-feel` cookie; else Command); after hydration a stored choice the server did not know,
+ * or a new one, swaps in.
  * The <picture> element (its class, and any tween on it) stays; only its sources and image are replaced, and the box
  * keeps its size (both versions share their crops), so nothing shifts.
  * The swap: the shown image fades out (150 ms; under html[data-feel] at once, for a picture that follows the toggle,
