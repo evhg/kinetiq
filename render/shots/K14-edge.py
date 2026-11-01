@@ -84,6 +84,7 @@ DEFAULTS = dict(
     POOL_GLOSS=0.0,
     # gloss band (mirror of the face)
     GLOSS=14.0, GLOSS_D=0.6, GLOSS_W=0.05, GLOSS_LEN=1.2, GLOSS_DEL=0.0, GLOSS_AZ=0.0, GLOSS_EDGE0=-1.0, GLOSS_EDGE1=-0.2,
+    GLOSS_B0=0.0, GLOSS_B1=0.0,      # > 0: the card's far edge fades out from B0 to B1 (no hard cut in its reflection)
     # rim line
     RIM=30.0, RIM_EL=6.0, RIM_D=0.5, RIM_W=0.012, RIM_LEN=1.2, RIM_AZ=0.0,
     # lip line: a glossy-only card high beyond the holes, linked to the bores' lips (K04's lg_lipline)
@@ -282,7 +283,7 @@ def build(o, p):
     if p["GLOSS"] > 0:
         gb = K04.panel("lg_gloss", tuple(P + dirv(maz, mel) * p["GLOSS_D"]), (p["GLOSS_W"], p["GLOSS_LEN"]), p["GLOSS"],
                        tuple(P), color=(0.94, 0.96, 1.0), roll=0.0, edge=(p["GLOSS_EDGE0"], p["GLOSS_EDGE1"]),
-                       fade=(0, 1.0))
+                       fade=(0, 1.0), band=(p["GLOSS_B0"], p["GLOSS_B1"], 0.0) if p["GLOSS_B1"] > 0 else None)
         _orient_card(gb, P, t)
         gb.visible_diffuse = False
         gb.lightgroup = "gloss"

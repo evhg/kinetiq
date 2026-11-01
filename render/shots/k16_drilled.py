@@ -439,13 +439,29 @@ def install(K04, skin=0.0016, chip=0.00012, seed=16, feel="command"):
                 links.new(dmin, mn.inputs[0])
                 links.new(d.outputs["Value"], mn.inputs[1])
                 dmin = mn.outputs[0]
+        # a ragged outer edge: the band's radius wanders by +-p_fray_rag (a crazed zone, never a drawn ring)
+        rn = nodes.new("ShaderNodeTexNoise")
+        rn.noise_dimensions = "3D"
+        rn.inputs["Scale"].default_value = float(o.get("p_fray_rag_s", 1800.0))
+        rn.inputs["Detail"].default_value = 4.0
+        rn.inputs["Roughness"].default_value = 0.6
+        links.new(geo.outputs["Position"], rn.inputs["Vector"])
+        rag = nodes.new("ShaderNodeMath")
+        rag.operation = "MULTIPLY_ADD"
+        rag.inputs[1].default_value = float(o.get("p_fray_rag", 0.6)) / 1000.0 * 2.0
+        rag.inputs[2].default_value = -float(o.get("p_fray_rag", 0.6)) / 1000.0
+        links.new(rn.outputs["Fac"], rag.inputs[0])
+        dmod = nodes.new("ShaderNodeMath")
+        dmod.operation = "ADD"
+        links.new(dmin, dmod.inputs[0])
+        links.new(rag.outputs[0], dmod.inputs[1])
         band = nodes.new("ShaderNodeMapRange")
         band.interpolation_type = "SMOOTHSTEP"
         band.inputs["From Min"].default_value = R + chip * 0.2
-        band.inputs["From Max"].default_value = R + float(o.get("fray_w", FRAY_W))
+        band.inputs["From Max"].default_value = R + float(o.get("p_fray_w", 1.0)) / 1000.0
         band.inputs["To Min"].default_value = 1.0
         band.inputs["To Max"].default_value = 0.0
-        links.new(dmin, band.inputs["Value"])
+        links.new(dmod.outputs[0], band.inputs["Value"])
         nz = nodes.new("ShaderNodeTexNoise")
         nz.noise_dimensions = "3D"
         nz.inputs["Scale"].default_value = 9000.0
