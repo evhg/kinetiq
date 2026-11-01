@@ -121,4 +121,18 @@ any more. How to switch, part names, lighting notes: `../renders4/canon.md`. Pro
   fibre stubs (curves), and a wall of cut plies over a bond line and an EVA core; no bore glow. `--combine` pastes
   drilled base | moulded base/full (png16.py: 16-bit in through bpy, out through zlib).
 - Lessons: a light foam wall reads as a closed cup: the core darkens to graphite by 3.5 mm. The crazed band must be
-  1.4 mm wide to show at this framing. Pace needs a planar 12K face for the drilled half (not built).
+  1.4 mm wide to show at this framing.
+
+## K16 Pace, K01 portrait masters, K14 Pace wedge (2026-11-01)
+- K16 Pace: `--feel pace` on both halves and the combine (`K16_PACE_DEFAULTS`). The drilled half installs
+  `k16_drilled.pace_face` (canon `mat_pace` relinked to planar x, y in metres, tangent +x: the 8 mm tapes run straight
+  and stop at the rim) with `pace_fray` (the coat broken in a ragged 1.0 +- 0.6 mm band: matte grey crazed resin mixed
+  over the whole canon surface) and `pace_sleeve` = the drilled wall with black cut plies (skin_tone 0.10) over the same
+  EVA core. Lesson: on black 12K nothing diffuse lights, so the wall was a black void until K04 got `--pace_pool`
+  (the white pool, diffuse only, scaled): it lights the wall, the crazed band and the core, never the coat. Finals
+  1440x1620 spp 80, about 8 and 10 min.
+- K01 portrait stills (hero, both feels) are 2160x3840 masters now (`K01-hero-frame.py --w 2160 --h 3840 --spp 48`,
+  about 20 min each, 900 MB of passes: delete `out/<dir>/passes` after the comp). They register with the swivel's
+  frame 0 (mean abs diff 0.002). stills.json's portrait widths end at 2160.
+- K14 Pace: the gloss card's hard far edge drew a dark wedge lower right; `GLOSS_B0/B1` fade it (PACE_SET: W 0.6,
+  B 0.7..1.0). On Pace only the gloss group lights the face: pool and fill (diffuse) do nothing there.

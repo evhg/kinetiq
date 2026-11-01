@@ -48,7 +48,7 @@ variants, `--feel pace`, `--both`, `--phone`, `--crops`); the last finals used:
 | Shot | Final command (add `--feel pace` and `-pace` to the out name for Pace) |
 |---|---|
 | K01 beam | `K01-hero-beam.py --w 2560 --h 1440 --spp 256 --out final/K01-hero-beam` (base, full, finale) |
-| K01 phone | `K01-hero-frame.py --w 1440 --h 2560 --spp 256 --out final/K01-hero-frame-phone` |
+| K01 phone | `K01-hero-frame.py --w 2160 --h 3840 --spp 48 --out final/K01-hero-frame-phone` (2026-11-01: 2160 wide so iPad portrait is not upscaled; registers with the swivel's frame 0) |
 | K02 | `K02-edge-line.py --w 2560 --h 1440 --spp 256 --out final/K02-edge-line --phone` |
 | K03, K03b | `PYTHONHASHSEED=0 ... K03-section-cut.py --w 3200 --h 1800 --spp 320 --both --out final/K03-section-cut` (then `k03s_line.py`, see RENDER_NOTES) |
 | K04 | `K04-hole-macro.py --w 3200 --h 1800 --spp 160 --variant both --out final/K04-hole-macro` |
@@ -72,7 +72,7 @@ reports the change crop; it must sit inside the region). Then `node scripts/sequ
 (frames counted from the folder; widths up to 1440 portrait and 2560 landscape). OIDN makes 16 to 24 spp read as
 48 at 100% on these shots (2026-10-29 comparison).
 | K15 | `K15-space.py --w 2560 --h 1440 --spp 64 --out final/K15-space` (`--feel pace --out final/K15-space-pace`; about 5 to 6 min each; writes `-base` and `-full`; re-grade from the EXR with `--comp final/K15-space.exr --out ...`, adding `--feel pace` for Pace) |
-| K16 | `K16-pair.py --mode drilled --w 1440 --h 1620 --spp 80 --out final/K16-drilled` and `--mode moulded ... --out final/K16-moulded` (about 12 and 14 min), then `K16-pair.py --combine final/K16-drilled final/K16-moulded --out final/K16-pair --gutter 0` (bpy reads the PNGs, no render). Command only so far |
+| K16 | `K16-pair.py --mode drilled --w 1440 --h 1620 --spp 80 --out final/K16-drilled` and `--mode moulded ... --out final/K16-moulded` (about 12 and 14 min), then `K16-pair.py --combine final/K16-drilled final/K16-moulded --out final/K16-pair --gutter 0` (bpy reads the PNGs, no render). Pace: add `--feel pace` to all three and `-pace` to the names (2026-11-01) |
 
 ## Export to the site
 ```sh
