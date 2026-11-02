@@ -122,6 +122,7 @@ HD = 1
 # still one uniform coat with no seam (the v6 rules: no checkerboard from albedo)
 P_HD = dict(tone=0.08, streak_alb=0.05, fib_h=7.0, rstreak=0.25)
 P_WEAVE_S_HD = 9.5      # HD: the Pace weave card (P_WEAVE_S) a little stronger, so the tapes read over more of the face
+P_MAT = {}              # K01-only extra Pace material keys laid over P_HD (K02 and K08 import P_HD, not this)
 # owner, 2026-11-02: grip-off. NOGRIP = 1 builds the racket without its overgrip (kq_canon grip=False): the bare carbon
 # handle runs out of the head into the butt cap as one piece. Outputs K01-nogrip-*.
 NOGRIP = 0
@@ -226,6 +227,8 @@ def parse_args(argv, default_out):
             o["seq"] = int(argv[i + 1]); i += 2
         elif a == "--only":
             o["only"] = [int(v) for v in argv[i + 1].split(",")]; i += 2
+        elif a == "--spp0":
+            o["spp0"] = int(argv[i + 1]); i += 2
         elif a == "--yaw-range":
             o["yaw_range"] = (float(argv[i + 1]), float(argv[i + 2])); i += 3
         else:
@@ -517,7 +520,7 @@ def build(o, mode):
     dq = M0.inverted() @ cam_loc - Vector((0.0, -0.2925, 0.0))
     mark_az = math.degrees(math.atan2(dq.x, dq.z))
     if pace:
-        mo = dict(P_HD) if HD else None
+        mo = dict(P_HD, **P_MAT) if HD else (dict(P_MAT) or None)
     else:
         mo = dict(MAT_OPTS, **C.WEAVE_HD) if (HD and C.is_white("command", MAT_OPTS)) else MAT_OPTS
     root, P = C.build_racket("KQ", feel=FEEL, serial=C.SERIAL, mat_opts=mo, mark_az=mark_az, grip=not NOGRIP)
@@ -823,6 +826,9 @@ def render_seq(o, mode, shot):
         swivel(sc, yaws[i])
         bb = racket_bbox(sc)
         fc = crop if (crop and i > 0) else None
+        # --spp0 N (2026-11-02): frame 0 at the still's samples, so the frame the page swaps in over the still matches it
+        spp_i = (o.get("spp0") or o["spp"]) if i == 0 else o["spp"]
+        sc.cycles.samples = spp_i
         sc.render.use_border = bool(fc)
         sc.render.use_crop_to_border = bool(fc)
         if fc:
@@ -835,7 +841,7 @@ def render_seq(o, mode, shot):
         setup_passes(sc, od, stem)
         studio.render(os.path.join(o["out"], "_w", "f%03d__all" % i))
         collect(od, stem)
-        meta = dict(w=o["w"], h=o["h"], spp=o["spp"], crop=fc, mode=mode, shot=shot, frame=json.loads(sc["frame"]),
+        meta = dict(w=o["w"], h=o["h"], spp=spp_i, crop=fc, mode=mode, shot=shot, frame=json.loads(sc["frame"]),
                     bbox=bb, set=o["set"], white=bool(sc["white"]), yaw=yaws[i], feel=FEEL)
         with open(os.path.join(od, stem + "_meta.json"), "w") as fh:
             json.dump(meta, fh)
@@ -854,7 +860,7 @@ def render_seq(o, mode, shot):
             os.remove(allp)
         dt = time.time() - t1
         with open(os.path.join(seq_dir, "frames.jsonl"), "a") as fh:
-            fh.write(json.dumps(dict(i=i, yaw=round(yaws[i], 4), sec=round(dt, 1), spp=o["spp"], w=o["w"], h=o["h"],
+            fh.write(json.dumps(dict(i=i, yaw=round(yaws[i], 4), sec=round(dt, 1), spp=spp_i, w=o["w"], h=o["h"],
                                      bbox=[round(q, 4) for q in bb])) + "\n")
         print("frame %d yaw %.2f %.1f s bbox %s" % (i, yaws[i], dt, " ".join(f"{100 * q:.1f}" for q in bb)), flush=True)
     print("seq done %.1f s" % (time.time() - t0), flush=True)

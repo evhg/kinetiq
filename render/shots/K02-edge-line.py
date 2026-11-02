@@ -154,6 +154,8 @@ def parse_args(argv, default_out):
             o["seq"] = int(argv[i + 1]); i += 2
         elif a == "--only":
             o["only"] = [int(v) for v in argv[i + 1].split(",")]; i += 2
+        elif a == "--spp0":
+            o["spp0"] = int(argv[i + 1]); i += 2
         elif a == "--range":
             o["range"] = (float(argv[i + 1]), float(argv[i + 2])); i += 3
         else:
@@ -564,6 +566,8 @@ def render_seq(o):
         t1 = time.time()
         swivel(sc, angles[i])
         fc = crop if (crop and i > 0) else None
+        spp_i = (o.get("spp0") or o["spp"]) if i == 0 else o["spp"]   # --spp0: frame 0 at the still's samples
+        sc.cycles.samples = spp_i
         sc.render.use_border = bool(fc)
         sc.render.use_crop_to_border = bool(fc)
         if fc:
@@ -578,7 +582,7 @@ def render_seq(o):
         studio.render(os.path.join(work, "passes", stem + "__all"))
         L.collect_passes(od, stem, GROUPS + ["index"])
         with open(os.path.join(od, stem + "_meta.json"), "w") as fh:
-            json.dump(dict(w=o["w"], h=o["h"], spp=o["spp"], crop=fc, set=o["set"], white=bool(sc["white"]),
+            json.dump(dict(w=o["w"], h=o["h"], spp=spp_i, crop=fc, set=o["set"], white=bool(sc["white"]),
                            swivel=angles[i]), fh)
         final = comp(oi, sc)
         if fc:
@@ -593,7 +597,7 @@ def render_seq(o):
                 os.remove(os.path.join(od, f))
         dt = time.time() - t1
         with open(os.path.join(dirs["desktop"], "frames.jsonl"), "a") as fh:
-            fh.write(json.dumps(dict(i=i, deg=round(angles[i], 4), sec=round(dt, 1), spp=o["spp"], w=o["w"], h=o["h"],
+            fh.write(json.dumps(dict(i=i, deg=round(angles[i], 4), sec=round(dt, 1), spp=spp_i, w=o["w"], h=o["h"],
                                      feel=FEEL)) + "\n")
         print("frame %d %.2f deg %.1f s" % (i, angles[i], dt), flush=True)
     print("seq done %.1f s" % (time.time() - t0), flush=True)
