@@ -1001,6 +1001,7 @@ async function main() {
   console.log(markdown(results, failures, serverChecks));
   log(`screenshots and report in ${outDir}`);
   if (failures.length) process.exit(1);
+  process.exit(0);
 }
 
 main().catch((err) => {

@@ -38,7 +38,7 @@ export const carbonSpecs: SpecGroup[] = [
         id: "fibreStrength",
         label: "Fibre tensile strength",
         bound: "≥",
-        value: "4,900",
+        value: "5,500",
         unit: "MPa",
         method: "ISO 10618",
       },
@@ -46,7 +46,7 @@ export const carbonSpecs: SpecGroup[] = [
         id: "fibreModulus",
         label: "Fibre tensile modulus",
         bound: "≥",
-        value: "230",
+        value: "275",
         unit: "GPa",
         method: "ISO 10618",
       },
@@ -204,7 +204,7 @@ export const surfaceSpecs: SpecGroup = {
     {
       id: "roughness",
       label: "Surface roughness",
-      note: "average, Ra, moulded into the face",
+      note: "average, Ra, moulded\u00a0into the face",
       value: "16",
       unit: "µm",
       method: "ISO 21920, stylus profilometer",
@@ -229,7 +229,7 @@ export function spec(id: string): Spec {
   return s;
 }
 
-/** A value as a sentence quotes it, with no-break spaces: "0.8%", "60 ms", "4,900 MPa". */
+/** A value as a sentence quotes it, with no-break spaces: "0.8%", "60 ms", "5,500 MPa". */
 export function specValue(id: string): string {
   const s = spec(id);
   if (!s.unit) return s.value;

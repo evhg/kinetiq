@@ -129,7 +129,7 @@ export const surface = {
   ],
   /** K17: the roughness macro (a ball pressed on the face at the instant of a slice). */
   imageAlt:
-    "A padel ball against a KINETIQ face, magnified: around it, a fine, even field of tiny domes moulded into the carbon weave, beside a moulded hole.",
+    "A padel ball against a KINETIQ face, magnified: around it, a fine, even field of tiny domes moulded into the carbon weave, beside the open throat of the frame.",
   /** G18: the contact, magnified from the side (how the texture turns a brushed contact into spin). */
   contact: {
     sweep: "The face sweeps across the back of the\u00a0ball.",
