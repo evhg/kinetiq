@@ -12,6 +12,7 @@ import { Identical } from "@/components/landing/Identical";
 import { Precision } from "@/components/landing/Precision";
 import { SealedCore } from "@/components/landing/SealedCore";
 import { SpaceGrade } from "@/components/landing/SpaceGrade";
+import { Surface } from "@/components/landing/Surface";
 import { Specifications } from "@/components/landing/Specifications";
 import { SweetSpot } from "@/components/landing/SweetSpot";
 import { Unibody } from "@/components/landing/Unibody";
@@ -37,8 +38,10 @@ export default function Home() {
         <Precision />
         <Holes />
         <SealedCore />
-        {/* The payoff, what all of that gives you: the sweet spot edge to edge, the feel, the five years. */}
+        {/* The payoff, what all of that gives you: the sweet spot edge to edge, the face's grip on a slice (owner,
+            2026-11-02), the feel, the five years. */}
         <SweetSpot />
+        <Surface />
         <Feel />
         <Durability />
         {/* Choose it: sameness, feel, the whole drawing, edition. */}

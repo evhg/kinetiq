@@ -27,7 +27,7 @@
 }
 
 /* Command's white carbon (owner, 2026-10-22) in a low studio light, as K12's full pass shows it: the face dimmed
-   around the lit field, so the 4 mm band, the bridge and the neck read as white twill in shade */
+   around the lit field, so the 1 mm band, the bridge and the neck read as white twill in shade */
 .carbon0 {
   stop-color: #a4a19c;
 }
@@ -105,7 +105,7 @@
   stroke-linecap: round;
   vector-effect: non-scaling-stroke;
 }
-/* where the sweet spot ends, 4 mm in from the edge */
+/* where the sweet spot ends, 1 mm in from the edge */
 .fieldLine {
   fill: none;
   stroke: var(--amber);
@@ -153,7 +153,7 @@
   stroke-linecap: round;
 }
 
-/* the detail: a ring on the edge, a leader, and the edge magnified six times in a lens */
+/* the detail: a ring on the edge, a leader, and the edge magnified twenty times in a lens */
 .ring,
 .lensRim {
   fill: none;
@@ -164,7 +164,7 @@
 .ring {
   stroke-opacity: 0.8;
 }
-/* Inside the detail: the 1.5 mm edge radius seen face-on under the strip light, from the outline (turning away, in
+/* Inside the detail: the 1.0 mm edge radius seen face-on under the strip light, from the outline (turning away, in
    shade) through a bright highlight to the flat face's own tone (lensCarbon at that spot, about #7f7c77) */
 .edge0 {
   stop-color: #2f2e2c;

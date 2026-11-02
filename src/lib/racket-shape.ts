@@ -66,10 +66,14 @@ export const THROAT_CURVES: Cubic[] = [
 
 export const THICKNESS = 0.38;
 
-/** The edge: the face meets the 38 mm side wall over a 1.5 mm radius; the twill folds over it. */
-export const EDGE_RADIUS = 0.015;
-/** The flat face runs to 4 mm in from the outline: the 1.5 mm edge radius plus 2.5 mm. */
-export const FACE_INSET = 0.04;
+/**
+ * The edge: the face meets the 38 mm side wall over a 1.0 mm radius; the twill folds over it (owner, 2026-11-02:
+ * "1 mm from the edge"; it was 1.5 mm, with the flat face ending 4 mm in). The factory must confirm the 3K twill and the
+ * 12K spread tow wrap a 1.0 mm radius without bridging (CLAIMS.md row 6b).
+ */
+export const EDGE_RADIUS = 0.01;
+/** The flat face runs to 1.0 mm in from the outline: right out to where the 1.0 mm edge radius begins. */
+export const FACE_INSET = 0.01;
 
 /** The 34 grid holes: 12.4 mm. */
 export const HOLE_RADIUS = 0.062;

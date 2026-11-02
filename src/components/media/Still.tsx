@@ -31,6 +31,12 @@ type Props = {
    * checkout's feel). Omitted: the still follows the feel toggle.
    */
   feel?: FeelId;
+  /**
+   * The same still rendered without the overgrip (owner, 2026-11-02: the grip toggle), with the same crops and the same
+   * "-pace" convention: its id and, with phoneCrop, its phone id ("K01-nogrip-base", "K01-nogrip-hero-base-phone").
+   * The picture then follows the grip toggle too, holding one variant at a time (the default, grip on, first).
+   */
+  bare?: { id: string; phoneId?: string };
 };
 
 const PHONE = "(max-width: 699px)";
@@ -87,6 +93,7 @@ export function Still({
   fetchPriority,
   className,
   feel,
+  bare,
 }: Props) {
   const main = entry(`${id}-${crop}`);
   if (!main) return null;
@@ -100,9 +107,21 @@ export function Still({
     fetchPriority: fetchPriority ?? (priority ? "high" : "auto"),
     decoding: priority ? "sync" : "async",
   } as const;
-  if (paceMain || pacePhone) {
-    const pace = pictureSet(paceMain ?? main, pacePhone ?? phone, phoneMedia, sz, phoneSizes);
-    return <FeelPicture command={command} pace={pace} feel={feel} className={className} alt={alt} {...img} />;
+  const pace = paceMain || pacePhone ? pictureSet(paceMain ?? main, pacePhone ?? phone, phoneMedia, sz, phoneSizes) : command;
+  // Without the grip: the bare still's own crops, Command and Pace, where they are exported.
+  const bareMain = bare ? entry(`${bare.id}-${crop}`) : null;
+  let bareSets: { command: PictureSet; pace: PictureSet } | undefined;
+  if (bare && bareMain) {
+    const bPhoneBase = bare.phoneId ?? bare.id;
+    const bPhone = phoneCrop ? entry(`${bPhoneBase}-${phoneCrop}`) : null;
+    const bCommand = pictureSet(bareMain, bPhone ?? phone, phoneMedia, sz, phoneSizes);
+    const bPaceMain = entry(`${bare.id}${PACE}-${crop}`);
+    const bPacePhone = phoneCrop ? entry(`${bPhoneBase}${PACE}-${phoneCrop}`) : null;
+    const bPace = bPaceMain || bPacePhone ? pictureSet(bPaceMain ?? bareMain, bPacePhone ?? bPhone ?? phone, phoneMedia, sz, phoneSizes) : bCommand;
+    bareSets = { command: bCommand, pace: bPace };
+  }
+  if (paceMain || pacePhone || bareSets) {
+    return <FeelPicture command={command} pace={pace} bare={bareSets} feel={feel} className={className} alt={alt} {...img} />;
   }
   return (
     <picture className={className}>

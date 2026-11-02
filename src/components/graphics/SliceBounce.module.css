@@ -1,0 +1,152 @@
+/* G17 "After the bounce" (SliceBounce.tsx). The court is drawn in the page's graphite (a floor that lifts a little
+   towards the viewer, so the fill rule never reads it as void), its lines in --edge, the glass as hairlines. The flight in
+   is --text, the standard exit --steel, KINETIQ's amber with a soft glow: the one warm line. Shadows on the floor
+   show where each ball goes, so the sideways kick reads even where the arcs cross on screen. Every stroke keeps its
+   width at any size (non-scaling); all text is HTML, 15 px and up. */
+.root {
+  --line: clamp(1.75px, 0.1vw + 1.2px, 3.5px);
+  --hair: clamp(1px, 0.04vw + 0.8px, 1.5px);
+  position: relative;
+  width: 100%;
+  margin: 0;
+  text-rendering: geometricPrecision;
+}
+.stage {
+  position: relative;
+}
+.frame {
+  position: relative;
+  width: 100%;
+}
+/* auto: the portrait framing on phones, the wide one from 700 px */
+.root[data-variant="auto"] .frame[data-frame="portrait"] {
+  display: none;
+}
+@media (max-width: 699px) {
+  .root[data-variant="auto"] .frame[data-frame="wide"] {
+    display: none;
+  }
+  .root[data-variant="auto"] .frame[data-frame="portrait"] {
+    display: block;
+  }
+}
+.svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.svg path,
+.svg ellipse {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.svg .floor {
+  stroke: rgb(107 110 118 / 0.55);
+  stroke-width: var(--hair);
+}
+.lines {
+  stroke: rgb(201 204 209 / 0.42);
+  stroke-width: var(--hair);
+}
+.net {
+  stroke: rgb(201 204 209 / 0.7);
+  stroke-width: var(--hair);
+}
+.glass {
+  stroke: rgb(107 110 118 / 0.4);
+  stroke-width: var(--hair);
+}
+.shadow {
+  stroke: rgb(0 0 0 / 0.38);
+  stroke-width: calc(var(--line) * 1.4);
+}
+.shadowK {
+  stroke: rgb(227 164 103 / 0.28);
+}
+.flight {
+  stroke: var(--text);
+  stroke-width: var(--line);
+}
+.standard {
+  stroke: var(--steel);
+  stroke-width: var(--line);
+  opacity: 0.9;
+}
+.kinetiq {
+  stroke: var(--amber-hot);
+  stroke-width: calc(var(--line) * 1.15);
+}
+.kinetiqGlow {
+  stroke: var(--amber);
+  stroke-width: calc(var(--line) * 5);
+  opacity: 0.22;
+}
+.mark {
+  stroke: var(--amber-hot);
+  stroke-width: var(--hair);
+}
+.ripple {
+  stroke: var(--amber-hot);
+  stroke-width: var(--hair);
+  opacity: 0;
+}
+.ball_flight circle {
+  fill: var(--text);
+}
+/* the incoming ball has handed over to the two exits in the final state */
+.ball_flight {
+  opacity: 0;
+}
+.ball_standard circle {
+  fill: var(--steel);
+}
+.ball_kinetiq circle {
+  fill: var(--amber-hot);
+}
+
+.label {
+  position: absolute;
+  font-family: var(--font-data);
+  font-size: var(--fs-label);
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  color: var(--steel);
+}
+.inner {
+  display: grid;
+  gap: 2px;
+}
+.name {
+  color: var(--text);
+}
+.note {
+  color: var(--muted);
+}
+/* Offsets use the independent translate property: GSAP animates transform (the labels' rise) without undoing them. */
+/* "Bounce": just under the mark, a little left of it, clear of the shadows */
+.bounce {
+  translate: -70% 16px;
+  color: var(--amber-hot);
+}
+/* Standard face: above its ball, ending at it */
+.std .inner,
+.kq .inner {
+  justify-items: end;
+}
+.std {
+  text-align: right;
+  translate: calc(-100% + 8px) calc(-100% - 30px);
+}
+/* KINETIQ: under its ball, ending a little past it */
+.kq {
+  text-align: right;
+  translate: calc(-100% + 18px) 22px;
+}
+.kq .name {
+  color: var(--amber-hot);
+}

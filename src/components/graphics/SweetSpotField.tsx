@@ -76,9 +76,9 @@ const CREVICES =
 
 /**
  * One framing of G15, after the K12 still it stands in for: the canonical racket face-on in white 3K twill (Command,
- * owner 2026-10-22), the studio light low, and the sweet spot lit warm and even to 4 mm from the edge (the field,
+ * owner 2026-10-22), the studio light low, and the sweet spot lit warm and even to 1 mm from the edge (the field,
  * from racket-shape.ts via graphics-sweetspot.ts), the weave reading through the light; the 42 holes open, each
- * with its lined bore and lit lip; and a magnified detail of the edge with its 4 mm dimension. The detail is the
+ * with its lined bore and lit lip; and a magnified detail of the edge with its 1 mm dimension. The detail is the
  * edge drawn again at the detail's own scale (graphics-sweetspot.ts lensDetail), with the racket's own carbon and light
  * at that spot, so it stays crisp and matches the racket beside it.
  */
@@ -165,8 +165,8 @@ function Panel({ variant, className }: { variant: G15Variant; className?: string
           <clipPath id={id("lens")}>
             <circle cx={L.detail.c[0]} cy={L.detail.c[1]} r={L.detail.r} />
           </clipPath>
-          {/* the detail's own paint, mapped to its 6x scale: the carbon and the light exactly as the racket shows them
-              at that spot, the rounded edge as a highlight across its 1.5 mm, and a fine hatch for the weave (crisp
+          {/* the detail's own paint, mapped to its 20x scale: the carbon and the light exactly as the racket shows them
+              at that spot, the rounded edge as a highlight across its 1.0 mm, and a fine hatch for the weave (crisp
               at any scale, where the twill itself would blow up into blocks) */}
           <linearGradient id={id("lensCarbon")} gradientUnits="userSpaceOnUse" x1="-120" y1="-150" x2="90" y2="230" gradientTransform={L.transform}>
             <stop offset="0" className={styles.carbon0} />
@@ -204,7 +204,7 @@ function Panel({ variant, className }: { variant: G15Variant; className?: string
               <path d={PATHS.wall} fillRule="evenodd" className={styles.wall} />
               <path d={PATHS.near} fillRule="evenodd" className={styles.near} />
             </g>
-            {/* the sweet spot: the field, lit warm and even to 4 mm from the edge and 4 mm above the throat, the
+            {/* the sweet spot: the field, lit warm and even to 1 mm from the edge and 1 mm above the throat, the
                 weave reading through the light; the bores stay unlit, only their lips catch it */}
             <g data-g15="field" mask={url("spread")}>
               <path d={`${PATHS.field} ${PATHS.holes}`} fillRule="evenodd" fill={url("light")} className={styles.light} />
@@ -225,7 +225,7 @@ function Panel({ variant, className }: { variant: G15Variant; className?: string
         <g data-g15="detail">
           <circle cx={L.ring.c[0]} cy={L.ring.c[1]} r={L.ring.r} className={styles.ring} />
           <path d={L.leader} className={styles.leader} />
-          {/* the edge six times larger, drawn at that scale: the flat band of white carbon, the 1.5 mm radius
+          {/* the edge twenty times larger, drawn at that scale: the white carbon, the 1.0 mm radius
               catching the light, the lit field to its amber line, and the page's own graphite beyond the edge */}
           <g clipPath={url("lens")}>
             <path d={L.lens.body} fill={url("lensCarbon")} />
@@ -253,7 +253,7 @@ type Mode = "scrub" | "play" | "fade";
 
 /**
  * G15's reveal, added to a timeline. "scrub" (a scroll-scrubbed timeline of length 1): the racket rises, then the
- * light spreads from the sweet spot to its 4 mm line, then the detail. "play": the same in seconds. "fade"
+ * light spreads from the sweet spot to its 1 mm line, then the detail. "play": the same in seconds. "fade"
  * (phones): the racket, then the light, fading in. Only transform and opacity move: the spread scales the
  * mask's soft disc, never the field, which stops at its own line.
  */

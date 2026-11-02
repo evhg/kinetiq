@@ -1,4 +1,4 @@
-// Pure geometry for G15, the sweet spot: the racket face-on with its face lit to 4 mm from the edge (the K12
+// Pure geometry for G15, the sweet spot: the racket face-on with its face lit to 1 mm from the edge (the K12
 // still's lit field, drawn as an SVG). Everything comes from racket-shape.ts. Drawing units are millimetres with
 // y up, as in graphics-drawing.ts; the SVG uses them directly (sheet y = -y), so a viewBox is in millimetres.
 
@@ -15,9 +15,9 @@ const HEAD: V[] = cubicPts(HEAD_START, HEAD_CURVES, 200);
 /** The bridge: the top of the throat opening (mm). The face is the head above it. */
 export const BRIDGE_Y = Math.max(...cubicPts(THROAT_START, THROAT_CURVES, 200).map((p) => p[1]));
 
-/** How far in from every edge the sweet spot reaches (mm): the flat face, 1.5 mm edge radius plus 2.5 mm. */
+/** How far in from every edge the sweet spot reaches (mm): the flat face, out to where the 1.0 mm edge radius begins. */
 export const INSET = FACE_INSET * MM;
-/** Where the 1.5 mm edge radius ends and the flat face begins (mm in from the outline). */
+/** Where the 1.0 mm edge radius ends and the flat face begins (mm in from the outline): here, the field's own line. */
 const RADIUS = EDGE_RADIUS * MM;
 
 /** The outline offset inward by d (mm), along each point's normal (the head is convex above the bridge). */
@@ -64,13 +64,14 @@ function area(poly: V[]): number {
 
 /** The face: the head outline above the bridge (holes included, as Apple counts a display's area). */
 export const FACE: V[] = clipAbove(HEAD, BRIDGE_Y);
-/** The sweet spot as designed: the face inset 4 mm from the edge and 4 mm above the throat. */
+/** The sweet spot as designed: the face inset 1 mm from the edge and 1 mm above the throat. */
 export const FIELD: V[] = clipAbove(offset(HEAD, INSET), BRIDGE_Y + INSET);
 
 /**
  * The claim's numbers, computed (CLAIMS.md row 6b; /lab/g15 prints them beside the copy): the face and the field
- * in cm², the field's share of the face, and the inset in mm. With racket-shape.ts as of 2026-10-22: 531.5 cm²,
- * 498.7 cm², 93.8% (said as "Nearly 94%": SWEET_CLAIM), 4 mm.
+ * in cm², the field's share of the face, and the inset in mm. With racket-shape.ts as of 2026-11-02 (the face to
+ * 1.0 mm from the edge): 531.5 cm², 523.2 cm², 98.4% (said as "Nearly 99%": SWEET_CLAIM), 1 mm. Until 2026-11-02 the
+ * face ended 4 mm in: 498.7 cm², 93.8%.
  */
 export const SWEET = (() => {
   const face = area(FACE) / 100;
@@ -80,23 +81,24 @@ export const SWEET = (() => {
 
 /**
  * The claim as the page prints it, built from SWEET so it changes with racket-shape.ts and is never typed by hand
- * (CLAIMS.md row 6b). Rounded the way Apple rounds a display: down to the whole number, or to the next one with
- * "Nearly" (Apple Watch Series 7: "nearly 20 percent"), never up without the word. As of 2026-10-22: 93.8%, said
- * as "Nearly 94%"; 498.7 of 531.5 cm²; 4 mm.
+ * (CLAIMS.md row 6b). Rounded the way Apple rounds a display: to the next whole number with "Nearly" (Apple Watch
+ * Series 7: "nearly 20 percent"), never up without the word, and never more than one point up. As of 2026-11-02:
+ * 98.4%, said as "Nearly 99%"; 523.2 of 531.5 cm²; 1 mm. (Rounded to the nearest whole, 98.4% would read "98%": the
+ * owner's "99%" is only true with "Nearly", CLAIMS.md row 6b.)
  */
 export const SWEET_CLAIM = (() => {
   const pct = SWEET.share * 100;
-  const whole = Math.round(pct);
+  const whole = Math.ceil(pct - 1e-9);
   return {
-    /** The lockup's numeral: "94". */
+    /** The lockup's numeral: "99". */
     share: String(whole),
-    /** True when the numeral is rounded up, so the lockup reads "Nearly 94%". */
+    /** True when the numeral is rounded up, so the lockup reads "Nearly 99%". */
     nearly: whole > pct + 1e-9,
-    /** The exact share, to one decimal ("93.8"): /lab/g15 and CLAIMS.md only (no fine print since 2026-10-22). */
+    /** The exact share, to one decimal ("98.4"): /lab/g15 and CLAIMS.md only (no fine print since 2026-10-22). */
     exact: pct.toFixed(1),
-    /** The inset in mm: "4". */
+    /** The inset in mm: "1". */
     inset: String(Number(SWEET.inset.toFixed(1))),
-    /** The two areas in cm², to one decimal ("498.7" and "531.5"): /lab/g15 and CLAIMS.md only. */
+    /** The two areas in cm², to one decimal ("523.2" and "531.5"): /lab/g15 and CLAIMS.md only. */
     field: SWEET.field.toFixed(1),
     face: SWEET.face.toFixed(1),
   };
@@ -135,21 +137,21 @@ export type G15Variant = "wide" | "portrait";
 /**
  * G15's two framings (mm, y up): the whole racket with a magnified detail of its edge beside it. Wide: the detail
  * beside the head, at about two o'clock; portrait (phones): beside the handle, looking at the head's lower right.
- * `zoom` is the detail's magnification; the label "4 mm" sits inside the detail (wide) or under it (portrait).
+ * `zoom` is the detail's magnification; the label "1 mm" sits inside the detail (wide) or under it (portrait).
  */
 export const G15_FRAMES: Record<
   G15Variant,
   { x0: number; top: number; w: number; h: number; spotY: number; detail: V; r: number; zoom: number; label: "in" | "below" }
 > = {
-  wide: { x0: -158, top: 172, w: 446, h: 494, spotY: 92, detail: [222, 64], r: 58, zoom: 6, label: "in" },
-  portrait: { x0: -150, top: 172, w: 400, h: 494, spotY: -40, detail: [186, -168], r: 52, zoom: 6, label: "below" },
+  wide: { x0: -158, top: 172, w: 446, h: 494, spotY: 92, detail: [222, 64], r: 58, zoom: 20, label: "in" },
+  portrait: { x0: -150, top: 172, w: 400, h: 494, spotY: -40, detail: [186, -168], r: 52, zoom: 20, label: "below" },
 };
 
 /** Everything G15 places for one framing, in SVG user units (mm, y down). */
 export function g15Layout(variant: G15Variant) {
   const f = G15_FRAMES[variant];
   const { p, n: nv } = edgeAt(f.spotY);
-  // the detail looks at the middle of the 4 mm band
+  // the detail looks at the middle of the 1 mm band
   const look: V = [p[0] + nv[0] * (INSET / 2), p[1] + nv[1] * (INSET / 2)];
   const s = (v: V): V => [v[0], -v[1]];
   const [dcx, dcy] = s(f.detail);
@@ -174,7 +176,7 @@ export function g15Layout(variant: G15Variant) {
     `M${n(tip[0])} ${n(tip[1])}L${n(tip[0] - dir[0] * AL - dir[1] * AH)} ${n(tip[1] - dir[1] * AL + dir[0] * AH)}L${n(tip[0] - dir[0] * AL + dir[1] * AH)} ${n(tip[1] - dir[1] * AL - dir[0] * AH)}Z`;
   const dim = `M${n(outer[0])} ${n(outer[1])}L${n(inner[0])} ${n(inner[1])}`;
   const arrows = head(outer, [-nx, -ny]) + head(inner, [nx, ny]);
-  // The extension lines: a short tick along each measured line at the arrow's tips (the 4 mm line and the outline).
+  // The extension lines: a short tick along each measured line at the arrow's tips (the 1 mm line and the outline).
   const tx = -ny;
   const ty = nx;
   const EXT = 7;
@@ -201,14 +203,14 @@ export function g15Layout(variant: G15Variant) {
   };
 }
 
-/** The head outline, densely sampled for the magnified detail (at 6x a coarse polygon would show its corners). */
-const HEAD_DENSE: V[] = cubicPts(HEAD_START, HEAD_CURVES, 900);
+/** The head outline, densely sampled for the magnified detail (at 20x a coarse polygon would show its corners). */
+const HEAD_DENSE: V[] = cubicPts(HEAD_START, HEAD_CURVES, 4000);
 
 /**
  * G15's magnified detail, drawn as its own vectors at the detail's scale (never the racket scaled up, whose weave and
- * gradients turn to blobs at 6x): the stretch of the edge around `look` (mm, y up) mapped into the detail circle
- * (centre `c` in sheet units). Lines: the outline, where the 1.5 mm edge radius meets the flat face, and the field's
- * 4 mm line. Areas, each closed far inside the circle (the circle clips them): the racket inside its outline, the
+ * gradients turn to blobs at 20x): the stretch of the edge around `look` (mm, y up) mapped into the detail circle
+ * (centre `c` in sheet units). Lines: the outline, where the 1.0 mm edge radius meets the flat face, and the field's
+ * 1 mm line (since 2026-11-02 the same line: the flat face is the field). Areas, each closed far inside the circle (the circle clips them): the racket inside its outline, the
  * radius band, and the lit field. `shade` runs across the radius band, from the outline to the flat face, for its
  * gradient (the rounded edge catching the studio's strip light).
  */
@@ -248,9 +250,9 @@ function lensDetail(look: V, c: V, zoom: number, r: number) {
   return {
     /** the racket inside its outline (the flat band's carbon) */
     body: inside(0),
-    /** the 1.5 mm edge radius, between the outline and the flat face */
+    /** the 1.0 mm edge radius, between the outline and the flat face */
     radius: `${open(edge)}${open(flat.slice().reverse()).replace(/^M/, "L")}Z`,
-    /** the lit field, inside the 4 mm line */
+    /** the lit field, inside the 1 mm line */
     field: inside(INSET),
     edgeLine: open(edge),
     flatLine: open(flat),

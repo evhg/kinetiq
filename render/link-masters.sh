@@ -64,3 +64,16 @@ l K16-pair-full.png K16-full
 l K16-pair-pace-base.png K16-base-pace
 l K16-pair-pace-full.png K16-full-pace
 true
+l K01-hero-beam-nogrip-base.png K01-nogrip-base
+l K01-hero-beam-nogrip-full.png K01-nogrip-full
+l K01-hero-beam-nogrip-pace-base.png K01-nogrip-base-pace
+l K01-hero-beam-nogrip-pace-full.png K01-nogrip-full-pace
+l K01-hero-frame-phone-nogrip-base.png K01-nogrip-hero-base-phone
+l K01-hero-frame-phone-nogrip-full.png K01-nogrip-hero-full-phone
+l K01-hero-frame-phone-nogrip-pace-base.png K01-nogrip-hero-base-phone-pace
+l K01-hero-frame-phone-nogrip-pace-full.png K01-nogrip-hero-full-phone-pace
+l K17-roughness-base.png K17-base
+l K17-roughness.png K17-full
+l K17-roughness-pace-base.png K17-base-pace
+l K17-roughness-pace.png K17-full-pace
+true

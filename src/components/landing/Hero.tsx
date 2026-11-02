@@ -3,13 +3,15 @@
 import { useRef } from "react";
 import { Swivel, type SwivelHandle } from "@/components/media/Swivel";
 import { FeelToggle } from "@/components/chrome/FeelToggle";
+import { GripToggle } from "@/components/chrome/GripToggle";
 import { ReserveLink } from "@/components/chrome/ReserveLink";
 import { Still } from "@/components/media/Still";
 import { useMotion } from "@/components/motion/MotionProvider";
 import { Hyphens } from "@/components/text/Hyphens";
 import { hero } from "@/content/copy";
-import { feelToggleLabels, site } from "@/content/site";
+import { feelToggleLabels, gripToggleLabels, site } from "@/content/site";
 import { gsap, useGSAP } from "@/lib/gsap";
+import { useGrip } from "@/lib/grip-store";
 import styles from "./Hero.module.css";
 
 /**
@@ -19,6 +21,15 @@ import styles from "./Hero.module.css";
 const PORTRAIT = "(max-width: 699px), (max-width: 999px) and (max-aspect-ratio: 1/1), (max-aspect-ratio: 4/5)";
 /** On a portrait tablet the master is drawn wider than the screen (up to about 1.4 times), sized by its band. */
 const PORTRAIT_SIZES = "(min-width: 700px) 140vw, 100vw";
+/** The same two stills rendered without the overgrip (owner, 2026-11-02), shown while the grip toggle is on "Bare". */
+const BARE_BASE = { id: "K01-nogrip-base", phoneId: "K01-nogrip-hero-base-phone" };
+const BARE_FULL = { id: "K01-nogrip-full", phoneId: "K01-nogrip-hero-full-phone" };
+/**
+ * The swivel's sequences (`<name>-<feel>-desktop|phone`). Without the grip no sequence is rendered yet, so the name
+ * finds none and the still shows alone (Swivel: "Missing sequence ... the still shows"); the grip's frames already
+ * downloaded stay cached for a switch back. A future "K01-swivel-nogrip" export plays with no code change.
+ */
+const SWIVEL = { on: "K01-swivel", off: "K01-swivel-nogrip" } as const;
 
 /**
  * Hero: K01 rises out of the dark (base, then the beam) and turns as the page scrolls (Swivel), one CTA. Wide screens set the words, Reserve Now
@@ -29,6 +40,7 @@ export function Hero() {
   const root = useRef<HTMLElement>(null);
   const { motionOn } = useMotion();
   const swivel = useRef<SwivelHandle>(null);
+  const { grip } = useGrip();
 
   useGSAP(
     (_, contextSafe) => {
@@ -106,12 +118,12 @@ export function Hero() {
         <div className={styles.media}>
           {/* Wide: the close beam camera (the racket spans 27-80% of the frame). Phones and portrait tablets: their own
               9:16 master (PORTRAIT, the same condition as Hero.module.css's portrait layouts). */}
-          <Still id="K01-base" phoneId="K01-hero-base-phone" phoneCrop="portrait" phoneMedia={PORTRAIT} phoneSizes={PORTRAIT_SIZES} alt="" priority className={styles.base} />
+          <Still id="K01-base" phoneId="K01-hero-base-phone" phoneCrop="portrait" phoneMedia={PORTRAIT} phoneSizes={PORTRAIT_SIZES} alt="" priority className={styles.base} bare={BARE_BASE} />
           {/* The lit layer: the K01-full still and, over it, the swivel's canvas (frame 0 is this still), faded in
               together by the beam. */}
           <div className={styles.full}>
-            <Still id="K01-full" phoneId="K01-hero-full-phone" phoneCrop="portrait" phoneMedia={PORTRAIT} phoneSizes={PORTRAIT_SIZES} alt="" loading="eager" fetchPriority="low" className={styles.layer} />
-            <Swivel ref={swivel} sequence="K01-swivel" portraitQuery={PORTRAIT} className={styles.swivel} />
+            <Still id="K01-full" phoneId="K01-hero-full-phone" phoneCrop="portrait" phoneMedia={PORTRAIT} phoneSizes={PORTRAIT_SIZES} alt="" loading="eager" fetchPriority="low" className={styles.layer} bare={BARE_FULL} />
+            <Swivel ref={swivel} sequence={SWIVEL[grip]} portraitQuery={PORTRAIT} className={styles.swivel} />
           </div>
         </div>
       </div>
@@ -128,14 +140,19 @@ export function Hero() {
       </div>
       <div className={styles.bottom}>
         {/* Reserve Now and, beside it, the feel toggle (owner, 2026-10-23; made minimal 2026-10-28: two face swatches
-            with their names): one row from 700 px, the toggle above the button on phones, under the racket like a
-            caption. The stills with a Pace version and the checkout follow it (DESIGN.md
-            "Feel toggle"). */}
+            with their names) and the grip toggle (owner, 2026-11-02: the racket without its overgrip, to show the
+            bare shell), one hairline between them: one row from 700 px, the toggles above the button on phones, under
+            the racket like a caption. The stills with a Pace version and the checkout follow the feel; only the hero's
+            racket follows the grip (DESIGN.md "Feel toggle", "Grip toggle"). */}
         <div className={styles.actions}>
           <ReserveLink href="/reserve" className={`btn btn-primary ${styles.cta}`}>
             {site.ctaLabel}
           </ReserveLink>
-          <FeelToggle label={site.feelToggleLabel} labels={feelToggleLabels} size="hero" />
+          <div className={styles.toggles}>
+            <FeelToggle label={site.feelToggleLabel} labels={feelToggleLabels} size="hero" />
+            <span className={styles.rule} aria-hidden="true" />
+            <GripToggle label={site.gripToggleLabel} labels={gripToggleLabels} />
+          </div>
         </div>
         <p className={`t-label ${styles.note}`}>{hero.ctaNote}</p>
       </div>

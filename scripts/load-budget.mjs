@@ -5,7 +5,8 @@
 // and the time the last byte arrived after navigation (the page is "complete" when nothing has loaded for 4 s).
 // Usage: node scripts/load-budget.mjs <base url> [--device=iphone|iphone-short|ipad-pro|desktop] [--feel=command|pace]
 //   [--feel-store=both|local] [--dwell=quiet|<ms per screen>] (default quiet: each screen waits for the network)
-//   [--json=<file>]
+//   [--grip=on|off] [--json=<file>]
+// --grip=off: a returning visitor who chose Bare in the hero (localStorage and the `kq-grip` cookie).
 // --feel sets the stored choice the way a returning visitor has it: localStorage and the `kq-feel` cookie (both, the
 // default), or localStorage alone (--feel-store=local: a choice made before the cookie existed).
 // LCP is read once the hero's first still shows its final version (its <picture> in the stored feel, loaded), before
@@ -47,6 +48,11 @@ if (flags.feel) {
     const u = new URL(base);
     await context.addCookies([{ name: "kq-feel", value: flags.feel, domain: u.hostname, path: "/", sameSite: "Lax" }]);
   }
+}
+if (flags.grip) {
+  await context.addInitScript((g) => localStorage.setItem("kq-grip", g), flags.grip);
+  const u = new URL(base);
+  await context.addCookies([{ name: "kq-grip", value: flags.grip, domain: u.hostname, path: "/", sameSite: "Lax" }]);
 }
 await context.addInitScript(() => {
   window.__lcp = 0;
@@ -177,13 +183,14 @@ const report = {
   base,
   device: flags.device ?? "iphone",
   feel: flags.feel ?? "default",
+  grip: flags.grip ?? "default",
   lcpMs: Math.round(lcp),
   lcpElement: lcpEl,
   heroSettled: settled,
   feelStore: flags.feel ? (flags["feel-store"] ?? "both") : undefined,
   // Hero stills (K01) fetched, by feel: a Pace visitor should fetch none of Command's.
   heroFiles: [...reqs.values()]
-    .filter((r) => /\/stills\/K01-(base|full|hero)/.test(r.url))
+    .filter((r) => /\/stills\/K01-(base|full|hero|nogrip)/.test(r.url))
     .map((r) => `${r.url.split("/stills/")[1]} ${r.done ? `${Math.round(r.bytes / 1024)}KB ${r.start.toFixed(2)}-${r.end.toFixed(2)}s` : r.failed ?? "pending"}`),
   loadEventS: Number(loadAt.toFixed(1)),
   completeS: Number(lastByte.toFixed(1)),

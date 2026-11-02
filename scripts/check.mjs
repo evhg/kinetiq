@@ -23,6 +23,9 @@
 //   node scripts/check.mjs --feel=pace          a returning visitor with a stored feel (command|pace): the
 //                                               `kq-feel` cookie and localStorage are set before the first
 //                                               navigation, as the feel toggle leaves them
+//   node scripts/check.mjs --grip=off           a returning visitor who chose "Bare" in the hero's grip toggle:
+//                                               `kq-grip=off` in the cookie and localStorage; the grip-on hero
+//                                               stills (K01 base/full, desktop and phone) must never load
 // Every case also checks the feel of the stills it fetched: a still or swivel frame with a version in the other feel
 // (the Command file of a still that has a Pace export, or the reverse) must never be downloaded.
 // Every other case carries the NDA cookie (scripts/nda-cookie.mjs), so it sees the real site.
@@ -67,13 +70,19 @@ if (feelArg !== null && feelArg !== "command" && feelArg !== "pace") {
   process.exit(2);
 }
 const pageFeel = feelArg ?? "command";
+// --grip=on|off: the hero grip toggle's stored choice (lib/grip-store.ts writes localStorage and the cookie).
+const gripArg = typeof args.grip === "string" ? args.grip : null;
+if (gripArg !== null && gripArg !== "on" && gripArg !== "off") {
+  console.error(`--grip must be on or off, not ${gripArg}`);
+  process.exit(2);
+}
 const gateMode = Boolean(args.gate);
 // --path=/reserve tests another page on the same site.
 const pagePath = typeof args.path === "string" ? args.path : "/";
 const targetUrl = new URL(pagePath, baseUrl).toString();
 const label =
   args.label ??
-  `${remote ? new URL(baseUrl).hostname : "local"}${pagePath === "/" ? "" : pagePath.replace(/[/?=&]/g, "-")}${gateMode ? "-gate" : ""}${feelArg ? `-feel-${feelArg}` : ""}`;
+  `${remote ? new URL(baseUrl).hostname : "local"}${pagePath === "/" ? "" : pagePath.replace(/[/?=&]/g, "-")}${gateMode ? "-gate" : ""}${feelArg ? `-feel-${feelArg}` : ""}${gripArg ? `-grip-${gripArg}` : ""}`;
 const outDir = join(process.cwd(), ".checks", label);
 
 const BUDGET = { lcpMs: 2500, cls: 0.1 };
@@ -390,6 +399,15 @@ async function runCase(browser, statsPage, vp, mode) {
       } catch {}
     }, feelArg);
   }
+  if (gripArg) {
+    const { hostname } = new URL(baseUrl);
+    await context.addCookies([{ name: "kq-grip", value: gripArg, domain: hostname, path: "/", sameSite: "Lax", secure: baseUrl.startsWith("https:") }]);
+    await context.addInitScript((g) => {
+      try {
+        if (!localStorage.getItem("kq-grip")) localStorage.setItem("kq-grip", g);
+      } catch {}
+    }, gripArg);
+  }
   await context.addInitScript(metricsInit);
   const page = await context.newPage();
   const stillRequests = [];
@@ -475,6 +493,7 @@ async function runCase(browser, statsPage, vp, mode) {
     feel: pageFeel,
     shownFeel,
     wrongFeel: wrongFeelFiles(stillRequests, pageFeel),
+    wrongGrip: gripArg === "off" && pagePath === "/" ? gripOnHeroFiles(stillRequests) : [],
     blankSteps: steps.filter((s) => s.blank).map((s) => s.pct),
     fillSteps: steps.filter((s) => s.fillFail.length).map((s) => `${s.pct}% (${s.fillFail.join(", ")})`),
     steps,
@@ -509,6 +528,17 @@ function wrongFeelFiles(urls, feel) {
         break;
       }
     }
+  }
+  return [...wrong];
+}
+
+// With the grip off (kq-grip=off), the hero's grip-on stills must never load: the server sends / bare (src/proxy.ts).
+// Their keys: K01-base / K01-full (and -pace) in any crop, and the phone heroes K01-hero-base-phone / -full-phone.
+function gripOnHeroFiles(urls) {
+  const wrong = new Set();
+  for (const u of urls) {
+    const m = new URL(u).pathname.match(/^\/stills\/(K01-(?:base|full|hero-(?:base|full)-phone)(?:-pace)?)-(?:wide|portrait)-\d+/);
+    if (m) wrong.add(new URL(u).pathname);
   }
   return [...wrong];
 }
@@ -893,6 +923,7 @@ function evaluate(results) {
     if (r.interactions?.marks && !r.interactions.marks.ok) failures.push(`${r.id}: footnote markers: ${r.interactions.marks.problems.join("; ")}`);
     if (r.interactions?.gate && !r.interactions.gate.ok) failures.push(`${r.id}: gate: ${r.interactions.gate.problems.join("; ")}`);
     if (r.wrongFeel?.length) failures.push(`${r.id}: ${r.wrongFeel.length} file(s) in the wrong feel for ${r.feel}: ${r.wrongFeel.slice(0, 4).join(", ")}`);
+    if (r.wrongGrip?.length) failures.push(`${r.id}: ${r.wrongGrip.length} grip-on hero file(s) loaded with the grip off: ${r.wrongGrip.slice(0, 4).join(", ")}`);
     if (r.shownFeel && r.shownFeel !== r.feel) failures.push(`${r.id}: html[data-feel] is ${r.shownFeel}, expected ${r.feel}`);
     if (r.fillSteps.length) failures.push(`${r.id}: fill rule broken at ${r.fillSteps.join("; ")}`);
   }
@@ -970,6 +1001,7 @@ async function main() {
   console.log(markdown(results, failures, serverChecks));
   log(`screenshots and report in ${outDir}`);
   if (failures.length) process.exit(1);
+  process.exit(0);
 }
 
 main().catch((err) => {

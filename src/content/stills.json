@@ -642,6 +642,102 @@
           "h": 1
         }
       }
+    },
+    "K01-nogrip-base": {
+      "crops": {
+        "wide": {}
+      }
+    },
+    "K01-nogrip-full": {
+      "crops": {
+        "wide": {},
+        "card": {
+          "x": 0.3,
+          "y": 0,
+          "w": 0.4,
+          "h": 1
+        }
+      }
+    },
+    "K01-nogrip-hero-base-phone": {
+      "crops": {
+        "portrait": {}
+      }
+    },
+    "K01-nogrip-hero-full-phone": {
+      "crops": {
+        "portrait": {}
+      }
+    },
+    "K01-nogrip-base-pace": {
+      "crops": {
+        "wide": {}
+      }
+    },
+    "K01-nogrip-full-pace": {
+      "crops": {
+        "wide": {},
+        "card": {
+          "x": 0.3,
+          "y": 0,
+          "w": 0.4,
+          "h": 1
+        }
+      }
+    },
+    "K01-nogrip-hero-base-phone-pace": {
+      "crops": {
+        "portrait": {}
+      }
+    },
+    "K01-nogrip-hero-full-phone-pace": {
+      "crops": {
+        "portrait": {}
+      }
+    },
+    "K17-base": {
+      "crops": {
+        "wide": {},
+        "phone": {
+          "x": 0.06,
+          "y": 0,
+          "w": 0.45,
+          "h": 1
+        }
+      }
+    },
+    "K17-full": {
+      "crops": {
+        "wide": {},
+        "phone": {
+          "x": 0.06,
+          "y": 0,
+          "w": 0.45,
+          "h": 1
+        }
+      }
+    },
+    "K17-base-pace": {
+      "crops": {
+        "wide": {},
+        "phone": {
+          "x": 0.06,
+          "y": 0,
+          "w": 0.45,
+          "h": 1
+        }
+      }
+    },
+    "K17-full-pace": {
+      "crops": {
+        "wide": {},
+        "phone": {
+          "x": 0.06,
+          "y": 0,
+          "w": 0.45,
+          "h": 1
+        }
+      }
     }
   }
 }

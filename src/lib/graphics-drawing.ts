@@ -40,8 +40,8 @@ export const DIM = {
   headTop: HEAD_START[1] * MM, // 155
   buttY: (HANDLE.top - HANDLE.length) * MM, // -300
   handleR: HANDLE.radius * MM, // 16.5, the carbon core under the grip
-  edgeR: EDGE_RADIUS * MM, // 1.5
-  faceInset: FACE_INSET * MM, // 4
+  edgeR: EDGE_RADIUS * MM, // 1.0
+  faceInset: FACE_INSET * MM, // 1.0
   shell: 2, // drawn shell wall in sections (mm)
   rimShell: 3,
   /** Balance point from the butt (mm): the 250.0 nominal (the sample card measures 250.04). Drawn as a symbol only, never printed. */
@@ -411,8 +411,8 @@ export function holes(t: Xf, r?: number): string {
 }
 
 /**
- * The tangent edge: where the flat face ends, the head outline offset inward by `d` (the canonical 4 mm: the
- * 1.5 mm edge radius plus 2.5 mm). An open line over the top of the head, ending at `yEnd`: by default where
+ * The tangent edge: where the flat face ends, the head outline offset inward by `d` (the canonical 1.0 mm: where
+ * the 1.0 mm edge radius begins). An open line over the top of the head, ending at `yEnd`: by default where
  * the outline leaves the head curve for the fillet into the neck, so the line never strays from the edge.
  */
 export function tangentEdge(t: Xf, d = DIM.faceInset, yEnd = NECK_PROFILE.from): string {
@@ -454,7 +454,7 @@ export function sideHalf(y: number): number {
   return cap[cap.length - 1][0];
 }
 
-/** Side view: the 38.0 mm wall with its 1.5 mm edges, tapering through the neck into the grip and the cap. */
+/** Side view: the 38.0 mm wall with its 1.0 mm edges, tapering through the neck into the grip and the cap. */
 export function sideProfile(t: Xf): string {
   const h = DIM.thickness / 2;
   const top = DIM.headTop;
@@ -493,7 +493,7 @@ export function sideHidden(t: Xf): string {
 export type SectionPiece = { outer: string; core: string };
 const LIP = 2.6;
 
-/** Section A-A: one unbroken shell wrapping one unbroken core, edge to edge, with the canonical 1.5 mm edges. */
+/** Section A-A: one unbroken shell wrapping one unbroken core, edge to edge, with the canonical 1.0 mm edges. */
 export function slabSection(t: Xf): SectionPiece {
   const W = HEAD_W;
   const h = DIM.thickness / 2;

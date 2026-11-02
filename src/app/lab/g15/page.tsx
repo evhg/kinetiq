@@ -10,7 +10,7 @@ const cell = { borderTop: "1px solid var(--hairline)", paddingTop: "14px", displ
 /** The claim's numbers as computed from racket-shape.ts, beside the words the page prints (built from SWEET_CLAIM). */
 const CHECK: [string, string, string][] = [
   ["Face above the bridge", `${SWEET.face.toFixed(2)} cm²`, `${SWEET_CLAIM.face} cm² (not printed: no fine print since 2026-10-22)`],
-  ["Sweet spot, 4 mm in", `${SWEET.field.toFixed(2)} cm²`, `${SWEET_CLAIM.field} cm² (not printed)`],
+  ["Sweet spot, 1 mm in", `${SWEET.field.toFixed(2)} cm²`, `${SWEET_CLAIM.field} cm² (not printed)`],
   [
     "Share of the face",
     `${(SWEET.share * 100).toFixed(2)}%`,

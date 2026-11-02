@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useMotion } from "@/components/motion/MotionProvider";
-import type { FeelId } from "@/content/site";
+import type { FeelId, GripId } from "@/content/site";
 import { useFeel } from "@/lib/feel-store";
+import { useGrip } from "@/lib/grip-store";
 
 export type PictureSet = {
   sources: { media?: string; type: string; srcSet: string; sizes: string; width?: number; height?: number }[];
@@ -15,6 +16,11 @@ export type PictureSet = {
 type Props = {
   command: PictureSet;
   pace: PictureSet;
+  /**
+   * The same still without the overgrip, in both feels (the hero's K01-nogrip renders, owner 2026-11-02): with it the
+   * picture also follows the grip toggle (lib/grip-store.ts), one variant at a time, as it follows the feel.
+   */
+  bare?: { command: PictureSet; pace: PictureSet };
   /** A fixed feel (the /reserve gallery's); omitted, the picture follows the site-wide feel. */
   feel?: FeelId;
   className?: string;
@@ -27,6 +33,11 @@ type Props = {
 /** The exit, shorter than the entry (globals.css "Feel stills" has the same two durations). */
 const EXIT_MS = 150;
 
+/** One variant on show: its feel and, for a picture with a `bare` set, its grip ("command|on", "pace|off"). */
+type Shown = `${FeelId}|${GripId}`;
+const feelOf = (v: Shown) => v.split("|")[0] as FeelId;
+const gripOf = (v: Shown) => v.split("|")[1] as GripId;
+
 /**
  * A still with a Command and a Pace version, one <picture> that only ever holds one of them, so the two never both
  * download. The server and the hydrating render paint the page's feel (useFeel: the visitor's, on the feel variants that
@@ -37,12 +48,14 @@ const EXIT_MS = 150;
  * The swap: the shown image fades out (150 ms; under html[data-feel] at once, for a picture that follows the toggle,
  * so a stored Pace never flashes Command before hydration), the other version's image is mounted hidden, and it fades
  * in once it has loaded (240 ms ease-out). Reduced motion: the same steps with no fade (globals.css).
+ * With `bare`, the grip is a second axis handled the same way (html[data-grip] hides a variant the toggle has left).
  */
-export function FeelPicture({ command, pace, feel: fixed, className, alt, loading, fetchPriority, decoding }: Props) {
+export function FeelPicture({ command, pace, bare, feel: fixed, className, alt, loading, fetchPriority, decoding }: Props) {
   const site = useFeel();
-  const target = fixed ?? site.feel;
+  const { grip } = useGrip();
+  const target: Shown = `${fixed ?? site.feel}|${bare ? grip : "on"}`;
   const { motionOn } = useMotion();
-  const [shown, setShown] = useState<FeelId>(target);
+  const [shown, setShown] = useState<Shown>(target);
   const [ready, setReady] = useState(true);
   // After the first swap the image is created by the client: it gets no src of its own (a detached image with a src
   // starts loading it at once), so it loads only the source its <picture> selects.
@@ -89,13 +102,16 @@ export function FeelPicture({ command, pace, feel: fixed, className, alt, loadin
     };
   }, [ready, shown, target]);
 
-  const set = shown === "pace" ? pace : command;
+  const sets = gripOf(shown) === "off" && bare ? bare : { command, pace };
+  const set = feelOf(shown) === "pace" ? sets.pace : sets.command;
   return (
     <picture
       className={className}
       data-feel-swap=""
       data-feel-follow={fixed === undefined ? "" : undefined}
-      data-feel-shown={shown}
+      data-feel-shown={feelOf(shown)}
+      data-grip-follow={bare ? "" : undefined}
+      data-grip-shown={bare ? gripOf(shown) : undefined}
       data-feel-ready={ready}
     >
       {/* The sources are updated in place; the image is keyed by the feel, so the old one is removed before the sources

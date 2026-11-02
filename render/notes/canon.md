@@ -314,3 +314,15 @@ width. Self-test passes (455.00 x 260.12 x 38.00, 42 holes, 8 crown, both feels 
   `PACE_WEAVE` 0.5 -> 0.9. `mat_opts=C.PACE_V5` (+ the old shot constants) gives v5 back.
 - Rejected on preview: crimp as a tile envelope (`crimp_shape` 1, the critic's sin x sin^p): with any narrow lobe every tile
   renders as a dome (quilted / diamond-plate); the brief's rough 0.32-0.35 / F0 0.05-0.06 lifted the face to p50 51-71.
+
+## Owner update after the factory meeting (2026-11-02)
+
+- **Edge:** `EDGE_R` 1.0 mm (was 1.5 mm): the flat face now ends 1.0 mm from the edge (`FACE_INSET`, the same number as
+  racket-shape.ts). The throat edge and the throat wall's fold (`mat_white` wall `below`) follow it; the neck still grows
+  to 12 mm. `head_kw={"r_frame": 0.0015}` rebuilds the old edge. Self-test passes (455.00 x 260.12 x 38.00 mm).
+- **Grip-off:** `build_racket(..., grip=False)`: no `grip` part; the core runs on to `NOGRIP_Y_CUT` (-0.2985, its round end
+  inside the cap), so the 33.0 x 29.0 mm handle is bare carbon from the neck into the cap, the twill straight down it.
+  The cap and the Q are unchanged (the cap's top flare is slightly smaller than the bare core: the shaft runs into it).
+- **WEAVE_HD:** an opt-in mat_opts preset for whole-racket shots (relief and resin-gap tone, a stronger direction step,
+  relief and sheen); see RENDER_NOTES "Owner notes after the factory meeting". Default COMMAND_WHITE is unchanged.
+- **serial=None** now builds a face with no throat mark (its material is cached as `..._face_nomark`).

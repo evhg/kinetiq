@@ -4,7 +4,9 @@ import { Archivo, Saira } from "next/font/google";
 import { MotionProvider } from "@/components/motion/MotionProvider";
 import { Arrival } from "@/components/nda/Arrival";
 import { SmoothScroll } from "@/components/motion/SmoothScroll";
-import { DEFAULT_FEEL } from "@/content/site";
+import { DEFAULT_FEEL, DEFAULT_GRIP } from "@/content/site";
+// Server only, for its side effect: the launch gate fails a NEXT_PUBLIC_LAUNCHED build while a spec is provisional.
+import "@/content/specs-status";
 import { motionInitScript } from "@/lib/motion-preference";
 import "./font-fallbacks.css";
 import "./globals.css";
@@ -69,7 +71,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${archivo.variable} ${saira.variable}`} data-motion="off" data-feel={DEFAULT_FEEL} style={fontFaces} suppressHydrationWarning>
+    <html lang="en" className={`${archivo.variable} ${saira.variable}`} data-motion="off" data-feel={DEFAULT_FEEL} data-grip={DEFAULT_GRIP} style={fontFaces} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: motionInitScript }} />
       </head>

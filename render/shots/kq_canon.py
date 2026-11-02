@@ -87,6 +87,15 @@ NECK = dict(y_top=-0.146, hw_top=0.0235, y_end=-0.176, hw_end=0.0165, y_cut=-0.2
 NECK_TAPER = (-0.150, -0.176, 0.763)     # y0 (full 38 mm), y1, thickness scale at y1
 NECK_ROUND = (-0.150, -0.174, 0.012)     # y0 (1.5 mm edge), y1, edge radius at y1
 NECK_SPLIT_Y = -0.150                    # face / neck light-linking boundary
+# the edge (owner, 2026-11-02, after the factory meeting): the flat face ends 1.0 mm from the edge, so the moulded
+# edge's radius is 1.0 mm (was 1.5 mm). racket-shape.ts FACE_INSET / EDGE_RADIUS carry the same numbers (the sweet-spot
+# claim is computed from them). head_kw={"r_frame": 0.0015} rebuilds the previous 1.5 mm edge.
+EDGE_R = 0.0010
+FACE_INSET = EDGE_R
+# grip-off (owner, 2026-11-02): build_racket(..., grip=False) leaves the overgrip off and runs the carbon core on, the
+# same 33.0 x 29.0 mm section, straight down into the butt cap; its round end (NECK y_cut) sits inside the cap, so the
+# bare handle reads as one piece flowing out of the head. The cap stays as it is.
+NOGRIP_Y_CUT = -0.2985
 # neck twill: the fold UVs offset each wall point along the outline's normal, which swirls (folds over) where the
 # normal turns faster than the ~40 mm wall profile allows: the 18 mm concave fillet into the V. From NECK_UV[0] down to
 # NECK_UV[1] the fold direction blends to the racket's cross axis, so below it the twill is laid along the handle axis
@@ -125,7 +134,19 @@ COMMAND_WHITE = dict(tint=(0.70, 0.69, 0.665), alb_k=0.65, dir_tone=0.14, streak
                      streak_h=0.25, streak_w=0.00012, streak_len=0.02, rough_s=0.60, metal=0.0, spec=0.5, ior=1.55,
                      aniso=0.75, bump=0.30, print=0.004, coat_rough=0.03,
                      frost=0.075, grain_alb=0.35, frost_rough=0.6, frost_mix=0.92, etch_coat_rough=0.30,
-                     wall_occ=0.60, wall_dark=0.03, bore_occ=0.82, bore_dark=0.012, bore_col=0.025, wall_frost=0.06)
+                     wall_occ=0.60, wall_dark=0.03, bore_occ=0.82, bore_dark=0.012, bore_col=0.025, wall_frost=0.06,
+                     relief_k=0.0, relief_lo=0.50, relief_hi=0.90, gap_k=0.0)
+# WEAVE_HD (owner, 2026-11-02: "in the whole-racket renders, show a more detailed carbon weave"): an opt-in preset for
+# whole-racket shots (K01, K02, K08), where a 2.6 mm tow spans only 4 to 7 px. Off by default, so the macros (K04, K10,
+# K14, ...) keep their tuned material exactly. On top of a shot's own weave keys it adds:
+#   relief_k   the tow relief as tone: the baked height map darkens each tow's rolled-off edges and ends (the shadowed
+#              valleys of a real twill), so every tow keeps a crisp outline after the image is downsampled
+#   relief_lo/hi  the height range (0..1 of height16) over which a tow rises from its edge to its crown
+#   gap_k      the resin gaps between tows (k04_tex2 gap16) darkened: the twill's stair-step lines
+# and a stronger direction step, tow relief and fibre sheen, so the twill reads crisply at page size in light and shade.
+WEAVE_HD = dict(dir_tone=0.36, alb_k=0.85, bump=0.65, aniso=0.90, relief_k=0.32, relief_lo=0.50, relief_hi=0.90,
+                tint=(0.715, 0.705, 0.68),  # the relief and gaps take about 3 % off the mean tone: given back
+                gap_k=0.55)
 # the previous canon Command (K10's black twill): mat_opts={"white": 0}
 COMMAND = dict(coat_rough=0.032)
 COMMAND_WALL = dict(coat_rough=0.032)
@@ -276,7 +297,7 @@ def outline_canon(r_fillet=0.003, step=0.0005, neck=NECK):
     return L._resample(list(q.exterior.coords)[:-1], step)
 
 
-def edge_radius(y, r_frame=0.0015, ramp=NECK_ROUND):
+def edge_radius(y, r_frame=EDGE_R, ramp=NECK_ROUND):
     y0, y1, r1 = ramp
     if y >= y0:
         return r_frame
@@ -302,7 +323,7 @@ T_FACE, T_BACK, T_RIM, T_WALL, T_NECK, T_HOLES, T_BRIDGE, T_THROAT, T_NECKCAP = 
 CAP_TAGS = (T_FACE, T_BACK, T_NECKCAP)
 
 
-def build_head(name="KQ", holes=None, r_frame=0.0015, r_hole=0.0008, seg_frame=14, seg_hole=6, throat_fillet=0.0035,
+def build_head(name="KQ", holes=None, r_frame=EDGE_R, r_hole=0.0008, seg_frame=14, seg_hole=6, throat_fillet=0.0035,
                outline_fillet=0.003, hole_seg=72, neck=NECK, taper=NECK_TAPER, round_=NECK_ROUND,
                throat_wall="clamp", throat_segs=None, split_y=NECK_SPLIT_Y, neck_uv=NECK_UV):
     """k10_lib.build_head_k10 with the canonical holes (a radius per hole), the canonical neck (its edge radius grows
@@ -1209,6 +1230,13 @@ def mat_white(name, o=None, etch=None, wall=False):
     tone = nb.math("MULTIPLY", tone, nb.math("MULTIPLY_ADD", nb.math("SUBTRACT", along_u, 0.5), float(p["dir_tone"]), 1.0))
     if streak is not None:
         tone = nb.math("MULTIPLY", tone, nb.math("MULTIPLY_ADD", streak, float(p["streak_a"]), 1.0))
+    if float(p["relief_k"]) > 0:  # WEAVE_HD: tow edges and ends darken with the relief (crisp tow outlines)
+        rk = float(p["relief_k"])
+        rel = nb.smooth(hgt.outputs["Color"], float(p["relief_lo"]), float(p["relief_hi"]))
+        tone = nb.math("MULTIPLY", tone, nb.math("MULTIPLY_ADD", rel, rk, 1.0 - rk))
+    if float(p["gap_k"]) > 0:  # WEAVE_HD: the resin gaps between tows
+        gap = L._img(nb, vec, os.path.join(L.TEX2, "gap16.png"), "Non-Color", interp="Cubic")
+        tone = nb.math("MULTIPLY", tone, nb.math("MULTIPLY_ADD", gap.outputs["Color"], -float(p["gap_k"]), 1.0))
     tone = nb.math("MINIMUM", tone, 1.12)
     cc = nb.n.new("ShaderNodeCombineColor")
     for k, t_ in enumerate(p["tint"]):
@@ -1245,7 +1273,7 @@ def mat_white(name, o=None, etch=None, wall=False):
     occ = None
     if wall:  # as k10_lib's throat wall: tows fold straight down it, the fibre tangent turns horizontal, occlusion
         _, _, z = nb.coords("Object")
-        below = nb.smooth(z, ZT - 0.0015, ZT - 0.0021)
+        below = nb.smooth(z, ZT - EDGE_R, ZT - EDGE_R - 0.0006)
         geo = nb.n.new("ShaderNodeNewGeometry")
         cr = nb.n.new("ShaderNodeVectorMath")
         cr.operation = "CROSS_PRODUCT"
@@ -1294,7 +1322,7 @@ def mat_carbon(feel, role, serial=None, o=None):
     white = is_white(feel, o)
     rest = {k: v for k, v in (o or {}).items() if k != "white"}
     tag = "command-black" if (feel == "command" and not white) else feel
-    key = "KQc_%s_%s" % (tag, role) + ("_" + serial if role == "face" else "")
+    key = "KQc_%s_%s" % (tag, role) + ("_" + (serial or "nomark") if role == "face" else "")
     m = bpy.data.materials.get(key)
     if m is not None and not rest:
         return m
@@ -1470,7 +1498,7 @@ def _role(key):
 
 
 def build_racket(name="KQ", feel="command", serial=SERIAL, walls=True, holes=None, throat_segs=None, mat_opts=None,
-                 head_kw=None, mark_az=0.0):
+                 head_kw=None, mark_az=0.0, grip=True):
     """The canonical racket under an Empty `name` at the origin. Returns (root, parts {part: object}).
     feel: "command" (WHITE 3K twill: the default for every shot that names no feel) or "pace" (black 12K, only where
     Pace is chosen or compared). serial: the throat mark (None = no mark). walls: the side-wall etches (graphite frost on
@@ -1479,12 +1507,17 @@ def build_racket(name="KQ", feel="command", serial=SERIAL, walls=True, holes=Non
     black K10 twill, then k10_lib.mat_carbon_k10 keys), PACE keys for Pace. mark_az (deg): turn the engraved Q round the
     handle axis toward model +x so it faces a shot's camera (the cap itself follows the grip section and does not turn)."""
     assert feel in FEELS, feel
-    head = build_head(name, holes=holes, throat_segs=throat_segs, **(head_kw or {}))
+    hk = dict(head_kw or {})
+    if not grip and "neck" not in hk:  # grip-off: the core runs on, bare, into the cap (NOGRIP_Y_CUT)
+        hk["neck"] = dict(NECK, y_cut=NOGRIP_Y_CUT)
+    head = build_head(name, holes=holes, throat_segs=throat_segs, **hk)
     for key, ob in head.items():
         ob.data.materials.append(mat_carbon(feel, _role(key), serial, mat_opts))
-    grip = build_grip(name + "_grip")
-    grip.data.materials.append(mat_overgrip())
-    grip["kq_part"] = "grip"
+    grip_ob = None
+    if grip:
+        grip_ob = build_grip(name + "_grip")
+        grip_ob.data.materials.append(mat_overgrip())
+        grip_ob["kq_part"] = "grip"
     cap = build_cap(name + "_cap")
     cap.data.materials.append(mat_cap())
     cap["kq_part"] = "cap"
@@ -1493,7 +1526,9 @@ def build_racket(name="KQ", feel="command", serial=SERIAL, walls=True, holes=Non
     mark.data.materials.append(mat_engraving())         # 1: the bright-cut chamfer
     mark["kq_part"] = "capmark"
     parts_ = dict(head)
-    parts_.update(grip=grip, cap=cap, capmark=mark)
+    parts_.update(cap=cap, capmark=mark)
+    if grip_ob is not None:
+        parts_["grip"] = grip_ob
     if walls:
         if is_white(feel, mat_opts):  # a graphite laser mark on the white wall
             fr = mat_wall_frost("KQ_WallFrost_white", level=float(dict(COMMAND_WHITE, **(mat_opts or {}))["wall_frost"]))
@@ -1515,6 +1550,7 @@ def build_racket(name="KQ", feel="command", serial=SERIAL, walls=True, holes=Non
     root["kq_feel"] = feel
     root["kq_serial"] = serial or ""
     root["kq_mat_opts"] = repr(dict(mat_opts or {}))
+    root["kq_grip"] = int(bool(grip))
     return root, parts_
 
 

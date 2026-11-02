@@ -13,6 +13,8 @@ import styles from "./SpaceGrade.module.css";
  * planet's limb. Two passes of one render: K15-base (before sunrise: the limb's glow on the edge) and K15-full (the sun
  * on the weave). As the section scrolls in, the sun comes up: the lit pass fades in over the base and the frame settles
  * (scale 1.06 to 1). Server render and reduced motion: the lit pass, at rest. G16 (CarbonLayup) lives on in /lab/g16.
+ * Under the three points, the spec sheet (owner, 2026-11-02): mechanical, thermal and environmental, each figure with
+ * the method that measures it, ruled like an Apple tech-specs page (specs.ts; provisional until the factory's values).
  * Not pinned.
  */
 export function SpaceGrade() {
@@ -57,6 +59,51 @@ export function SpaceGrade() {
           </li>
         ))}
       </Reveal>
+      <SpecSheet />
     </Scrub>
+  );
+}
+
+/** The spec sheet: a heading and one line, then a group per discipline, each row a term, its figure and its method. */
+function SpecSheet() {
+  const { sheet } = spaceGrade;
+  return (
+    <section className={styles.sheet} aria-labelledby="space-grade-specs">
+      <Reveal className={styles.sheetHead}>
+        <p className="t-eyebrow">{sheet.eyebrow}</p>
+        <h3 id="space-grade-specs" className={`t-h3 ${styles.sheetTitle}`}>
+          {sheet.headline}
+        </h3>
+        <p className="t-body">{sheet.lead}</p>
+      </Reveal>
+      <div className={styles.groups}>
+      {sheet.groups.map((g) => (
+        <section key={g.id} className={styles.group} aria-labelledby={`spec-${g.id}`}>
+          <h4 id={`spec-${g.id}`} className={`t-label ${styles.groupTitle}`}>
+            {g.title}
+          </h4>
+          <Reveal as="dl" className={styles.rows} items={`.${styles.row}`} stagger={0.04} y={10}>
+            {g.specs.map((s) => (
+              <div key={s.id} className={styles.row}>
+                <dt className={styles.term}>
+                  <span className={styles.termLabel}>{s.label}</span>
+                  {s.note ? <span className={`t-fine ${styles.note}`}>{s.note}</span> : null}
+                </dt>
+                <dd className={`t-stat ${styles.figure}`}>
+                  {s.bound ? <span className={styles.bound}>{`${s.bound}\u00a0`}</span> : null}
+                  {s.value}
+                  {s.unit ? <span className="t-unit">{s.unit}</span> : null}
+                </dd>
+                <dd className={`t-fine t-num ${styles.method}`}>
+                  <span className="visually-hidden">{`${sheet.methodLabel}: `}</span>
+                  {s.method}
+                </dd>
+              </div>
+            ))}
+          </Reveal>
+        </section>
+      ))}
+      </div>
+    </section>
   );
 }

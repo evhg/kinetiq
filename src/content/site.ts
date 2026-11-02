@@ -29,7 +29,54 @@ export const site = {
    * options are the feels' names (`feels`). HeaderClient gets both as props, so its client module carries no copy.
    */
   feelToggleLabel: "Feel",
+  /**
+   * The grip toggle beside the feel toggle in the hero (owner, 2026-11-02: "render images without the grip to show it's
+   * a single one piece ... could we have another minimal toggle to remove the grip?"): its group's accessible name.
+   * The two options are `gripToggleLabels`.
+   */
+  gripToggleLabel: "Handle",
 } as const;
+
+/**
+ * The hero racket with its overgrip ("on", the default) or without it ("off"), so the bare carbon handle shows running
+ * out of the head (lib/grip-store.ts, components/chrome/GripToggle.tsx; DESIGN.md "Grip toggle").
+ */
+export type GripId = "on" | "off";
+
+/** The grip toggle's two labels, in its order: the racket as it ships first, then the bare shell. */
+export const gripToggleLabels: Record<GripId, string> = { on: "Grip", off: "Bare" };
+
+export function isGripId(v: string | null | undefined): v is GripId {
+  return v === "on" || v === "off";
+}
+
+/** The hero opens with the grip on: the racket as it ships, and the only variant the first screen downloads. */
+export const DEFAULT_GRIP: GripId = "on";
+
+/**
+ * Where the grip choice is kept in the visitor's own browser (localStorage), mirrored in a first-party cookie of the
+ * same name exactly as the feel is (FEEL_COOKIE_MAX_AGE, SameSite=Lax, not HttpOnly; src/proxy.ts renews it): a
+ * returning visitor who chose "Bare" gets / already rendered without the grip (app/feel/bare, app/feel/<feel>/bare),
+ * so the phone's first screen loads the bare stills alone, with no grip-on download first (review, 2026-11-02: LCP
+ * 5.4 s without it). The head script mirrors it on html[data-grip] before the first paint. Nothing stores or logs it.
+ */
+export const GRIP_PREFERENCE_KEY = "kq-grip";
+
+/** The `kq-grip` cookie's value in a Cookie header (or document.cookie), when it names a grip state. */
+export function gripFromCookie(header: string | null | undefined): GripId | null {
+  const m = header?.match(new RegExp(`(?:^|; *)${GRIP_PREFERENCE_KEY}=([a-z]+)`));
+  const v = m?.[1];
+  return isGripId(v) ? v : null;
+}
+
+export function storedGrip(): GripId | null {
+  try {
+    const v = window.localStorage.getItem(GRIP_PREFERENCE_KEY);
+    return isGripId(v) ? v : null;
+  } catch {
+    return null;
+  }
+}
 
 export type FeelId = "command" | "pace";
 

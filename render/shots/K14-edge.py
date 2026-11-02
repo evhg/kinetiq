@@ -93,8 +93,8 @@ DEFAULTS = dict(
     RAKE=1.0, RAKE_AZ=95.0, RAKE_EL=7.0, RAKE_D=0.4, RAKE_LEN=0.3,
     # fill
     FILL=0.6, FILL_AZ=160.0, FILL_EL=50.0,
-    # hairline (amber, 4.0 mm in from the edge); 0 = off
-    LINE=0.0, LINE_W=0.00012, LINE_INSET=0.004,
+    # hairline (amber, FACE_INSET in from the edge); 0 = off
+    LINE=0.0, LINE_W=0.00012, LINE_INSET=C.FACE_INSET,   # owner 2026-11-02: the face ends 1.0 mm from the edge (was 4.0)
     # material (white): K04 v5's macro numbers
     W_BUMP=0.10, W_DIR_TONE=0.22, W_STREAK_A=0.14,
     # gains in the comp

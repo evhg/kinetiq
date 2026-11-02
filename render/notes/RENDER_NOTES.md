@@ -136,3 +136,62 @@ any more. How to switch, part names, lighting notes: `../renders4/canon.md`. Pro
   frame 0 (mean abs diff 0.002). stills.json's portrait widths end at 2160.
 - K14 Pace: the gloss card's hard far edge drew a dark wedge lower right; `GLOSS_B0/B1` fade it (PACE_SET: W 0.6,
   B 0.7..1.0). On Pace only the gloss group lights the face: pool and fill (diffuse) do nothing there.
+
+## Owner notes after the factory meeting (2026-11-02, branch notes/renders)
+- **Edge 1.0 mm** (`kq_canon.EDGE_R`, `FACE_INSET`): the flat face ends 1.0 mm from the edge, so the moulded edge radius
+  is 1.0 mm (was 1.5 mm); every build_head / edge_radius default follows it (`head_kw={"r_frame": 0.0015}` gives the
+  old edge). racket-shape.ts carries the same numbers. Shots rendered before this date show 1.5 mm (K03, K04, K05, K06,
+  K07, K09, K10, K11, K12, K13, K15, K16, and the swivel sequences): at whole-racket scale the 0.5 mm is under 2 px; K03's
+  section and K12 are the ones where it could show.
+- **Grip-off** (`build_racket(..., grip=False)`): no overgrip; the core runs on (NECK y_cut = `NOGRIP_Y_CUT` -0.2985,
+  its round end inside the cap), so the bare 33.0 x 29.0 mm carbon handle flows from the neck into the cap with the twill
+  straight down it. The cap and its Q stay. K01: `--set NOGRIP=1` (finals `final/K01-hero-*-nogrip*`, still ids
+  `K01-nogrip-*`). Light linking by name skips the missing grip (C.objs).
+- **WEAVE_HD** (`kq_canon.WEAVE_HD`, opt-in): the whole-racket shots' twill (2.6 mm tows at 4 to 7 px) given crisp tow
+  outlines: `relief_k` (the height map darkens tow edges and ends), `gap_k` (k04_tex2 gap16, the resin gaps), a stronger
+  direction step, relief and sheen, a slightly lighter tint (the relief takes about 3 % off the mean). K01, K02 and K08
+  use it (`HD` constant in each, 1 by default; 0 gives the 2026-11-01 material); Pace gets `k01_lib.P_HD` (per-tape
+  tone +-4 %, deeper fibre bundles) and K01 a stronger weave card (`P_WEAVE_S_HD` 9.5). The macros are untouched.
+- **K17 roughness** (`shots/K17-roughness.py`): a padel ball at the instant of a slice on the textured face. The face's
+  roughness is a moulded hexagonal field of rounded micro-domes (`ROUGH_*`, bump on the fibre layer and the coat),
+  regular so it reads as engineered, not worn. The ball: an icosphere flattened onto the face by a smooth max
+  (`COMPRESS`, `PATCH_SOFT`), a seam ribbon on the two-lobe curve, felt fibres as hair curves (bpy.data.hair_curves,
+  numpy-built: roots on the camera's side, curly 5-point strands, pressed flat and dragged +x in the patch), motion
+  blur from a turn about the contact point (`SPIN_DEG`: the felt blurs with distance from the contact, the patch holds),
+  an optional spin arc (light group `arc`). Light groups and the comp are K14's (imported; `K14.GROUPS` replaced).
+  Writes `<out>.png` (full) and `<out>-base.png`; `--comp <exr>` re-grades both. No scipy in the bpy venv.
+- **Finals and timings (2026-11-02, 4 cores, one job at a time):** K01 beam 2560x1440 spp 128: Command 16 min, Pace 13 min
+  (grip-off the same); K01 portrait 2160x3840 spp 48: 18 to 20 min each; K14 2560 spp 64: 5 to 6 min; K02 2560 spp 128:
+  4 min; K08 2560 spp 128: 4.5 min; K17 2560 spp 64 with 400k felt fibres: 31 min each feel. K02 uses a gentler share of
+  WEAVE_HD (`K02-edge-line.py` HD_W: relief 0.16, gaps 0.30, direction 0.30): at 10-12 px a tow the full preset read as a
+  woven basket and greyed the white wall.
+- **K17 lessons:** at a grazing camera (under 15 deg) the micro-domes foreshorten below 2 px and vanish; 32 deg shows them.
+  A dome pitch of 0.45 mm at FW 70 mm (16 px) reads as an engineered field without moire at 828 px (lanczos). The felt
+  needs both a back light (fuzz on the silhouette) and a soft front light linked to the ball only, or it reads as a dark
+  rubber sphere. A spin arc drawn as a thin emissive tube read as a wire: off (ARC 0). OIDN at 16-24 spp posterises the
+  felt; finals at 64 spp are smooth. The pool spot (diffuse only) does nothing on Pace: POOL_GLOSS 1 turns every dome
+  into a glint of it.
+- **Swivels vs the new stills:** the K01 and K02 swivel sequences (2026-10-29) still carry the old weave and the 1.5 mm
+  edge. Measured at display widths (f0disp): K01 desktop mean 0.6-0.7 luma, about 1.5 % of pixels over 6 luma (all on
+  the face: the weave's contrast); K01 portrait the same; K02 Command 2 %, K02 Pace 0.5 %. No geometry moves, but the
+  weave visibly softens when the scrub takes over from the still. Re-rendering them all is about 10.5 h (K01 portrait
+  36 frames x 5 min x 2 feels, desktop 36 x 2 min x 2, K02 105 frames x 75 s): left open.
+
+## Integration fixes (2026-11-02, wip/owner-update)
+- **K12 on the 1.0 mm canon:** `K12-sweet-spot.py --set FIELD_INSET=C.FACE_INSET` (Command, and `--feel pace`), 3200x1800
+  spp 160, about 8 min each. Only the base pass is served (/reserve gallery); against the 1.5 mm export it moves 0.8 %
+  of pixels by more than 6 luma (the rim line on the right, thinner). Masters in kinetiq-masters `stills/K12`.
+- **K17 ball colour (review):** the felt read olive in Command and pale cream in Pace because the pool spot lit the ball
+  and Pace raises the pool. `POOL_BALL 0` takes the ball out of the pool (light-linked out, like the bores), so only its
+  own key lights reach it and both feels match (ball mean sRGB 170, 175, 87 in both previews). Now the defaults:
+  FELT (0.60, 0.84, 0.03), FIB_COL (0.62, 0.87, 0.04), KEY2 10, POOL_BALL 0.
+  K17's `portrait` and `card` crops are gone (they were nearly all felt and unused); Surface uses `wide` and `phone`.
+- **How the slice happens** is drawn, not rendered: G18 (`GripContact`) beside K17 shows the face's travel, the felt
+  gripped in the domes and the spin. A re-composed K17 with the contact patch visible (a lower, closer camera on the
+  patch, a spin cue that does not read as a wire) is still open.
+- **Open before main (release preconditions):** the K01 and K02 swivel sequences still carry the old weave and the
+  1.5 mm edge (about 10.5 h of rendering, K01 portrait Command first), and no grip-off swivel exists
+  (`K01-swivel-nogrip-<feel>-<layout>`, K01 with `--set NOGRIP=1`, about 8.5 h for all four). The Pace HD weave
+  (`P_HD`) barely changes the face at display width (review: high-frequency contrast +1 to 2 %); it needs a look-dev
+  pass (the weave card and light) before the K01 Pace stills and swivels are rendered again.
+

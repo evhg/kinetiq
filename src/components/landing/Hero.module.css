@@ -127,6 +127,19 @@
   align-items: stretch;
   gap: clamp(10px, 0.5vw + 6px, 20px);
 }
+/* The feel toggle, a short hairline, then the grip toggle: one quiet row of four options. */
+.toggles {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 clamp(4px, 0.4vw, 12px);
+}
+.rule {
+  width: 1px;
+  height: 18px;
+  background: var(--hairline);
+}
 .note {
   font-size: clamp(1rem, 0.3vw + 0.9rem, 1.375rem);
   color: var(--steel);
@@ -153,8 +166,16 @@
     align-items: center;
     gap: 4px;
   }
-  .actions > [role="radiogroup"] {
+  .toggles {
     order: -1;
+    /* the row sits on the floor's beam: a soft shade under it (no edge, no pill) keeps the quiet names readable */
+    background: radial-gradient(ellipse 60% 70% at 50% 50%, rgb(14 14 16 / 0.72), rgb(14 14 16 / 0.4) 60%, transparent 100%);
+  }
+  /* four options in one row from 360 px: a little less padding round each name, so the row fits 335 px at 375 px
+     (each option stays 44 px tall and at least 44 px wide) */
+  .toggles label {
+    padding-inline: 5px;
+    gap: 11px;
   }
   .cta {
     width: 100%;
