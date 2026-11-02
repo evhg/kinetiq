@@ -122,7 +122,13 @@ HD = 1
 # still one uniform coat with no seam (the v6 rules: no checkerboard from albedo)
 P_HD = dict(tone=0.08, streak_alb=0.05, fib_h=7.0, rstreak=0.25)
 P_WEAVE_S_HD = 9.5      # HD: the Pace weave card (P_WEAVE_S) a little stronger, so the tapes read over more of the face
-P_MAT = {}              # K01-only extra Pace material keys laid over P_HD (K02 and K08 import P_HD, not this)
+# owner note 7 (2026-11-02): P_HD alone moved the Pace face's fine contrast only 1-2 % at display width. A deeper analytic
+# arch per tape (crimp 30 -> 75 um) gives every tape its own sheen gradient, so the 12K reads over the whole face, not
+# only where the weave card lands; the black stays black. Measured on the face (pace_hf.py, luma minus a 4 px gaussian,
+# K01 beam crop at spp 32): hf 4.18 -> 5.73 at 1170 wide (+37 %), 3.99 -> 5.34 at 1920 (+34 %); face p50 37.1 -> 38.0.
+# Rejected: a stronger, larger, closer or floored weave card, or one nearer the mirror (P_WEAVE_S_HD 16, SIZE 3.4 x 2.0,
+# D 1.0, FLOOR 0.25, UP 13): +0 to +17 % at best, and the face greys (p50 51 to 103). aniso 0.97 / rough 0.10: +5 %.
+P_MAT = dict(crimp=75.0)  # K01-only extra Pace material keys over P_HD (K02 and K08 import P_HD, not this: unchanged)
 # owner, 2026-11-02: grip-off. NOGRIP = 1 builds the racket without its overgrip (kq_canon grip=False): the bare carbon
 # handle runs out of the head into the butt cap as one piece. Outputs K01-nogrip-*.
 NOGRIP = 0
