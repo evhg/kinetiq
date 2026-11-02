@@ -38,7 +38,7 @@ function rise(targets: Element[], trigger: Element, pct: number) {
 /**
  * Sweet spot, the payoff (owner, 2026-10-28: a climactic rise): after how it is made, from the unibody to the sealed
  * core, "Edge to edge." says what all of it gives the player. With G15: on wide screens the words take the left five
- * columns and the drawing stands on the right; as the section scrolls in, the light spreads across its face to 4 mm
+ * columns and the drawing stands on the right; as the section scrolls in, the light spreads across its face to 1 mm
  * from the edge, then the words arrive. With K14: the macro full bleed across the top, settling as it scrolls in, the
  * words and the numbers under it. Phones: the headline, the image, then the words. Not pinned. Reduced motion and the
  * server render: the final state.
@@ -122,7 +122,7 @@ export function SweetSpot() {
       <ul className={styles.lockup} data-rise="">
         <li className={styles.stat}>
           <span className={`t-stat ${styles.value}`}>
-            {/* "Nearly" at the unit's size, its space inside it, so "Nearly 94%" reads as one figure */}
+            {/* "Nearly" at the unit's size, its space inside it, so "Nearly 99%" reads as one figure */}
             {SWEET_CLAIM.nearly ? <span className={`t-unit ${styles.nearly}`}>{`${sweetSpot.share.nearly} `}</span> : null}
             {SWEET_CLAIM.share}
             <span className={`t-unit ${styles.pct}`}>{sweetSpot.share.unit}</span>

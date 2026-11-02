@@ -6,7 +6,9 @@
 // "Moulded, measured and finished in [town], by a carbon workshop that already builds full-carbon golf clubs."
 // Retired (owner, 2026-10-22): "One piece" as a marketing phrase, except in the owner's own hero sentence,
 // which stays verbatim (CLAUDE.md; the owner replaced the hero lead after retiring the phrase). Elsewhere the
-// construction words are "unibody" and "Zero seams.", scoped to the frame: "No joint to work loose." Never
+// construction word is "unibody", and "no joint", scoped to the frame: "No joint to work loose." "Zero seams" is
+// retired (owner, 2026-11-02: taking the racket out of its mould leaves a parting line, even where it sits level with
+// a face and cannot be seen; CLAIMS.md row 8b): never "seamless", "no seam" or "zero seams". Never
 // "zero weak points" or "nothing to come apart" (absolute durability promises, CLAIMS.md row 8b), never
 // "first unibody" in any line but the owner's own eyebrow "The first Unibody" (owner, 2026-10-23; CLAIMS.md row 36:
 // the word is already used in other racket sports, row 3).
@@ -35,6 +37,7 @@
 
 import { lifetime } from "./lineup";
 import { site } from "./site";
+import { carbonSpecs, specValue } from "./specs";
 
 export const hero = {
   eyebrow: site.swissMade,
@@ -51,22 +54,23 @@ export const hero = {
 // The landing page runs in three movements, one idea per screen (batch 3 deck, section 1):
 // Meet it (hero, sweet spot, Unibody, Feel), Prove it (Born whole, Precision, Holes, Durability, then the
 // Specifications as the recap) and Choose it (Identical, Choose your feel, Editions, Finale). The four-number
-// strip under the hero (0 seams, 15 µm, 0 drilled, 5 years) is retired: each number has its own chapter.
+// strip under the hero (0 seams, 15 µm, 0 drilled, 5 years) is retired, and "seams" with it (CLAIMS.md row 8b): each number has its own chapter.
 
 /**
- * Sweet spot, the first idea after the hero (CLAIMS.md row 6b): Apple's edge-to-edge display claim, told of the
- * face. The owner's assumption (2026-10-22): the sweet spot is as big as it can theoretically be, the whole flat
- * face. The numbers are never typed here: graphics-sweetspot.ts computes them from racket-shape.ts (SWEET) and
- * rounds them as Apple rounds a display (SWEET_CLAIM), and the words below take them as arguments. The flat face
- * ends 4 mm in from the edge (the 1.5 mm edge radius plus 2.5 mm) and 4 mm above the throat, and covers 498.7 of
- * the 531.5 cm² of face above the bridge, 93.8%, said "Nearly 94%" (Apple Watch Series 7: "nearly 20 percent";
- * a 5.85-inch iPhone X display was sold as 5.8-inch, so Apple never rounds up without a word). A design ceiling,
- * not a measurement: line 1 says so in its own words ("we designed all of that flat face to be sweet spot": what is
- * counted, and that it is a design). No fine print (owner, 2026-10-22) and no "Illustrative" caption (owner,
- * 2026-10-23). Line 1 is about the face only: the cause (the
- * frame tube we left out) is told once, in Unibody.
- * Never "all sweet spot", "zero", "no dead zones", "100%", "bezel", "twice the sweet spot", a comparison with a
- * tubular racket or another brand, or "largest".
+ * Sweet spot, the payoff (CLAIMS.md row 6b): Apple's edge-to-edge display claim, told of the face. The owner's
+ * assumption (2026-10-22): the sweet spot is as big as it can theoretically be, the whole flat face. The numbers are
+ * never typed here: graphics-sweetspot.ts computes them from racket-shape.ts (SWEET) and rounds them as Apple rounds
+ * a display (SWEET_CLAIM), and the words below take them as arguments. Since 2026-11-02 (owner: "the world's largest
+ * sweet spot", 99% of the surface, 1 mm from the edge) the flat face ends 1 mm in from the edge (where the 1.0 mm edge
+ * radius begins) and 1 mm above the throat, and covers 523.2 of the 531.5 cm² of face above the bridge, 98.4%, said
+ * "Nearly 99%" (Apple Watch Series 7: "nearly 20 percent"; a 5.85-inch iPhone X display was sold as 5.8-inch, so Apple
+ * never rounds up without a word). A design ceiling, not a measurement: line 1 says so in its own words ("we designed
+ * all of that flat face to be sweet spot": what is counted, and that it is a design). "The world's largest sweet spot"
+ * is the owner's superlative (2026-11-02), said once, in line 1: it needs the market search in row 6b before launch.
+ * No fine print (owner, 2026-10-22) and no "Illustrative" caption (owner, 2026-10-23). Line 1 is about the face only:
+ * the cause (the frame tube we left out) is told once, in Unibody.
+ * Never "all sweet spot", "zero", "no dead zones", "100%", "bezel", "twice the sweet spot", or a comparison with a
+ * tubular racket or a named brand.
  */
 export type SweetNumbers = { share: string; nearly: boolean; exact: string; inset: string; field: string; face: string };
 
@@ -77,15 +81,16 @@ export const sweetSpot = {
   // the player, then says what is counted and that it is a design (CLAIMS.md row 6b). No-break spaces keep "flat face"
   // and "sweet spot" whole wherever line 1 wraps.
   lines: [
-    "This is what all of that gives you on court. The face stays flat right out to where the edge begins to curve, and we designed all of that flat\u00a0face to be sweet\u00a0spot.",
+    "This is what all of that gives you on court: the world's largest sweet\u00a0spot. The face stays flat right out to where the edge begins to curve, and we designed all of that flat\u00a0face to be sweet\u00a0spot.",
     "That matters most on the shots you can't set up, when you meet the ball late, high or off the glass.",
   ],
   /**
-   * The lockup, each item read as a sentence: "Nearly 94% of the face is sweet spot." and "4 mm from the sweet spot
-   * to the edge." `nearly` shows only when the numeral is rounded up. A no-break space keeps "sweet spot", the
+   * The lockup, each item read as a sentence: "Nearly 99% of the hitting surface is sweet spot." and "1 mm from the
+   * sweet spot to the edge." (the owner's "99% of surface": the hitting surface, the face above the bridge, never the
+   * whole racket) `nearly` shows only when the numeral is rounded up. A no-break space keeps "sweet spot", the
    * section's own term, on one line wherever a label wraps.
    */
-  share: { nearly: "Nearly", unit: "%", label: "of the face is sweet\u00a0spot" },
+  share: { nearly: "Nearly", unit: "%", label: "of the hitting surface is sweet\u00a0spot" },
   inset: { unit: "mm", label: "from the sweet\u00a0spot to the edge" },
   /** K14: a raking-light macro of the face running out to the rim, in the K04 language (the landing drops K12). */
   imageAlt: (n: SweetNumbers) =>
@@ -138,7 +143,7 @@ export const unibody = {
     // The handle callout gives no number: Identical tells the tolerances (±1.0 g, ±0.1 mm).
     callouts: [
       { at: "rim", text: "The face is in play almost to the rim." },
-      { at: "bridge", text: "Zero seams, so there is no joint to work loose." },
+      { at: "bridge", text: "The bridge is moulded in, not joined on." },
       { at: "handle", text: "The balance is set in the mould." },
     ] as { at: "rim" | "bridge" | "handle"; text: string }[],
   },
@@ -176,8 +181,10 @@ export const sealedCore = {
  * extreme mechanical, thermal, and environmental conditions of space travel"; CLAIMS.md rows 41 to 44). The material
  * first, then the mould (Born whole). It says what the carbon and the standard do for the player, against "the
  * standard carbon most padel rackets use": never a country or a maker, never defence or military wording, never the
- * factory, and never a number until the fibre and resin datasheets give one. The hero sentence names the material;
- * this section tells it once. G16's words are here too (the drawing carries no caption).
+ * factory. Its numbers (owner, 2026-11-02: porosity in the claim itself, then the mechanical, thermal and
+ * environmental specs) come from specs.ts, never typed here: provisional until the factory's test values arrive, and a
+ * launch build fails while any is (CLAIMS.md "Provisional numbers"). The hero sentence names the material; this
+ * section tells it once. G16's words are here too (the drawing carries no caption).
  */
 export const spaceGrade = {
   eyebrow: "Space-grade carbon",
@@ -186,9 +193,25 @@ export const spaceGrade = {
   lead: "KINETIQ is moulded from carbon fibre and resin of the grades used in space\u00a0hardware, to the same engineering standards, which are written for extreme mechanical, thermal and environmental conditions. That carbon is stronger for its weight than the standard carbon most padel\u00a0rackets use, so your racket holds its shape and its feel, shot after\u00a0shot.",
   points: [
     { title: "Strength without extra weight.", body: "Each fibre carries more load per gram than standard carbon, so the strength is in the shell rather than in added material." },
-    { title: "Solid through every layer.", body: "The resin is cured to the same standard as space hardware, so the layers bond without the air pockets that weaken a face." },
+    // Porosity, the factory's strongest number (owner, 2026-11-02): "almost no air", never "no air" (CLAIMS.md row 43).
+    {
+      title: "Solid through every layer.",
+      body: `The resin is cured to the same standard as space hardware, so the layers bond with almost no air between them: voids make up ${specValue("voids")} of the shell at\u00a0most.`,
+    },
     { title: "Steady in heat and cold.", body: "Made for the temperature swings of space, the shell keeps its stiffness on a hot summer court and on a cold winter one." },
   ],
+  /**
+   * The spec sheet under the three points (owner, 2026-11-02): three groups, every figure with the method that
+   * measures it. The heading and the line say only that the numbers exist and how they are measured, never that a
+   * test is done (CLAIMS.md row 46).
+   */
+  sheet: {
+    eyebrow: "Carbon specifications",
+    headline: "The numbers behind the carbon.",
+    lead: "Every figure comes with the test method that measures it, so you can hold us to each\u00a0one.",
+    methodLabel: "Method",
+    groups: carbonSpecs,
+  },
   /** G16: the shell cut through and magnified, standard carbon beside ours. Drawn from typical values (row 44). */
   graphic: {
     kicker: "Through the shell, magnified",
@@ -282,8 +305,8 @@ export const durability = {
       body: "In a padel racket, the foam core usually gives out first. Sealed in carbon, ours is made to last three times longer than the same core left open.",
     },
     {
-      title: "No seam to open.",
-      body: "The face and the frame are moulded as one, so there is no joint between them to loosen over the years.",
+      title: "No joint to work loose.",
+      body: "The face and the frame are moulded together as one shell, so there is no bonded joint between them to loosen over the years.",
     },
     { title: "No drilled hole to crack.", body: "Cracks often start at a drilled hole. All 42 of ours are moulded, with carbon wrapped around every edge." },
     {
@@ -314,7 +337,8 @@ export const feel = {
   // never read as a cushion we took away. Each title states its claim once; its body gives the reason.
   points: [
     { title: "No joint to dull the impact.", body: "The face carries straight into the frame, so nothing blurs the moment of contact." },
-    { title: "Vibration settles quickly.", body: "It spreads through one structure and fades, so your hand is ready for the next shot." },
+    // The impact-absorption number (owner, 2026-11-02; specs.ts `decay`, provisional until the factory measures it).
+    { title: `Vibration settles within ${specValue("decay")}.`, body: "It spreads through one structure and fades, so your hand is ready for the next shot." },
     {
       title: "The head twists less.",
       body: "Because the bridge is part of the same shell, the head stays steadier on an off-centre shot, so the ball goes closer to where you aimed.",
