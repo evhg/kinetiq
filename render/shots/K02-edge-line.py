@@ -74,6 +74,9 @@ import k01_lib as K01  # noqa: E402  (the hero group's shared white weave settin
 import g1_detail as GD  # noqa: E402
 MAT_OPTS = dict(K01.WEAVE_W)   # kq_canon mat_opts (white weave, as K01); {"white": 0} = the previous black Command
 HD = 1   # owner 2026-11-02 (more detailed weave in whole-racket renders): kq_canon.WEAVE_HD on white, K01.P_HD on Pace; 0 = before
+# K02 shows the wall at 10-12 px a tow, where the full WEAVE_HD relief reads as a woven basket and greys the white:
+# a gentler share of it (preview out/final 2026-11-02, K02-edge-line.png v1 vs v2)
+HD_W = dict(relief_k=0.16, gap_k=0.30, dir_tone=0.30)
 # white (critic G1): the wall is a LINE of light, not a flat white slab. Body at about luma 150-185, hottest at the
 # neck / throat and falling about 20 % toward the tip; a crisp 2-3 px specular hairline (luma 235-245) on the top
 # 1.5 mm edge, continued as a soft satin stripe across the grip's 11 mm finishing band at the same height.
@@ -215,7 +218,7 @@ def build(o):
     if pace:
         mo = dict(K01.P_HD) if HD else None
     else:
-        mo = dict(MAT_OPTS, **C.WEAVE_HD) if (HD and white) else MAT_OPTS
+        mo = dict(MAT_OPTS, **dict(C.WEAVE_HD, **HD_W)) if (HD and white) else MAT_OPTS
     root, P = C.build_racket("KQ", feel=FEEL, serial=C.SERIAL, mat_opts=mo)
     if pace and P_CLAMP:
         sc.cycles.sample_clamp_indirect = P_CLAMP
