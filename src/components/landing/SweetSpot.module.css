@@ -39,6 +39,20 @@
   -webkit-mask-image: linear-gradient(transparent, #000 10%, #000 88%, transparent);
   mask-image: linear-gradient(transparent, #000 10%, #000 88%, transparent);
 }
+/* Tablets (700 to 999 px): the frame is narrower than the screen, so its sides feather too (the lit face read as a
+   box with hard sides at 768 px). From 1000 px the macro runs the full width; under 700 px the full phone width. */
+@media (min-width: 700px) and (max-width: 999px) {
+  .frame {
+    -webkit-mask-image:
+      linear-gradient(transparent, #000 10%, #000 88%, transparent),
+      linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
+    -webkit-mask-composite: source-in;
+    mask-image:
+      linear-gradient(transparent, #000 10%, #000 88%, transparent),
+      linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
+    mask-composite: intersect;
+  }
+}
 .still {
   position: absolute;
   inset: 0;

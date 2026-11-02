@@ -184,7 +184,7 @@ Watch screens, assuming the sweet spot is as big as it can theoretically be.
   changes, the lockup and the alt text change with it.
 - **The image (owner, 2026-10-28):** the upright K12 racket is off the landing ("I dont like the edge to edge hero";
   /reserve keeps K12-base). K14 (live) is a K04-style macro of the face running out to the rim: close, in
-  raking light, the weave resolving, the flat face meeting the 1.0 mm edge radius (K14 still shows the old 1.5 mm radius and 4 mm face until it is re-rendered for the 1 mm canon; `stills.json`: wide, a 4:5 portrait
+  raking light, the weave resolving, the flat face meeting the 1.0 mm edge radius (re-rendered for the 1 mm canon on 2026-11-02, both feels; `stills.json`: wide, a 4:5 portrait
   crop x 0.385 to 0.835, and K04's card crop; K14-pace the same). If K14 is ever missing, the section shows G15, the
   drawing, and reads complete.
 - **G15** is the fallback if K14 is missing: the canonical silhouette face-on in white 3K
