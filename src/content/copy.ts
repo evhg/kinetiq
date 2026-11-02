@@ -37,7 +37,7 @@
 
 import { lifetime } from "./lineup";
 import { site } from "./site";
-import { carbonSpecs, specValue } from "./specs";
+import { carbonSpecs, spec, specValue } from "./specs";
 
 export const hero = {
   eyebrow: site.swissMade,
@@ -100,6 +100,43 @@ export const sweetSpot = {
     detail: (n: SweetNumbers) => `${n.inset} mm`,
     alt: (n: SweetNumbers) =>
       `Face-on KINETIQ Command racket in white 3K carbon twill. Warm light fills its face to within ${n.inset}\u00a0mm of the edge, ${n.nearly ? "nearly " : ""}${n.share}% of the face above the bridge, and the 42 moulded holes stay dark. A magnified detail of the edge measures the ${n.inset}\u00a0mm band.`,
+  },
+};
+
+/**
+ * Surface (owner, 2026-11-02, after the factory meeting: "unique surface roughness"; CLAIMS.md rows 48 to 50). The
+ * moulded texture of the face and what it does for a player: more grip where the face brushes across the ball (a slice,
+ * a drop shot, a bandeja, a víbora), so more spin, which keeps a slice low and makes it kick off the bounce. Honest by
+ * construction: a published padel study finds a face's friction changes the spin only when the ball slides across it,
+ * never on a flat hit, so the copy names the brushed shots and nothing else. "Designed to help you", never a promise of
+ * results. The process is "patent pending" (never "patented") and Swiss at country level only: never the factory, its
+ * town or its patents. The numbers come from specs.ts (`friction`, `roughness`), provisional until the factory's.
+ * Never a named racket or brand, and never "top 10": the owner's point that the shot used to belong to the best players
+ * is told as what most players see (row 50, high risk).
+ */
+export const surface = {
+  eyebrow: "Surface",
+  headline: "A face that grips the ball.",
+  // No-break spaces keep "drop shot" and "more spin" whole wherever the lead wraps.
+  lead: "In Switzerland, the same patent-pending process that forms the holes also moulds a fine texture into the carbon of the face, many times rougher than a smooth or painted face. When you slice, play a drop\u00a0shot or a bandeja, the face brushes across the ball, holds the felt a moment longer and sends it away with more\u00a0spin.",
+  /** The player's line, brighter: the owner's "a shot only top players could play, now for everyone", said honestly. */
+  bright: "A slice that stays low and kicks away off the bounce is a shot most players only see the professionals play. We designed this face to help you play\u00a0it.",
+  /** The texture is in the laminate, not a coat of grit (FIP Rule 8 risk, and sand finishes wear smooth). */
+  texture: "The texture is part of the carbon itself, not grit glued on top, so it is made to keep its grip as the racket\u00a0ages.",
+  stats: [
+    { value: spec("friction").value, unit: spec("friction").unit, label: "friction between the face and a padel\u00a0ball" },
+    { value: spec("roughness").value, unit: spec("roughness").unit, label: "average roughness, moulded into the\u00a0face" },
+  ],
+  /** K17: the roughness macro (a ball pressed on the face at the instant of a slice). */
+  imageAlt:
+    "A padel ball pressed against a KINETIQ face at the instant of a slice, magnified: its felt flattens and drags across a fine, even texture moulded into the carbon weave, beside a moulded hole.",
+  /** G17: one sliced shot and its bounce, off a standard face and off ours. */
+  graphic: {
+    title: "The same slice, after the bounce.",
+    bounce: "Bounce",
+    standard: { name: "Standard face", note: "Sits up and runs on" },
+    kinetiq: { name: "KINETIQ", note: "Stays low and kicks away" },
+    alt: "A padel court seen from above its side. One sliced shot crosses the net and lands past the service line. Off a standard face, with less spin, the ball bounces up and runs on close to its line. Off the KINETIQ face, with more spin, it skids low and kicks sharply to the side after the bounce.",
   },
 };
 

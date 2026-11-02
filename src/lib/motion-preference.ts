@@ -1,4 +1,11 @@
-import { DEFAULT_FEEL, FEEL_COOKIE_MAX_AGE, FEEL_COOKIE_RENEW_URL, FEEL_PREFERENCE_KEY } from "@/content/site";
+import {
+  DEFAULT_FEEL,
+  DEFAULT_GRIP,
+  FEEL_COOKIE_MAX_AGE,
+  FEEL_COOKIE_RENEW_URL,
+  FEEL_PREFERENCE_KEY,
+  GRIP_PREFERENCE_KEY,
+} from "@/content/site";
 import { NDA_ARRIVE_MS, NDA_TRIED_KEY } from "./nda";
 
 /**
@@ -16,6 +23,8 @@ import { NDA_ARRIVE_MS, NDA_TRIED_KEY } from "./nda";
  * load, and a script write would put it back under Safari's 7-day cap on script-written cookies (ITP). With nothing
  * stored (storage blocked or cleared; ITP also clears script storage after 7 days without a visit) the cookie alone
  * stands for the choice.
+ * And html[data-grip] (on or off): the hero racket with or without its overgrip (lib/grip-store.ts), from localStorage
+ * only, else on, so the grip toggle's ring and the hero still hidden for a stored "off" are right from the first frame.
  */
 export const motionInitScript = `(() => {
   var reduce = false;
@@ -56,4 +65,10 @@ export const motionInitScript = `(() => {
     }
   } else if (cookie === "command" || cookie === "pace") feel = cookie;
   document.documentElement.dataset.feel = feel;
+  var grip = ${JSON.stringify(DEFAULT_GRIP)};
+  try {
+    var g = localStorage.getItem(${JSON.stringify(GRIP_PREFERENCE_KEY)});
+    if (g === "on" || g === "off") grip = g;
+  } catch (e) {}
+  document.documentElement.dataset.grip = grip;
 })();`;

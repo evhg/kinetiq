@@ -1,0 +1,183 @@
+/* Surface (owner, 2026-11-02), between the sweet spot and Feel. Phones and tablets (below 1000 px): one column, the
+   headline, K17 (its 4:5 crop at the full width on phones, 560 px wide and centred from 700 px), the words, the two
+   numbers, then G17's title and drawing. Wide: K17 full bleed across the top (as the sweet spot's K14), the head and
+   the words in columns 1 to 6 and the numbers in 7 to 12, then G17 across all twelve.
+   The floor is --stage at both ends, the sweet spot's above and Feel's below, with lifts behind the image, the words
+   and the drawing (fill rule: never flat black), so neither boundary is a step. */
+.section {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: grid;
+  padding: clamp(72px, 14vw, 128px) var(--margin) clamp(80px, 16vw, 144px);
+  background:
+    radial-gradient(ellipse 90% 30% at 50% 30%, rgb(50 50 55 / 0.9), rgb(36 36 40 / 0.55) 50%, transparent 82%),
+    radial-gradient(ellipse 110% 26% at 50% 80%, rgb(56 56 62 / 0.85), rgb(38 38 43 / 0.5) 55%, transparent 90%),
+    var(--stage);
+}
+.head {
+  display: grid;
+  gap: clamp(12px, 1vw + 6px, 28px);
+}
+.title {
+  max-width: 14ch;
+}
+.media {
+  position: relative;
+  justify-self: center;
+  width: min(100%, 560px);
+  margin-top: clamp(28px, 6vw, 56px);
+}
+/* K17's 4:5 crop, feathered into the floor at its top and foot */
+.frame {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(transparent, #000 10%, #000 88%, transparent);
+  mask-image: linear-gradient(transparent, #000 10%, #000 88%, transparent);
+}
+.still {
+  position: absolute;
+  inset: 0;
+}
+.still img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.body {
+  display: grid;
+  gap: 16px;
+  margin-top: clamp(28px, 6vw, 48px);
+}
+.body :global(.t-lead) {
+  max-width: 40ch;
+}
+/* the player's line, brighter: what the face does for you */
+.bright {
+  color: var(--text);
+}
+.quiet {
+  max-width: 48ch;
+  color: var(--steel);
+}
+/* the two numbers side by side under one amber hairline, as the sweet spot's */
+.lockup {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gutter);
+  margin: clamp(36px, 7vw, 56px) 0 0;
+  padding: clamp(20px, 2vw, 40px) 0 0;
+  list-style: none;
+}
+.lockup::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: linear-gradient(90deg, var(--amber), rgb(227 164 103 / 0.25) 70%, transparent);
+}
+.stat {
+  display: grid;
+  align-content: start;
+  gap: clamp(8px, 0.6vw + 4px, 18px);
+}
+.value {
+  font-size: clamp(3.5rem, 5.4vw, 9.5rem);
+  color: var(--text);
+  white-space: nowrap;
+}
+.value :global(.t-unit) {
+  font-size: max(0.9375rem, 0.3em);
+}
+.label {
+  font-size: clamp(1rem, 0.4vw + 0.85rem, 1.375rem);
+  color: var(--steel);
+  text-wrap: balance;
+}
+.graph {
+  display: grid;
+  gap: clamp(20px, 2.4vw, 56px);
+  margin-top: clamp(64px, 12vw, 120px);
+}
+.graphTitle {
+  max-width: 24ch;
+  color: var(--text);
+}
+/* phones: the drawing runs the full width of the screen (its court reaches the edges) */
+@media (max-width: 699px) {
+  .title {
+    font-size: 2.75rem;
+  }
+  .media {
+    width: 100vw;
+    margin-inline: calc(var(--margin) * -1);
+  }
+  .slice {
+    width: 100vw;
+    margin-inline: calc(var(--margin) * -1);
+  }
+}
+
+@media (min-width: 1000px) {
+  .section {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+    padding-top: 0;
+    padding-bottom: clamp(80px, 8vw, 200px);
+    background:
+      radial-gradient(ellipse 70% 30% at 50% 22%, rgb(50 50 55 / 0.9), rgb(36 36 40 / 0.55) 50%, transparent 82%),
+      radial-gradient(ellipse 85% 22% at 50% 48%, rgb(60 60 66 / 0.85), rgb(42 42 47 / 0.5) 55%, transparent 100%),
+      radial-gradient(ellipse 80% 26% at 50% 80%, rgb(58 58 64 / 0.85), rgb(40 40 45 / 0.5) 55%, transparent 100%),
+      var(--stage);
+  }
+  .section[data-media="none"] {
+    padding-top: calc(var(--chrome-h) + clamp(32px, 6vh, 120px));
+  }
+  /* K17 full bleed: the 16:9 frame at the screen's width, at most 72% of the screen tall, feathered at both ends */
+  .media {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    justify-self: stretch;
+    width: auto;
+    margin: 0 calc(var(--margin) * -1) clamp(32px, 3vw, 80px);
+  }
+  .frame {
+    width: 100%;
+    aspect-ratio: auto;
+    height: min(56.25vw, 72svh);
+    -webkit-mask-image: linear-gradient(transparent, #000 14%, #000 82%, transparent);
+    mask-image: linear-gradient(transparent, #000 14%, #000 82%, transparent);
+  }
+  .head {
+    grid-column: 1 / span 6;
+    grid-row: 2;
+  }
+  .body {
+    grid-column: 1 / span 6;
+    grid-row: 3;
+    margin-top: clamp(20px, 1.8vw, 48px);
+  }
+  .lockup {
+    grid-column: 7 / -1;
+    grid-row: 2 / span 2;
+    align-self: end;
+    margin-top: 0;
+  }
+  .graph {
+    grid-column: 1 / -1;
+    grid-row: 4;
+  }
+}
+/* tablets: K17's crop at 560 px, centred, its sides feathered too */
+@media (min-width: 700px) and (max-width: 999px) {
+  .frame {
+    -webkit-mask-image:
+      linear-gradient(transparent, #000 10%, #000 88%, transparent), linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+    -webkit-mask-composite: source-in;
+    mask-image:
+      linear-gradient(transparent, #000 10%, #000 88%, transparent), linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+    mask-composite: intersect;
+  }
+}

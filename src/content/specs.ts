@@ -32,7 +32,7 @@ export type Spec = {
   source: string;
 };
 
-export type SpecGroup = { id: "mechanical" | "thermal" | "environmental" | "impact"; title: string; specs: Spec[] };
+export type SpecGroup = { id: "mechanical" | "thermal" | "environmental" | "impact" | "surface"; title: string; specs: Spec[] };
 
 const RESEARCH = "Provisional (research 2026-11-02): ";
 
@@ -221,7 +221,50 @@ export const impactSpecs: SpecGroup = {
   ],
 };
 
-const ALL: Spec[] = [...carbonSpecs.flatMap((g) => g.specs), ...impactSpecs.specs];
+/**
+ * The face's moulded texture, quoted by Surface (CLAIMS.md rows 48 and 49; owner, 2026-11-02: "unique surface
+ * roughness"). The headline number is grip, the friction between face and ball, because that is what turns a brushed
+ * contact into spin (a published padel study: a face's friction changes the spin only when the ball slides across it,
+ * on a slice or a drop shot, not on a flat hit). Never a comparison with a named racket or brand on the page.
+ */
+export const surfaceSpecs: SpecGroup = {
+  id: "surface",
+  title: "Surface",
+  specs: [
+    {
+      id: "friction",
+      label: "Friction against the ball",
+      note: "static friction against a padel ball",
+      value: "0.65",
+      unit: "",
+      method: "Tilt test with a padel ball on the face",
+      provisional: true,
+      source: `${RESEARCH}a published padel spin study measured three rackets' faces at 0.18, 0.33 and 0.50 (a court surface 0.65) with the same tilt test; ours to be measured by the factory the same way.`,
+    },
+    {
+      id: "roughness",
+      label: "Surface roughness",
+      note: "average, Ra, moulded into the face",
+      value: "16",
+      unit: "µm",
+      method: "ISO 21920, stylus profilometer",
+      provisional: true,
+      source: `${RESEARCH}estimate; gloss clear-coat faces about 0.1 to 0.4 µm, matte 0.5 to 2 µm, sand-textured padel faces about 5 to 12 µm (no published padel data). Set at 16 rather than the research's 15 µm so it never reads as the 15 µm precision figure (row 2).`,
+    },
+    {
+      id: "roughnessRz",
+      label: "Texture depth",
+      note: "Rz, peak to valley, within a flat face",
+      value: "80",
+      unit: "µm",
+      method: "ISO 21920",
+      provisional: true,
+      source: `${RESEARCH}estimate; textured faces about 30 to 60 µm. FIP Rule 7: both faces must be flat but may be smooth or rough (no numeric limit published).`,
+    },
+  ],
+};
+
+const ALL: Spec[] = [...carbonSpecs.flatMap((g) => g.specs), ...impactSpecs.specs, ...surfaceSpecs.specs];
 
 /** One value by id. Throws on an unknown id, so a typo fails the build rather than printing nothing. */
 export function spec(id: string): Spec {
