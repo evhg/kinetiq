@@ -63,25 +63,26 @@ DEFAULTS = dict(
                              # throat (11 mm patch, 18 mm clear of the nearest hole, 30 mm from the edge)
     BALL_R=0.0325, COMPRESS=0.0022, PATCH_SOFT=0.0016, BULGE=0.00025,
     SEAM_A=0.70, SEAM_ROT_X=15.0, SEAM_ROT_Z=50.0, SEAM_W=0.0034,
-    FIBRES=170000.0, FIB_LEN0=0.0008, FIB_LEN1=0.0022, FIB_R=0.000018, FIB_LIFT=0.60, FIB_CURL=0.55,
+    FIBRES=400000.0, FIB_LEN0=0.0008, FIB_LEN1=0.0022, FIB_R=0.000018, FIB_LIFT=0.60, FIB_CURL=0.55,
     FIB_VIS=0.25,            # roots only where the ball's normal faces the camera more than this (cos)
     DRAG=0.0011, DRAG_REACH=0.004,   # m: how far the pressed fibres are dragged along +x, and how far past the patch
-    SPIN_DEG=4.0,            # deg: the ball's turn about the contact point during the shutter (motion blur)
+    SPIN_DEG=3.0,            # deg: the ball's turn about the contact point during the shutter (motion blur)
     # felt
     FELT=(0.62, 0.70, 0.075), FELT_SHEEN=1.0, FIB_COL=(0.70, 0.78, 0.10), FIB_ROUGH=0.30, FIB_RROUGH=0.55,
     # roughness texture (moulded under the coat)
     ROUGH_PITCH=0.00045, ROUGH_DOME=0.36, ROUGH_H=0.000070, ROUGH_STR=1.0, ROUGH_COAT=0.06, ROUGH_GRIT=0.15,
     ROUGH_AO=0.10,           # the valleys between domes a touch darker (the texture also reads in diffuse light)
     # camera
-    EL=32.0, AZ=0.0, DIST=0.30, FW=0.07, TX=-0.012, TZ=0.006, SHIFT_X=0.0, SHIFT_Y=-0.05, FSTOP=22.0,
+    EL=32.0, AZ=0.0, DIST=0.30, FW=0.07, TX=-0.012, TZ=0.006, SHIFT_X=0.0, SHIFT_Y=-0.05, FSTOP=32.0,
     FOCUS_DY=-0.006,         # m: focus this far in front of the contact (toward the camera)
     # lights
-    KEY=3.0, KEY_AZ=-160.0, KEY_EL=10.0, KEY_D=0.45, KEY_SIZE=0.15,   # a low rake from behind left: every dome a glint
+    KEY=3.0, KEY_AZ=-160.0, KEY_EL=10.0, KEY_D=0.45, KEY_SIZE=0.15,   # the felt's back light (the fuzz on its rim)
+    KEY2=3.0, KEY2_AZ=-40.0, KEY2_EL=40.0, KEY2_D=0.5, KEY2_SIZE=0.35,  # a soft front-left light on the ball only
     POOL=30.0, POOL_AZ=50.0, POOL_EL=28.0, POOL_D=0.5, POOL_DEG=10.0, POOL_BLEND=0.6,  # front right, raking the domes
-    GLOSS=8.0, GLOSS_D=0.5, GLOSS_W=0.10, GLOSS_LEN=0.6, GLOSS_DEL=1.5, GLOSS_AZ=30.0,
+    GLOSS=5.0, GLOSS_D=0.5, GLOSS_W=0.10, GLOSS_LEN=0.6, GLOSS_DEL=1.5, GLOSS_AZ=30.0,
     RIM=10.0, RIM_AZ=150.0, RIM_EL=8.0, RIM_D=0.45, RIM_LEN=0.5,
     FILL=0.1, FILL_AZ=30.0, FILL_EL=40.0,
-    ARC=2.5, ARC_R=0.0040, ARC_A0=190.0, ARC_A1=250.0, ARC_W=0.00018,
+    ARC=0.0, ARC_R=0.0040, ARC_A0=190.0, ARC_A1=250.0, ARC_W=0.00018,
     # backdrop (K14 make_bg, linear)
     BG_TOP=0.014, BG_HOR=0.032, BG_GLOW=0.035, BG_GX=0.30, BG_GY=-1.0, BG_GRX=0.45, BG_GRY=0.30, BG_WARM=0.03,
     # gains (full)
@@ -565,6 +566,11 @@ def build(o, p):
                                 target=tuple(Pc + z * 0.02))
         key.lightgroup = "key"
         key.light_linking.receiver_collection = K14.collection("k17_key_recv", ball)  # the felt's back light only
+    if p["KEY2"] > 0:
+        k2 = studio.area_light("lg_key2", tuple(centre + dirv(p["KEY2_AZ"], p["KEY2_EL"]) * p["KEY2_D"]), p["KEY2_SIZE"],
+                               p["KEY2"], color=(1.0, 0.985, 0.97), target=tuple(centre))
+        k2.lightgroup = "key"
+        k2.light_linking.receiver_collection = K14.collection("k17_key2_recv", ball)
     if p["POOL"] > 0:
         pd_ = dirv(p["POOL_AZ"], p["POOL_EL"])
         pool = studio.spot_light("lg_pool", tuple(Pc + pd_ * p["POOL_D"]), p["POOL"], p["POOL_DEG"], blend=p["POOL_BLEND"],
