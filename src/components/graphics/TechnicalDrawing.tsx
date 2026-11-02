@@ -55,7 +55,7 @@ export const LABELS = {
   notesTitle: "Notes",
   notes: [
     "Unibody, from a single mould.",
-    "No frame tube, no bonded joints in the frame.",
+    "No frame tube, no bonded frame joints.",
     "42 holes moulded. 0 drilled.",
     "Every surface within ±0.015 of design.",
     "Weight within ±1.0 g of reference.",

@@ -174,7 +174,7 @@
     margin-top: clamp(8px, 1vw, 24px);
   }
   .contact {
-    width: 100%;
+    width: min(100%, 760px);
   }
   .graph {
     grid-column: 1 / -1;

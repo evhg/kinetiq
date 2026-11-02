@@ -68,7 +68,8 @@ DEFAULTS = dict(
     DRAG=0.0011, DRAG_REACH=0.004,   # m: how far the pressed fibres are dragged along +x, and how far past the patch
     SPIN_DEG=3.0,            # deg: the ball's turn about the contact point during the shutter (motion blur)
     # felt
-    FELT=(0.62, 0.70, 0.075), FELT_SHEEN=1.0, FIB_COL=(0.70, 0.78, 0.10), FIB_ROUGH=0.30, FIB_RROUGH=0.55,
+    FELT=(0.60, 0.84, 0.03), FELT_SHEEN=1.0, FIB_COL=(0.62, 0.87, 0.04),   # optic yellow (2026-11-02 review)
+    FIB_ROUGH=0.30, FIB_RROUGH=0.55,
     # roughness texture (moulded under the coat)
     ROUGH_PITCH=0.00045, ROUGH_DOME=0.36, ROUGH_H=0.000070, ROUGH_STR=1.0, ROUGH_COAT=0.06, ROUGH_GRIT=0.15,
     ROUGH_AO=0.10,           # the valleys between domes a touch darker (the texture also reads in diffuse light)
@@ -77,10 +78,11 @@ DEFAULTS = dict(
     FOCUS_DY=-0.006,         # m: focus this far in front of the contact (toward the camera)
     # lights
     KEY=3.0, KEY_AZ=-160.0, KEY_EL=10.0, KEY_D=0.45, KEY_SIZE=0.15,   # the felt's back light (the fuzz on its rim)
-    KEY2=3.0, KEY2_AZ=-40.0, KEY2_EL=40.0, KEY2_D=0.5, KEY2_SIZE=0.35,  # a soft front-left light on the ball only
+    KEY2=10.0, KEY2_AZ=-40.0, KEY2_EL=40.0, KEY2_D=0.5, KEY2_SIZE=0.35,  # a soft front-left light on the ball only
     POOL=30.0, POOL_AZ=50.0, POOL_EL=28.0, POOL_D=0.5, POOL_DEG=10.0, POOL_BLEND=0.6,  # front right, raking the domes
     POOL_GLOSS=0.0,          # 1: the pool also shows in reflections (each dome a glint; Pace)
-    POOL_BALL=1.0,           # 0: the pool lights the face only (the ball keeps one look in both feels)
+    POOL_BALL=0.0,           # 0: the pool lights the face only, so the ball looks the same in both feels (1: the
+                             # first finals, olive in Command and cream in Pace)
     GLOSS=5.0, GLOSS_D=0.5, GLOSS_W=0.10, GLOSS_LEN=0.6, GLOSS_DEL=1.5, GLOSS_AZ=30.0,
     RIM=10.0, RIM_AZ=150.0, RIM_EL=8.0, RIM_D=0.45, RIM_LEN=0.5,
     FILL=0.1, FILL_AZ=30.0, FILL_EL=40.0,

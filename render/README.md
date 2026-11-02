@@ -73,7 +73,7 @@ reports the change crop; it must sit inside the region). Then `node scripts/sequ
 48 at 100% on these shots (2026-10-29 comparison).
 | K15 | `K15-space.py --w 2560 --h 1440 --spp 64 --out final/K15-space` (`--feel pace --out final/K15-space-pace`; about 5 to 6 min each; writes `-base` and `-full`; re-grade from the EXR with `--comp final/K15-space.exr --out ...`, adding `--feel pace` for Pace) |
 | K01 grip-off (2026-11-02) | as K01 beam / phone with `--set NOGRIP=1` and `-nogrip` in the out name (`final/K01-hero-beam-nogrip`, `final/K01-hero-frame-phone-nogrip`, Pace `-nogrip-pace`); beam `--variants base,full` |
-| K17 (2026-11-02) | `K17-roughness.py --w 2560 --h 1440 --spp 64 --out final/K17-roughness` (31 min) (writes the full look and `-base`; `--comp final/K17-roughness.exr --out final/K17-roughness` re-grades); Pace `--feel pace --out final/K17-roughness-pace` |
+| K17 (2026-11-02) | `K17-roughness.py --w 2560 --h 1440 --spp 64 --out final/K17-roughness` (31 min; the defaults since 2026-11-02 give the optic-yellow ball, the same in both feels) (writes the full look and `-base`; `--comp final/K17-roughness.exr --out final/K17-roughness` re-grades); Pace `--feel pace --out final/K17-roughness-pace` |
 | K16 | `K16-pair.py --mode drilled --w 1440 --h 1620 --spp 80 --out final/K16-drilled` and `--mode moulded ... --out final/K16-moulded` (about 12 and 14 min), then `K16-pair.py --combine final/K16-drilled final/K16-moulded --out final/K16-pair --gutter 0` (bpy reads the PNGs, no render). Pace: add `--feel pace` to all three and `-pace` to the names (2026-11-01) |
 
 ## Export to the site

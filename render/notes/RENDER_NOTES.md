@@ -176,3 +176,22 @@ any more. How to switch, part names, lighting notes: `../renders4/canon.md`. Pro
   the face: the weave's contrast); K01 portrait the same; K02 Command 2 %, K02 Pace 0.5 %. No geometry moves, but the
   weave visibly softens when the scrub takes over from the still. Re-rendering them all is about 10.5 h (K01 portrait
   36 frames x 5 min x 2 feels, desktop 36 x 2 min x 2, K02 105 frames x 75 s): left open.
+
+## Integration fixes (2026-11-02, wip/owner-update)
+- **K12 on the 1.0 mm canon:** `K12-sweet-spot.py --set FIELD_INSET=C.FACE_INSET` (Command, and `--feel pace`), 3200x1800
+  spp 160, about 8 min each. Only the base pass is served (/reserve gallery); against the 1.5 mm export it moves 0.8 %
+  of pixels by more than 6 luma (the rim line on the right, thinner). Masters in kinetiq-masters `stills/K12`.
+- **K17 ball colour (review):** the felt read olive in Command and pale cream in Pace because the pool spot lit the ball
+  and Pace raises the pool. `POOL_BALL 0` takes the ball out of the pool (light-linked out, like the bores), so only its
+  own key lights reach it and both feels match (ball mean sRGB 170, 175, 87 in both previews). Now the defaults:
+  FELT (0.60, 0.84, 0.03), FIB_COL (0.62, 0.87, 0.04), KEY2 10, POOL_BALL 0.
+  K17's `portrait` and `card` crops are gone (they were nearly all felt and unused); Surface uses `wide` and `phone`.
+- **How the slice happens** is drawn, not rendered: G18 (`GripContact`) beside K17 shows the face's travel, the felt
+  gripped in the domes and the spin. A re-composed K17 with the contact patch visible (a lower, closer camera on the
+  patch, a spin cue that does not read as a wire) is still open.
+- **Open before main (release preconditions):** the K01 and K02 swivel sequences still carry the old weave and the
+  1.5 mm edge (about 10.5 h of rendering, K01 portrait Command first), and no grip-off swivel exists
+  (`K01-swivel-nogrip-<feel>-<layout>`, K01 with `--set NOGRIP=1`, about 8.5 h for all four). The Pace HD weave
+  (`P_HD`) barely changes the face at display width (review: high-frequency contrast +1 to 2 %); it needs a look-dev
+  pass (the weave card and light) before the K01 Pace stills and swivels are rendered again.
+
