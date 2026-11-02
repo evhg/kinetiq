@@ -136,3 +136,27 @@ any more. How to switch, part names, lighting notes: `../renders4/canon.md`. Pro
   frame 0 (mean abs diff 0.002). stills.json's portrait widths end at 2160.
 - K14 Pace: the gloss card's hard far edge drew a dark wedge lower right; `GLOSS_B0/B1` fade it (PACE_SET: W 0.6,
   B 0.7..1.0). On Pace only the gloss group lights the face: pool and fill (diffuse) do nothing there.
+
+## Owner notes after the factory meeting (2026-11-02, branch notes/renders)
+- **Edge 1.0 mm** (`kq_canon.EDGE_R`, `FACE_INSET`): the flat face ends 1.0 mm from the edge, so the moulded edge radius
+  is 1.0 mm (was 1.5 mm); every build_head / edge_radius default follows it (`head_kw={"r_frame": 0.0015}` gives the
+  old edge). racket-shape.ts carries the same numbers. Shots rendered before this date show 1.5 mm (K03, K04, K05, K06,
+  K07, K09, K10, K11, K12, K13, K15, K16, and the swivel sequences): at whole-racket scale the 0.5 mm is under 2 px; K03's
+  section and K12 are the ones where it could show.
+- **Grip-off** (`build_racket(..., grip=False)`): no overgrip; the core runs on (NECK y_cut = `NOGRIP_Y_CUT` -0.2985,
+  its round end inside the cap), so the bare 33.0 x 29.0 mm carbon handle flows from the neck into the cap with the twill
+  straight down it. The cap and its Q stay. K01: `--set NOGRIP=1` (finals `final/K01-hero-*-nogrip*`, still ids
+  `K01-nogrip-*`). Light linking by name skips the missing grip (C.objs).
+- **WEAVE_HD** (`kq_canon.WEAVE_HD`, opt-in): the whole-racket shots' twill (2.6 mm tows at 4 to 7 px) given crisp tow
+  outlines: `relief_k` (the height map darkens tow edges and ends), `gap_k` (k04_tex2 gap16, the resin gaps), a stronger
+  direction step, relief and sheen, a slightly lighter tint (the relief takes about 3 % off the mean). K01, K02 and K08
+  use it (`HD` constant in each, 1 by default; 0 gives the 2026-11-01 material); Pace gets `k01_lib.P_HD` (per-tape
+  tone +-4 %, deeper fibre bundles) and K01 a stronger weave card (`P_WEAVE_S_HD` 9.5). The macros are untouched.
+- **K17 roughness** (`shots/K17-roughness.py`): a padel ball at the instant of a slice on the textured face. The face's
+  roughness is a moulded hexagonal field of rounded micro-domes (`ROUGH_*`, bump on the fibre layer and the coat),
+  regular so it reads as engineered, not worn. The ball: an icosphere flattened onto the face by a smooth max
+  (`COMPRESS`, `PATCH_SOFT`), a seam ribbon on the two-lobe curve, felt fibres as hair curves (bpy.data.hair_curves,
+  numpy-built: roots on the camera's side, curly 5-point strands, pressed flat and dragged +x in the patch), motion
+  blur from a turn about the contact point (`SPIN_DEG`: the felt blurs with distance from the contact, the patch holds),
+  an optional spin arc (light group `arc`). Light groups and the comp are K14's (imported; `K14.GROUPS` replaced).
+  Writes `<out>.png` (full) and `<out>-base.png`; `--comp <exr>` re-grades both. No scipy in the bpy venv.

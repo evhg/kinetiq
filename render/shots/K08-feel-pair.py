@@ -87,6 +87,8 @@ PACE_K = 6500.0       # Pace's edge lights (top curve, rim, wall): neutral as Co
 PACE_EMBER = 0.0      # 1 = the stage 3a warm Pace edges (top 3200 K, ember rim EMBER_W, wall 2700 K)
 WALL_S = 0.35
 TOP_S = 14.0
+HD = 1.0              # owner 2026-11-02: more detailed weave (kq_canon.WEAVE_HD over K01's WEAVE_W on Command, K01.P_HD on
+                      # Pace); 0 = the 2026-10-23 materials
 WEAVE_S = 5.0         # off-specular card: only one tow orientation catches it -> the weave reads
 WEAVE_CMD = 0.4       # per-feel weave-card multipliers and floors (canon carbons: the baked twill's base is brighter;
 WEAVE_PACE = 1.0      # the 12K keeps a faint checker in shade so the feel still reads beside the twill; stage 3a: the
@@ -342,12 +344,14 @@ def build(o):
     white = WHITE > 0
     if CLAMP_IND > 0:
         sc.cycles.sample_clamp_indirect = CLAMP_IND
+    import k01_lib as K01  # the hero's HD weave settings (owner, 2026-11-02)
+    hd_w = dict(K01.WEAVE_W, **C.WEAVE_HD) if HD else {}
     left, LP = C.build_racket("KQL", feel="command", serial="KQ-000427",
-                              mat_opts=dict(bore_occ=W_BORE_OCC, bore_col=W_BORE_COL) if white
+                              mat_opts=dict(hd_w, bore_occ=W_BORE_OCC, bore_col=W_BORE_COL) if white
                               else dict(C.COMMAND, white=0, **({"f0": CMD_F0} if CMD_F0 >= 0 else {})))
     right, RP = C.build_racket("KQR", feel="pace", serial="KQ-000428",
                                mat_opts=dict(C.PACE_V4, aniso=PACE_ANISO, organic=PACE_ORGANIC, flip=PACE_FLIP)
-                               if PACE_V4 else None)
+                               if PACE_V4 else (dict(K01.P_HD) if HD else None))
     L.pose(left, (-X, 0.0, HC), yaw_deg=YAW + los(-X), roll_deg=-ROLL)
     L.pose(right, (X, 0.0, HC), yaw_deg=-YAW + los(X), roll_deg=ROLL)
     bpy.context.view_layer.update()

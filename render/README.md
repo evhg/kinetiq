@@ -47,15 +47,15 @@ variants, `--feel pace`, `--both`, `--phone`, `--crops`); the last finals used:
 
 | Shot | Final command (add `--feel pace` and `-pace` to the out name for Pace) |
 |---|---|
-| K01 beam | `K01-hero-beam.py --w 2560 --h 1440 --spp 256 --out final/K01-hero-beam` (base, full, finale) |
+| K01 beam | `K01-hero-beam.py --w 2560 --h 1440 --spp 128 --out final/K01-hero-beam` (base, full, finale; about 16 min, Pace 13 min, 2026-11-02 with the HD weave) |
 | K01 phone | `K01-hero-frame.py --w 2160 --h 3840 --spp 48 --out final/K01-hero-frame-phone` (2026-11-01: 2160 wide so iPad portrait is not upscaled; registers with the swivel's frame 0) |
-| K02 | `K02-edge-line.py --w 2560 --h 1440 --spp 256 --out final/K02-edge-line --phone` |
+| K02 | `K02-edge-line.py --w 2560 --h 1440 --spp 128 --out final/K02-edge-line` (2026-11-02; the portrait crop is the wide master rotated in stills.json, so `--phone` is optional) |
 | K03, K03b | `PYTHONHASHSEED=0 ... K03-section-cut.py --w 3200 --h 1800 --spp 320 --both --out final/K03-section-cut` (then `k03s_line.py`, see RENDER_NOTES) |
 | K04 | `K04-hole-macro.py --w 3200 --h 1800 --spp 160 --variant both --out final/K04-hole-macro` |
 | K05 | `K05-laser-scan.py --w 3200 --h 1800 --spp 160 --out final/K05-laser-scan` |
 | K06 | `K06-mould.py --w 3200 --h 1800 --spp 160 --out final/K06-mould` |
 | K07 | `K07-lineup-five.py --w 2560 --h 1440 --spp 160 --seq --out final/K07-lineup-five` |
-| K08 | `K08-feel-pair.py --w 2560 --h 1440 --spp 256 --crops --out final/K08-feel-pair` |
+| K08 | `K08-feel-pair.py --w 2560 --h 1440 --spp 128 --crops --out final/K08-feel-pair` (2026-11-02, HD weave) |
 | K09 | `K09-case-three.py --variant gallery --w 2400 --h 1800 --spp 160 --out final/K09-case-three-gallery`; `--variant card --hover-mix --w 1440 --h 1800` for the card |
 | K10 | `K10-throat-serial.py --w 3200 --h 1800 --spp 256 --noise 0.008 --out final/K10-throat-serial` |
 | K11 | `K11-pair.py --weave command --w 3200 --h 1800 --spp 256 --out final/K11-pair-command` (`--weave pace`); `K11-single.py --w 3200 --h 1800 --spp 256 --out final/K11-single` |
@@ -72,6 +72,8 @@ reports the change crop; it must sit inside the region). Then `node scripts/sequ
 (frames counted from the folder; widths up to 1440 portrait and 2560 landscape). OIDN makes 16 to 24 spp read as
 48 at 100% on these shots (2026-10-29 comparison).
 | K15 | `K15-space.py --w 2560 --h 1440 --spp 64 --out final/K15-space` (`--feel pace --out final/K15-space-pace`; about 5 to 6 min each; writes `-base` and `-full`; re-grade from the EXR with `--comp final/K15-space.exr --out ...`, adding `--feel pace` for Pace) |
+| K01 grip-off (2026-11-02) | as K01 beam / phone with `--set NOGRIP=1` and `-nogrip` in the out name (`final/K01-hero-beam-nogrip`, `final/K01-hero-frame-phone-nogrip`, Pace `-nogrip-pace`); beam `--variants base,full` |
+| K17 (2026-11-02) | `K17-roughness.py --w 2560 --h 1440 --spp <n> --out final/K17-roughness` (writes the full look and `-base`; `--comp final/K17-roughness.exr --out final/K17-roughness` re-grades); Pace `--feel pace --out final/K17-roughness-pace` |
 | K16 | `K16-pair.py --mode drilled --w 1440 --h 1620 --spp 80 --out final/K16-drilled` and `--mode moulded ... --out final/K16-moulded` (about 12 and 14 min), then `K16-pair.py --combine final/K16-drilled final/K16-moulded --out final/K16-pair --gutter 0` (bpy reads the PNGs, no render). Pace: add `--feel pace` to all three and `-pace` to the names (2026-11-01) |
 
 ## Export to the site
