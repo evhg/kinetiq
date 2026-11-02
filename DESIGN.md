@@ -277,6 +277,11 @@ native radio group, every option at least 44 px square to the touch, pressing to
   file fetched.
 - Release precondition: no grip-off swivel exists (`K01-swivel-nogrip-<feel>-<layout>`), so with Bare the hero holds
   its still as it scrolls away. Render it (as the K01 swivel, `--set NOGRIP=1`) before main, or accept the still.
+- Release 6 (2026-11-02, accepted): Bare ships with its still. The grip-on hero stills (K01-base, K01-full, the two
+  K01-hero phone masters) and K02, both feels, stay on the exports main had (the 1.5 mm canon), because each swivel's
+  frame 0 must be its still and the swivels are not re-rendered yet: a new-canon still would visibly soften the weave
+  as the turn starts. The HD re-renders are committed in the masters repo and reproduce bit for bit with
+  `node scripts/stills.mjs <masters>/stills/K01 <ids>` (and K02); export them in the same commit as the new swivels.
 
 ## Micro-interactions
 Pressables scale 0.97 on `:active`; hover only behind `(hover: hover) and (pointer: fine)`; transform and

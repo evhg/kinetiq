@@ -43,7 +43,10 @@ export function proxy(request: NextRequest) {
     const feel = isFeelId(value) ? value : null;
     const gv = request.cookies.get(GRIP_PREFERENCE_KEY)?.value;
     const grip = isGripId(gv) ? gv : null;
-    if (pathname === FEEL_ROOT || pathname.startsWith(`${FEEL_ROOT}/`)) {
+    // app/lab/layout.tsx 404s the lab in production, but the 404 body still streams the page's payload (G17's
+    // provisional surface numbers): without KQ_LAB=1, /lab/* is answered from a path with no page at all.
+    const lab = pathname === "/lab" || pathname.startsWith("/lab/");
+    if ((lab && process.env.NODE_ENV === "production" && process.env.KQ_LAB !== "1") || pathname === FEEL_ROOT || pathname.startsWith(`${FEEL_ROOT}/`)) {
       return presentation(NextResponse.rewrite(new URL(FEEL_ROOT, request.url)), request, feel, grip);
     }
     // The bare hero (kq-grip=off): / only, the one page whose stills have a grip-off variant.

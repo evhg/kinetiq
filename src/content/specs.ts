@@ -166,7 +166,7 @@ export const impactSpecs: SpecGroup = {
     {
       id: "decay",
       label: "Vibration decay",
-      note: "at the grip, to 10% of the first peak",
+      note: "at the grip, to 5% of the first peak",
       bound: "≤",
       value: "60",
       unit: "ms",
