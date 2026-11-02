@@ -114,6 +114,17 @@ HOR_D = 128
 # fibre sheen, so the twill reads in the shade and alternates through the key's terminator. kq_canon COMMAND_WHITE keys.
 WEAVE_W = dict(dir_tone=0.26, alb_k=0.80, bump=0.45, aniso=0.85)
 MAT_OPTS = dict(WEAVE_W)  # kq_canon mat_opts; {"white": 0} = the previous black Command (and its studio)
+# owner, 2026-11-02: "a more detailed carbon weave" in the whole-racket renders. HD = 1 lays kq_canon.WEAVE_HD over
+# MAT_OPTS on white Command (tow edges and resin gaps darkened, a stronger direction step, relief and sheen) and
+# P_HD over the canon Pace (see below). HD = 0 gives the 2026-11-01 material exactly.
+HD = 1
+# Pace HD: the 12K's tapes a touch more defined (per-tape tone +-3 %, deeper fibre bundles, more sheen streaking),
+# still one uniform coat with no seam (the v6 rules: no checkerboard from albedo)
+P_HD = dict(tone=0.08, streak_alb=0.05, fib_h=7.0, rstreak=0.25)
+P_WEAVE_S_HD = 9.5      # HD: the Pace weave card (P_WEAVE_S) a little stronger, so the tapes read over more of the face
+# owner, 2026-11-02: grip-off. NOGRIP = 1 builds the racket without its overgrip (kq_canon grip=False): the bare carbon
+# handle runs out of the head into the butt cap as one piece. Outputs K01-nogrip-*.
+NOGRIP = 0
 # white Command (model space: face +Z toward the camera, head up +Y; the racket's pose carries the lights)
 # lg_wkey: a spot whose cone edge lies on the sweep line SW_A -> SW_B (the same diagonal as the gloss line): the circle
 # of radius WK_EDGE_R on the face is centred WK_EDGE_R up-left of the line's midpoint, so its edge crosses the upper
@@ -505,7 +516,11 @@ def build(o, mode):
     M0 = (Matrix.Translation(loc0) @ Matrix.Rotation(math.radians(-YAW), 4, "Z") @ Matrix.Rotation(math.radians(90.0), 4, "X"))
     dq = M0.inverted() @ cam_loc - Vector((0.0, -0.2925, 0.0))
     mark_az = math.degrees(math.atan2(dq.x, dq.z))
-    root, P = C.build_racket("KQ", feel=FEEL, serial=C.SERIAL, mat_opts=None if pace else MAT_OPTS, mark_az=mark_az)
+    if pace:
+        mo = dict(P_HD) if HD else None
+    else:
+        mo = dict(MAT_OPTS, **C.WEAVE_HD) if (HD and C.is_white("command", MAT_OPTS)) else MAT_OPTS
+    root, P = C.build_racket("KQ", feel=FEEL, serial=C.SERIAL, mat_opts=mo, mark_az=mark_az, grip=not NOGRIP)
     if pace and P_CLAMP:
         sc.cycles.sample_clamp_indirect = P_CLAMP
     C.pose(root, loc0, yaw_deg=-YAW, tilt_deg=90.0)
@@ -552,7 +567,7 @@ def build(o, mode):
 
     # --- Pace: the weave card (K08 / K11): a soft graded card above the face's mirror direction; the clear coat cannot
     # see it, the 12K's fibre lobes stretched along one tape direction can, so alternate tapes light up
-    if pace and P_WEAVE_S > 0:
+    if pace and (P_WEAVE_S_HD if HD else P_WEAVE_S) > 0:
         import k789_lib as KL789   # Pace only: the Command scene stays exactly as before
         n_w = (M.to_3x3() @ Vector((0, 0, 1))).normalized()
         c_w = M @ Vector((0.0, 0.03, C.ZT))
@@ -562,7 +577,7 @@ def build(o, mode):
         d_up = (Matrix.Rotation(math.radians(P_WEAVE_UP), 3, hz_w) @ d_w).normalized()
         if d_up.z < d_w.z:
             d_up = (Matrix.Rotation(math.radians(-P_WEAVE_UP), 3, hz_w) @ d_w).normalized()
-        wv = KL789.gradient_card("PaceWeave", tuple(c_w + d_up * P_WEAVE_D), P_WEAVE_SIZE, P_WEAVE_S, tuple(c_w),
+        wv = KL789.gradient_card("PaceWeave", tuple(c_w + d_up * P_WEAVE_D), P_WEAVE_SIZE, (P_WEAVE_S_HD if HD else P_WEAVE_S), tuple(c_w),
                                  color=KL789.kelvin(P_WEAVE_K), axis="v", lo=0.0, hi=1.0, floor=P_WEAVE_FLOOR)
         L.link_only(wv, C.objs(P, "face", "back", "wall", "neck"), "recv_weave")
         group(wv, "lg_face")
