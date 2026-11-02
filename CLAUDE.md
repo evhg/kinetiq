@@ -97,12 +97,12 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
   cap at 30 fps, pause off-screen and when hidden, DPR ≤ 2. No "Illustrative" captions (owner, 2026-10-23).
 - Feel toggle: DESIGN.md "Feel toggle" (`html[data-feel]` before first paint; Pace still = id + "-pace", same crops).
 - One canonical racket in every still and graphic (`racket-shape.ts`, render audit 2026-10-22): 455.0 × 260.0 × 38.0 mm
-  (the FIP limits); 42 moulded holes, a crown of 8 of Ø14.0 mm along the top and 34 of Ø12.4 mm below; 1.5 mm edge
-  radius, the flat face ending 4 mm from the edge (`FACE_INSET`); one handle: a round overgrip with a helical wrap, a
-  satin black cap engraved Q (the company logo, owner 2026-10-22), the head flowing into it with no collar or joint; no
-  wrist cord. Only the face follows the feel: Command is white 3K twill (the default in any image that names no feel),
+  (the FIP limits); 42 moulded holes, a crown of 8 of Ø14.0 mm along the top and 34 of Ø12.4 mm below; 1.0 mm edge
+  radius, the flat face ending 1.0 mm from the edge (`FACE_INSET`, owner 2026-11-02; was 1.5 and 4 mm); one handle: a
+  round overgrip with a helical wrap, a satin black cap engraved Q (the company logo, owner 2026-10-22), the head
+  flowing into it with no collar or joint; no wrist cord. Only the face follows the feel: Command is white 3K twill (the default in any image that names no feel),
   Pace black 12K (owner, 2026-10-22). Throats: a single racket's serial (KQ-000427), a First 500 set's number (027/500)
-  on both. Change it and G01, G15, K12 and the sweet-spot numbers change with it. Ship the canon graphics and the
+  on both. Change it and G01, G15, K12, K14 and the sweet-spot numbers change with it. Ship the canon graphics and the
   white-Command copy to `main` only with the canon re-exports of K01 to K12, so no screen shows two different rackets.
 
 ## Performance and accessibility
@@ -125,11 +125,12 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
   until the atomic one-use check exists (`INVITE_ONE_USE_ENFORCED`).
 - The hero lead is the owner's sentence (2026-10-22), verbatim though "one piece" is retired elsewhere: "One single
   piece of space-grade carbon. No tube, no joints. Ultra-precision moulded to 15 microns and 1 gram. Every racket plays
-  exactly the same." Nothing follows it. Elsewhere "unibody", "Zero seams"; never "zero weak points".
-- Sweet spot (row 6b): "Edge to edge.", "Nearly 94% of the face is sweet spot", "4 mm from the sweet spot to the edge",
-  line 1 saying the flat face is sweet spot by design: a ceiling from `racket-shape.ts`, rounded down (or up only with
-  "Nearly"). `SWEET_CLAIM` builds every number; none is typed in `copy.ts` (/lab/g15 checks). Never "bezel", "all sweet
-  spot", "zero", "100%", "no dead zones", "largest", or a tube or brand comparison.
+  exactly the same." Nothing follows it. Elsewhere "unibody", "no joint"; never "zero seams" (a parting line, row 8b).
+- Sweet spot (row 6b): "Edge to edge.", the owner's "the world's largest sweet spot" (2026-11-02, once; market search
+  before launch), "Nearly 99% of the hitting surface is sweet spot" (98.4%), "1 mm from the sweet spot to the edge",
+  all from `SWEET_CLAIM` (never typed; /lab/g15 checks), up a whole number only with "Nearly". Never "bezel", "all sweet
+  spot", "zero", "100%", "no dead zones", or a tube or brand comparison. Engineering numbers: `src/content/specs.ts`
+  only, each {value, unit, provisional, source}; a `NEXT_PUBLIC_LAUNCHED=true` build fails while any is provisional.
 - Sealed core (CLAIMS.md rows 30 to 34; DESIGN.md): "Three times longer" only against the same core left open ("an
   exposed EVA core"), as a design ("made to last") until tested; never heat, "airtight", "waterproof" or "first"; it
   follows Holes. The process is "patent pending", never "patented". Tolerances: ±1.0 g, balance ±0.1 mm (2026-10-23).
