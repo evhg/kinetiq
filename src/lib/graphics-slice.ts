@@ -6,8 +6,8 @@
 // The physics, kept plausible rather than measured (CLAIMS.md row 49): a slice carries backspin and some sidespin.
 // In the air the sidespin curves the ball a little (Magnus). On the bounce, a ball with more spin skids, stays low and
 // kicks off line in the direction of its sidespin; a ball with less spin bounces up and runs on close to its line. The
-// standard ball's exit: about 8 degrees off its line, rising to 0.95 m. KINETIQ's: about 34 degrees off, rising to
-// 0.32 m. A padel ball is 6.5 cm across; it is drawn about four times larger so it reads at phone size.
+// standard ball's exit: 8 degrees off its line, rising to 1.0 m. KINETIQ's: 36 degrees off, rising to 0.3 m
+// (STANDARD and KINETIQ below). A padel ball is 6.5 cm across; it is drawn about four times larger so it reads at phone size.
 
 export type Vec3 = { u: number; w: number; y: number };
 type Pt = { x: number; y: number; s: number };
@@ -28,7 +28,9 @@ export type SliceView = {
 /** The wide framing (from 700 px) and the portrait one (phones), the same scene from two cameras. */
 export const VIEWS: Record<"wide" | "portrait", SliceView> = {
   wide: { vw: 1600, vh: 760, eye: { u: 3.6, w: -8.6, y: 5.6 }, at: { u: 5.2, w: 4.2, y: 0.5 }, focal: 1700, cx: 0.52, cy: 0.5 },
-  portrait: { vw: 800, vh: 660, eye: { u: 4.8, w: -7.6, y: 6.6 }, at: { u: 6.6, w: 3.4, y: 0.35 }, focal: 1500, cx: 0.5, cy: 0.4 },
+  // portrait (review, 2026-11-02): pulled back so the net, the flight in over it and the back glass all sit inside the
+  // frame (nothing may cross the heading above it); fitted with a 24-unit margin.
+  portrait: { vw: 800, vh: 660, eye: { u: 3.0, w: -9.5, y: 7.5 }, at: { u: 4.4, w: 4.6, y: 0.4 }, focal: 817, cx: 0.414, cy: 0.515 },
 };
 
 function sub(a: Vec3, b: Vec3): Vec3 {
@@ -205,7 +207,8 @@ export function sliceScene(view: keyof typeof VIEWS): SliceScene {
     net,
     glass,
     flight: path(pts(flightList)),
-    flightShadow: path(pts(flightList.map(floor))),
+    // the shadow only where there is floor to fall on (the drawn half starts at the net, u = 0)
+    flightShadow: path(pts(flightList.filter((p) => p.u >= 0).map(floor))),
     standard: path(pts(stdList)),
     standardShadow: path(pts(stdList.map(floor))),
     kinetiq: path(pts(kqList)),

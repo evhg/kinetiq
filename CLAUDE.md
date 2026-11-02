@@ -26,7 +26,7 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
 - `src/app/`: routes, `layout.tsx` (motion init script, providers), `globals.css`. `src/lib/gsap.ts` is the only place
   GSAP plugins are registered: import gsap from there. `src/lib/racket-shape.ts`: the racket (Stills and graphics).
 - `src/components/`: `motion/` (`MotionProvider`, `SmoothScroll` for Lenis, `PinnedChapter`), `landing/` (a component
-  and CSS module per section; `Reveal`, `Scrub`), `graphics/` (G01–G17, each with a review page at `/lab/<id>`, dev
+  and CSS module per section; `Reveal`, `Scrub`), `graphics/` (G01–G18, each with a review page at `/lab/<id>`, dev
   only; `KQ_LAB=1` serves them in production), `media/Still.tsx`, `reserve/`, `chrome/` (`SiteHeader`, `SiteFooter`;
   `HeaderClient.tsx`: the compact Reserve Now, label passed in, hidden over hero and `data-cta`). No preview banner.
 - `src/content/`: all words. `copy.ts` (landing), `lineup.ts` (editions, prices, limits, `lifetime`, `sampleSet`, coach,
@@ -96,8 +96,9 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
 - Graphics are SVG or canvas, drawn from `racket-shape.ts`. Text in them stays ≥ 15 px at 390 px wide. Canvas loops
   cap at 30 fps, pause off-screen and when hidden, DPR ≤ 2. No "Illustrative" captions (owner, 2026-10-23).
 - Feel toggle: DESIGN.md "Feel toggle" (`html[data-feel]` before first paint; Pace still = id + "-pace", same crops).
-  Grip toggle (hero only, owner 2026-11-02): DESIGN.md "Grip toggle" (`lib/grip-store.ts`, `kq-grip` in localStorage,
-  `html[data-grip]`; `<Still bare={{ id, phoneId }}>` swaps to the K01-nogrip stills; no grip-off swivel yet).
+  Grip toggle (hero only, owner 2026-11-02): DESIGN.md "Grip toggle" (`lib/grip-store.ts`, `kq-grip` in localStorage
+  and a cookie: the proxy serves / bare from `app/feel/[<feel>/]bare`; `<Still bare>`; no grip-off swivel yet).
+  `check.mjs --grip=off`.
 - One canonical racket in every still and graphic (`racket-shape.ts`, render audit 2026-10-22): 455.0 × 260.0 × 38.0 mm
   (the FIP limits); 42 moulded holes, a crown of 8 of Ø14.0 mm along the top and 34 of Ø12.4 mm below; 1.0 mm edge
   radius, the flat face ending 1.0 mm from the edge (`FACE_INSET`, owner 2026-11-02; was 1.5 and 4 mm); one handle: a
@@ -132,7 +133,9 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
   before launch), "Nearly 99% of the hitting surface is sweet spot" (98.4%), "1 mm from the sweet spot to the edge",
   all from `SWEET_CLAIM` (never typed; /lab/g15 checks), up a whole number only with "Nearly". Never "bezel", "all sweet
   spot", "zero", "100%", "no dead zones", or a tube or brand comparison. Engineering numbers: `src/content/specs.ts`
-  only, each {value, unit, provisional, source}; a `NEXT_PUBLIC_LAUNCHED=true` build fails while any is provisional.
+  only (what the page prints; it ships to the browser); `provisional` and `source` only in the server-only
+  `specs-status.ts` (never imported by a client component); a `NEXT_PUBLIC_LAUNCHED=true` build fails while any is
+  provisional. Never a fibre maker or trade grade (say "standard-" or "intermediate-modulus fibre class").
 - Sealed core (CLAIMS.md rows 30 to 34; DESIGN.md): "Three times longer" only against the same core left open ("an
   exposed EVA core"), as a design ("made to last") until tested; never heat, "airtight", "waterproof" or "first"; it
   follows Holes. The process is "patent pending", never "patented". Tolerances: ±1.0 g, balance ±0.1 mm (2026-10-23).

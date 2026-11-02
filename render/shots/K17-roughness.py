@@ -80,6 +80,7 @@ DEFAULTS = dict(
     KEY2=3.0, KEY2_AZ=-40.0, KEY2_EL=40.0, KEY2_D=0.5, KEY2_SIZE=0.35,  # a soft front-left light on the ball only
     POOL=30.0, POOL_AZ=50.0, POOL_EL=28.0, POOL_D=0.5, POOL_DEG=10.0, POOL_BLEND=0.6,  # front right, raking the domes
     POOL_GLOSS=0.0,          # 1: the pool also shows in reflections (each dome a glint; Pace)
+    POOL_BALL=1.0,           # 0: the pool lights the face only (the ball keeps one look in both feels)
     GLOSS=5.0, GLOSS_D=0.5, GLOSS_W=0.10, GLOSS_LEN=0.6, GLOSS_DEL=1.5, GLOSS_AZ=30.0,
     RIM=10.0, RIM_AZ=150.0, RIM_EL=8.0, RIM_D=0.45, RIM_LEN=0.5,
     FILL=0.1, FILL_AZ=30.0, FILL_EL=40.0,
@@ -579,7 +580,13 @@ def build(o, p):
                                  color=(1.0, 0.985, 0.97), target=tuple(Pc + z * 0.01), radius=0.02)
         pool.lightgroup = "pool"
         pool.visible_glossy = p["POOL_GLOSS"] > 0
-        pool.light_linking.receiver_collection = excl
+        if p["POOL_BALL"] > 0:
+            pool.light_linking.receiver_collection = excl
+        else:  # the ball out of the pool too: lit by its own key lights alone, the same in both feels (2026-11-02)
+            pex = K14.collection("k17_pool_excl", [parts[k] for k in ("holes", "throat", "bridgewall") if k in parts] + list(ball))
+            for it in pex.collection_objects:
+                it.light_linking.link_state = "EXCLUDE"
+            pool.light_linking.receiver_collection = pex
     # gloss: the coat's mirror direction from the camera over the face just in front of the contact
     G = Pc - vh * 0.012
     vg = (G - cam_loc).normalized()

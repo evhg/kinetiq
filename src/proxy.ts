@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { FEEL_COOKIE_MAX_AGE, FEEL_PREFERENCE_KEY, isFeelId, type FeelId } from "@/content/site";
+import { FEEL_COOKIE_MAX_AGE, FEEL_PREFERENCE_KEY, GRIP_PREFERENCE_KEY, isFeelId, isGripId, type FeelId, type GripId } from "@/content/site";
 import { NDA_COOKIE, NDA_ROUTE, ndaCleared } from "@/lib/nda";
 
 /**
@@ -17,8 +17,12 @@ import { NDA_COOKIE, NDA_ROUTE, ndaCleared } from "@/lib/nda";
  * in the HTML and Command is never fetched; the URL stays as typed. No cache may reuse a page without asking (private,
  * no-cache below), so a changed choice always gets the page in the new feel. (A Vary: Cookie set here would be replaced
  * by Next's own Vary on rendered pages.)
+ * A cleared request for / with `kq-grip=off` (lib/grip-store.ts, the hero's grip toggle) is rewritten the same way to
+ * the bare variant (app/feel/bare, or app/feel/<feel>/bare with a feel), so the first screen downloads only the bare
+ * hero stills (review, 2026-11-02: a returning "Bare" visitor's phone LCP was 5.4 s when the bare stills waited for
+ * hydration); `kq-grip` is renewed like `kq-feel`.
  * /feel/* asked for directly is a 404: those pages exist only behind this rewrite.
- * Every cleared page response to a request carrying `kq-feel` sends it back with a fresh year (refreshFeel below): Safari's
+ * Every cleared page response to a request carrying `kq-feel` sends it back with a fresh year (refreshCookie below): Safari's
  * Intelligent Tracking Prevention caps a cookie written by script (document.cookie) at 7 days, and one set by the
  * server's Set-Cookie at its own Max-Age, so a Pace visitor keeps the Pace page however rarely they choose.
  */
@@ -37,22 +41,28 @@ export function proxy(request: NextRequest) {
     if (isAssetOrApi(pathname)) return NextResponse.next();
     const value = request.cookies.get(FEEL_PREFERENCE_KEY)?.value;
     const feel = isFeelId(value) ? value : null;
+    const gv = request.cookies.get(GRIP_PREFERENCE_KEY)?.value;
+    const grip = isGripId(gv) ? gv : null;
     if (pathname === FEEL_ROOT || pathname.startsWith(`${FEEL_ROOT}/`)) {
-      return presentation(NextResponse.rewrite(new URL(FEEL_ROOT, request.url)), request, feel);
+      return presentation(NextResponse.rewrite(new URL(FEEL_ROOT, request.url)), request, feel, grip);
     }
-    if (feel && FEEL_PAGES.has(pathname)) {
+    // The bare hero (kq-grip=off): / only, the one page whose stills have a grip-off variant.
+    const bare = grip === "off" && pathname === "/";
+    if ((feel && FEEL_PAGES.has(pathname)) || bare) {
       const url = request.nextUrl.clone();
-      url.pathname = `${FEEL_ROOT}/${feel}${pathname === "/" ? "" : pathname}`;
-      return presentation(NextResponse.rewrite(url), request, feel);
+      const page = pathname === "/" ? "" : pathname;
+      url.pathname = `${FEEL_ROOT}${feel ? `/${feel}` : ""}${bare ? "/bare" : page}`;
+      return presentation(NextResponse.rewrite(url), request, feel, grip);
     }
-    return presentation(NextResponse.next(), request, feel);
+    return presentation(NextResponse.next(), request, feel, grip);
   }
 
   if (isAssetOrApi(pathname)) return gated(new NextResponse(null, { status: 403 }));
   return gated(NextResponse.rewrite(new URL(NDA_ROUTE, request.url)));
 }
 
-/** The pages with a variant per feel (app/feel/<feel>/), and where those live (no page of its own: a 404). */
+/** The pages with a variant per feel (app/feel/<feel>/), and where those live (no page of its own: a 404). / alone also
+ * has a bare variant (app/feel/bare, app/feel/<feel>/bare). */
 const FEEL_ROOT = "/feel";
 const FEEL_PAGES = new Set(["/", "/reserve", "/reserved"]);
 
@@ -70,21 +80,22 @@ function isAssetOrApi(pathname: string) {
  * A cleared page: kept out of shared caches and revalidated before reuse, and the visitor's feel cookie renewed (the
  * header comment above).
  */
-function presentation(res: NextResponse, request: NextRequest, feel: FeelId | null) {
+function presentation(res: NextResponse, request: NextRequest, feel: FeelId | null, grip: GripId | null) {
   res.headers.set("Cache-Control", "private, no-cache");
-  if (feel) refreshFeel(res, request, feel);
+  if (feel) refreshCookie(res, request, FEEL_PREFERENCE_KEY, feel);
+  if (grip) refreshCookie(res, request, GRIP_PREFERENCE_KEY, grip);
   return res;
 }
 
 /**
- * Sends `kq-feel` back as the request carried it, with the attributes lib/feel-store.ts and the head script write
+ * Sends `kq-feel` (or `kq-grip`) back as the request carried it, with the attributes lib/feel-store.ts and the head script write
  * (Path=/, one year, SameSite=Lax, Secure on https, not HttpOnly so they can still change it): a server-set cookie is
  * not held to ITP's 7-day cap on script-written ones, so the cap restarts at one year on every visit.
  */
-function refreshFeel(res: NextResponse, request: NextRequest, feel: FeelId) {
+function refreshCookie(res: NextResponse, request: NextRequest, name: string, value: string) {
   res.cookies.set({
-    name: FEEL_PREFERENCE_KEY,
-    value: feel,
+    name,
+    value,
     path: "/",
     maxAge: FEEL_COOKIE_MAX_AGE,
     sameSite: "lax",

@@ -1,0 +1,81 @@
+/* G18 "How the face grips" (GripContact.tsx): a magnified side section at the contact. The face in graphite with its
+   domes in --edge, the ball a dark felt with steel fuzz, the contact and both arrows amber: the one warm idea. Every
+   stroke keeps its width at any size (non-scaling); all text is the HTML legend, 15 px and up. */
+.root {
+  --line: clamp(2px, 0.1vw + 1.4px, 3.5px);
+  --hair: clamp(1px, 0.04vw + 0.8px, 1.5px);
+  margin: 0;
+  display: grid;
+  gap: clamp(16px, 1.4vw + 6px, 32px);
+}
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.svg path,
+.svg ellipse {
+  vector-effect: non-scaling-stroke;
+}
+.face {
+  fill: var(--graphite-2);
+  stroke: var(--edge);
+  stroke-width: var(--hair);
+}
+.ply {
+  fill: none;
+  stroke: var(--hairline);
+  stroke-width: var(--hair);
+}
+.ball {
+  stroke: var(--steel);
+  stroke-width: var(--hair);
+  stroke-opacity: 0.7;
+}
+.fuzz {
+  fill: none;
+  stroke: var(--steel);
+  stroke-width: var(--hair);
+  stroke-opacity: 0.45;
+  stroke-linecap: round;
+}
+.drag {
+  fill: none;
+  stroke: var(--amber-hot);
+  stroke-width: var(--hair);
+  stroke-linecap: round;
+}
+.arrow {
+  fill: none;
+  stroke: var(--amber);
+  stroke-width: var(--line);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.legend {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.legend li {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  align-items: baseline;
+  gap: 12px;
+  font-size: clamp(0.9375rem, 0.3vw + 0.85rem, 1.25rem);
+  line-height: 1.4;
+  color: var(--steel);
+}
+.glyph {
+  width: 32px;
+  height: 16px;
+  align-self: center;
+  fill: none;
+  stroke: var(--amber);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

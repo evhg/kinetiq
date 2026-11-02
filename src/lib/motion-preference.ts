@@ -23,8 +23,9 @@ import { NDA_ARRIVE_MS, NDA_TRIED_KEY } from "./nda";
  * load, and a script write would put it back under Safari's 7-day cap on script-written cookies (ITP). With nothing
  * stored (storage blocked or cleared; ITP also clears script storage after 7 days without a visit) the cookie alone
  * stands for the choice.
- * And html[data-grip] (on or off): the hero racket with or without its overgrip (lib/grip-store.ts), from localStorage
- * only, else on, so the grip toggle's ring and the hero still hidden for a stored "off" are right from the first frame.
+ * And html[data-grip] (on or off): the hero racket with or without its overgrip (lib/grip-store.ts), from localStorage,
+ * else the `kq-grip` cookie, else on (a stored choice missing from the cookie is written back, as for the feel), so
+ * the grip toggle's ring and the hero still hidden for a stored "off" are right from the first frame.
  */
 export const motionInitScript = `(() => {
   var reduce = false;
@@ -65,10 +66,25 @@ export const motionInitScript = `(() => {
     }
   } else if (cookie === "command" || cookie === "pace") feel = cookie;
   document.documentElement.dataset.feel = feel;
+  var gkey = ${JSON.stringify(GRIP_PREFERENCE_KEY)};
   var grip = ${JSON.stringify(DEFAULT_GRIP)};
+  var g = null;
   try {
-    var g = localStorage.getItem(${JSON.stringify(GRIP_PREFERENCE_KEY)});
-    if (g === "on" || g === "off") grip = g;
+    g = localStorage.getItem(gkey);
   } catch (e) {}
+  var gc = null;
+  try {
+    var gm = document.cookie.match(new RegExp("(?:^|; *)" + gkey + "=([a-z]+)"));
+    if (gm) gc = gm[1];
+  } catch (e) {}
+  if (g === "on" || g === "off") {
+    grip = g;
+    if (gc !== g) {
+      try {
+        document.cookie = gkey + "=" + g + "; Path=/; Max-Age=${FEEL_COOKIE_MAX_AGE}; SameSite=Lax" +
+          (location.protocol === "https:" ? "; Secure" : "");
+      } catch (e) {}
+    }
+  } else if (gc === "on" || gc === "off") grip = gc;
   document.documentElement.dataset.grip = grip;
 })();`;

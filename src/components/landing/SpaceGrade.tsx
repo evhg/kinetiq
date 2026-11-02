@@ -84,7 +84,7 @@ function SpecSheet() {
           </h4>
           <Reveal as="dl" className={styles.rows} items={`.${styles.row}`} stagger={0.04} y={10}>
             {g.specs.map((s) => (
-              <div key={s.id} className={styles.row} data-provisional={s.provisional ? "" : undefined}>
+              <div key={s.id} className={styles.row}>
                 <dt className={styles.term}>
                   <span className={styles.termLabel}>{s.label}</span>
                   {s.note ? <span className={`t-fine ${styles.note}`}>{s.note}</span> : null}

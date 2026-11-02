@@ -3,6 +3,7 @@ import { Surface } from "@/components/landing/Surface";
 import { surface } from "@/content/copy";
 import { KINETIQ, STANDARD } from "@/lib/graphics-slice";
 import { surfaceSpecs } from "@/content/specs";
+import { SPEC_STATUS } from "@/content/specs-status";
 
 const section = { paddingBlock: "clamp(64px, 8vw, 200px)" } as const;
 const head = { marginBottom: "clamp(32px, 3vw, 72px)", display: "grid", gap: "12px" } as const;
@@ -34,7 +35,7 @@ export default function LabG17() {
             {[
               ["Standard exit (modelled)", `${STANDARD.turn}° off its line, rising to ${STANDARD.apex.toFixed(2)} m`],
               ["KINETIQ exit (modelled)", `${KINETIQ.turn}° off its line, rising to ${KINETIQ.apex.toFixed(2)} m`],
-              ...surfaceSpecs.specs.map((s) => [`${s.label} (${s.provisional ? "provisional" : "measured"})`, `${s.value}${s.unit ? ` ${s.unit}` : ""}, ${s.method}`]),
+              ...surfaceSpecs.specs.map((s) => [`${s.label} (${SPEC_STATUS[s.id].provisional ? "provisional" : "measured"})`, `${s.value}${s.unit ? ` ${s.unit}` : ""}, ${s.method}`]),
             ].map(([k, v]) => (
               <div key={k} style={cell}>
                 <dt className="t-label">{k}</dt>

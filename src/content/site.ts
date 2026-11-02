@@ -54,10 +54,20 @@ export function isGripId(v: string | null | undefined): v is GripId {
 export const DEFAULT_GRIP: GripId = "on";
 
 /**
- * Where the grip choice is kept in the visitor's own browser (localStorage only: a view, not a purchase choice, so no
- * cookie and no server variant). The head script mirrors it on html[data-grip] before the first paint.
+ * Where the grip choice is kept in the visitor's own browser (localStorage), mirrored in a first-party cookie of the
+ * same name exactly as the feel is (FEEL_COOKIE_MAX_AGE, SameSite=Lax, not HttpOnly; src/proxy.ts renews it): a
+ * returning visitor who chose "Bare" gets / already rendered without the grip (app/feel/bare, app/feel/<feel>/bare),
+ * so the phone's first screen loads the bare stills alone, with no grip-on download first (review, 2026-11-02: LCP
+ * 5.4 s without it). The head script mirrors it on html[data-grip] before the first paint. Nothing stores or logs it.
  */
 export const GRIP_PREFERENCE_KEY = "kq-grip";
+
+/** The `kq-grip` cookie's value in a Cookie header (or document.cookie), when it names a grip state. */
+export function gripFromCookie(header: string | null | undefined): GripId | null {
+  const m = header?.match(new RegExp(`(?:^|; *)${GRIP_PREFERENCE_KEY}=([a-z]+)`));
+  const v = m?.[1];
+  return isGripId(v) ? v : null;
+}
 
 export function storedGrip(): GripId | null {
   try {

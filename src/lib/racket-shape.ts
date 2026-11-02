@@ -68,7 +68,7 @@ export const THICKNESS = 0.38;
 
 /**
  * The edge: the face meets the 38 mm side wall over a 1.0 mm radius; the twill folds over it (owner, 2026-11-02:
- * "1 mm from the edge"; it was 1.5 mm, with the flat face ending 4 mm in). The factory confirms the 3K twill and the
+ * "1 mm from the edge"; it was 1.5 mm, with the flat face ending 4 mm in). The factory must confirm the 3K twill and the
  * 12K spread tow wrap a 1.0 mm radius without bridging (CLAIMS.md row 6b).
  */
 export const EDGE_RADIUS = 0.01;

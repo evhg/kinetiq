@@ -118,7 +118,7 @@ export const surface = {
   eyebrow: "Surface",
   headline: "A face that grips the ball.",
   // No-break spaces keep "drop shot" and "more spin" whole wherever the lead wraps.
-  lead: "In Switzerland, the same patent-pending process that forms the holes also moulds a fine texture into the carbon of the face, many times rougher than a smooth or painted face. When you slice, play a drop\u00a0shot or a bandeja, the face brushes across the ball, holds the felt a moment longer and sends it away with more\u00a0spin.",
+  lead: "In Switzerland, the same patent-pending process that forms the holes also moulds a fine texture into the carbon of the face, many times rougher than a smooth or painted face. When you slice, play a drop\u00a0shot or a bandeja, the face brushes across the ball, grips the felt instead of letting it slide, and sends it away with more\u00a0spin.",
   /** The player's line, brighter: the owner's "a shot only top players could play, now for everyone", said honestly. */
   bright: "A slice that stays low and kicks away off the bounce is a shot most players only see the professionals play. We designed this face to help you play\u00a0it.",
   /** The texture is in the laminate, not a coat of grit (FIP Rule 8 risk, and sand finishes wear smooth). */
@@ -129,7 +129,13 @@ export const surface = {
   ],
   /** K17: the roughness macro (a ball pressed on the face at the instant of a slice). */
   imageAlt:
-    "A padel ball pressed against a KINETIQ face at the instant of a slice, magnified: its felt flattens and drags across a fine, even texture moulded into the carbon weave, beside a moulded hole.",
+    "A padel ball against a KINETIQ face, magnified: around it, a fine, even field of tiny domes moulded into the carbon weave, beside a moulded hole.",
+  /** G18: the contact, magnified from the side (how the texture turns a brushed contact into spin). */
+  contact: {
+    sweep: "The face sweeps across the back of the\u00a0ball.",
+    grip: "Its moulded texture grips the felt instead of letting it\u00a0slide.",
+    spin: "So the ball leaves with more\u00a0spin.",
+  },
   /** G17: one sliced shot and its bounce, off a standard face and off ours. */
   graphic: {
     title: "The same slice, after the bounce.",

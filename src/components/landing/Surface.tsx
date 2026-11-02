@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import { GripContact } from "@/components/graphics/GripContact";
 import { SliceBounce } from "@/components/graphics/SliceBounce";
 import { Still, hasStill } from "@/components/media/Still";
 import { useMotion } from "@/components/motion/MotionProvider";
@@ -107,7 +108,10 @@ export function Surface() {
         <p className={`t-body ${styles.quiet}`}>{surface.texture}</p>
       </div>
 
-      {/* The numbers come from specs.ts (provisional until the factory's), never typed here. */}
+      {/* G18 (how the face grips: the mechanism under K17), then the numbers, which come from specs.ts (provisional
+          until the factory's), never typed here. Wide: both in the right-hand column, beside the words. */}
+      <div className={styles.aside}>
+      <GripContact legend={surface.contact} className={styles.contact} />
       <ul className={styles.lockup} data-rise="">
         {surface.stats.map((s) => (
           <li key={s.label} className={styles.stat}>
@@ -119,6 +123,7 @@ export function Surface() {
           </li>
         ))}
       </ul>
+      </div>
 
       <div className={styles.graph}>
         <h3 className={`t-h3 ${styles.graphTitle}`} data-rise="">
