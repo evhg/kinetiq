@@ -160,3 +160,19 @@ any more. How to switch, part names, lighting notes: `../renders4/canon.md`. Pro
   blur from a turn about the contact point (`SPIN_DEG`: the felt blurs with distance from the contact, the patch holds),
   an optional spin arc (light group `arc`). Light groups and the comp are K14's (imported; `K14.GROUPS` replaced).
   Writes `<out>.png` (full) and `<out>-base.png`; `--comp <exr>` re-grades both. No scipy in the bpy venv.
+- **Finals and timings (2026-11-02, 4 cores, one job at a time):** K01 beam 2560x1440 spp 128: Command 16 min, Pace 13 min
+  (grip-off the same); K01 portrait 2160x3840 spp 48: 18 to 20 min each; K14 2560 spp 64: 5 to 6 min; K02 2560 spp 128:
+  4 min; K08 2560 spp 128: 4.5 min; K17 2560 spp 64 with 400k felt fibres: 31 min each feel. K02 uses a gentler share of
+  WEAVE_HD (`K02-edge-line.py` HD_W: relief 0.16, gaps 0.30, direction 0.30): at 10-12 px a tow the full preset read as a
+  woven basket and greyed the white wall.
+- **K17 lessons:** at a grazing camera (under 15 deg) the micro-domes foreshorten below 2 px and vanish; 32 deg shows them.
+  A dome pitch of 0.45 mm at FW 70 mm (16 px) reads as an engineered field without moire at 828 px (lanczos). The felt
+  needs both a back light (fuzz on the silhouette) and a soft front light linked to the ball only, or it reads as a dark
+  rubber sphere. A spin arc drawn as a thin emissive tube read as a wire: off (ARC 0). OIDN at 16-24 spp posterises the
+  felt; finals at 64 spp are smooth. The pool spot (diffuse only) does nothing on Pace: POOL_GLOSS 1 turns every dome
+  into a glint of it.
+- **Swivels vs the new stills:** the K01 and K02 swivel sequences (2026-10-29) still carry the old weave and the 1.5 mm
+  edge. Measured at display widths (f0disp): K01 desktop mean 0.6-0.7 luma, about 1.5 % of pixels over 6 luma (all on
+  the face: the weave's contrast); K01 portrait the same; K02 Command 2 %, K02 Pace 0.5 %. No geometry moves, but the
+  weave visibly softens when the scrub takes over from the still. Re-rendering them all is about 10.5 h (K01 portrait
+  36 frames x 5 min x 2 feels, desktop 36 x 2 min x 2, K02 105 frames x 75 s): left open.

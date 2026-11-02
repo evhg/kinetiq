@@ -61,7 +61,7 @@ variants, `--feel pace`, `--both`, `--phone`, `--crops`); the last finals used:
 | K11 | `K11-pair.py --weave command --w 3200 --h 1800 --spp 256 --out final/K11-pair-command` (`--weave pace`); `K11-single.py --w 3200 --h 1800 --spp 256 --out final/K11-single` |
 | K12 | `K12-sweet-spot.py --w 3200 --h 1800 --spp 160 --out final/K12-sweet-spot` |
 | K13 | `K13-layup.py --w 3200 --h 1800 --spp 128 --out final/K13-layup` |
-| K14 | `K14-edge.py --w 2560 --h 1440 --spp 64 --out final/K14-edge` (Pace: `--feel pace --out final/K14-edge-pace`; about 45 min each) |
+| K14 | `K14-edge.py --w 2560 --h 1440 --spp 64 --out final/K14-edge` (Pace: `--feel pace --out final/K14-edge-pace`; about 5 to 6 min each on 2026-11-02, 45 min in October) |
 | K02 swivel (2026-10-29) | `K02-edge-line.py --w 2560 --h 1440 --spp 32 --seq 60 --range 0 35 --phone --crop 0.09 0.92 0.20 0.86 --only <i> --out seq2/K02-swivel-command` (Pace: `--feel pace --seq 45`); about 75 s a frame alone, 3 min with another shot rendering. The masters repo keeps the 2560 frames only; the phone sequence is them turned 90 deg counter-clockwise (`k12_lib.rotate_png`, 16-bit) |
 | K01 swivel (2026-10-29) | portrait `K01-hero-frame.py --w 2160 --h 3840 --spp 24 --seq 36 --yaw-range 0 35 --crop 0.20 0.82 0.48 0.95 --out seq2/K01-swivel-command-phone`; desktop `K01-hero-beam.py --w 2560 --h 1440 --crop 0.27 0.73 0.19 1.0 ...`; Pace adds `--feel pace --set P_FOLLOW=0.85` (k01_lib: the face cards turn with the racket, so the black face stays lit to 35 deg). About 5 min a portrait frame, 2 min a desktop one. Take the lock per frame (`flock render.lock ... --only i`, a few seconds' pause between frames, frames on disk skipped), frame 0 and the last first, so other shots slip in between |
 
@@ -73,7 +73,7 @@ reports the change crop; it must sit inside the region). Then `node scripts/sequ
 48 at 100% on these shots (2026-10-29 comparison).
 | K15 | `K15-space.py --w 2560 --h 1440 --spp 64 --out final/K15-space` (`--feel pace --out final/K15-space-pace`; about 5 to 6 min each; writes `-base` and `-full`; re-grade from the EXR with `--comp final/K15-space.exr --out ...`, adding `--feel pace` for Pace) |
 | K01 grip-off (2026-11-02) | as K01 beam / phone with `--set NOGRIP=1` and `-nogrip` in the out name (`final/K01-hero-beam-nogrip`, `final/K01-hero-frame-phone-nogrip`, Pace `-nogrip-pace`); beam `--variants base,full` |
-| K17 (2026-11-02) | `K17-roughness.py --w 2560 --h 1440 --spp <n> --out final/K17-roughness` (writes the full look and `-base`; `--comp final/K17-roughness.exr --out final/K17-roughness` re-grades); Pace `--feel pace --out final/K17-roughness-pace` |
+| K17 (2026-11-02) | `K17-roughness.py --w 2560 --h 1440 --spp 64 --out final/K17-roughness` (31 min) (writes the full look and `-base`; `--comp final/K17-roughness.exr --out final/K17-roughness` re-grades); Pace `--feel pace --out final/K17-roughness-pace` |
 | K16 | `K16-pair.py --mode drilled --w 1440 --h 1620 --spp 80 --out final/K16-drilled` and `--mode moulded ... --out final/K16-moulded` (about 12 and 14 min), then `K16-pair.py --combine final/K16-drilled final/K16-moulded --out final/K16-pair --gutter 0` (bpy reads the PNGs, no render). Pace: add `--feel pace` to all three and `-pace` to the names (2026-11-01) |
 
 ## Export to the site
