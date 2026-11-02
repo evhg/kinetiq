@@ -63,24 +63,25 @@ DEFAULTS = dict(
                              # throat (11 mm patch, 18 mm clear of the nearest hole, 30 mm from the edge)
     BALL_R=0.0325, COMPRESS=0.0022, PATCH_SOFT=0.0016, BULGE=0.00025,
     SEAM_A=0.70, SEAM_ROT_X=15.0, SEAM_ROT_Z=50.0, SEAM_W=0.0034,
-    FIBRES=170000.0, FIB_LEN0=0.0005, FIB_LEN1=0.0014, FIB_R=0.000011, FIB_LIFT=0.45, FIB_CURL=0.55,
+    FIBRES=170000.0, FIB_LEN0=0.0008, FIB_LEN1=0.0022, FIB_R=0.000018, FIB_LIFT=0.60, FIB_CURL=0.55,
     FIB_VIS=0.25,            # roots only where the ball's normal faces the camera more than this (cos)
     DRAG=0.0011, DRAG_REACH=0.004,   # m: how far the pressed fibres are dragged along +x, and how far past the patch
-    SPIN_DEG=2.2,            # deg: the ball's turn about the contact point during the shutter (motion blur)
+    SPIN_DEG=4.0,            # deg: the ball's turn about the contact point during the shutter (motion blur)
     # felt
     FELT=(0.62, 0.70, 0.075), FELT_SHEEN=1.0, FIB_COL=(0.70, 0.78, 0.10), FIB_ROUGH=0.30, FIB_RROUGH=0.55,
     # roughness texture (moulded under the coat)
-    ROUGH_PITCH=0.00034, ROUGH_DOME=0.36, ROUGH_H=0.000030, ROUGH_STR=1.0, ROUGH_COAT=0.06, ROUGH_GRIT=0.15,
+    ROUGH_PITCH=0.00045, ROUGH_DOME=0.36, ROUGH_H=0.000070, ROUGH_STR=1.0, ROUGH_COAT=0.06, ROUGH_GRIT=0.15,
+    ROUGH_AO=0.10,           # the valleys between domes a touch darker (the texture also reads in diffuse light)
     # camera
-    EL=14.0, AZ=0.0, DIST=0.30, FW=0.10, TX=-0.022, TZ=0.014, SHIFT_X=0.0, SHIFT_Y=-0.10, FSTOP=22.0,
+    EL=32.0, AZ=0.0, DIST=0.30, FW=0.07, TX=-0.012, TZ=0.006, SHIFT_X=0.0, SHIFT_Y=-0.05, FSTOP=22.0,
     FOCUS_DY=-0.006,         # m: focus this far in front of the contact (toward the camera)
     # lights
-    KEY=4.0, KEY_AZ=-160.0, KEY_EL=10.0, KEY_D=0.45, KEY_SIZE=0.15,   # a low rake from behind left: every dome a glint
-    POOL=25.0, POOL_AZ=-50.0, POOL_EL=50.0, POOL_D=0.5, POOL_DEG=22.0, POOL_BLEND=0.9,  # front left, high
-    GLOSS=14.0, GLOSS_D=0.5, GLOSS_W=0.10, GLOSS_LEN=0.6, GLOSS_DEL=1.5, GLOSS_AZ=22.0,
+    KEY=3.0, KEY_AZ=-160.0, KEY_EL=10.0, KEY_D=0.45, KEY_SIZE=0.15,   # a low rake from behind left: every dome a glint
+    POOL=30.0, POOL_AZ=50.0, POOL_EL=28.0, POOL_D=0.5, POOL_DEG=10.0, POOL_BLEND=0.6,  # front right, raking the domes
+    GLOSS=8.0, GLOSS_D=0.5, GLOSS_W=0.10, GLOSS_LEN=0.6, GLOSS_DEL=1.5, GLOSS_AZ=30.0,
     RIM=10.0, RIM_AZ=150.0, RIM_EL=8.0, RIM_D=0.45, RIM_LEN=0.5,
-    FILL=0.3, FILL_AZ=30.0, FILL_EL=40.0,
-    ARC=3.0, ARC_R=0.0048, ARC_A0=118.0, ARC_A1=176.0, ARC_W=0.00018,
+    FILL=0.1, FILL_AZ=30.0, FILL_EL=40.0,
+    ARC=2.5, ARC_R=0.0040, ARC_A0=190.0, ARC_A1=250.0, ARC_W=0.00018,
     # backdrop (K14 make_bg, linear)
     BG_TOP=0.014, BG_HOR=0.032, BG_GLOW=0.035, BG_GX=0.30, BG_GY=-1.0, BG_GRX=0.45, BG_GRY=0.30, BG_WARM=0.03,
     # gains (full)
@@ -172,6 +173,19 @@ def add_roughness(mat, p):
         if b.inputs[inp].is_linked:
             nb.l.new(b.inputs[inp].links[0].from_socket, bp.inputs["Normal"])
         nb.l.new(bp.outputs["Normal"], b.inputs[inp])
+    if float(p["ROUGH_AO"]) > 0 and b.inputs["Base Color"].is_linked:
+        src = b.inputs["Base Color"].links[0].from_socket
+        mx = nodes.new("ShaderNodeMix")
+        mx.data_type = "RGBA"
+        mx.blend_type = "MULTIPLY"
+        mx.inputs["Factor"].default_value = 1.0
+        nb.l.new(src, mx.inputs[6])
+        ao = nb.math("SUBTRACT", 1.0, nb.math("MULTIPLY", nb.math("SUBTRACT", 1.0, dome), float(p["ROUGH_AO"])))
+        cc = nodes.new("ShaderNodeCombineColor")
+        for k_ in range(3):
+            nb.l.new(ao, cc.inputs[k_])
+        nb.l.new(cc.outputs[0], mx.inputs[7])
+        nb.l.new(mx.outputs[2], b.inputs["Base Color"])
     if not b.inputs["Coat Roughness"].is_linked:
         b.inputs["Coat Roughness"].default_value = float(p["ROUGH_COAT"])
     return mat
@@ -351,11 +365,11 @@ def mat_felt(p):
     nb.l.new(b.outputs[0], out.inputs["Surface"])
     tc = nb.n.new("ShaderNodeTexCoord")
     nz = nb.n.new("ShaderNodeTexNoise")
-    nz.inputs["Scale"].default_value = 900.0
+    nz.inputs["Scale"].default_value = 2500.0
     nz.inputs["Detail"].default_value = 8.0
     nz.inputs["Roughness"].default_value = 0.7
     nb.l.new(tc.outputs["Object"], nz.inputs["Vector"])
-    tone = nb.math("MULTIPLY_ADD", nz.outputs["Fac"], 0.5, 0.75)
+    tone = nb.math("MULTIPLY_ADD", nz.outputs["Fac"], 0.22, 0.89)
     cc = nb.n.new("ShaderNodeCombineColor")
     for k, c_ in enumerate(p["FELT"]):
         nb.l.new(nb.math("MULTIPLY", tone, float(c_)), cc.inputs[k])
@@ -365,7 +379,7 @@ def mat_felt(p):
     b.inputs["Sheen Roughness"].default_value = 0.35
     b.inputs["Sheen Tint"].default_value = (*p["FIB_COL"], 1.0)
     bp = nb.n.new("ShaderNodeBump")
-    bp.inputs["Strength"].default_value = 0.6
+    bp.inputs["Strength"].default_value = 0.12
     bp.inputs["Distance"].default_value = 0.0002
     nb.l.new(nz.outputs["Fac"], bp.inputs["Height"])
     nb.l.new(bp.outputs["Normal"], b.inputs["Normal"])
@@ -478,7 +492,7 @@ def build(o, p):
     rng = np.random.default_rng(11)
 
     mo = None if pace else {"bump": 0.10, "dir_tone": 0.22, "streak_a": 0.14}
-    root, parts = C.build_racket("KQ", feel=o["feel"], walls=False, mat_opts=mo, grip=False)
+    root, parts = C.build_racket("KQ", feel=o["feel"], serial=None, walls=False, mat_opts=mo, grip=False)
     for nm in ("cap", "capmark", "neck", "back"):
         if nm in parts:
             parts[nm].hide_render = True
@@ -542,7 +556,7 @@ def build(o, p):
 
     head = [parts[k] for k in ("face", "rim", "wall", "holes", "throat", "bridgewall") if k in parts]
     ball = bobs
-    excl = K14.collection("k17_no_bores", [parts["holes"]])
+    excl = K14.collection("k17_no_bores", [parts[k] for k in ("holes", "throat", "bridgewall") if k in parts])
     for it in excl.collection_objects:
         it.light_linking.link_state = "EXCLUDE"
     if p["KEY"] > 0:
@@ -550,6 +564,7 @@ def build(o, p):
         key = studio.area_light("lg_key", tuple(Pc + kd * p["KEY_D"]), p["KEY_SIZE"], p["KEY"], color=(1.0, 0.985, 0.97),
                                 target=tuple(Pc + z * 0.02))
         key.lightgroup = "key"
+        key.light_linking.receiver_collection = K14.collection("k17_key_recv", ball)  # the felt's back light only
     if p["POOL"] > 0:
         pd_ = dirv(p["POOL_AZ"], p["POOL_EL"])
         pool = studio.spot_light("lg_pool", tuple(Pc + pd_ * p["POOL_D"]), p["POOL"], p["POOL_DEG"], blend=p["POOL_BLEND"],

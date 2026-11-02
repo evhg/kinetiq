@@ -1322,7 +1322,7 @@ def mat_carbon(feel, role, serial=None, o=None):
     white = is_white(feel, o)
     rest = {k: v for k, v in (o or {}).items() if k != "white"}
     tag = "command-black" if (feel == "command" and not white) else feel
-    key = "KQc_%s_%s" % (tag, role) + ("_" + serial if role == "face" else "")
+    key = "KQc_%s_%s" % (tag, role) + ("_" + (serial or "nomark") if role == "face" else "")
     m = bpy.data.materials.get(key)
     if m is not None and not rest:
         return m

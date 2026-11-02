@@ -1100,5 +1100,111 @@
    1440
   ],
   "hash": "5407cc49f4"
+ },
+ "K01-nogrip-base-wide": {
+  "w": 2560,
+  "h": 1440,
+  "widths": [
+   828,
+   1280,
+   1920,
+   2560
+  ],
+  "hash": "6448df2936"
+ },
+ "K01-nogrip-full-wide": {
+  "w": 2560,
+  "h": 1440,
+  "widths": [
+   828,
+   1280,
+   1920,
+   2560
+  ],
+  "hash": "90cd7f2445"
+ },
+ "K01-nogrip-full-card": {
+  "w": 1024,
+  "h": 1440,
+  "widths": [
+   640,
+   1024
+  ],
+  "hash": "33f8cf45ee"
+ },
+ "K01-nogrip-hero-base-phone-portrait": {
+  "w": 2160,
+  "h": 3840,
+  "widths": [
+   828,
+   1170,
+   1440,
+   2160
+  ],
+  "hash": "d3c6254160"
+ },
+ "K01-nogrip-hero-full-phone-portrait": {
+  "w": 2160,
+  "h": 3840,
+  "widths": [
+   828,
+   1170,
+   1440,
+   2160
+  ],
+  "hash": "5e7277e7e5"
+ },
+ "K01-nogrip-base-pace-wide": {
+  "w": 2560,
+  "h": 1440,
+  "widths": [
+   828,
+   1280,
+   1920,
+   2560
+  ],
+  "hash": "afd254a55a"
+ },
+ "K01-nogrip-full-pace-wide": {
+  "w": 2560,
+  "h": 1440,
+  "widths": [
+   828,
+   1280,
+   1920,
+   2560
+  ],
+  "hash": "5433e9a9fe"
+ },
+ "K01-nogrip-full-pace-card": {
+  "w": 1024,
+  "h": 1440,
+  "widths": [
+   640,
+   1024
+  ],
+  "hash": "d03b4bcde5"
+ },
+ "K01-nogrip-hero-base-phone-pace-portrait": {
+  "w": 2160,
+  "h": 3840,
+  "widths": [
+   828,
+   1170,
+   1440,
+   2160
+  ],
+  "hash": "216e3b9991"
+ },
+ "K01-nogrip-hero-full-phone-pace-portrait": {
+  "w": 2160,
+  "h": 3840,
+  "widths": [
+   828,
+   1170,
+   1440,
+   2160
+  ],
+  "hash": "9e494831c0"
  }
 }
