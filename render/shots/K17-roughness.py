@@ -79,6 +79,7 @@ DEFAULTS = dict(
     KEY=3.0, KEY_AZ=-160.0, KEY_EL=10.0, KEY_D=0.45, KEY_SIZE=0.15,   # the felt's back light (the fuzz on its rim)
     KEY2=3.0, KEY2_AZ=-40.0, KEY2_EL=40.0, KEY2_D=0.5, KEY2_SIZE=0.35,  # a soft front-left light on the ball only
     POOL=30.0, POOL_AZ=50.0, POOL_EL=28.0, POOL_D=0.5, POOL_DEG=10.0, POOL_BLEND=0.6,  # front right, raking the domes
+    POOL_GLOSS=0.0,          # 1: the pool also shows in reflections (each dome a glint; Pace)
     GLOSS=5.0, GLOSS_D=0.5, GLOSS_W=0.10, GLOSS_LEN=0.6, GLOSS_DEL=1.5, GLOSS_AZ=30.0,
     RIM=10.0, RIM_AZ=150.0, RIM_EL=8.0, RIM_D=0.45, RIM_LEN=0.5,
     FILL=0.1, FILL_AZ=30.0, FILL_EL=40.0,
@@ -90,7 +91,8 @@ DEFAULTS = dict(
     # base variant gains (the scroll light's start)
     b_key=1.0, b_pool=0.35, b_gloss=0.15, b_rim=1.0, b_fill=1.0, b_arc=0.0,
 )
-PACE_SET = dict(GLOSS=8.0, POOL=40.0)
+# Pace: black 12K shows its domes only in reflections: the pool's own glints (POOL_GLOSS) and a stronger gloss card
+PACE_SET = dict(GLOSS=10.0, POOL=40.0, POOL_GLOSS=1.0)
 
 
 def parse_args():
@@ -576,7 +578,7 @@ def build(o, p):
         pool = studio.spot_light("lg_pool", tuple(Pc + pd_ * p["POOL_D"]), p["POOL"], p["POOL_DEG"], blend=p["POOL_BLEND"],
                                  color=(1.0, 0.985, 0.97), target=tuple(Pc + z * 0.01), radius=0.02)
         pool.lightgroup = "pool"
-        pool.visible_glossy = False
+        pool.visible_glossy = p["POOL_GLOSS"] > 0
         pool.light_linking.receiver_collection = excl
     # gloss: the coat's mirror direction from the camera over the face just in front of the contact
     G = Pc - vh * 0.012
