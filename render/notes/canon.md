@@ -323,6 +323,12 @@ width. Self-test passes (455.00 x 260.12 x 38.00, 42 holes, 8 crown, both feels 
 - **Grip-off:** `build_racket(..., grip=False)`: no `grip` part; the core runs on to `NOGRIP_Y_CUT` (-0.2985, its round end
   inside the cap), so the 33.0 x 29.0 mm handle is bare carbon from the neck into the cap, the twill straight down it.
   The cap and the Q are unchanged (the cap's top flare is slightly smaller than the bare core: the shaft runs into it).
+- **Every shot grip-off (owner, 2026-11-03: Bare on every image):** `KQ_NOGRIP=1` in the environment makes every
+  `build_racket()` grip-off with no change to the shot: the parts dict keeps a `grip` entry, the overgrip's own mesh with
+  `hide_render` on, so light links, `centre()`, masks and loops over the grip still work and the grip-only lights light
+  nothing. `KQ_EDGE_MM=1.5` sets `EDGE_R` (and every default bound to it) back to the 1.5 mm canon, for the twin of a
+  still the site still shows in that canon. K06's mould channel follows the bare core (no tape) under `KQ_NOGRIP`.
+- **No wrist cord (owner, 2026-11-03: "no need to add the wrist cord"):** no render has the FIP cord, grip on or off.
 - **WEAVE_HD:** an opt-in mat_opts preset for whole-racket shots (relief and resin-gap tone, a stronger direction step,
   relief and sheen); see RENDER_NOTES "Owner notes after the factory meeting". Default COMMAND_WHITE is unchanged.
 - **serial=None** now builds a face with no throat mark (its material is cached as `..._face_nomark`).

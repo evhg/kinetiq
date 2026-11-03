@@ -146,7 +146,10 @@ any more. How to switch, part names, lighting notes: `../renders4/canon.md`. Pro
 - **Grip-off** (`build_racket(..., grip=False)`): no overgrip; the core runs on (NECK y_cut = `NOGRIP_Y_CUT` -0.2985,
   its round end inside the cap), so the bare 33.0 x 29.0 mm carbon handle flows from the neck into the cap with the twill
   straight down it. The cap and its Q stay. K01: `--set NOGRIP=1` (finals `final/K01-hero-*-nogrip*`, still ids
-  `K01-nogrip-*`). Light linking by name skips the missing grip (C.objs).
+  `K01-nogrip-*`). Light linking by name skips the missing grip (C.objs). Every other shot (owner, 2026-11-03):
+  `KQ_NOGRIP=1` in the environment (kq_canon `ENV_NOGRIP`; a hidden grip mesh stands in, so shots run unchanged), plus
+  `KQ_EDGE_MM=1.5` for a still whose grip-on version is still the 1.5 mm canon; still ids `<K-number>-nogrip-...`
+  (README "Grip-off twins").
 - **WEAVE_HD** (`kq_canon.WEAVE_HD`, opt-in): the whole-racket shots' twill (2.6 mm tows at 4 to 7 px) given crisp tow
   outlines: `relief_k` (the height map darkens tow edges and ends), `gap_k` (k04_tex2 gap16, the resin gaps), a stronger
   direction step, relief and sheen, a slightly lighter tint (the relief takes about 3 % off the mean). K01, K02 and K08

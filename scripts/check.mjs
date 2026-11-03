@@ -24,8 +24,8 @@
 //                                               `kq-feel` cookie and localStorage are set before the first
 //                                               navigation, as the feel toggle leaves them
 //   node scripts/check.mjs --grip=off           a returning visitor who chose "Bare" in the hero's grip toggle:
-//                                               `kq-grip=off` in the cookie and localStorage; the grip-on hero
-//                                               stills (K01 base/full, desktop and phone) must never load
+//                                               `kq-grip=off` in the cookie and localStorage; on any --path, no
+//                                               still with a grip-off twin may load its grip-on file
 // Every case also checks the feel of the stills it fetched: a still or swivel frame with a version in the other feel
 // (the Command file of a still that has a Pace export, or the reverse) must never be downloaded.
 // Every other case carries the NDA cookie (scripts/nda-cookie.mjs), so it sees the real site.
@@ -493,7 +493,7 @@ async function runCase(browser, statsPage, vp, mode) {
     feel: pageFeel,
     shownFeel,
     wrongFeel: wrongFeelFiles(stillRequests, pageFeel),
-    wrongGrip: gripArg === "off" && pagePath === "/" ? gripOnHeroFiles(stillRequests) : [],
+    wrongGrip: gripArg === "off" ? gripOnFiles(stillRequests) : [],
     blankSteps: steps.filter((s) => s.blank).map((s) => s.pct),
     fillSteps: steps.filter((s) => s.fillFail.length).map((s) => `${s.pct}% (${s.fillFail.join(", ")})`),
     steps,
@@ -532,13 +532,18 @@ function wrongFeelFiles(urls, feel) {
   return [...wrong];
 }
 
-// With the grip off (kq-grip=off), the hero's grip-on stills must never load: the server sends / bare (src/proxy.ts).
-// Their keys: K01-base / K01-full (and -pace) in any crop, and the phone heroes K01-hero-base-phone / -full-phone.
-function gripOnHeroFiles(urls) {
+// With the grip off (kq-grip=off), no still that has a grip-off twin may load its grip-on file, on any page: the server
+// sends /, /reserve and /reserved bare (src/proxy.ts) and <Still> picks the twin. A twin is named as <Still>'s bareId
+// names it, "-nogrip" after the K-number ("K11-single-pace-card" -> "K11-nogrip-single-pace-card"); a crop counts only
+// where its twin is exported.
+const nogripKey = (key) => key.replace(/^(K\d+[a-z]?)(?=-)/, "$1-nogrip");
+function gripOnFiles(urls) {
   const wrong = new Set();
   for (const u of urls) {
-    const m = new URL(u).pathname.match(/^\/stills\/(K01-(?:base|full|hero-(?:base|full)-phone)(?:-pace)?)-(?:wide|portrait)-\d+/);
-    if (m) wrong.add(new URL(u).pathname);
+    const path = new URL(u).pathname;
+    const m = path.match(/^\/stills\/(.+?)-\d+(?:\.[0-9a-f]{10})?\.(?:avif|webp)$/);
+    if (!m || m[1].includes("-nogrip")) continue;
+    if (STILL_KEYS.has(m[1]) && STILL_KEYS.has(nogripKey(m[1]))) wrong.add(path);
   }
   return [...wrong];
 }
@@ -923,7 +928,7 @@ function evaluate(results) {
     if (r.interactions?.marks && !r.interactions.marks.ok) failures.push(`${r.id}: footnote markers: ${r.interactions.marks.problems.join("; ")}`);
     if (r.interactions?.gate && !r.interactions.gate.ok) failures.push(`${r.id}: gate: ${r.interactions.gate.problems.join("; ")}`);
     if (r.wrongFeel?.length) failures.push(`${r.id}: ${r.wrongFeel.length} file(s) in the wrong feel for ${r.feel}: ${r.wrongFeel.slice(0, 4).join(", ")}`);
-    if (r.wrongGrip?.length) failures.push(`${r.id}: ${r.wrongGrip.length} grip-on hero file(s) loaded with the grip off: ${r.wrongGrip.slice(0, 4).join(", ")}`);
+    if (r.wrongGrip?.length) failures.push(`${r.id}: ${r.wrongGrip.length} grip-on file(s) of a still with a grip-off twin loaded with the grip off: ${r.wrongGrip.slice(0, 4).join(", ")}`);
     if (r.shownFeel && r.shownFeel !== r.feel) failures.push(`${r.id}: html[data-feel] is ${r.shownFeel}, expected ${r.feel}`);
     if (r.fillSteps.length) failures.push(`${r.id}: fill rule broken at ${r.fillSteps.join("; ")}`);
   }

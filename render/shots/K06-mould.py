@@ -524,7 +524,8 @@ def handle_rings(step=0.0005, m=96):
     ys = list(np.arange(y0, C.BUTT_Y, -step)) + [C.BUTT_Y]
     out = []
     for y in ys:
-        g, s = C.TAPE * _ss(0.0, 0.0025, y0 - y), 1.0
+        # KQ_NOGRIP (owner, 2026-11-03): the channel is the bare core's own section (no tape), as the mould really is
+        g, s = (0.0 if C.ENV_NOGRIP else C.TAPE * _ss(0.0, 0.0025, y0 - y)), 1.0
         if y <= prof[0][1]:
             sc = float(np.interp(-y, py, ps))
             g, s = C.TAPE, (max(1.0, sc) if y >= y1 else sc)

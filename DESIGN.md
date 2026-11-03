@@ -260,21 +260,31 @@ native radio group, every option at least 44 px square to the touch, pressing to
   (the four options in one row: 5 px padding round each name below 700 px, so the row fits 335 px at 375 px; it wraps
   under the feel toggle on anything narrower). Not in the header: once the hero is gone the grip changes nothing on
   screen, and the header's 375 px budget (wordmark, two swatches, compact Reserve Now) has no room.
-- What it changes: the hero's two stills (`<Still bare>`: K01-nogrip-base and -full, their 9:16 phone masters and each
-  one's Pace version; `FeelPicture` holds one variant at a time, feel and grip, and swaps with the feel's fade). The
-  swivel has no sequence without the grip yet, so with Bare the hero shows the still as it scrolls away (the Swivel is
-  given `K01-swivel-nogrip`, which finds no frames; the grip's frames stay cached for a switch back, and a future
-  `K01-swivel-nogrip-<feel>-<layout>` export plays with no code change). The finale, /reserve and every other still
-  keep the grip: no other grip-off render exists.
+- What it changes (owner, 2026-11-03: "when I set the toggle to bare, Most renders still have the grip?"): every still
+  that shows the handle, on /, /reserve and /reserved, in both feels. Each has a grip-off twin, named by `<Still>`'s
+  `bareId`: "-nogrip" after the K-number, then "-pace" and the crop as usual (K01-nogrip-full, K02-nogrip-pace,
+  K11-nogrip-single, K05-nogrip-phone), with the same crops, so callers pass nothing: a `<Still>` finds its twin by name
+  (`bare={false}` opts out) and `FeelPicture` holds one variant at a time, feel and grip, swapping with the feel's fade.
+  A crop or feel whose twin is not exported yet keeps its grip-on file (never the other feel's face). The twins are
+  rendered by the same shot with `KQ_NOGRIP=1` (render/README.md), in the canon of the grip-on still they replace
+  (the 1.5 mm edge with `KQ_EDGE_MM=1.5` where the site still shows it), so a flip changes only the handle. The
+  swivels have no sequence without the grip yet: with Bare the hero and Unibody show their still as they scroll
+  (the Swivel is given `K01-swivel-nogrip` / `K02-swivel-nogrip`, which find no frames; the grip's frames stay cached
+  for a switch back, and a future `<name>-nogrip-<feel>-<layout>` export plays with no code change). Not changed: the
+  social card (`og.jpg`: crawlers carry no cookie) and G01's drawing in Specifications (it names the overgrip).
+- No wrist cord (owner, 2026-11-03: "no need to add the wrist cord"): no render shows the FIP cord, with the grip or
+  without it; the canon keeps "no wrist cord" (render/notes/canon.md). The product must still ship with one (CLAIMS.md
+  row 52).
 - State: `lib/grip-store.ts` (`useGrip`, `setGrip`) writes `kq-grip` in localStorage (try/catch; in memory when
   blocked), mirrors it in a first-party `kq-grip` cookie with the feel cookie's attributes (renewed by `src/proxy.ts`
   with Set-Cookie, as `kq-feel`), and sets `html[data-grip]`, which the head script sets before the first paint (it also
   writes back a stored choice the cookie lacks). Server variant (review, 2026-11-02: a returning Bare visitor's phone
   LCP was 5.4 s when the bare stills waited for hydration): a cleared request for / with `kq-grip=off` is rewritten to
   `app/feel/bare` (no feel cookie) or `app/feel/<feel>/bare`, the same page under `ServerGrip` (`lib/grip-context.tsx`),
-  so the server HTML already points the hero's `<picture>` at the K01-nogrip files and the grip-on hero never loads.
-  Only / has a bare variant. `check.mjs --grip=off` (with `--feel=pace` too) checks it: LCP budget and no grip-on hero
-  file fetched.
+  so the server HTML already points every `<picture>` at the grip-off twins and no grip-on file of a still with a twin
+  ever loads. /reserve and /reserved have bare variants too (`app/feel/[<feel>/]bare/reserve`, `.../reserved`; owner,
+  2026-11-03). `check.mjs --grip=off` (with `--feel=pace`, and on any `--path`) checks it: LCP budget and no grip-on
+  file of a still with a twin fetched.
 - Release precondition: no grip-off swivel exists (`K01-swivel-nogrip-<feel>-<layout>`), so with Bare the hero holds
   its still as it scrolls away. Render it (as the K01 swivel, `--set NOGRIP=1`) before main, or accept the still.
 - Release 6 (2026-11-02, accepted): Bare ships with its still. The grip-on hero stills (K01-base, K01-full, the two
