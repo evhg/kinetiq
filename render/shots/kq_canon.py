@@ -671,7 +671,7 @@ def build_cap(name, n=192):
 # the bores' UV (build_head hole_uv): None = "clamp", the canon's look since 2026-10-22 (every shot rendered so far);
 # "cyl" wraps each bore (owner, 2026-11-03, K15: "doesn't look like single mould continuous carbon"). KQ_HOLE_UV=cyl.
 HOLE_UV = os.environ.get("KQ_HOLE_UV") or "clamp"
-HOLE_SEG_CYL = int(os.environ.get("KQ_HOLE_SEG", "288"))      # bore facets under "cyl" (0: keep hole_seg)
+HOLE_SEG_CYL = int(os.environ.get("KQ_HOLE_SEG", "0"))        # bore facets under "cyl" (0: keep hole_seg 72; 288 broke the face tessellation)
 BORE_ANISO = os.environ.get("KQ_BORE_ANISO")                  # the bore lining's fibre anisotropy under "cyl" (None: the face's)
 NAKED_BUTT = dict(y_top=-0.2785, y_flare=-0.2893, y_band=-0.2955, r_end=0.0045, grow=0.0019, g0=0.00002)
 NAKED_CARBON = os.environ.get("KQ_CAPBLACK") != "1"

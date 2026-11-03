@@ -1,0 +1,12 @@
+# K05 v7, Pace (queue-nov3b p3): the Command look's key and laser, but Pace keeps its own coat band (PACE_DEFAULTS face
+# 6: v7's Command band blew out on the black 12K) and plate lift (amb 1.35: with 0.20 the frame failed the fill rule,
+# lit 6 %, out/k05v7/d_v7_pace).
+--wp_z 0.30
+--wp_x 0.70
+--wp_y 0.40
+--wp_deg 16
+--wpool 260
+--wfill 3
+--rim 14
+--glow 2.4
+--laser 26

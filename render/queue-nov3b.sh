@@ -31,10 +31,12 @@ if want p3; then   # K05 v7: 5120 x 2880 (the master is taller, for the portrait
   A=$KIT/notes/k05-v7.args
   if [ ! -f "$A" ]; then log "SKIP p3: no $A yet (the K05 v7 look is not decided)"; else
     ARGS=$(grep -v '^#' "$A" | tr '\n' ' ')
+    AP=$KIT/notes/k05-v7-pace.args
+    ARGSP=$( [ -f "$AP" ] && grep -v '^#' "$AP" | tr '\n' ' ' || echo "$ARGS")
     still K05-v5k "$V/K05-laser-scan.png" - -- $PY shots/K05-laser-scan.py $ARGS --w 5120 --h 2880 --spp 96 --out final/v5k/K05-laser-scan
-    still K05p-v5k "$V/K05-laser-scan-pace.png" - -- $PY shots/K05-laser-scan.py $ARGS --feel pace --w 5120 --h 2880 --spp 96 --out final/v5k/K05-laser-scan-pace
+    still K05p-v5k "$V/K05-laser-scan-pace.png" - -- $PY shots/K05-laser-scan.py $ARGSP --feel pace --w 5120 --h 2880 --spp 96 --out final/v5k/K05-laser-scan-pace
     still K05n-v5k "$V/K05-laser-scan-nogrip.png" - -- $NG $PY shots/K05-laser-scan.py $ARGS --w 5120 --h 2880 --spp 96 --out final/v5k/K05-laser-scan-nogrip
-    still K05np-v5k "$V/K05-laser-scan-nogrip-pace.png" - -- $NG $PY shots/K05-laser-scan.py $ARGS --feel pace --w 5120 --h 2880 --spp 96 --out final/v5k/K05-laser-scan-nogrip-pace
+    still K05np-v5k "$V/K05-laser-scan-nogrip-pace.png" - -- $NG $PY shots/K05-laser-scan.py $ARGSP --feel pace --w 5120 --h 2880 --spp 96 --out final/v5k/K05-laser-scan-nogrip-pace
     if [ -f "$V/K05-laser-scan-nogrip-pace.png" ]; then
       masters m-k05 stills/K05 "K05 v7 5120 x 2880, both feels, grip and Naked (2026-11-03)" $(ls "$V"/K05-laser-scan*.png)
       export_stills x-k05 "K05 Precision v7 at 5120 x 2880 (owner, 3 Nov: higher res, a richer light, a sharper laser), both feels, with its Naked twins" K05 K05-pace K05-phone K05-phone-pace K05-nogrip K05-nogrip-pace K05-nogrip-phone K05-nogrip-phone-pace
