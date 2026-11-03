@@ -99,154 +99,129 @@
 .point :global(.t-h3) {
   text-wrap: balance;
 }
-/* Three points across from 900 px, each a title row and a body row (subgrid), so the bodies share one top line. */
+/* Three points across from 900 px, each a title row, a body row and a row per figure (subgrid), so the bodies and
+   each figure share one top line. */
 @media (min-width: 900px) {
   .points {
     grid-template-columns: repeat(3, 1fr);
     gap: 40px var(--gutter);
   }
   .point {
-    grid-row: span 2;
     grid-template-rows: subgrid;
     row-gap: 12px;
   }
 }
 
-/* The spec sheet (owner, 2026-11-02), ruled like an Apple tech-specs page: the heading, then one group per discipline,
-   each opened by a full-width rule. Phones: the group's name, then each row's term over its figure and its method. From
-   700 px a row is one line: term, figure, method. From 1100 px the group's name takes the left three of twelve columns
-   on the group's rule, its rows the other nine. Each group carries its own graphite lift, bled to the screen's edges, so
-   the hairlines sit on light and every screen of the sheet keeps the fill rule (it is about three screens tall). */
-.sheet {
+/* The figures under each point (owner, 2026-11-03: the spec sheet folded into the points): three numbers in the stat
+   face, each over its term and its test method, the first under a short amber rule. From 900 px the figures are rows
+   of the points' subgrid (the list takes no box), so each figure sits level with its counterparts in the other two
+   points, whatever their notes. */
+.figures {
   display: grid;
-  gap: clamp(40px, 3.2vw, 96px);
-  padding-top: clamp(24px, 2.4vw, 64px);
-}
-.sheetHead {
-  display: grid;
-  gap: clamp(14px, 1vw + 6px, 24px);
-}
-.sheetTitle {
-  font-size: clamp(1.75rem, 1.9vw + 1rem, 4rem);
-  max-width: 18ch;
-  text-wrap: balance;
-}
-.groups {
-  display: grid;
-  margin-inline: calc(-1 * var(--margin));
-}
-.group {
-  display: grid;
-  padding-inline: var(--margin);
-  background: radial-gradient(ellipse 75% 85% at 62% 50%, rgb(50 50 56), rgb(44 44 50) 40%, rgb(34 34 39 / 0.6) 65%, transparent 88%);
-}
-.groupTitle {
-  padding: clamp(24px, 1.8vw, 44px) 0 4px;
-  border-top: 1px solid var(--hairline);
-  color: var(--steel);
-}
-.rows {
-  display: grid;
-  margin: 0;
-}
-.group:last-child .rows {
-  border-bottom: 1px solid var(--hairline);
-}
-.row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas:
-    "term term"
-    "figure method";
-  align-items: baseline;
-  column-gap: 16px;
-  row-gap: 10px;
-  padding: 20px 0;
-  border-top: 1px solid var(--hairline);
-}
-.row:first-child {
-  border-top: 0;
-}
-.term {
-  grid-area: term;
-  display: grid;
-  gap: 4px;
-}
-.termLabel {
-  font-size: var(--fs-body);
-  color: var(--text);
-  line-height: 1.3;
-}
-.note {
-  line-height: 1.35;
+  gap: clamp(22px, 1.6vw + 6px, 44px);
+  margin: clamp(12px, 1vw, 24px) 0 0;
 }
 .figure {
-  grid-area: figure;
-  margin: 0;
-  font-size: clamp(2.25rem, 2.6vw + 0.75rem, 5rem);
+  position: relative;
+  display: grid;
+  grid-template-areas:
+    "value"
+    "term"
+    "method";
+  align-content: start;
+  gap: 6px;
+}
+.figure:first-child {
+  padding-top: clamp(20px, 1.4vw + 6px, 40px);
+}
+.figure:first-child::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 48px;
+  height: 1px;
+  background: var(--amber);
+  box-shadow: 0 0 6px rgb(227 164 103 / 0.6);
+}
+.value {
+  grid-area: value;
+  margin: 0 0 4px;
+  font-size: clamp(2.5rem, 2.2vw + 1.25rem, 5rem);
+  line-height: 1;
+  color: var(--text);
   white-space: nowrap;
 }
-.figure :global(.t-unit) {
+.value :global(.t-unit) {
   font-size: max(0.9375rem, 0.3em);
 }
 /* "≥" and "≤" read as qualifiers, a step down and muted, never as part of the number */
 .bound {
-  margin-right: 0.12em;
-  font-size: 0.6em;
+  margin-right: 0.08em;
+  font-size: 0.55em;
   font-weight: 300;
   color: var(--muted);
+}
+.term {
+  grid-area: term;
+  color: var(--steel);
+  text-wrap: balance;
 }
 .method {
   grid-area: method;
   margin: 0;
-  text-align: right;
-  max-width: 16ch;
-  text-wrap: balance;
+  color: var(--muted);
+  text-wrap: pretty;
 }
-@media (min-width: 700px) {
-  .row {
-    grid-template-columns: minmax(0, 5fr) minmax(0, 4fr) minmax(0, 3fr);
-    grid-template-areas: "term figure method";
-    column-gap: var(--gutter);
-    padding: clamp(20px, 1.6vw, 40px) 0;
-  }
-  .method {
-    justify-self: end;
-    max-width: 20ch;
-  }
+/* a condition the figure holds under, on its own line under the method */
+.note {
+  display: block;
 }
-@media (min-width: 1100px) {
-  .sheetHead {
-    grid-template-columns: repeat(12, minmax(0, 1fr));
+/* Stacked tablets (700 to 899 px): a point spans the width, so its three figures stand side by side, the amber rule
+   over the first. Phones keep one column. */
+@media (min-width: 700px) and (max-width: 899px) {
+  .figures {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     column-gap: var(--gutter);
-    align-items: end;
+    padding-top: clamp(20px, 1.4vw + 6px, 40px);
+    position: relative;
   }
-  .sheetHead > :global(.t-eyebrow) {
-    grid-column: 1 / -1;
-  }
-  .sheetTitle {
-    grid-column: 1 / span 6;
-  }
-  .sheetHead > :global(.t-body) {
-    grid-column: 7 / span 6;
-  }
-  .group {
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    column-gap: var(--gutter);
-    align-items: start;
-  }
-  /* one continuous rule across the group's name and its rows, inside the margins */
-  .group::before {
+  .figures::before {
     content: "";
-    grid-column: 1 / -1;
-    border-top: 1px solid var(--hairline);
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 48px;
+    height: 1px;
+    background: var(--amber);
+    box-shadow: 0 0 6px rgb(227 164 103 / 0.6);
   }
-  .groupTitle {
-    grid-column: 1 / span 3;
-    border-top: 0;
-    padding-top: clamp(20px, 1.6vw, 40px);
+  .figure:first-child {
+    padding-top: 0;
   }
-  .rows {
-    grid-column: 4 / span 9;
+  .figure:first-child::before {
+    content: none;
+  }
+  .value {
+    font-size: 2.25rem;
+  }
+}
+@media (min-width: 900px) {
+  .point {
+    grid-row: span 5;
+  }
+  .figures {
+    display: contents;
+  }
+  .figure:first-child {
+    margin-top: clamp(8px, 0.8vw, 20px);
+  }
+  /* the subgrid's 12 px row gap suits a title over its body; figures need more air between them */
+  .figure + .figure {
+    padding-top: clamp(14px, 1.1vw + 4px, 36px);
+  }
+}
+/* The long service range (−30 to +80 °C) sets a step smaller in the narrow three-column band, so it never wraps. */
+@media (min-width: 900px) and (max-width: 1279px) {
+  .value {
+    font-size: clamp(2.25rem, 3.4vw, 2.75rem);
   }
 }
