@@ -79,19 +79,24 @@
   opacity: 0;
   pointer-events: none;
 }
-/* The light: a soft warm band, parallel to the rim, that the timeline moves across the face and out past the edge
-   (transform only). Colour dodge brightens what is already lit in proportion, so the weave and the edge radius flare
-   while the near-black studio beyond the rim barely moves. Hidden at rest and with reduced motion. */
+/* The light: a soft warm band parallel to the rim (turned -23 degrees, the rim's mean slope across the frame), which
+   the timeline moves along the rim's normal, from inside the face out past the edge (transform only: GSAP's yPercent
+   acts in the turned frame, after the CSS rotate). Only a strip, 160% x 30% of the frame, so its layer stays small on
+   a 5K screen. Colour dodge brightens what is already lit in proportion, so the weave and the edge radius flare while
+   the near-black studio beyond the rim barely moves. Hidden at rest and with reduced motion. */
 .light {
   position: absolute;
-  inset: -40%;
+  left: -30%;
+  top: 35%;
+  width: 160%;
+  height: 30%;
+  rotate: -23deg;
   background: linear-gradient(
-    337deg,
-    transparent 40%,
-    rgb(92 84 74 / 0.35) 45.5%,
+    transparent,
+    rgb(92 84 74 / 0.35) 30%,
     rgb(96 88 78) 50%,
-    rgb(92 84 74 / 0.35) 54.5%,
-    transparent 60%
+    rgb(92 84 74 / 0.35) 70%,
+    transparent
   );
   mix-blend-mode: color-dodge;
   opacity: 0;
@@ -268,7 +273,7 @@
   }
 }
 
-/* Pinned (900 px and up, with motion): one screen. K14 covers the stage, moved right and down (translate 24% 12%) so the
+/* Pinned (900 px and up, with motion): one screen. K14 covers the stage, moved right and down (translate 28% 14%) so the
    rim arcs from the lower middle to the upper right and the dark studio opens on the left for the words; its frame
    feathers into the stage at the left and the foot. The words in columns 1 to 5, centred in the screen below the
    header: the head, the lines, then the numbers. Every size is capped by the height too, so 1536 x 730 holds it all. */
@@ -288,7 +293,7 @@
     inset: 0;
     z-index: -1;
     margin: 0;
-    transform: translate(24%, 12%);
+    transform: translate(28%, 14%);
     -webkit-mask-image:
       linear-gradient(to right, transparent 2%, #000 30%),
       linear-gradient(transparent, #000 6%, #000 80%, transparent 96%);

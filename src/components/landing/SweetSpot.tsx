@@ -87,7 +87,7 @@ export function SweetSpot() {
             .fromTo(`.${styles.veil}`, { opacity: 0.62 }, { opacity: 0, duration: 0.3, ease: "power1.out", immediateRender: true }, 0)
             // The light: a soft warm band crossing the weave from the sweet spot out past the rim (transform only).
             .fromTo(`.${styles.light}`, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.06, immediateRender: true }, 0.1)
-            .fromTo(`.${styles.light}`, { xPercent: 16, yPercent: 38 }, { xPercent: -14, yPercent: -34, duration: 0.46, ease: "power1.inOut", immediateRender: true }, 0.1)
+            .fromTo(`.${styles.light}`, { yPercent: 210 }, { yPercent: -160, duration: 0.46, ease: "power1.inOut", immediateRender: true }, 0.1)
             .to(`.${styles.light}`, { autoAlpha: 0, duration: 0.08 }, 0.5)
             // The 1 mm line draws along the rim, where the flat face ends, from the lit side (the path's end, on the right)
             // back toward the words, as the light reaches the edge.
