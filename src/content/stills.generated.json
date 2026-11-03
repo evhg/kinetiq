@@ -1585,5 +1585,47 @@
    1440
   ],
   "hash": "24b97dbca7"
+ },
+ "K06-nogrip-base-pace-wide": {
+  "w": 3200,
+  "h": 1800,
+  "widths": [
+   828,
+   1280,
+   1920,
+   2560
+  ],
+  "hash": "47cb554ca8"
+ },
+ "K06-nogrip-base-pace-card": {
+  "w": 1440,
+  "h": 1800,
+  "widths": [
+   640,
+   1080,
+   1440
+  ],
+  "hash": "53f6b760d9"
+ },
+ "K06-nogrip-full-pace-wide": {
+  "w": 3200,
+  "h": 1800,
+  "widths": [
+   828,
+   1280,
+   1920,
+   2560
+  ],
+  "hash": "5c57602323"
+ },
+ "K06-nogrip-full-pace-card": {
+  "w": 1440,
+  "h": 1800,
+  "widths": [
+   640,
+   1080,
+   1440
+  ],
+  "hash": "57c4de824c"
  }
 }
