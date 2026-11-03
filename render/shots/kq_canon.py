@@ -334,9 +334,14 @@ CAP_TAGS = (T_FACE, T_BACK, T_NECKCAP)
 
 def build_head(name="KQ", holes=None, r_frame=EDGE_R, r_hole=0.0008, seg_frame=14, seg_hole=6, throat_fillet=0.0035,
                outline_fillet=0.003, hole_seg=72, neck=NECK, taper=NECK_TAPER, round_=NECK_ROUND,
-               throat_wall="clamp", throat_segs=None, split_y=NECK_SPLIT_Y, neck_uv=NECK_UV):
+               throat_wall="clamp", throat_segs=None, split_y=NECK_SPLIT_Y, neck_uv=NECK_UV, hole_uv=None):
     """k10_lib.build_head_k10 with the canonical holes (a radius per hole), the canonical neck (its edge radius grows
-    along it) and the light-linking split. Returns {part: object}."""
+    along it) and the light-linking split. Returns {part: object}.
+    hole_uv: None / "clamp" (the bores' UVs stop at the lip: the twill runs straight down every wall as stripes, which
+    read as glued-in slats in close views, owner 2026-11-03) or "cyl" (HOLE_UV_CYL: each bore wrapped as a cylinder, u
+    round it, one weave tile per turn, v down its depth, so the twill turns over the lip and runs on down the wall as one
+    moulded lining). Default HOLE_UV (env KQ_HOLE_UV)."""
+    hole_uv = hole_uv or HOLE_UV
     outline = outline_canon(outline_fillet, neck=neck)
     throat = L.throat_loop(throat_fillet)
     hl = holes if holes is not None else holes_canon()
@@ -381,6 +386,11 @@ def build_head(name="KQ", holes=None, r_frame=EDGE_R, r_hole=0.0008, seg_frame=1
         if kind == "throat":
             s_thr, _ = L.throat_arclength(lp)
             segb = [b_ * 0.001 for b_ in throat_segs] if throat_segs else None
+        if kind == "hole" and hole_uv == "cyl":
+            hcx = sum(p_[0] for p_ in lp) / n
+            hcy = sum(p_[1] for p_ in lp) / n
+            hole_u = [((math.atan2(p_[1] - hcy, p_[0] - hcx) / (2 * math.pi)) % 1.0) * L.TILE for p_ in lp]
+            hole_v0 = hcy * 7.0 + hcx * 3.0    # a different phase of the weave in every bore
         nr = 2 * (S + 1)
         rings = [[None] * n for _ in range(nr)]
         for i, ((x, y), (ox, oy)) in enumerate(zip(lp, outw)):
@@ -398,7 +408,9 @@ def build_head(name="KQ", holes=None, r_frame=EDGE_R, r_hole=0.0008, seg_frame=1
             for k, (inset, z, c, s_) in enumerate(prof):
                 v = bm.verts.new((x - ox * inset, y - oy * inset, z))
                 v[nl] = (ox * c, oy * c, s_)
-                if kind == "hole" or (kind == "throat" and throat_wall == "clamp"):
+                if kind == "hole" and hole_uv == "cyl":
+                    v[ul] = (hole_u[i], hole_v0 - pv[k], 0.0)
+                elif kind == "hole" or (kind == "throat" and throat_wall == "clamp"):
                     d = min(pv[k], p_b)
                     v[ul] = (p0x + ox * d, p0y + oy * d, 0.0)
                 elif kind == "throat" and k > S:
@@ -488,6 +500,12 @@ def build_head(name="KQ", holes=None, r_frame=EDGE_R, r_hole=0.0008, seg_frame=1
         flat_cap = f.material_index in CAP_TAGS
         for lp_ in f.loops:
             lp_[uvl].uv = (lp_.vert.co.x, lp_.vert.co.y) if flat_cap else tuple(lp_.vert[ul])[:2]
+        if hole_uv == "cyl" and f.material_index == T_HOLES:   # the wrap's seam: one tile on (the maps repeat)
+            us = [lp_[uvl].uv[0] for lp_ in f.loops]
+            if max(us) - min(us) > L.TILE / 2:
+                for lp_ in f.loops:
+                    if lp_[uvl].uv[0] < L.TILE / 2:
+                        lp_[uvl].uv = (lp_[uvl].uv[0] + L.TILE, lp_[uvl].uv[1])
     groups = {"face": {T_FACE}, "back": {T_BACK}, "rim": {T_RIM}, "wall": {T_WALL}, "neck": {T_NECK, T_NECKCAP},
               "holes": {T_HOLES}, "bridgewall": {T_BRIDGE}, "throat": {T_THROAT}}
     if throat_segs:
@@ -648,6 +666,9 @@ def build_cap(name, n=192):
 # no seam, and the butt is joined into the `neck` part: every light linked to the neck lights it the same way. The
 # `cap` part stays as a hidden stub (like the grip under KQ_NOGRIP), so shots that link or loop over it run unchanged.
 # KQ_CAPBLACK=1 gives back the 2026-11-02 grip-off (bare core into the satin black cap).
+# the bores' UV (build_head hole_uv): None = "clamp", the canon's look since 2026-10-22 (every shot rendered so far);
+# "cyl" wraps each bore (owner, 2026-11-03, K15: "doesn't look like single mould continuous carbon"). KQ_HOLE_UV=cyl.
+HOLE_UV = os.environ.get("KQ_HOLE_UV") or "clamp"
 NAKED_BUTT = dict(y_top=-0.2785, y_flare=-0.2893, y_band=-0.2955, r_end=0.0045, grow=0.0019, g0=0.00002)
 NAKED_CARBON = os.environ.get("KQ_CAPBLACK") != "1"
 
@@ -1460,7 +1481,8 @@ def mat_carbon(feel, role, serial=None, o=None):
     white = is_white(feel, o)
     rest = {k: v for k, v in (o or {}).items() if k != "white"}
     tag = "command-black" if (feel == "command" and not white) else feel
-    key = "KQc_%s_%s" % (tag, role) + ("_" + (serial or "nomark") if role == "face" else "")
+    key = "KQc_%s_%s" % (tag, role) + ("_" + (serial or "nomark") if role == "face" else "") + \
+        ("_cyl" if (role == "bore" and HOLE_UV == "cyl") else "")
     m = bpy.data.materials.get(key)
     if m is not None and not rest:
         return m
@@ -1471,8 +1493,10 @@ def mat_carbon(feel, role, serial=None, o=None):
         if role == "throat":
             m = mat_white(key, o, wall=True)
         elif role == "bore":
-            m = _bore_wrap(mat_white(key, o, wall=True), z_dark=float(p["bore_dark"]), occ=float(p["bore_occ"]),
-                           col=float(p["bore_col"]))
+            # HOLE_UV "cyl": the bore keeps the face's per-tow fibre direction (the wall branch lays every fibre
+            # round the bore, and on a cylinder that draws vertical anisotropic streaks: the glued-slat look)
+            m = _bore_wrap(mat_white(key, o, wall=(HOLE_UV != "cyl")), z_dark=float(p["bore_dark"]),
+                           occ=float(p["bore_occ"]), col=float(p["bore_col"]))
         else:
             m = mat_white(key, o, etch=etch)
     elif feel == "command":

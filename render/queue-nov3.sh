@@ -189,13 +189,13 @@ PACE="--feel pace --set P_FOLLOW=0.85"
 # ---------------------------------------------------------------- P1: Naked
 if want p1a; then  # K01 Naked hero stills: 5K beam (base, full, finale) and the 2160 portrait, both feels
   log "ITEM-START p1a"
-  still K01-beam-nogrip-v5k "$F/K01-hero-beam-nogrip-v5k-full.png" "$F/passes/K01-hero-beam-nogrip-v5k" -- $PY shots/K01-hero-beam.py --feel command --set NOGRIP=1 --w 5120 --h 2880 --spp 96 --out final/K01-hero-beam-nogrip-v5k
+  still K01-beam-nogrip-v5k "$F/K01-hero-beam-nogrip-v5k-full.png" "$F/passes/K01-hero-beam-nogrip-v5k" -- $PY shots/K01-hero-beam.py --feel command --set NOGRIP=1 --w 5120 --h 2880 --spp 64 --out final/K01-hero-beam-nogrip-v5k
   still K01-phone-nogrip-v5k "$F/K01-hero-frame-phone-nogrip-v5k-full.png" "$F/passes/K01-hero-frame-phone-nogrip-v5k" -- $PY shots/K01-hero-frame.py --feel command --set NOGRIP=1 --w 2160 --h 3840 --spp 48 --out final/K01-hero-frame-phone-nogrip-v5k
   if [ -f "$F/K01-hero-beam-nogrip-v5k-full.png" ] && [ -f "$F/K01-hero-frame-phone-nogrip-v5k-full.png" ]; then
     masters "m-k01-nogrip-c" stills/K01 "K01 Naked (carbon butt) Command: 5120 beam base/full/finale, 2160 portrait (2026-11-03)" "$F"/K01-hero-beam-nogrip-v5k-{base,full,finale}.png "$F"/K01-hero-frame-phone-nogrip-v5k-{base,full}.png
     export_stills "x-k01-nogrip-c" "K01 Naked in Command (owner, 3 Nov: 100 % carbon): the butt is the shell's white 3K carbon with the Q engraved, no black cap; desktop master 5120 x 2880 (5K screens), portrait 2160" K01-nogrip-base K01-nogrip-full K01-nogrip-finale K01-nogrip-hero-base-phone K01-nogrip-hero-full-phone
   fi
-  still K01-beam-nogrip-pace-v5k "$F/K01-hero-beam-nogrip-pace-v5k-full.png" "$F/passes/K01-hero-beam-nogrip-pace-v5k" -- $PY shots/K01-hero-beam.py --feel pace --set NOGRIP=1 --w 5120 --h 2880 --spp 96 --out final/K01-hero-beam-nogrip-pace-v5k
+  still K01-beam-nogrip-pace-v5k "$F/K01-hero-beam-nogrip-pace-v5k-full.png" "$F/passes/K01-hero-beam-nogrip-pace-v5k" -- $PY shots/K01-hero-beam.py --feel pace --set NOGRIP=1 --w 5120 --h 2880 --spp 64 --out final/K01-hero-beam-nogrip-pace-v5k
   still K01-phone-nogrip-pace-v5k "$F/K01-hero-frame-phone-nogrip-pace-v5k-full.png" "$F/passes/K01-hero-frame-phone-nogrip-pace-v5k" -- $PY shots/K01-hero-frame.py --feel pace --set NOGRIP=1 --w 2160 --h 3840 --spp 48 --out final/K01-hero-frame-phone-nogrip-pace-v5k
   if [ -f "$F/K01-hero-beam-nogrip-pace-v5k-full.png" ] && [ -f "$F/K01-hero-frame-phone-nogrip-pace-v5k-full.png" ]; then
     masters "m-k01-nogrip-p" stills/K01 "K01 Naked (carbon butt) Pace: 5120 beam base/full/finale, 2160 portrait (2026-11-03)" "$F"/K01-hero-beam-nogrip-pace-v5k-{base,full,finale}.png "$F"/K01-hero-frame-phone-nogrip-pace-v5k-{base,full}.png
@@ -240,7 +240,7 @@ fi
 # ---------------------------------------------------------------- P2: the light-sweep swivels (Command first)
 if want p2a; then  # Command, grip: 5K beam stills + portrait still (the sweep scene at t = 0), then both swivels
   log "ITEM-START p2a"
-  still K01-beam-v5k "$F/K01-hero-beam-v5k-full.png" "$F/passes/K01-hero-beam-v5k" -- $PY shots/K01-hero-beam.py --feel command --w 5120 --h 2880 --spp 96 --out final/K01-hero-beam-v5k
+  still K01-beam-v5k "$F/K01-hero-beam-v5k-full.png" "$F/passes/K01-hero-beam-v5k" -- $PY shots/K01-hero-beam.py --feel command --w 5120 --h 2880 --spp 64 --out final/K01-hero-beam-v5k
   still K01-phone-v5k "$F/K01-hero-frame-phone-v5k-full.png" "$F/passes/K01-hero-frame-phone-v5k" -- $PY shots/K01-hero-frame.py --feel command --w 2160 --h 3840 --spp 48 --out final/K01-hero-frame-phone-v5k
   seq K01-swivel-command-phone 36 $P1C "$F/K01-hero-frame-phone-v5k-full.png" -- $PY shots/K01-hero-frame.py --feel command --w 2160 --h 3840 --spp 24 --seq 36 --yaw-range 0 35 --crop $P1C --out seq4/K01-swivel-command-phone
   seq K01-swivel-command-desktop 36 $D1C "$F/K01-hero-beam-v5k-full.png" -- $PY shots/K01-hero-beam.py --feel command --w 5120 --h 2880 --spp 16 --seq 36 --yaw-range 0 35 --crop $D1C --out seq4/K01-swivel-command-desktop
@@ -268,7 +268,7 @@ fi
 
 if want p2c; then  # Pace, grip: stills (note-7 weave) + swivels (the cards follow 85 % of the turn)
   log "ITEM-START p2c"
-  still K01-beam-pace-v5k "$F/K01-hero-beam-pace-v5k-full.png" "$F/passes/K01-hero-beam-pace-v5k" -- $PY shots/K01-hero-beam.py --feel pace --w 5120 --h 2880 --spp 96 --out final/K01-hero-beam-pace-v5k
+  still K01-beam-pace-v5k "$F/K01-hero-beam-pace-v5k-full.png" "$F/passes/K01-hero-beam-pace-v5k" -- $PY shots/K01-hero-beam.py --feel pace --w 5120 --h 2880 --spp 64 --out final/K01-hero-beam-pace-v5k
   still K01-phone-pace-v5k "$F/K01-hero-frame-phone-pace-v5k-full.png" "$F/passes/K01-hero-frame-phone-pace-v5k" -- $PY shots/K01-hero-frame.py --feel pace --w 2160 --h 3840 --spp 48 --out final/K01-hero-frame-phone-pace-v5k
   seq K01-swivel-pace-phone 36 $P1C "$F/K01-hero-frame-phone-pace-v5k-full.png" -- $PY shots/K01-hero-frame.py $PACE --w 2160 --h 3840 --spp 24 --seq 36 --yaw-range 0 35 --crop $P1C --out seq4/K01-swivel-pace-phone
   seq K01-swivel-pace-desktop 36 $D1C "$F/K01-hero-beam-pace-v5k-full.png" -- $PY shots/K01-hero-beam.py $PACE --w 5120 --h 2880 --spp 16 --seq 36 --yaw-range 0 35 --crop $D1C --out seq4/K01-swivel-pace-desktop
