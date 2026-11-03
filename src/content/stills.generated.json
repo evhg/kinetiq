@@ -1543,5 +1543,47 @@
    1440
   ],
   "hash": "d44c4b0ffe"
+ },
+ "K06-nogrip-base-wide": {
+  "w": 3200,
+  "h": 1800,
+  "widths": [
+   828,
+   1280,
+   1920,
+   2560
+  ],
+  "hash": "d6b767bef7"
+ },
+ "K06-nogrip-base-card": {
+  "w": 1440,
+  "h": 1800,
+  "widths": [
+   640,
+   1080,
+   1440
+  ],
+  "hash": "a4223f2bb1"
+ },
+ "K06-nogrip-full-wide": {
+  "w": 3200,
+  "h": 1800,
+  "widths": [
+   828,
+   1280,
+   1920,
+   2560
+  ],
+  "hash": "b3e938eefb"
+ },
+ "K06-nogrip-full-card": {
+  "w": 1440,
+  "h": 1800,
+  "widths": [
+   640,
+   1080,
+   1440
+  ],
+  "hash": "24b97dbca7"
  }
 }
