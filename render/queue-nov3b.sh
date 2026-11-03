@@ -103,4 +103,57 @@ if want p5f; then  # K07 and K08 (5120): grip and Naked
   log "ITEM-DONE p5f"
 fi
 
+# K02 swivel (Unibody), new canon (HD weave, 1.0 mm) at 5120, with its still, so the two always ship together; then
+# its Naked twin (K02-swivel-nogrip-*), then Pace. The script renders frame 0 itself (--spp0 at the still's samples)
+# and writes the desktop frames and their 90-degree phone turns (seq4/<name>-desktop, -phone).
+K2C="0.09 0.92 0.20 0.86"
+k02seq() {   # k02seq <name> <frames> <env/cmd...> (cmd has --seq, --phone, --crop, --out seq4/<name>)
+  local name=$1 n=$2; shift 2
+  local d=$S/$name-desktop t0=$(date +%s) did=0
+  log "SEQ-START $name ($n frames)"
+  for i in 0 $((n - 1)) $(seq 1 $((n - 2))); do
+    local f=$(printf "f%03d.png" "$i")
+    [ -f "$d/$f" ] && [ -f "$S/$name-phone/$f" ] && continue
+    wait_disk
+    local t1=$(date +%s)
+    run_locked "$name" "$@" --only "$i" || { log "SKIP-SEQ $name after an error at frame $i"; return 1; }
+    [ -f "$d/$f" ] || { log "SKIP-SEQ $name: frame $i missing"; return 1; }
+    log "FRAME $name $i $(( $(date +%s) - t1 )) s free $(free_mb) MB"
+    did=$((did + 1)); sleep "$PAUSE"
+    if [ "$i" -eq $((n - 1)) ]; then
+      python3 "$KIT/seq_cropcheck.py" "$d" "$i" $K2C | while read -r l; do log "cropcheck $name $l"; done
+      [ "${PIPESTATUS[0]}" -eq 2 ] && { log "CROP-FAIL $name"; return 1; }
+    fi
+  done
+  log "SEQ-DONE $name: $did frames in $(( $(date +%s) - t0 )) s"
+}
+k02item() {  # k02item <tag> <still out stem> <seq name> <frames> <feel args> <env prefix or ->
+  local tag=$1 stem=$2 name=$3 n=$4 fa=$5 en=$6
+  local E=(); [ "$en" != "-" ] && E=(env $en)
+  still "K02$tag-v5k" "$V/$stem.png" - -- "${E[@]}" $PY shots/K02-edge-line.py $fa --w 5120 --h 2880 --spp 96 --out final/v5k/$stem
+  k02seq "$name" "$n" "${E[@]}" $PY shots/K02-edge-line.py $fa --w 5120 --h 2880 --spp 24 --spp0 96 --seq "$n" --range 0 35 --phone --crop $K2C --out "seq4/$name"
+}
+if want p5g; then
+  log "ITEM-START p5g"
+  k02item c K02-edge-line K02-swivel-command 60 "--feel command" -
+  k02item nc K02-edge-line-nogrip K02-swivel-nogrip-command 60 "--feel command" KQ_NOGRIP=1
+  if [ "$(ls $S/K02-swivel-command-desktop 2>/dev/null | grep -c '^f[0-9]*\.png$')" -ge 60 ] && [ "$(ls $S/K02-swivel-nogrip-command-desktop 2>/dev/null | grep -c '^f[0-9]*\.png$')" -ge 60 ]; then
+    masters m-k02c stills/K02 "K02 5120 new canon, grip and Naked, Command (2026-11-03)" "$V"/K02-edge-line.png "$V"/K02-edge-line-nogrip.png
+    export_stills x-k02c "K02 (Unibody) Command at 5120 in the new canon (HD weave, 1.0 mm edge), grip and Naked, shipped with its new swivel" K02 K02-nogrip
+    export_seq xs-k02c "K02 swivel Command at 5120 in the new canon, and its Naked twin (K02-swivel-nogrip)" K02-swivel-command-desktop K02-swivel-command-phone K02-swivel-nogrip-command-desktop K02-swivel-nogrip-command-phone
+    seq_masters K02-swivel-command-desktop $K2C
+    seq_masters K02-swivel-nogrip-command-desktop $K2C
+  fi
+  k02item p K02-edge-line-pace K02-swivel-pace 45 "--feel pace" -
+  k02item np K02-edge-line-nogrip-pace K02-swivel-nogrip-pace 45 "--feel pace" KQ_NOGRIP=1
+  if [ "$(ls $S/K02-swivel-pace-desktop 2>/dev/null | grep -c '^f[0-9]*\.png$')" -ge 45 ] && [ "$(ls $S/K02-swivel-nogrip-pace-desktop 2>/dev/null | grep -c '^f[0-9]*\.png$')" -ge 45 ]; then
+    masters m-k02p stills/K02 "K02 5120 new canon, grip and Naked, Pace (2026-11-03)" "$V"/K02-edge-line-pace.png "$V"/K02-edge-line-nogrip-pace.png
+    export_stills x-k02p "K02 (Unibody) Pace at 5120 in the new canon, grip and Naked, shipped with its new swivel" K02-pace K02-nogrip-pace
+    export_seq xs-k02p "K02 swivel Pace at 5120 in the new canon, and its Naked twin" K02-swivel-pace-desktop K02-swivel-pace-phone K02-swivel-nogrip-pace-desktop K02-swivel-nogrip-pace-phone
+    seq_masters K02-swivel-pace-desktop $K2C
+    seq_masters K02-swivel-nogrip-pace-desktop $K2C
+  fi
+  log "ITEM-DONE p5g"
+fi
+
 log "ALL-DONE (nov3b) free $(free_mb) MB"

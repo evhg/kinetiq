@@ -23,6 +23,7 @@ else
   SD=$1; shift
   for n in "$@"; do
     case "$n" in *-phone) Q="--avif-quality=50" ;; *) Q="" ;; esac
+    case "$n" in K02-swivel*command-phone) Q="$Q --keep=45" ;; esac   # the phone load budget (sequence.mjs --keep)
     node scripts/sequence.mjs "$SD" "$n" --formats=avif,webp $Q || exit 1
   done
 fi
