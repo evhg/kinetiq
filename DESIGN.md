@@ -230,16 +230,16 @@ option, the focus ring on the option). The site opens on Command.
   panel is placed against the header. From 1024 px the two named groups sit in the header, a 1 px
   hairline between them, before the compact Reserve Now. Below 1024 px one 44 px button, a quiet capsule (1 px `--edge`
   ring) round the current face swatch and handle glyph and a small chevron, read from html[data-feel] and
-  html[data-grip] so the server paint is right; its name carries the choice on show, "Feel and handle: Command, Bare"
+  html[data-grip] so the server paint is right; its name carries the choice on show, "Feel and handle: Command, Naked"
   (`site.viewToggleLabel` and the toggles' labels, passed as props), the panel's group "Feel and handle". It fits the 375 px
   row: wordmark 128, button 66, compact Reserve Now 126. A tap opens a small panel under the header at its right margin
   (opaque `--graphite-2`, a step above the section floors so the page never ghosts through it, a hairline
-  border, 22 px radius): two rows, Feel (Command, Pace) and Handle (Grip, Bare),
+  border, 22 px radius): two rows, Feel (Command, Pace) and Handle (Grip, Naked),
   each name in Saira 15 px `--muted` before its radio group, the options in two aligned columns, every option 44 px
   tall. It enters from scale 0.97 and 4 px up in 200 ms ease-out and leaves in 150 ms (transform and opacity; reduced
   motion: instant); opened or closed from the keyboard it appears and goes at once and focus moves to the checked
   option. A disclosure, not a modal (`aria-expanded`, `aria-controls`; the panel follows the button in the tab order):
-  it stays open while choices are made, so Grip and Bare can be compared on the image beneath, and closes on Escape
+  it stays open while choices are made, so Grip and Naked can be compared on the image beneath, and closes on Escape
   (focus back on the button), a press outside it, focus leaving it, or the hero coming back. A choice there reaches
   the /reserve experience too (`onFeelChoice`), over a ?feel= from the link. The not-found and credits headers have no
   toggles, so the gate's shared not-found tree carries none of these words (props from `Chrome.tsx`).
@@ -275,15 +275,18 @@ option, the focus ring on the option). The site opens on Command.
 ## Grip toggle (owner, 2026-11-02)
 The owner: "render images without the grip to show it's a single one piece... like the command/pace toggle, could we
 have another minimal toggle to show a remove the grip?" (`GripToggle`, `components/chrome/`; its group name "Handle" and
-the labels "Grip" and "Bare" come from `site.ts`). The feel toggle's language exactly (`FeelToggle.module.css`): a
+the labels "Grip" and "Naked" come from `site.ts`; owner, 2026-11-03 PM: "rename bare to Naked which shows 100%
+carbon", so Naked has no overgrip and no black cap: the handle and its end are the shell's carbon in the feel's weave,
+the Q engraved into the carbon end; internal ids keep "bare" and "nogrip"). The feel toggle's language exactly (`FeelToggle.module.css`): a
 small glyph with its name in Saira, the chosen one ringed in `--text` and its name `--text`, the other `--muted`; no
 pill, thumb or fill. Its glyph is an upright handle (8 × 16 px): Grip is the black overgrip with its helical wrap,
-Bare is the face's own carbon in the feel on show (white 3K in Command, black 12K in Pace, from html[data-feel]). A
+Naked is the face's own carbon in the feel on show, a fine twill with no cap (white 3K in Command, black 12K in Pace,
+from html[data-feel]). A
 native radio group, every option at least 44 px square to the touch, pressing to 0.97.
 - Hero: after the feel toggle, a 1 px hairline between them, beside Reserve Now from 700 px and above it on phones
   (the four options in one row: 5 px padding round each name below 700 px, so the row fits 335 px at 375 px; it wraps
   under the feel toggle on anything narrower). And in the header with the feel toggle (owner, 2026-11-03), in its view
-  control on /, /reserve and /reserved ("Feel toggle", Header), so Bare is one tap away anywhere. Every grip toggle
+  control on /, /reserve and /reserved ("Feel toggle", Header), so Naked is one tap away anywhere. Every grip toggle
   reads the one store, so all agree; a change mid-page swaps the images in place with no reload and no scroll jump.
 - What it changes (owner, 2026-11-03: "when I set the toggle to bare, Most renders still have the grip?"): every still
   that shows the handle, on /, /reserve and /reserved, in both feels. Each has a grip-off twin, named by `<Still>`'s
@@ -293,7 +296,7 @@ native radio group, every option at least 44 px square to the touch, pressing to
   A crop or feel whose twin is not exported yet keeps its grip-on file (never the other feel's face). The twins are
   rendered by the same shot with `KQ_NOGRIP=1` (render/README.md), in the canon of the grip-on still they replace
   (the 1.5 mm edge with `KQ_EDGE_MM=1.5` where the site still shows it), so a flip changes only the handle. The
-  swivels have no sequence without the grip yet: with Bare the hero and Unibody show their still as they scroll
+  swivels have no sequence without the grip yet: with Naked the hero and Unibody show their still as they scroll
   (the Swivel is given `K01-swivel-nogrip` / `K02-swivel-nogrip`, which find no frames; the grip's frames stay cached
   for a switch back, and a future `<name>-nogrip-<feel>-<layout>` export plays with no code change). Not changed: the
   social card (`og.jpg`: crawlers carry no cookie) and G01's drawing in Specifications (it names the overgrip).
@@ -303,16 +306,16 @@ native radio group, every option at least 44 px square to the touch, pressing to
 - State: `lib/grip-store.ts` (`useGrip`, `setGrip`) writes `kq-grip` in localStorage (try/catch; in memory when
   blocked), mirrors it in a first-party `kq-grip` cookie with the feel cookie's attributes (renewed by `src/proxy.ts`
   with Set-Cookie, as `kq-feel`), and sets `html[data-grip]`, which the head script sets before the first paint (it also
-  writes back a stored choice the cookie lacks). Server variant (review, 2026-11-02: a returning Bare visitor's phone
+  writes back a stored choice the cookie lacks). Server variant (review, 2026-11-02: a returning Naked visitor's phone
   LCP was 5.4 s when the bare stills waited for hydration): a cleared request for / with `kq-grip=off` is rewritten to
   `app/feel/bare` (no feel cookie) or `app/feel/<feel>/bare`, the same page under `ServerGrip` (`lib/grip-context.tsx`),
   so the server HTML already points every `<picture>` at the grip-off twins and no grip-on file of a still with a twin
   ever loads. /reserve and /reserved have bare variants too (`app/feel/[<feel>/]bare/reserve`, `.../reserved`; owner,
   2026-11-03). `check.mjs --grip=off` (with `--feel=pace`, and on any `--path`) checks it: LCP budget and no grip-on
   file of a still with a twin fetched.
-- Release precondition: no grip-off swivel exists (`K01-swivel-nogrip-<feel>-<layout>`), so with Bare the hero holds
+- Release precondition: no grip-off swivel exists (`K01-swivel-nogrip-<feel>-<layout>`), so with Naked the hero holds
   its still as it scrolls away. Render it (as the K01 swivel, `--set NOGRIP=1`) before main, or accept the still.
-- Release 6 (2026-11-02, accepted): Bare ships with its still. The grip-on hero stills (K01-base, K01-full, the two
+- Release 6 (2026-11-02, accepted): Naked ships with its still. The grip-on hero stills (K01-base, K01-full, the two
   K01-hero phone masters) and K02, both feels, stay on the exports main had (the 1.5 mm canon), because each swivel's
   frame 0 must be its still and the swivels are not re-rendered yet: a new-canon still would visibly soften the weave
   as the turn starts. The HD re-renders are committed in the masters repo and reproduce bit for bit with
@@ -322,7 +325,7 @@ native radio group, every option at least 44 px square to the touch, pressing to
   When a grip-on still moves to the new canon (K02 with its new swivel), re-render its twin in the same commit
   (the same command without `KQ_EDGE_MM` and `--set HD=0`), or a flip of the toggle changes the edge and the weave too.
   K02's Unibody turn has no grip-off sequence: render one (K02-edge-line.py `--set NOGRIP=1`, the swivel's own
-  arguments) with the new-canon K02 swivel; until then Bare holds the still there, as in the hero.
+  arguments) with the new-canon K02 swivel; until then Naked holds the still there, as in the hero.
 
 ## Micro-interactions
 Pressables scale 0.97 on `:active`; hover only behind `(hover: hover) and (pointer: fine)`; transform and

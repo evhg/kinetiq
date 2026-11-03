@@ -21,7 +21,7 @@ import styles from "./Hero.module.css";
 const PORTRAIT = "(max-width: 699px), (max-width: 999px) and (max-aspect-ratio: 1/1), (max-aspect-ratio: 4/5)";
 /** On a portrait tablet the master is drawn wider than the screen (up to about 1.4 times), sized by its band. */
 const PORTRAIT_SIZES = "(min-width: 700px) 140vw, 100vw";
-/** The same two stills rendered without the overgrip (owner, 2026-11-02), shown while the grip toggle is on "Bare". */
+/** The same two stills rendered without the overgrip (owner, 2026-11-02), shown while the grip toggle is on "Naked". */
 const BARE_BASE = { id: "K01-nogrip-base", phoneId: "K01-nogrip-hero-base-phone" };
 const BARE_FULL = { id: "K01-nogrip-full", phoneId: "K01-nogrip-hero-full-phone" };
 /**

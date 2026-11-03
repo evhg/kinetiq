@@ -22,7 +22,7 @@ const { edge, section } = unibody;
  */
 const SWIVEL = "K02-swivel";
 /**
- * With the grip toggle on Bare (owner, 2026-11-03: Bare on every image), the still is K02's grip-off twin (K02-nogrip,
+ * With the grip toggle on Naked (owner, 2026-11-03: Naked on every image), the still is K02's grip-off twin (K02-nogrip,
  * through <Still>) and the swivel looks for `K02-swivel-nogrip-<feel>-<layout>`: none is rendered yet, so the still
  * shows without the turn, as the hero does, and an export of it plays with no code change.
  */

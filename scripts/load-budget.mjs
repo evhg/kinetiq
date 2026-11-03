@@ -6,7 +6,7 @@
 // Usage: node scripts/load-budget.mjs <base url> [--device=iphone|iphone-short|ipad-pro|desktop] [--feel=command|pace]
 //   [--feel-store=both|local] [--dwell=quiet|<ms per screen>] (default quiet: each screen waits for the network)
 //   [--grip=on|off] [--json=<file>]
-// --grip=off: a returning visitor who chose Bare in the hero (localStorage and the `kq-grip` cookie).
+// --grip=off: a returning visitor who chose Naked in the hero (localStorage and the `kq-grip` cookie).
 // --feel sets the stored choice the way a returning visitor has it: localStorage and the `kq-feel` cookie (both, the
 // default), or localStorage alone (--feel-store=local: a choice made before the cookie existed).
 // LCP is read once the hero's first still shows its final version (its <picture> in the stored feel, loaded), before

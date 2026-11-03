@@ -21,7 +21,7 @@ type Props = {
 const ORDER: GripId[] = ["on", "off"];
 
 /**
- * Grip and Bare (owner, 2026-11-02: "could we have another minimal toggle to show a remove the grip?"): the racket
+ * Grip and Naked (owner, 2026-11-02: "could we have another minimal toggle to show a remove the grip?"): the racket
  * with its overgrip, or without it, so the bare carbon handle shows running straight out of the head. The feel toggle's
  * visual language (FeelToggle.module.css): a small handle glyph with its name, the chosen one ringed and its name in
  * --text. The bare handle's glyph is the face's carbon in the feel on show (html[data-feel]), the grip's the black wrap.

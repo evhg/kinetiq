@@ -19,7 +19,7 @@ import { NDA_COOKIE, NDA_ROUTE, ndaCleared } from "@/lib/nda";
  * by Next's own Vary on rendered pages.)
  * A cleared request for /, /reserve or /reserved with `kq-grip=off` (lib/grip-store.ts, the grip toggle) is rewritten
  * the same way to its bare variant (app/feel/bare/..., or app/feel/<feel>/bare/... with a feel), so the page downloads
- * only the grip-off stills (review, 2026-11-02: a returning "Bare" visitor's phone LCP was 5.4 s when the bare stills waited for
+ * only the grip-off stills (review, 2026-11-02: a returning "Naked" visitor's phone LCP was 5.4 s when the bare stills waited for
  * hydration); `kq-grip` is renewed like `kq-feel`.
  * /feel/* asked for directly is a 404: those pages exist only behind this rewrite.
  * Every cleared page response to a request carrying `kq-feel` sends it back with a fresh year (refreshCookie below): Safari's

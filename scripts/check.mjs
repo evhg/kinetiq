@@ -23,7 +23,7 @@
 //   node scripts/check.mjs --feel=pace          a returning visitor with a stored feel (command|pace): the
 //                                               `kq-feel` cookie and localStorage are set before the first
 //                                               navigation, as the feel toggle leaves them
-//   node scripts/check.mjs --grip=off           a returning visitor who chose "Bare" in the hero's grip toggle:
+//   node scripts/check.mjs --grip=off           a returning visitor who chose "Naked" in the hero's grip toggle:
 //                                               `kq-grip=off` in the cookie and localStorage; on any --path, no
 //                                               still with a grip-off twin may load its grip-on file
 // Every case also checks the feel of the stills it fetched: a still or swivel frame with a version in the other feel

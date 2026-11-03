@@ -17,18 +17,18 @@ export type ViewCopy = {
 };
 
 /**
- * The Feel (Command, Pace) and Handle (Grip, Bare) choices in the header, so they are one tap away anywhere on /,
+ * The Feel (Command, Pace) and Handle (Grip, Naked) choices in the header, so they are one tap away anywhere on /,
  * /reserve and /reserved (owner, 2026-11-03: "when on iphone, I have to scroll all the way back up to change the
  * toggle?"). From 1024 px both radio groups sit in the header with their names. Below it, one 44 px button shows the
  * current face and handle (white or black swatch, the overgrip or the bare carbon, from html[data-feel] and
  * html[data-grip], so the server paint is already right) and opens a small panel under the header holding the same two
  * named groups. A disclosure, not a modal: the panel follows the button in the tab order; it closes on Escape (focus
  * back on the button), on a tap or a click outside, when focus leaves it, and when the header hides it (over the hero,
- * whose own toggles show). It stays open while a choice is made, so Grip and Bare can be compared on the still beneath.
+ * whose own toggles show). It stays open while a choice is made, so Grip and Naked can be compared on the still beneath.
  * Opened from the keyboard it appears at once and focus moves to the checked option (no animation on keyboard actions);
  * from a tap it fades and settles in 200 ms ease-out from scale 0.97, and leaves in 150 ms (DESIGN.md "Feel toggle").
  * Every toggle on the page shares one store per axis (lib/feel-store.ts, lib/grip-store.ts), so all of them agree. The
- * button's name carries the choice on show ("Feel and handle: Command, Bare"), so a screen reader hears it before opening.
+ * button's name carries the choice on show ("Feel and handle: Command, Naked"), so a screen reader hears it before opening.
  * `flush`: the compact Reserve Now after it is hidden, so the button (and the wide screens' groups) slide right by
  * --view-shift to the row's end instead of leaving a hole (`translate`, a transform: nothing reflows).
  */
