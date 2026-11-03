@@ -36,8 +36,12 @@
   font-size: clamp(0.9375rem, 0.15vw + 0.875rem, 1.125rem);
   min-height: clamp(44px, 0.7vw + 42px, 72px);
 }
-.toggle[data-size="compact"] {
+.toggle[data-size="compact"],
+.toggle[data-size="panel"] {
   font-size: 0.9375rem;
+}
+.toggle[data-size="panel"] {
+  gap: 0;
 }
 .option:active {
   transform: scale(0.97);

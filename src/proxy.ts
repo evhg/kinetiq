@@ -17,9 +17,9 @@ import { NDA_COOKIE, NDA_ROUTE, ndaCleared } from "@/lib/nda";
  * in the HTML and Command is never fetched; the URL stays as typed. No cache may reuse a page without asking (private,
  * no-cache below), so a changed choice always gets the page in the new feel. (A Vary: Cookie set here would be replaced
  * by Next's own Vary on rendered pages.)
- * A cleared request for / with `kq-grip=off` (lib/grip-store.ts, the hero's grip toggle) is rewritten the same way to
- * the bare variant (app/feel/bare, or app/feel/<feel>/bare with a feel), so the first screen downloads only the bare
- * hero stills (review, 2026-11-02: a returning "Bare" visitor's phone LCP was 5.4 s when the bare stills waited for
+ * A cleared request for /, /reserve or /reserved with `kq-grip=off` (lib/grip-store.ts, the grip toggle) is rewritten
+ * the same way to its bare variant (app/feel/bare/..., or app/feel/<feel>/bare/... with a feel), so the page downloads
+ * only the grip-off stills (review, 2026-11-02: a returning "Bare" visitor's phone LCP was 5.4 s when the bare stills waited for
  * hydration); `kq-grip` is renewed like `kq-feel`.
  * /feel/* asked for directly is a 404: those pages exist only behind this rewrite.
  * Every cleared page response to a request carrying `kq-feel` sends it back with a fresh year (refreshCookie below): Safari's
@@ -49,12 +49,12 @@ export function proxy(request: NextRequest) {
     if ((lab && process.env.NODE_ENV === "production" && process.env.KQ_LAB !== "1") || pathname === FEEL_ROOT || pathname.startsWith(`${FEEL_ROOT}/`)) {
       return presentation(NextResponse.rewrite(new URL(FEEL_ROOT, request.url)), request, feel, grip);
     }
-    // The bare hero (kq-grip=off): / only, the one page whose stills have a grip-off variant.
-    const bare = grip === "off" && pathname === "/";
+    // The bare pages (kq-grip=off; owner, 2026-11-03: every image without the grip): /, /reserve and /reserved.
+    const bare = grip === "off" && FEEL_PAGES.has(pathname);
     if ((feel && FEEL_PAGES.has(pathname)) || bare) {
       const url = request.nextUrl.clone();
       const page = pathname === "/" ? "" : pathname;
-      url.pathname = `${FEEL_ROOT}${feel ? `/${feel}` : ""}${bare ? "/bare" : page}`;
+      url.pathname = `${FEEL_ROOT}${feel ? `/${feel}` : ""}${bare ? "/bare" : ""}${page}`;
       return presentation(NextResponse.rewrite(url), request, feel, grip);
     }
     return presentation(NextResponse.next(), request, feel, grip);
@@ -64,8 +64,8 @@ export function proxy(request: NextRequest) {
   return gated(NextResponse.rewrite(new URL(NDA_ROUTE, request.url)));
 }
 
-/** The pages with a variant per feel (app/feel/<feel>/), and where those live (no page of its own: a 404). / alone also
- * has a bare variant (app/feel/bare, app/feel/<feel>/bare). */
+/** The pages with a variant per feel (app/feel/<feel>/), and where those live (no page of its own: a 404). Each also
+ * has a bare variant (app/feel/bare/, app/feel/<feel>/bare/). */
 const FEEL_ROOT = "/feel";
 const FEEL_PAGES = new Set(["/", "/reserve", "/reserved"]);
 

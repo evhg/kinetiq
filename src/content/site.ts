@@ -35,6 +35,12 @@ export const site = {
    * The two options are `gripToggleLabels`.
    */
   gripToggleLabel: "Handle",
+  /**
+   * The header's view control (owner, 2026-11-03: "when on iphone, I have to scroll all the way back up to change the
+   * toggle?"): the button below 1024 px that opens the Feel and Handle choices from anywhere on /, /reserve and
+   * /reserved. Its accessible name; HeaderClient gets it as a prop.
+   */
+  viewToggleLabel: "Feel and handle",
 } as const;
 
 /**

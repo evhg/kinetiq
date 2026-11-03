@@ -21,7 +21,7 @@ type Search = Promise<Record<string, string | string[] | undefined>>;
 export default function ReservePage({ searchParams }: { searchParams: Search }) {
   return (
     <>
-      <SiteHeader />
+      <SiteHeader toggles />
       <main id="main">
         <Suspense fallback={<ReserveShell />}>
           <Preselected searchParams={searchParams} />

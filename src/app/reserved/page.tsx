@@ -13,7 +13,7 @@ type Search = Promise<Record<string, string | string[] | undefined>>;
 export default function ReservedPage({ searchParams }: { searchParams: Search }) {
   return (
     <>
-      <SiteHeader />
+      <SiteHeader toggles />
       <main id="main" className={styles.page}>
         <div className={styles.backdrop} aria-hidden="true">
           <Still id="K01-finale" phoneCrop="portrait" alt="" className={styles.still} />

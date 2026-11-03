@@ -2,29 +2,30 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import type { FeelId } from "@/content/site";
 import { useFeel, withFeel } from "@/lib/feel-store";
-import { FeelToggle } from "./FeelToggle";
+import { ViewControl, type ViewCopy } from "./ViewControl";
 import styles from "./Chrome.module.css";
 
-/** The feel toggle's words, passed in from the server like the CTA label (src/content/site.ts). */
-export type FeelToggleCopy = { label: string; labels: Record<FeelId, string> };
+export type { ViewCopy };
 
 /**
  * Wordmark only. On the landing page a compact Reserve Now appears while neither the hero (the element with id
  * "hero") nor an in-page Reserve Now (marked data-cta) is on screen, so two never show at once. The label comes in
  * as a prop from the server (Chrome.tsx), so this client module carries no site copy: the root not-found renders
  * the header too, and its tree ships with every page, the NDA gate included.
- * Beside it, the Command and Pace toggle (`feelToggle`, its words passed in the same way), shown and hidden with it: on
- * phones its two swatches alone, from 700 px with their names (DESIGN.md "Feel toggle"). Reserve Now carries the
+ * Before it, the Feel and Handle choices (`view`, their words passed in the same way; ViewControl): on /, /reserve and
+ * /reserved, shown wherever the hero is not on screen (the hero has its own), whatever the compact Reserve Now does, so
+ * they are one tap away anywhere on the page (owner, 2026-11-03; DESIGN.md "Feel toggle"). Reserve Now carries the
  * chosen feel into checkout (?feel=).
  */
-export function HeaderClient({ ctaLabel, feelToggle }: { ctaLabel?: string; feelToggle?: FeelToggleCopy }) {
+export function HeaderClient({ ctaLabel, view }: { ctaLabel?: string; view?: ViewCopy }) {
   const compactCta = Boolean(ctaLabel);
   const { chosen } = useFeel();
   const ref = useRef<HTMLElement>(null);
   const [scrolled, setScrolled] = useState(false);
   const [showCta, setShowCta] = useState(false);
+  // Pages without a hero (/reserve, /reserved) show the view control from the first paint; / once the hero has gone.
+  const [heroOnScreen, setHeroOnScreen] = useState(compactCta);
   // The header's height (it follows the viewport width), so the CTA observer below always discounts the strip under it.
   const [chromeH, setChromeH] = useState(0);
 
@@ -55,7 +56,7 @@ export function HeaderClient({ ctaLabel, feelToggle }: { ctaLabel?: string; feel
   useEffect(() => {
     const hero = document.getElementById("hero");
     let io: IntersectionObserver | null = null;
-    if (compactCta && hero) {
+    if (hero) {
       // Whatever sits under the fixed header is not on screen: the root's top edge is the header's foot. Rebuilt when
       // the header's height changes.
       const top = chromeH || (ref.current?.offsetHeight ?? 0);
@@ -67,10 +68,13 @@ export function HeaderClient({ ctaLabel, feelToggle }: { ctaLabel?: string; feel
             else onScreen.delete(e.target);
           }
           setShowCta(onScreen.size === 0);
+          setHeroOnScreen(onScreen.has(hero));
         },
         { threshold: 0, rootMargin: `-${top}px 0px 0px 0px` },
       );
-      for (const el of [hero, ...document.querySelectorAll("[data-cta]")]) io.observe(el);
+      for (const el of [hero, ...(compactCta ? document.querySelectorAll("[data-cta]") : [])]) io.observe(el);
+    } else {
+      setHeroOnScreen(false);
     }
     return () => io?.disconnect();
   }, [compactCta, chromeH]);
@@ -81,28 +85,21 @@ export function HeaderClient({ ctaLabel, feelToggle }: { ctaLabel?: string; feel
         <Link href="/" className={styles.wordmark} aria-label="KINETIQ home">
           KINETIQ
         </Link>
-        {compactCta ? (
+        {compactCta || view ? (
           <div className={styles.end}>
-            {feelToggle ? (
-              <FeelToggle
-                label={feelToggle.label}
-                labels={feelToggle.labels}
-                size="compact"
-                className={styles.feel}
-                inert={!showCta}
-                visible={showCta}
-              />
+            {view ? <ViewControl copy={view} visible={!heroOnScreen} /> : null}
+            {compactCta ? (
+              <Link
+                href={withFeel("/reserve", chosen)}
+                prefetch={false}
+                className={`btn btn-primary ${styles.compact}`}
+                data-visible={showCta}
+                tabIndex={showCta ? 0 : -1}
+                aria-hidden={!showCta}
+              >
+                {ctaLabel}
+              </Link>
             ) : null}
-            <Link
-              href={withFeel("/reserve", chosen)}
-              prefetch={false}
-              className={`btn btn-primary ${styles.compact}`}
-              data-visible={showCta}
-              tabIndex={showCta ? 0 : -1}
-              aria-hidden={!showCta}
-            >
-              {ctaLabel}
-            </Link>
           </div>
         ) : null}
       </div>
