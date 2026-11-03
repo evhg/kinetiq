@@ -342,6 +342,8 @@ def build_head(name="KQ", holes=None, r_frame=EDGE_R, r_hole=0.0008, seg_frame=1
     round it, one weave tile per turn, v down its depth, so the twill turns over the lip and runs on down the wall as one
     moulded lining). Default HOLE_UV (env KQ_HOLE_UV)."""
     hole_uv = hole_uv or HOLE_UV
+    if hole_uv == "cyl" and HOLE_SEG_CYL:   # a round bore up close: 72 facets drew vertical lines in the lining
+        hole_seg = max(hole_seg, HOLE_SEG_CYL)
     outline = outline_canon(outline_fillet, neck=neck)
     throat = L.throat_loop(throat_fillet)
     hl = holes if holes is not None else holes_canon()
@@ -669,6 +671,8 @@ def build_cap(name, n=192):
 # the bores' UV (build_head hole_uv): None = "clamp", the canon's look since 2026-10-22 (every shot rendered so far);
 # "cyl" wraps each bore (owner, 2026-11-03, K15: "doesn't look like single mould continuous carbon"). KQ_HOLE_UV=cyl.
 HOLE_UV = os.environ.get("KQ_HOLE_UV") or "clamp"
+HOLE_SEG_CYL = int(os.environ.get("KQ_HOLE_SEG", "288"))      # bore facets under "cyl" (0: keep hole_seg)
+BORE_ANISO = os.environ.get("KQ_BORE_ANISO")                  # the bore lining's fibre anisotropy under "cyl" (None: the face's)
 NAKED_BUTT = dict(y_top=-0.2785, y_flare=-0.2893, y_band=-0.2955, r_end=0.0045, grow=0.0019, g0=0.00002)
 NAKED_CARBON = os.environ.get("KQ_CAPBLACK") != "1"
 
@@ -1495,7 +1499,8 @@ def mat_carbon(feel, role, serial=None, o=None):
         elif role == "bore":
             # HOLE_UV "cyl": the bore keeps the face's per-tow fibre direction (the wall branch lays every fibre
             # round the bore, and on a cylinder that draws vertical anisotropic streaks: the glued-slat look)
-            m = _bore_wrap(mat_white(key, o, wall=(HOLE_UV != "cyl")), z_dark=float(p["bore_dark"]),
+            ob_ = dict(o or {}, aniso=float(BORE_ANISO)) if (HOLE_UV == "cyl" and BORE_ANISO is not None) else o
+            m = _bore_wrap(mat_white(key, ob_, wall=(HOLE_UV != "cyl")), z_dark=float(p["bore_dark"]),
                            occ=float(p["bore_occ"]), col=float(p["bore_col"]))
         else:
             m = mat_white(key, o, etch=etch)

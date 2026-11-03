@@ -1,0 +1,18 @@
+# K05 v7 look (owner, 2026-11-03: "the lighting effect looks very basic", "the laser effect looks very low res"),
+# read by queue-nov3b.sh p3 (one flag per line). From previews out/k05v7/{a_v6,b_rake,c_low,d_v7}: the key pool drops
+# low (0.30 m) and comes from the crown end (0.70, 0.40) in a 16 deg cone at 260 W, so a long raking gradient crosses
+# the head and picks out the tow relief, the throat side in deep shade (fill 3, was 11); the coat band dimmer (60 -> 35)
+# so it stays a band, not a white glare; a brighter rim hairline (8 -> 14) draws the outline; the plate a shade darker
+# (amb 0.20); the laser a little stronger with more glow (26, 2.4). Resolution: 5120 x 2880 (the 0.16 mm line is about
+# 1.2 px there, a crisp line on a 5K screen; at 2560 it was upscaled x2.16).
+--wp_z 0.30
+--wp_x 0.70
+--wp_y 0.40
+--wp_deg 16
+--wpool 260
+--wfill 3
+--face 35
+--rim 14
+--amb 0.20
+--glow 2.4
+--laser 26
