@@ -145,9 +145,55 @@ def backdrop(color=(0.003, 0.003, 0.0035), rough=0.6, y=3.0, height=6):
     return bd
 
 
+def _auto_border(sc, path):
+    """KQ_BORDER_AUTO=1 (2026-11-03, the Naked cap patches): render only the butt region (Cycles border, full-size
+    output, black outside), found from the projected bounding box of every racket's cap (the hidden stub under Naked)
+    and Q mark, grown by KQ_BORDER_GROW (default 0.6 of its size) and 48 px, and KQ_BORDER_DOWN (default 1.5 heights)
+    further down for floor reflections. Writes <path>.border.json (x0 x1 y0 y1, top-left origin) for patch_paste.py."""
+    import json
+    import numpy as np
+    dg = bpy.context.evaluated_depsgraph_get()
+    cam = sc.camera
+    W, H = sc.render.resolution_x, sc.render.resolution_y
+    proj = np.array(cam.calc_matrix_camera(dg, x=W, y=H) @ cam.matrix_world.inverted())
+    lo, hi = np.array([9.0, 9.0]), np.array([-9.0, -9.0])
+    for ob in sc.objects:
+        if ob.type != "MESH" or ob.get("kq_part") not in ("cap", "capmark"):
+            continue
+        me = ob.data
+        co = np.empty(len(me.vertices) * 3)
+        me.vertices.foreach_get("co", co)
+        co = co.reshape(-1, 3)
+        hom = np.c_[co, np.ones(len(co))] @ (proj @ np.array(ob.matrix_world)).T
+        ok = hom[:, 3] > 1e-6
+        xy = hom[ok, :2] / hom[ok, 3:4]
+        f = np.c_[(xy[:, 0] + 1) / 2, 1 - (xy[:, 1] + 1) / 2]
+        lo = np.minimum(lo, f.min(0)); hi = np.maximum(hi, f.max(0))
+    if hi[0] < lo[0]:
+        raise SystemExit("KQ_BORDER_AUTO: no cap in the scene")
+    g = float(os.environ.get("KQ_BORDER_GROW", "0.6"))
+    dn = float(os.environ.get("KQ_BORDER_DOWN", "1.5"))
+    sz = hi - lo
+    x0 = lo[0] - sz[0] * g - 48 / W
+    x1 = hi[0] + sz[0] * g + 48 / W
+    y0 = lo[1] - sz[1] * g - 48 / H
+    y1 = hi[1] + sz[1] * (g + dn) + 48 / H
+    b = [max(0.0, x0), min(1.0, x1), max(0.0, y0), min(1.0, y1)]
+    r = sc.render
+    r.use_border = True
+    r.use_crop_to_border = False
+    r.border_min_x, r.border_max_x = b[0], b[1]
+    r.border_min_y, r.border_max_y = 1 - b[3], 1 - b[2]
+    with open(path + ".border.json", "w") as fh:
+        json.dump(dict(border=b, w=W, h=H), fh)
+    print("KQ_BORDER_AUTO border", " ".join("%.4f" % v for v in b), flush=True)
+
+
 def render(name):
     os.makedirs(OUT, exist_ok=True)
     path = os.path.join(OUT, name + ".png")
     bpy.context.scene.render.filepath = path
+    if os.environ.get("KQ_BORDER_AUTO") == "1":
+        _auto_border(bpy.context.scene, path)
     bpy.ops.render.render(write_still=True)
     return path
