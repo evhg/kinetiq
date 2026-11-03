@@ -4,7 +4,8 @@ OUTROOT="${KQ_RENDER_OUT:-/home/user/kinetiq-render-out}"
 F="$OUTROOT/out/final"
 M="${KQ_MASTERS:-$OUTROOT/masters}"
 mkdir -p "$M"
-l() { [ -f "$F/$1" ] && ln -sfn "$F/$1" "$M/$2.png" && echo "$1 -> $2"; }
+# a 5K re-render (owner, 2026-11-03) of any final lives in final/v5k/ under the same name and wins
+l() { local s="$F/$1"; [ -f "$F/v5k/$1" ] && s="$F/v5k/$1"; [ -f "$s" ] && ln -sfn "$s" "$M/$2.png" && echo "$1 -> $2"; }
 l K01-hero-frame-phone-base.png K01-hero-base-phone
 l K01-hero-frame-phone-full.png K01-hero-full-phone
 l K01-hero-beam-base.png K01-base

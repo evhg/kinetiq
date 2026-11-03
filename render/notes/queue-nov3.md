@@ -33,3 +33,13 @@ export, delete its line from the `.done` file. `ONLY="p2a"` runs one item. Never
 
 ## Status
 Updated by the render owner as items finish (see the log for the live state).
+
+## queue-nov3b (P3, P4, P5): starts when queue-nov3.sh ends
+`render/queue-nov3b.sh` (functions in `render/queue_lib.sh`) waits for queue-nov3.sh, then: p4 K15 both feels at 5120
+with wrapped bores (`KQ_HOLE_UV=cyl`); p3 K05 v7 at 5120, both feels and Naked (its look from `render/notes/k05-v7.args`,
+read when the item starts; without the file p3 is skipped); P5 at 5120 into `out/final/v5k/` (link-masters.sh prefers
+it): p5a K14, p5b K04, p5c K16 (halves 2560 x 2880), p5d K17, p5e K06 grip + Naked, p5f K07 and K08 grip + Naked.
+Not queued yet: K02 (its still must ship with a new-canon swivel), K03/K03b, K09/K10/K11/K12/K13 at 5K.
+```sh
+setsid nohup render/queue-nov3b.sh >> /home/user/kinetiq-render-out/logs/queue-nov3b.log 2>&1 &
+```
