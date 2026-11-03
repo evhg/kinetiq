@@ -8,7 +8,7 @@ import {
   isFeelId,
   storedFeel,
   type FeelId,
-} from "@/content/site";
+} from "@/content/prefs";
 import { ServerFeelContext } from "./feel-context";
 
 /**

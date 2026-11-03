@@ -1,7 +1,7 @@
 "use client";
 
 import { useId } from "react";
-import type { FeelId } from "@/content/site";
+import type { FeelId } from "@/content/prefs";
 import { useFeel } from "@/lib/feel-store";
 import styles from "./FeelToggle.module.css";
 

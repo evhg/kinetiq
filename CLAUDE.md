@@ -57,7 +57,8 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
 - Cleared pages are `private, no-cache` (`src/proxy.ts`), stills `private` with `Vary: Cookie` (`next.config.ts`). After
   each deploy, check production headers for `/` and a still with and without the cookie (`curl -D -`): never `public`.
 - `/nda` ships no product copy, prices, claims, stills or og:image. The root not-found's tree and client chunks ship
-  with every page, the gate included: keep words out of `HeaderClient` and anything not-found renders.
+  with every page, the gate included: keep words out of `HeaderClient` and anything not-found renders;
+  its client modules import `content/prefs.ts`, never `site.ts` (which pulls in `lineup.ts`). `check.mjs --gate` scans the scripts.
 - Scripts pass the gate with `scripts/nda-cookie.mjs`: `await context.addCookies([ndaCookie(baseUrl)])` before the
   first navigation; `curl -H "Cookie: $(node scripts/nda-cookie.mjs)" <url>`. `check.mjs` adds it to every case.
 

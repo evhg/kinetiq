@@ -5,7 +5,7 @@ import {
   FEEL_COOKIE_RENEW_URL,
   FEEL_PREFERENCE_KEY,
   GRIP_PREFERENCE_KEY,
-} from "@/content/site";
+} from "@/content/prefs";
 import { NDA_ARRIVE_MS, NDA_TRIED_KEY } from "./nda";
 
 /**

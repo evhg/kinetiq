@@ -4,7 +4,7 @@ import { Archivo, Saira } from "next/font/google";
 import { MotionProvider } from "@/components/motion/MotionProvider";
 import { Arrival } from "@/components/nda/Arrival";
 import { SmoothScroll } from "@/components/motion/SmoothScroll";
-import { DEFAULT_FEEL, DEFAULT_GRIP } from "@/content/site";
+import { DEFAULT_FEEL, DEFAULT_GRIP } from "@/content/prefs";
 // Server only, for its side effect: the launch gate fails a NEXT_PUBLIC_LAUNCHED build while a spec is provisional.
 import "@/content/specs-status";
 import { motionInitScript } from "@/lib/motion-preference";

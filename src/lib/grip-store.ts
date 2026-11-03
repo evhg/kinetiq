@@ -8,7 +8,7 @@ import {
   isGripId,
   storedGrip,
   type GripId,
-} from "@/content/site";
+} from "@/content/prefs";
 import { ServerGripContext } from "./grip-context";
 
 /**
