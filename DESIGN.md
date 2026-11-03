@@ -216,9 +216,24 @@ competes with Reserve Now. Every option is at least 44 px square to the touch th
 0.97; hover only on fine pointers. A native radio group (`role="radiogroup"`, arrow keys, Tab lands on the checked
 option, the focus ring on the option). The site opens on Command.
 - Hero: beside Reserve Now from 700 px; on phones above the full-width Reserve Now, under the racket like a caption.
-- Header: beside the compact Reserve Now, shown and hidden with it, at every width. On phones (below 700 px) the two
-  swatches alone, 44 px each (their names stay the radios' labels, visually hidden): the wordmark (about 130 px), the
-  swatches (88 px) and the compact Reserve Now fit 335 px at 375 px; from 700 px the swatches carry their names.
+- Header (owner, 2026-11-03: "when on iphone, I have to scroll all the way back up to change the toggle?"): the Feel
+  and Handle choices together (`ViewControl`, `components/chrome/`), on /, /reserve and /reserved, one tap away from
+  anywhere on the page. Shown whenever the hero is off screen (the hero has its own toggles; on /reserve and /reserved
+  from the first paint), never hidden with the compact Reserve Now; it fades and settles in 200 ms ease-out (opacity,
+  4 px), and its box is always laid out, so nothing shifts. From 1024 px the two named groups sit in the header, a 1 px
+  hairline between them, before the compact Reserve Now. Below 1024 px one 44 px button, a quiet capsule (1 px `--edge`
+  ring) round the current face swatch and handle glyph and a small chevron, read from html[data-feel] and
+  html[data-grip] so the server paint is right; its name "Feel and handle" (`site.viewToggleLabel`). It fits the 375 px
+  row: wordmark 128, button 66, compact Reserve Now 126. A tap opens a small panel under the header at its right margin
+  (`--stage`-dark at 97%, a hairline border, 22 px radius): two rows, Feel (Command, Pace) and Handle (Grip, Bare),
+  each name in Saira 15 px `--muted` before its radio group, the options in two aligned columns, every option 44 px
+  tall. It enters from scale 0.97 and 4 px up in 200 ms ease-out and leaves in 150 ms (transform and opacity; reduced
+  motion: instant); opened or closed from the keyboard it appears and goes at once and focus moves to the checked
+  option. A disclosure, not a modal (`aria-expanded`, `aria-controls`; the panel follows the button in the tab order):
+  it stays open while choices are made, so Grip and Bare can be compared on the image beneath, and closes on Escape
+  (focus back on the button), a press outside it, focus leaving it, or the hero coming back. A choice there reaches
+  the /reserve experience too (`onFeelChoice`), over a ?feel= from the link. The not-found and credits headers have no
+  toggles, so the gate's shared not-found tree carries none of these words (props from `Chrome.tsx`).
 - State: `lib/feel-store.ts` (`useFeel`, `setFeel`, useSyncExternalStore) writes `kq-feel` in localStorage (try/catch;
   in memory when blocked), a first-party `kq-feel` cookie (Path=/, one year, SameSite=Lax, Secure on https, not
   HttpOnly) and `html[data-feel]`, which the head script sets before the first paint (from localStorage, else the
@@ -256,10 +271,11 @@ small glyph with its name in Saira, the chosen one ringed in `--text` and its na
 pill, thumb or fill. Its glyph is an upright handle (8 × 16 px): Grip is the black overgrip with its helical wrap,
 Bare is the face's own carbon in the feel on show (white 3K in Command, black 12K in Pace, from html[data-feel]). A
 native radio group, every option at least 44 px square to the touch, pressing to 0.97.
-- Hero only: after the feel toggle, a 1 px hairline between them, beside Reserve Now from 700 px and above it on phones
+- Hero: after the feel toggle, a 1 px hairline between them, beside Reserve Now from 700 px and above it on phones
   (the four options in one row: 5 px padding round each name below 700 px, so the row fits 335 px at 375 px; it wraps
-  under the feel toggle on anything narrower). Not in the header: once the hero is gone the grip changes nothing on
-  screen, and the header's 375 px budget (wordmark, two swatches, compact Reserve Now) has no room.
+  under the feel toggle on anything narrower). And in the header with the feel toggle (owner, 2026-11-03), in its view
+  control on /, /reserve and /reserved ("Feel toggle", Header), so Bare is one tap away anywhere. Every grip toggle
+  reads the one store, so all agree; a change mid-page swaps the images in place with no reload and no scroll jump.
 - What it changes (owner, 2026-11-03: "when I set the toggle to bare, Most renders still have the grip?"): every still
   that shows the handle, on /, /reserve and /reserved, in both feels. Each has a grip-off twin, named by `<Still>`'s
   `bareId`: "-nogrip" after the K-number, then "-pace" and the crop as usual (K01-nogrip-full, K02-nogrip-pace,

@@ -73,8 +73,6 @@ export function HeaderClient({ ctaLabel, view }: { ctaLabel?: string; view?: Vie
         { threshold: 0, rootMargin: `-${top}px 0px 0px 0px` },
       );
       for (const el of [hero, ...(compactCta ? document.querySelectorAll("[data-cta]") : [])]) io.observe(el);
-    } else {
-      setHeroOnScreen(false);
     }
     return () => io?.disconnect();
   }, [compactCta, chromeH]);

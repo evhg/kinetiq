@@ -76,10 +76,12 @@ export function ViewControl({ copy, visible }: { copy: ViewCopy; visible: boolea
     };
   }, [open, close]);
 
-  // The header hides the control over the hero: the panel goes with it.
-  useEffect(() => {
-    if (!visible && open) close();
-  }, [visible, open, close]);
+  // The header hides the control over the hero: the panel goes with it (and stays closed when the control returns).
+  const [wasVisible, setWasVisible] = useState(visible);
+  if (visible !== wasVisible) {
+    setWasVisible(visible);
+    if (!visible) setOpen(false);
+  }
 
   // Tab past the panel's last option (or Shift+Tab before the button): focus has left, so the panel closes.
   const onBlur = (e: FocusEvent<HTMLDivElement>) => {
@@ -107,6 +109,7 @@ export function ViewControl({ copy, visible }: { copy: ViewCopy; visible: boolea
           aria-label={copy.label}
           aria-expanded={open}
           aria-controls={panelId}
+          data-instant={instant}
           onClick={onButton}
         >
           <span className={styles.face} aria-hidden="true" />

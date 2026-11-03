@@ -40,6 +40,12 @@
 .toggle[data-size="panel"] {
   font-size: 0.9375rem;
 }
+/* The header's on wide screens (ViewControl's inline groups) grows a little with the header, as the wordmark does. */
+@media (min-width: 1024px) {
+  .toggle[data-size="compact"] {
+    font-size: clamp(0.9375rem, 0.15vw + 0.875rem, 1.125rem);
+  }
+}
 .toggle[data-size="panel"] {
   gap: 0;
 }
