@@ -225,7 +225,8 @@ option, the focus ring on the option). The site opens on Command.
   ring) round the current face swatch and handle glyph and a small chevron, read from html[data-feel] and
   html[data-grip] so the server paint is right; its name "Feel and handle" (`site.viewToggleLabel`). It fits the 375 px
   row: wordmark 128, button 66, compact Reserve Now 126. A tap opens a small panel under the header at its right margin
-  (`--stage`-dark at 97%, a hairline border, 22 px radius): two rows, Feel (Command, Pace) and Handle (Grip, Bare),
+  (opaque `--graphite-2`, a step above the section floors so the page never ghosts through it, a hairline
+  border, 22 px radius): two rows, Feel (Command, Pace) and Handle (Grip, Bare),
   each name in Saira 15 px `--muted` before its radio group, the options in two aligned columns, every option 44 px
   tall. It enters from scale 0.97 and 4 px up in 200 ms ease-out and leaves in 150 ms (transform and opacity; reduced
   motion: instant); opened or closed from the keyboard it appears and goes at once and focus moves to the checked
