@@ -76,6 +76,20 @@ reports the change crop; it must sit inside the region). Then `node scripts/sequ
 | K17 (2026-11-02) | `K17-roughness.py --w 2560 --h 1440 --spp 64 --out final/K17-roughness` (31 min; the defaults since 2026-11-02 give the optic-yellow ball, the same in both feels) (writes the full look and `-base`; `--comp final/K17-roughness.exr --out final/K17-roughness` re-grades); Pace `--feel pace --out final/K17-roughness-pace` |
 | K16 | `K16-pair.py --mode drilled --w 1440 --h 1620 --spp 80 --out final/K16-drilled` and `--mode moulded ... --out final/K16-moulded` (about 12 and 14 min), then `K16-pair.py --combine final/K16-drilled final/K16-moulded --out final/K16-pair --gutter 0` (bpy reads the PNGs, no render). Pace: add `--feel pace` to all three and `-pace` to the names (2026-11-01) |
 
+## Grip-off twins (owner, 2026-11-03: Bare on every image)
+Every still that shows the handle has a twin without the overgrip, rendered by the same shot and command with two
+environment switches and no change to the shot (`kq_canon.py`, notes/canon.md):
+- `KQ_NOGRIP=1`: every `build_racket()` is grip-off (the bare core runs into the cap). The parts dict keeps a `grip`
+  entry, the overgrip's own mesh with `hide_render` on, so light links, `centre()`, masks and loops still work.
+- `KQ_EDGE_MM=1.5`: the previous canon's 1.5 mm edge, for a twin whose grip-on still on the site is that canon (K02
+  while its old swivel ships, and K05, K06, K07, K09, K10, K11). Add `--set HD=0` where the shot has an `HD` switch.
+```sh
+KQ_NOGRIP=1 KQ_EDGE_MM=1.5 flock render.lock $PY shots/K11-single.py --w 3200 --h 1800 --spp 256 --out final/K11-single-nogrip
+```
+Outs carry `-nogrip` before `-pace` (`final/K06-mould-nogrip-pace-base.png`); `link-masters.sh` maps them to still ids
+with `-nogrip` after the K-number (`K06-nogrip-base-pace`), which `<Still>` finds by name. Check each against its
+grip-on export (only the handle may change) and with `fillcheck.py`. K01 keeps its own `--set NOGRIP=1`.
+
 ## Export to the site
 ```sh
 render/link-masters.sh                                   # out/final/*.png -> $KQ_RENDER_OUT/masters/<still id>.png
