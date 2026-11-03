@@ -8,6 +8,9 @@ import styles from "./Chrome.module.css";
 
 export type { ViewCopy };
 
+/** "Wholly in view": a sub-pixel sliver lost to rounding still counts as whole (less than 1 px of a 44 px row). */
+const WHOLE = 0.98;
+
 /**
  * Wordmark only. On the landing page a compact Reserve Now appears while neither the hero (the element with id
  * "hero") nor an in-page Reserve Now (marked data-cta) is on screen, so two never show at once. The label comes in
@@ -21,9 +24,6 @@ export type { ViewCopy };
  * Now is hidden the control slides flush to the row's end (a transform, so nothing reflows). Reserve Now carries the
  * chosen feel into checkout (?feel=).
  */
-/** "Wholly in view": a sub-pixel sliver lost to rounding still counts as whole (less than 1 px of a 44 px row). */
-const WHOLE = 0.98;
-
 export function HeaderClient({ ctaLabel, view }: { ctaLabel?: string; view?: ViewCopy }) {
   const compactCta = Boolean(ctaLabel);
   const { chosen } = useFeel();
