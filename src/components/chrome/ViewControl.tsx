@@ -2,13 +2,15 @@
 
 import { useCallback, useEffect, useId, useRef, useState, type FocusEvent, type MouseEvent } from "react";
 import type { FeelId, GripId } from "@/content/prefs";
+import { useFeel } from "@/lib/feel-store";
+import { useGrip } from "@/lib/grip-store";
 import { FeelToggle } from "./FeelToggle";
 import { GripToggle } from "./GripToggle";
 import styles from "./ViewControl.module.css";
 
 /** The view control's words, passed in from the server (Chrome.tsx, src/content/site.ts): this module carries no copy. */
 export type ViewCopy = {
-  /** The button's accessible name ("Feel and handle"). */
+  /** The panel's name, and the button's before the current choice ("Feel and handle: Command, Grip"). */
   label: string;
   feel: { label: string; labels: Record<FeelId, string> };
   grip: { label: string; labels: Record<GripId, string> };
@@ -25,9 +27,15 @@ export type ViewCopy = {
  * whose own toggles show). It stays open while a choice is made, so Grip and Bare can be compared on the still beneath.
  * Opened from the keyboard it appears at once and focus moves to the checked option (no animation on keyboard actions);
  * from a tap it fades and settles in 200 ms ease-out from scale 0.97, and leaves in 150 ms (DESIGN.md "Feel toggle").
- * Every toggle on the page shares one store per axis (lib/feel-store.ts, lib/grip-store.ts), so all of them agree.
+ * Every toggle on the page shares one store per axis (lib/feel-store.ts, lib/grip-store.ts), so all of them agree. The
+ * button's name carries the choice on show ("Feel and handle: Command, Bare"), so a screen reader hears it before opening.
+ * `flush`: the compact Reserve Now after it is hidden, so the button (and the wide screens' groups) slide right by
+ * --view-shift to the row's end instead of leaving a hole (`translate`, a transform: nothing reflows).
  */
-export function ViewControl({ copy, visible }: { copy: ViewCopy; visible: boolean }) {
+export function ViewControl({ copy, visible, flush = false }: { copy: ViewCopy; visible: boolean; flush?: boolean }) {
+  const { feel } = useFeel();
+  const { grip } = useGrip();
+  const name = `${copy.label}: ${copy.feel.labels[feel]}, ${copy.grip.labels[grip]}`;
   const [open, setOpen] = useState(false);
   // Opened or closed from the keyboard: no transition (CLAUDE.md "Interface micro-animations").
   const [instant, setInstant] = useState(false);
@@ -95,18 +103,18 @@ export function ViewControl({ copy, visible }: { copy: ViewCopy; visible: boolea
   return (
     <>
       {/* Wide screens: both groups in the header, with their names. */}
-      <div className={styles.inline} data-visible={visible} inert={!visible}>
+      <div className={styles.inline} data-visible={visible} data-flush={flush} inert={!visible}>
         <FeelToggle label={copy.feel.label} labels={copy.feel.labels} size="compact" />
         <span className={styles.rule} aria-hidden="true" />
         <GripToggle label={copy.grip.label} labels={copy.grip.labels} size="compact" />
       </div>
       {/* Below 1024 px: one button and its panel. */}
-      <div ref={wrap} className={styles.view} data-visible={visible} inert={!visible} onBlur={onBlur}>
+      <div ref={wrap} className={styles.view} data-visible={visible} data-flush={flush} inert={!visible} onBlur={onBlur}>
         <button
           ref={button}
           type="button"
           className={styles.button}
-          aria-label={copy.label}
+          aria-label={name}
           aria-expanded={open}
           aria-controls={panelId}
           data-instant={instant}

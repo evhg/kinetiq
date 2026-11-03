@@ -14,18 +14,25 @@ export type { ViewCopy };
  * as a prop from the server (Chrome.tsx), so this client module carries no site copy: the root not-found renders
  * the header too, and its tree ships with every page, the NDA gate included.
  * Before it, the Feel and Handle choices (`view`, their words passed in the same way; ViewControl): on /, /reserve and
- * /reserved, shown wherever the hero is not on screen (the hero has its own), whatever the compact Reserve Now does, so
- * they are one tap away anywhere on the page (owner, 2026-11-03; DESIGN.md "Feel toggle"). Reserve Now carries the
+ * /reserved, so they are one tap away anywhere on the page (owner, 2026-11-03; DESIGN.md "Feel toggle"). On / they
+ * show as soon as the hero's own toggle row (marked data-view-toggles) is no longer wholly in view below the header,
+ * so at every scroll position one set or the other can be tapped (the whole hero watched instead left a dead band
+ * while its last screen scrolled away); /reserve and /reserved show them from the first paint. While the compact Reserve
+ * Now is hidden the control slides flush to the row's end (a transform, so nothing reflows). Reserve Now carries the
  * chosen feel into checkout (?feel=).
  */
+/** "Wholly in view": a sub-pixel sliver lost to rounding still counts as whole (less than 1 px of a 44 px row). */
+const WHOLE = 0.98;
+
 export function HeaderClient({ ctaLabel, view }: { ctaLabel?: string; view?: ViewCopy }) {
   const compactCta = Boolean(ctaLabel);
   const { chosen } = useFeel();
   const ref = useRef<HTMLElement>(null);
   const [scrolled, setScrolled] = useState(false);
   const [showCta, setShowCta] = useState(false);
-  // Pages without a hero (/reserve, /reserved) show the view control from the first paint; / once the hero has gone.
-  const [heroOnScreen, setHeroOnScreen] = useState(compactCta);
+  // Pages without a hero (/reserve, /reserved) show the view control from the first paint; / once the hero's toggle
+  // row is not wholly in view below the header.
+  const [heroTogglesInView, setHeroTogglesInView] = useState(compactCta);
   // The header's height (it follows the viewport width), so the CTA observer below always discounts the strip under it.
   const [chromeH, setChromeH] = useState(0);
 
@@ -68,7 +75,6 @@ export function HeaderClient({ ctaLabel, view }: { ctaLabel?: string; view?: Vie
             else onScreen.delete(e.target);
           }
           setShowCta(onScreen.size === 0);
-          setHeroOnScreen(onScreen.has(hero));
         },
         { threshold: 0, rootMargin: `-${top}px 0px 0px 0px` },
       );
@@ -77,6 +83,44 @@ export function HeaderClient({ ctaLabel, view }: { ctaLabel?: string; view?: Vie
     return () => io?.disconnect();
   }, [compactCta, chromeH]);
 
+  // The hero's toggle row, wholly in view below the header (the same root as above), or not: the header's own choices
+  // show the moment its first pixel slips under the header or past the screen's foot. Without the row (a hero without
+  // toggles), the whole hero stands in for it.
+  const hasView = Boolean(view);
+  useEffect(() => {
+    if (!hasView) return;
+    const hero = document.getElementById("hero");
+    if (!hero) return; // no hero (/reserve, /reserved): shown from the first paint
+    const row = hero.querySelector("[data-view-toggles]") ?? hero;
+    const top = chromeH || (ref.current?.offsetHeight ?? 0);
+    const whole = row === hero ? 0 : WHOLE;
+    const io = new IntersectionObserver(
+      ([e]) => setHeroTogglesInView(e.isIntersecting && e.intersectionRatio >= whole),
+      { threshold: row === hero ? 0 : [0, WHOLE, 1], rootMargin: `-${top}px 0px 0px 0px` },
+    );
+    io.observe(row);
+    return () => io.disconnect();
+  }, [hasView, chromeH]);
+
+  // How far the view control slides right while the compact Reserve Now is hidden: its width and the gap before it,
+  // kept on the row's end group as --view-shift (ViewControl.module.css reads it).
+  const end = useRef<HTMLDivElement>(null);
+  const cta = useRef<HTMLAnchorElement>(null);
+  useEffect(() => {
+    const group = end.current;
+    const link = cta.current;
+    if (!group || !link) return;
+    const measure = () => {
+      const gap = parseFloat(getComputedStyle(group).columnGap) || 0;
+      group.style.setProperty("--view-shift", `${link.offsetWidth + gap}px`);
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(link);
+    ro.observe(group);
+    return () => ro.disconnect();
+  }, []);
+
   return (
     <header ref={ref} className={styles.header} data-scrolled={scrolled}>
       <div className={styles.row}>
@@ -84,10 +128,11 @@ export function HeaderClient({ ctaLabel, view }: { ctaLabel?: string; view?: Vie
           KINETIQ
         </Link>
         {compactCta || view ? (
-          <div className={styles.end}>
-            {view ? <ViewControl copy={view} visible={!heroOnScreen} /> : null}
+          <div ref={end} className={styles.end}>
+            {view ? <ViewControl copy={view} visible={!heroTogglesInView} flush={compactCta && !showCta} /> : null}
             {compactCta ? (
               <Link
+                ref={cta}
                 href={withFeel("/reserve", chosen)}
                 prefetch={false}
                 className={`btn btn-primary ${styles.compact}`}

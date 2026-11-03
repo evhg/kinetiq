@@ -1,7 +1,7 @@
 /* The header's Feel and Handle choices (ViewControl.tsx; owner, 2026-11-03). Below 1024 px one button (the current face
    and handle, a chevron) opens a small panel under the header; from 1024 px both named groups sit in the header. Hidden
-   over the hero (whose own toggles show), never with the compact Reserve Now: it fades and settles in 200 ms ease-out,
-   opacity and transform only. Its box is always laid out, so showing it never moves the wordmark or Reserve Now. */
+   while the hero's own toggle row is wholly in view (HeaderClient), never with the compact Reserve Now: it fades and
+   settles in 200 ms ease-out, opacity and transform only. Its box is always laid out, so showing it never moves the wordmark or Reserve Now. */
 .inline,
 .view {
   opacity: 0;
@@ -9,13 +9,27 @@
   pointer-events: none;
   transition:
     opacity 200ms var(--ease-out),
-    transform 200ms var(--ease-out);
+    transform 200ms var(--ease-out),
+    translate 200ms var(--ease-out);
 }
 .inline[data-visible="true"],
 .view[data-visible="true"] {
   opacity: 1;
   transform: none;
   pointer-events: auto;
+}
+/* While the compact Reserve Now after it is hidden (data-flush), the control slides right by that button's width and
+   the gap (--view-shift, measured by HeaderClient), so it sits flush with the row's end instead of before a hole. The
+   individual `translate` property, so it composes with the fade's transform and the press's scale; nothing reflows. The
+   phones' button moves alone: its panel is placed against the header, and a transform on its parent would capture it. */
+.inline[data-flush="true"],
+.view[data-flush="true"] .button {
+  translate: var(--view-shift, 0px) 0;
+}
+/* Over the compact Reserve Now in the 200 ms they cross (a flex item's z-index), so a tap on the moving control is its. */
+.inline,
+.view {
+  z-index: 1;
 }
 .inline {
   display: none;
@@ -58,7 +72,9 @@
   color: var(--muted);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: transform 160ms var(--ease-out);
+  transition:
+    transform 160ms var(--ease-out),
+    translate 200ms var(--ease-out);
 }
 .button::before {
   content: "";

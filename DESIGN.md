@@ -218,12 +218,20 @@ option, the focus ring on the option). The site opens on Command.
 - Hero: beside Reserve Now from 700 px; on phones above the full-width Reserve Now, under the racket like a caption.
 - Header (owner, 2026-11-03: "when on iphone, I have to scroll all the way back up to change the toggle?"): the Feel
   and Handle choices together (`ViewControl`, `components/chrome/`), on /, /reserve and /reserved, one tap away from
-  anywhere on the page. Shown whenever the hero is off screen (the hero has its own toggles; on /reserve and /reserved
-  from the first paint), never hidden with the compact Reserve Now; it fades and settles in 200 ms ease-out (opacity,
-  4 px), and its box is always laid out, so nothing shifts. From 1024 px the two named groups sit in the header, a 1 px
+  anywhere on the page. Shown as soon as the hero's own toggle row (`data-view-toggles`) is no longer wholly in view
+  below the header (an IntersectionObserver with the header's height as its top margin), so at every scroll position
+  one set or the other is visible and tappable (watching the whole hero left a dead band while its last screen left,
+  about 600 to 790 px scrolled at 390 x 844; a probe at every viewport, both feels and both motion modes, checks it with
+  document.elementFromPoint every 12 px); on /reserve and /reserved from the first paint; never hidden with the compact
+  Reserve Now. It fades and settles in 200 ms ease-out (opacity, 4 px), and its box is always laid out, so nothing
+  shifts. While the compact Reserve Now is hidden (over the hero's last screen, Identical and the finale) the control
+  slides flush to the row's end by that button's width and the gap (`translate`, measured into `--view-shift`; 200 ms
+  ease-out, crossing above it), so the phone's header never shows a hole; on phones only the button moves, since its
+  panel is placed against the header. From 1024 px the two named groups sit in the header, a 1 px
   hairline between them, before the compact Reserve Now. Below 1024 px one 44 px button, a quiet capsule (1 px `--edge`
   ring) round the current face swatch and handle glyph and a small chevron, read from html[data-feel] and
-  html[data-grip] so the server paint is right; its name "Feel and handle" (`site.viewToggleLabel`). It fits the 375 px
+  html[data-grip] so the server paint is right; its name carries the choice on show, "Feel and handle: Command, Bare"
+  (`site.viewToggleLabel` and the toggles' labels, passed as props), the panel's group "Feel and handle". It fits the 375 px
   row: wordmark 128, button 66, compact Reserve Now 126. A tap opens a small panel under the header at its right margin
   (opaque `--graphite-2`, a step above the section floors so the page never ghosts through it, a hairline
   border, 22 px radius): two rows, Feel (Command, Pace) and Handle (Grip, Bare),

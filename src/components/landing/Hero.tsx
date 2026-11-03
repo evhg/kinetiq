@@ -148,7 +148,9 @@ export function Hero() {
           <ReserveLink href="/reserve" className={`btn btn-primary ${styles.cta}`}>
             {site.ctaLabel}
           </ReserveLink>
-          <div className={styles.toggles}>
+          {/* data-view-toggles: the header's own Feel and Handle choices show as soon as this row is not wholly in view
+              below the header (HeaderClient), so one set is always within reach */}
+          <div className={styles.toggles} data-view-toggles="">
             <FeelToggle label={site.feelToggleLabel} labels={feelToggleLabels} size="hero" />
             <span className={styles.rule} aria-hidden="true" />
             <GripToggle label={site.gripToggleLabel} labels={gripToggleLabels} />
