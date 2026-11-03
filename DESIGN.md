@@ -309,6 +309,12 @@ native radio group, every option at least 44 px square to the touch, pressing to
   frame 0 must be its still and the swivels are not re-rendered yet: a new-canon still would visibly soften the weave
   as the turn starts. The HD re-renders are committed in the masters repo and reproduce bit for bit with
   `node scripts/stills.mjs <masters>/stills/K01 <ids>` (and K02); export them in the same commit as the new swivels.
+- A twin follows its grip-on sibling's canon (2026-11-03): K01's hero and finale twins and K08, K12 are the 1.0 mm
+  canon; K02, K05, K06, K07, K09, K10 and K11 twins are the 1.5 mm canon (`KQ_EDGE_MM=1.5`), as their grip-on stills.
+  When a grip-on still moves to the new canon (K02 with its new swivel), re-render its twin in the same commit
+  (the same command without `KQ_EDGE_MM` and `--set HD=0`), or a flip of the toggle changes the edge and the weave too.
+  K02's Unibody turn has no grip-off sequence: render one (K02-edge-line.py `--set NOGRIP=1`, the swivel's own
+  arguments) with the new-canon K02 swivel; until then Bare holds the still there, as in the hero.
 
 ## Micro-interactions
 Pressables scale 0.97 on `:active`; hover only behind `(hover: hover) and (pointer: fine)`; transform and
