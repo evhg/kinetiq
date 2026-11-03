@@ -328,6 +328,16 @@ width. Self-test passes (455.00 x 260.12 x 38.00, 42 holes, 8 crown, both feels 
   `hide_render` on, so light links, `centre()`, masks and loops over the grip still work and the grip-only lights light
   nothing. `KQ_EDGE_MM=1.5` sets `EDGE_R` (and every default bound to it) back to the 1.5 mm canon, for the twin of a
   still the site still shows in that canon. K06's mould channel follows the bare core (no tape) under `KQ_NOGRIP`.
+- **Bare handle light (verifier, 2026-11-03):** the k789 shots (K07, K08, K09, K11) light the overgrip with strips
+  linked to the grip only, and their head lights (band, weave, pool, fill) fall off above the handle, so under
+  `KQ_NOGRIP` the bare core read near-black in Command (K08-nogrip-left, every K11-nogrip) while K01, K02, K06 and K12
+  show it white like the face. `k789_lib.render_main` now calls `bare_handle_lights()` under `KQ_NOGRIP`: one soft
+  card per grip-off racket (0.30 x 0.45 m, 0.5 m out along the face normal, raised toward the head and to the
+  camera's side), linked to that racket's `neck` only (the bare core is the neck run on to the cap), in the light
+  group of the racket's own grip light, scaled by that light's energy against the scene's brightest (K11's rear racket
+  stays a step back). `BARE_E` command 5.0 W (K08 sweep at 0.5 / 1 / 2x: handle luma 142 / 174 / 200 against the
+  face's p50 153; 0.5x of 9 W chosen), pace 6.0 W (the black 12K handle stays black; the sheen line down it is the
+  face's own band, as before). `KQ_BARE_E=<scale>` multiplies it, `0` turns it off. Grip-on renders are unchanged.
 - **No wrist cord (owner, 2026-11-03: "no need to add the wrist cord"):** no render has the FIP cord, grip on or off.
 - **WEAVE_HD:** an opt-in mat_opts preset for whole-racket shots (relief and resin-gap tone, a stronger direction step,
   relief and sheen); see RENDER_NOTES "Owner notes after the factory meeting". Default COMMAND_WHITE is unchanged.

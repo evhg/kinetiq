@@ -86,6 +86,10 @@ environment switches and no change to the shot (`kq_canon.py`, notes/canon.md):
 ```sh
 KQ_NOGRIP=1 KQ_EDGE_MM=1.5 flock render.lock $PY shots/K11-single.py --w 3200 --h 1800 --spp 256 --out final/K11-single-nogrip
 ```
+The k789 shots (K07, K08, K09, K11) add a bare-handle card per racket under `KQ_NOGRIP` (`k789_lib.bare_handle_lights`,
+notes/canon.md "Bare handle light"): their grip strips light only the overgrip, so without it the bare core rendered
+near-black in Command. `KQ_BARE_E=<scale>` tunes it per run. Twins rendered before 2026-11-03 13:00 UTC with k789
+shots have the dark handle and are re-rendered.
 Outs carry `-nogrip` before `-pace` (`final/K06-mould-nogrip-pace-base.png`); `link-masters.sh` maps them to still ids
 with `-nogrip` after the K-number (`K06-nogrip-base-pace`), which `<Still>` finds by name. Check each against its
 grip-on export (only the handle may change) and with `fillcheck.py`. K01 keeps its own `--set NOGRIP=1`.
