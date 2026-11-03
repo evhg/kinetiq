@@ -91,7 +91,16 @@ NECK_SPLIT_Y = -0.150                    # face / neck light-linking boundary
 # edge's radius is 1.0 mm (was 1.5 mm). racket-shape.ts FACE_INSET / EDGE_RADIUS carry the same numbers (the sweet-spot
 # claim is computed from them). head_kw={"r_frame": 0.0015} rebuilds the previous 1.5 mm edge.
 EDGE_R = 0.0010
+# KQ_EDGE_MM=1.5 in the environment rebuilds the previous canon's 1.5 mm edge (the default arguments below bind EDGE_R),
+# so a shot whose grip-on still on the site is still the 1.5 mm canon gets a grip-off twin from the same geometry
+# (owner, 2026-11-03: Bare on every image), with no change to the shot.
+if os.environ.get("KQ_EDGE_MM"):
+    EDGE_R = float(os.environ["KQ_EDGE_MM"]) / 1000.0
 FACE_INSET = EDGE_R
+# KQ_NOGRIP=1 in the environment: every build_racket() call leaves the overgrip off (grip=False), and its parts dict keeps
+# a "grip" entry: the overgrip's mesh with hide_render on (not rendered, cast or reflected), so any shot that light-links,
+# hides, measures or loops over the grip runs unchanged and its grip-only lights then light nothing (owner, 2026-11-03: Bare on every image; render/README.md).
+ENV_NOGRIP = os.environ.get("KQ_NOGRIP") == "1"
 # grip-off (owner, 2026-11-02): build_racket(..., grip=False) leaves the overgrip off and runs the carbon core on, the
 # same 33.0 x 29.0 mm section, straight down into the butt cap; its round end (NECK y_cut) sits inside the cap, so the
 # bare handle reads as one piece flowing out of the head. The cap stays as it is.
@@ -1507,6 +1516,9 @@ def build_racket(name="KQ", feel="command", serial=SERIAL, walls=True, holes=Non
     black K10 twill, then k10_lib.mat_carbon_k10 keys), PACE keys for Pace. mark_az (deg): turn the engraved Q round the
     handle axis toward model +x so it faces a shot's camera (the cap itself follows the grip section and does not turn)."""
     assert feel in FEELS, feel
+    stub = False
+    if ENV_NOGRIP and grip:
+        grip, stub = False, True
     hk = dict(head_kw or {})
     if not grip and "neck" not in hk:  # grip-off: the core runs on, bare, into the cap (NOGRIP_Y_CUT)
         hk["neck"] = dict(NECK, y_cut=NOGRIP_Y_CUT)
@@ -1528,6 +1540,13 @@ def build_racket(name="KQ", feel="command", serial=SERIAL, walls=True, holes=Non
     parts_ = dict(head)
     parts_.update(cap=cap, capmark=mark)
     if grip_ob is not None:
+        parts_["grip"] = grip_ob
+    elif stub:  # KQ_NOGRIP: the overgrip's own mesh, hidden from the render, stands in for it (see ENV_NOGRIP)
+        grip_ob = build_grip(name + "_grip")
+        grip_ob.data.materials.append(mat_overgrip())
+        grip_ob["kq_part"] = "grip"
+        grip_ob["kq_stub"] = 1
+        grip_ob.hide_render = True
         parts_["grip"] = grip_ob
     if walls:
         if is_white(feel, mat_opts):  # a graphite laser mark on the white wall
