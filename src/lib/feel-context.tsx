@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, type ReactNode } from "react";
-import type { FeelId } from "@/content/site";
+import type { FeelId } from "@/content/prefs";
 
 /**
  * The feel the server rendered this page in: null for the default pages (no choice known, so Command), or the visitor's

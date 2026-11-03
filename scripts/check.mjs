@@ -692,6 +692,10 @@ async function interactionChecks(page) {
 // ---------- the NDA gate (--gate) ----------
 // Strings that must never reach a visitor before the NDA: a claim, a price and the stills.
 const GATE_LEAKS = ["15 microns", "€", "/stills/"];
+// The gate's scripts (its chunks and RSC payloads, which carry the root not-found tree and every client module it
+// imports) must not carry product copy either: a client module there that imports src/content/site.ts drags lineup.ts
+// in with it (2026-11-03: Release 6 shipped the edition copy in a gate chunk this way; src/content/prefs.ts since).
+const GATE_SCRIPT_LEAKS = [/15 microns/, /laser-marked/, /space-grade/, /First.500/, /One.of.Ten/, /€\d/, /Feel and handle/];
 const GATE_EMAIL = "harness@kinetiq.invalid";
 
 // One viewport without the cookie: the gate screen (fill rule, no leaks, no og:image, no stills requested), then the
@@ -718,6 +722,14 @@ async function runGateCase(browser, statsPage, vp, mode) {
   page.on("pageerror", (e) => consoleErrors.push(`pageerror: ${e.message}`));
   page.on("requestfailed", (r) => failedRequests.push(`${r.failure()?.errorText} ${r.url()}`));
   page.on("request", (r) => !opening && new URL(r.url()).pathname.startsWith("/stills/") && stillsRequested.push(r.url()));
+  const scriptLeaks = new Set();
+  page.on("response", async (r) => {
+    if (opening || r.request().resourceType() === "document") return;
+    const type = r.headers()["content-type"] ?? "";
+    if (!/javascript|x-component/.test(type)) return;
+    const text = await r.text().catch(() => "");
+    for (const re of GATE_SCRIPT_LEAKS) if (re.test(text)) scriptLeaks.add(`${re.source} in ${new URL(r.url()).pathname}`);
+  });
   if (vp.throttled) await throttle(context, page);
 
   const id = `gate-${vp.name}-${mode.name}`;
@@ -738,7 +750,10 @@ async function runGateCase(browser, statsPage, vp, mode) {
     h1: document.querySelectorAll("h1").length,
     overflowX: document.documentElement.scrollWidth > window.innerWidth + 1,
   }));
-  Object.assign(g, screen, { status: res?.status() ?? 0, leaks: GATE_LEAKS.filter((t) => html.includes(t)) });
+  Object.assign(g, screen, {
+    status: res?.status() ?? 0,
+    leaks: [...GATE_LEAKS.filter((t) => html.includes(t)), ...[...scriptLeaks].slice(0, 4)],
+  });
 
   const steps = [];
   const shoot = async (name, pct) => {
@@ -824,7 +839,7 @@ async function runGateCase(browser, statsPage, vp, mode) {
     g.ogImage ? "og:image or twitter:image present" : null,
     !/noindex/.test(g.robots) ? "not noindex" : null,
     g.h1 !== 1 ? `${g.h1} h1 elements` : null,
-    g.leaks.length ? `HTML contains ${g.leaks.join(", ")}` : null,
+    g.leaks.length ? `the gate (HTML or scripts) contains ${g.leaks.join(", ")}` : null,
     stillsRequested.length ? `requested ${stillsRequested.length} still(s)` : null,
     ...Object.entries(g.steps).filter(([, ok]) => !ok).map(([k]) => `keyboard step failed: ${k}`),
     opened.gate || !opened.main ? "the real page did not open after the email" : null,

@@ -1,7 +1,7 @@
 "use client";
 
 import { useId } from "react";
-import type { GripId } from "@/content/site";
+import type { GripId } from "@/content/prefs";
 import { useGrip } from "@/lib/grip-store";
 import styles from "./FeelToggle.module.css";
 

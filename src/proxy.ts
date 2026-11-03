@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { FEEL_COOKIE_MAX_AGE, FEEL_PREFERENCE_KEY, GRIP_PREFERENCE_KEY, isFeelId, isGripId, type FeelId, type GripId } from "@/content/site";
+import { FEEL_COOKIE_MAX_AGE, FEEL_PREFERENCE_KEY, GRIP_PREFERENCE_KEY, isFeelId, isGripId, type FeelId, type GripId } from "@/content/prefs";
 import { NDA_COOKIE, NDA_ROUTE, ndaCleared } from "@/lib/nda";
 
 /**

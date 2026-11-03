@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, type ReactNode } from "react";
-import type { GripId } from "@/content/site";
+import type { GripId } from "@/content/prefs";
 
 /**
  * The grip state the server rendered this page in: null for the default pages (grip on), or "off" for the bare

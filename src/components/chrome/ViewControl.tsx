@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useId, useRef, useState, type FocusEvent, type MouseEvent } from "react";
-import type { FeelId, GripId } from "@/content/site";
+import type { FeelId, GripId } from "@/content/prefs";
 import { FeelToggle } from "./FeelToggle";
 import { GripToggle } from "./GripToggle";
 import styles from "./ViewControl.module.css";
