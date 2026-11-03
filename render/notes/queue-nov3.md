@@ -31,8 +31,14 @@ export, delete its line from the `.done` file. `ONLY="p2a"` runs one item. Never
 ## Progress
 `grep -E "ITEM|STILL |SEQ-|PATCH|EXPORT|MASTERS|ERROR|SKIP|CROP" /home/user/kinetiq-render-out/logs/queue-nov3.log`
 
-## Status
-Updated by the render owner as items finish (see the log for the live state).
+## Status (2026-11-03 17:10 UTC; the log has the live state)
+- Kit: Naked butt, light sweep, cap-region patches, wrapped bores, 5K ladders: committed (fa5fa41 .. d23295a).
+- K08 Naked (whole render, 13 min at 2560): exported cfc7dbd, masters stills/K08.
+- p1a K01 Naked Command: beam 5120 x 2880 spp 64 in 69 min (render 64.6 min + comp), portrait 2160 in 34 min;
+  masters stills/K01; exported 87ad2ab (5120 AVIF 179 KB full, 145 KB base). Pace: rendering.
+- Measured: a 5K K01 beam takes about 70 min, so every 5K still in nov3b is about an hour (K15, K14 less).
+- Never edit a queue script or export_push.sh while it runs: bash reads scripts as it goes (an edit broke the first
+  K01 export mid-run; re-run by hand). Kill the waiting queue, edit, restart.
 
 ## queue-nov3b (P3, P4, P5): starts when queue-nov3.sh ends
 `render/queue-nov3b.sh` (functions in `render/queue_lib.sh`) waits for queue-nov3.sh, then: p4 K15 both feels at 5120
