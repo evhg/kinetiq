@@ -23,7 +23,6 @@ import k12_lib as K  # noqa: E402
 
 def load(p):
     img = bpy.data.images.load(p, check_existing=False)
-    img.colorspace_settings.name = "Non-Color"
     w, h = img.size
     a = np.empty(w * h * 4, np.float32)
     img.pixels.foreach_get(a)
@@ -60,7 +59,7 @@ def main(argv):
     ring_in = (d >= 2 * feather) & (d < 4 * feather)
     sub_n = N[r0:r1, x0:x1, :3]
     sub_b = B[r0:r1, x0:x1, :3]
-    diff = np.abs(sub_n - sub_b).mean(-1) * 255
+    diff = np.abs(np.clip(sub_n, 0, None) ** (1 / 2.2) - np.clip(sub_b, 0, None) ** (1 / 2.2)).mean(-1) * 255   # display units
     rd = float(diff[ring_in].mean()) if ring_in.any() else 0.0
     core = float(diff[mask > 0.999].mean()) if (mask > 0.999).any() else 0.0
     print("RING %.3f CORE %.3f region %d,%d %dx%d" % (rd, core, x0, yt, w, h), flush=True)

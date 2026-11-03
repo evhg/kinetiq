@@ -193,7 +193,44 @@ def render(name):
     os.makedirs(OUT, exist_ok=True)
     path = os.path.join(OUT, name + ".png")
     bpy.context.scene.render.filepath = path
-    if os.environ.get("KQ_BORDER_AUTO") == "1":
-        _auto_border(bpy.context.scene, path)
     bpy.ops.render.render(write_still=True)
     return path
+
+
+# KQ_BORDER_AUTO=1: every render of the process (studio.render or a shot's own bpy.ops.render.render) takes the cap
+# border first: bpy.ops.render.render is wrapped through the bpy.ops module's __getattr__ (a render_pre handler runs
+# after the render has read its settings). The sidecar is named after the scene's output path, or out/_border/<n>
+# when a shot saves its result itself.
+_BORDER_N = [0]
+
+
+def _border_now():
+    scene = bpy.context.scene
+    fp = bpy.path.abspath(scene.render.filepath or "")
+    if not fp or fp.endswith(os.sep) or fp.endswith("/tmp/"):
+        os.makedirs(os.path.join(OUT, "_border"), exist_ok=True)
+        _BORDER_N[0] += 1
+        fp = os.path.join(OUT, "_border", "%03d" % _BORDER_N[0])
+    _auto_border(scene, fp)
+
+
+class _RenderOpsProxy:
+    """bpy.ops.render with .render wrapped (_border_now first); everything else forwarded."""
+    def __init__(self, sub):
+        self._sub = sub
+
+    def __getattr__(self, name):
+        if name == "render":
+            orig = self._sub.render
+
+            def render_wrapped(*a, **k):
+                _border_now()
+                return orig(*a, **k)
+            return render_wrapped
+        return getattr(self._sub, name)
+
+
+if os.environ.get("KQ_BORDER_AUTO") == "1":
+    _ops = sys.modules["bpy.ops"]
+    if not isinstance(_ops.__dict__.get("render"), _RenderOpsProxy):
+        setattr(_ops, "render", _RenderOpsProxy(getattr(_ops, "render")))

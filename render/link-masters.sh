@@ -105,3 +105,26 @@ l K11-single-nogrip.png K11-nogrip-single
 l K11-single-nogrip-pace.png K11-nogrip-single-pace
 l K12-sweet-spot-nogrip-base.png K12-nogrip-base
 true
+# 2026-11-03 (owner: Naked = 100 % carbon, 5K): the Naked carbon-butt K01 stills (5120 x 2880 beam, 2160 x 3840 phone)
+# and the 5K grip K01 beam stills, rendered with the light-sweep scene (k01_lib SWEEP, t = 0); they replace the rows above.
+l K01-hero-beam-nogrip-v5k-base.png K01-nogrip-base
+l K01-hero-beam-nogrip-v5k-full.png K01-nogrip-full
+l K01-hero-beam-nogrip-v5k-finale.png K01-nogrip-finale
+l K01-hero-beam-nogrip-pace-v5k-base.png K01-nogrip-base-pace
+l K01-hero-beam-nogrip-pace-v5k-full.png K01-nogrip-full-pace
+l K01-hero-beam-nogrip-pace-v5k-finale.png K01-nogrip-finale-pace
+l K01-hero-frame-phone-nogrip-v5k-base.png K01-nogrip-hero-base-phone
+l K01-hero-frame-phone-nogrip-v5k-full.png K01-nogrip-hero-full-phone
+l K01-hero-frame-phone-nogrip-pace-v5k-base.png K01-nogrip-hero-base-phone-pace
+l K01-hero-frame-phone-nogrip-pace-v5k-full.png K01-nogrip-hero-full-phone-pace
+l K01-hero-beam-v5k-base.png K01-base
+l K01-hero-beam-v5k-full.png K01-full
+l K01-hero-beam-v5k-finale.png K01-finale
+l K01-hero-beam-pace-v5k-base.png K01-base-pace
+l K01-hero-beam-pace-v5k-full.png K01-full-pace
+l K01-hero-beam-pace-v5k-finale.png K01-finale-pace
+l K01-hero-frame-phone-v5k-base.png K01-hero-base-phone
+l K01-hero-frame-phone-v5k-full.png K01-hero-full-phone
+l K01-hero-frame-phone-pace-v5k-base.png K01-hero-base-phone-pace
+l K01-hero-frame-phone-pace-v5k-full.png K01-hero-full-phone-pace
+true
