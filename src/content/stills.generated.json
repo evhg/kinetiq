@@ -1290,5 +1290,61 @@
    1152
   ],
   "hash": "3315605f56"
+ },
+ "K01-nogrip-finale-wide": {
+  "w": 2560,
+  "h": 1440,
+  "widths": [
+   828,
+   1280,
+   1920,
+   2560
+  ],
+  "hash": "3f2ac43152"
+ },
+ "K01-nogrip-finale-portrait": {
+  "w": 809,
+  "h": 1440,
+  "widths": [
+   809
+  ],
+  "hash": "316860316a"
+ },
+ "K01-nogrip-finale-card": {
+  "w": 1024,
+  "h": 1440,
+  "widths": [
+   640,
+   1024
+  ],
+  "hash": "340259d517"
+ },
+ "K01-nogrip-finale-pace-wide": {
+  "w": 2560,
+  "h": 1440,
+  "widths": [
+   828,
+   1280,
+   1920,
+   2560
+  ],
+  "hash": "ad276e1951"
+ },
+ "K01-nogrip-finale-pace-portrait": {
+  "w": 809,
+  "h": 1440,
+  "widths": [
+   809
+  ],
+  "hash": "ac9c0dbadb"
+ },
+ "K01-nogrip-finale-pace-card": {
+  "w": 1024,
+  "h": 1440,
+  "widths": [
+   640,
+   1024
+  ],
+  "hash": "4c32da11db"
  }
 }
