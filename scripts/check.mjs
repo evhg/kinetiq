@@ -12,7 +12,8 @@
 //   node scripts/check.mjs --url=https://x.app  test a deployed URL
 //   node scripts/check.mjs --path=/reserve      test another page
 //   node scripts/check.mjs --only=wide          one viewport, or several: --only=phone,phone-short
-//                                               (phone|phone-short|tablet|laptop|desktop|wide)
+//                                               (phone|phone-short|tablet|laptop|desktop|wide, and the opt-in 5k:
+//                                               2560 x 1440 at DPR 2)
 //   node scripts/check.mjs --mode=reduced       one mode (motion|reduced)
 //   node scripts/check.mjs --url=... --study    reference mode: also detect
 //                                               animation libraries and pins
@@ -99,6 +100,10 @@ const VIEWPORTS = [
   { name: "laptop", width: 1536, height: 730, isMobile: false, hasTouch: false, deviceScaleFactor: 1, throttled: false },
   { name: "desktop", width: 1440, height: 900, isMobile: false, hasTouch: false, deviceScaleFactor: 1, throttled: false },
   { name: "wide", width: 2560, height: 1440, isMobile: false, hasTouch: false, deviceScaleFactor: 1, throttled: false },
+  // A 5K display (owner, 2026-11-03, on a 5K screen: "the image doesn't look hi-res"): 2560 CSS px at DPR 2, so every
+  // full-bleed still and swivel frame must be served at up to 5120 physical px. Opt-in (--only=5k): its screenshots
+  // are four times the pixels of "wide".
+  { name: "5k", width: 2560, height: 1440, isMobile: false, hasTouch: false, deviceScaleFactor: 2, throttled: false, optIn: true },
 ];
 // Fill rule (DESIGN.md): no viewport may read as mostly black, at any width.
 // - at most 40% of pixels at luma <= 12 (flat black)
@@ -111,7 +116,7 @@ const MODES = [
 ];
 // --only and --mode take one name or a comma list. An unknown name stops the run, so a typo never passes with no cases.
 function pick(list, arg, flag) {
-  if (arg === undefined) return list;
+  if (arg === undefined) return list.filter((x) => !x.optIn);
   const names = String(arg).split(",");
   const unknown = names.filter((n) => !list.some((x) => x.name === n));
   if (unknown.length) {

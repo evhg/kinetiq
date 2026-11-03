@@ -67,9 +67,16 @@
   width: 100%;
   height: auto;
 }
-/* Phones: a square window on K03's 4:5 card crop, as in Unibody's beat B, the slab clear of the feathers at both ends;
-   the trace is drawn on the 16:9 crop, so it waits for the wider screens. */
+/* Phones: a square window on K03's 4:5 card crop, as in Unibody's beat B, the slab clear of the feathers at both ends,
+   with the trace drawn through the same window (SealedCoreTrace crop="square"); from 700 px the 16:9 crop and its
+   trace. Each trace fills the frame and is fitted like the image (cover), so it sits on the render at any size. */
 .trace {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.traceWide {
   display: none;
 }
 @media (max-width: 699px) {
@@ -97,12 +104,11 @@
     -webkit-mask-image: linear-gradient(transparent, #000 8%, #000 86%, transparent);
     mask-image: linear-gradient(transparent, #000 8%, #000 86%, transparent);
   }
-  .trace {
+  .traceWide {
     display: block;
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
+  }
+  .traceSquare {
+    display: none;
   }
 }
 

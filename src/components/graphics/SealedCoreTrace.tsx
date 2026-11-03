@@ -10,7 +10,12 @@ import { useId } from "react";
  *   carbon all the way down.
  * Decorative (the words beside it say all of this), so it is hidden from assistive technology.
  */
-const VIEW = "0 0 1280 720";
+/**
+ * The view onto the still's pixel space, per crop as <Still> shows it: the "wide" crop whole (cover, centred), or the
+ * phones' square window on the 4:5 "card" crop (x 0.275 to 0.725 of the master = 352 to 928 here; SealedCore.module.css
+ * draws it at aspect-ratio 1 with object-position 50% 60%, so the window starts 0.6 x (720 - 576) = 86.4 px down).
+ */
+const VIEW = { wide: "0 0 1280 720", square: "352 86.4 576 576" } as const;
 
 // The core's outline on the cut face, along the inner edge of the shell (traced from K03 at 2560 x 1440).
 const CORE =
@@ -28,13 +33,13 @@ const WALL = [
   { dy: 12.8, o: 0.16 },
 ];
 
-export function SealedCoreTrace({ className }: { className?: string }) {
+export function SealedCoreTrace({ className, crop = "wide" }: { className?: string; crop?: keyof typeof VIEW }) {
   const uid = useId().replace(/[^a-zA-Z0-9]/g, "");
   const cells = `${uid}-cells`;
   const core = `${uid}-core`;
   const glow = `${uid}-glow`;
   return (
-    <svg className={className} viewBox={VIEW} preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false" data-seal-trace="">
+    <svg className={className} viewBox={VIEW[crop]} preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false" data-seal-trace={crop}>
       <defs>
         {/* closed-cell foam: a fine, irregular stipple, a little lighter than the cut face */}
         <pattern id={cells} width="9" height="8" patternUnits="userSpaceOnUse" patternTransform="skewY(8.5)" fill="#fff">
