@@ -16,7 +16,9 @@ export default function ReservedPage({ searchParams }: { searchParams: Search })
       <SiteHeader toggles />
       <main id="main" className={styles.page}>
         <div className={styles.backdrop} aria-hidden="true">
-          <Still id="K01-finale" phoneCrop="portrait" alt="" className={styles.still} />
+          {/* The page's largest paint (its LCP element on every viewport): fetched at once, never lazily (phone profile,
+              2026-11-04: lazy, it landed at 2.52 s, over the 2.5 s budget). */}
+          <Still id="K01-finale" phoneCrop="portrait" alt="" priority className={styles.still} />
         </div>
         <Suspense fallback={<ReservedStatus pending />}>
           <FromReturnUrl searchParams={searchParams} />
