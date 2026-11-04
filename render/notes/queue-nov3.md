@@ -31,7 +31,7 @@ export, delete its line from the `.done` file. `ONLY="p2a"` runs one item. Never
 ## Progress
 `grep -E "ITEM|STILL |SEQ-|PATCH|EXPORT|MASTERS|ERROR|SKIP|CROP" /home/user/kinetiq-render-out/logs/queue-nov3.log`
 
-## Status (2026-11-04 02:15 UTC; the log has the live state)
+## Status (2026-11-04 10:30 UTC; the log has the live state)
 - Kit: Naked butt, light sweep, cap-region patches, wrapped bores, 5K ladders: committed (fa5fa41 .. d23295a).
   Naked proofs in both feels: `out/naked/crop_c.png`, `crop_p.png` (white 3K / black 12K end, Q engraved, no cap).
 - Done: K08 Naked (cfc7dbd); p1a K01 Naked Command (beam 5120 x 2880 spp 64: 69 min; portrait 2160: 28-34 min;
@@ -47,7 +47,9 @@ export, delete its line from the `.done` file. `ONLY="p2a"` runs one item. Never
   every other cap patch was refused by the ring check and re-rendered whole, 4-25 min each); p1c exported 1e69436
   (K09 gallery 11 min, card 8 min; K10 50 min Command, 29 min Pace). p2a stills: beam 5120 44 min, portrait 19 min.
   08:31: the `seq()` shadowing bug (RENDER_NOTES) ended the first swivel after one frame; fixed with `command seq`,
-  both queues restarted at 08:31. Phone frames ~3 min, 5120 desktop frames ~12 min (estimate) -> p2a exports ~17:00.
+  both queues restarted at 08:31. Measured: phone frames 170-190 s (K01 Command phone swivel done 10:17, 36/36),
+  5120 desktop frames 270-280 s (the 0.46 x 0.81 crop region only). ETAs: p2a desktop ~12:55, its masters + exports
+  ~13:20; p2b (Command Naked) ~17:50; p2c (Pace stills + swivels) ~23:30; p2d ~04:00 on 5 Nov; then queue-nov3b.
 - Never edit a queue script or export_push.sh while it runs: bash reads scripts as it goes (an edit broke the first
   K01 export mid-run; re-run by hand). Kill the waiting queue, edit, restart. `run_locked` starts Blender under
   `setsid`, so killing a queue leaves its current render running (and holding the lock) until it ends: kill that
