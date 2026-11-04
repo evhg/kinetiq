@@ -35,12 +35,41 @@ def reset():
     sc.render.image_settings.file_format = "PNG"
     sc.render.image_settings.color_depth = "16"
     sc.render.threads_mode = "AUTO"
+    device(sc)
     world = bpy.data.worlds.new("World")
     world.use_nodes = True
     world.node_tree.nodes["Background"].inputs["Color"].default_value = (0, 0, 0, 1)
     world.node_tree.nodes["Background"].inputs["Strength"].default_value = 0.0
     sc.world = world
     return sc
+
+
+def device(sc):
+    """Render device (2026-11-04, the Mac render node). KQ_DEVICE unset or CPU: unchanged (Cycles on the CPU).
+    KQ_DEVICE=METAL: path tracing on every Metal GPU (Apple Silicon), CPU device off (KQ_METAL_CPU=1 adds it).
+    Only the device changes: samples, seeds, adaptive sampling, bounces and the look are untouched, and the
+    denoisers stay on the CPU as on the cloud (Cycles' OIDN and the compositor's Denoise node). Called from
+    reset(), after read_factory_settings (which resets the preferences)."""
+    dev = os.environ.get("KQ_DEVICE", "CPU").strip().upper()
+    if dev in ("", "CPU"):
+        return
+    if dev != "METAL":
+        raise SystemExit("KQ_DEVICE=%s: only CPU or METAL" % dev)
+    prefs = bpy.context.preferences.addons["cycles"].preferences
+    prefs.compute_device_type = "METAL"
+    prefs.get_devices()
+    use_cpu = os.environ.get("KQ_METAL_CPU", "0") == "1"
+    on = []
+    for d in prefs.devices:
+        d.use = d.type == "METAL" or (use_cpu and d.type == "CPU")
+        if d.use:
+            on.append(d.name)
+    if not any(d.type == "METAL" and d.use for d in prefs.devices):
+        raise SystemExit("KQ_DEVICE=METAL: no Metal device found")
+    sc.cycles.device = "GPU"
+    sc.cycles.denoising_use_gpu = False
+    sc.render.compositor_device = "CPU"
+    print("KQ_DEVICE=METAL:", ", ".join(on), flush=True)
 
 
 def settings(w, h, samples=128, pct=100):

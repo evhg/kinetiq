@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # queue_lib.sh (2026-11-03): the render queue's functions (still, seq, patch, export_stills, export_seq, masters,
 # seq_masters), shared by queue-nov3b.sh and later queues; queue-nov3.sh carries its own copy (it was running when this
 # was split out: never edit a running bash script). Source it after setting QNAME (log and marker names).
@@ -7,6 +7,11 @@ KIT=$(cd "$(dirname "$0")" && pwd)
 cd "$KIT"
 export KQ_RENDER_OUT=${KQ_RENDER_OUT:-/home/user/kinetiq-render-out}
 PY=$KQ_RENDER_OUT/bpyenv/bin/python
+if [ "$(uname -s)" = Darwin ]; then   # the Mac render node (2026-11-04, notes/mac-handoff.md)
+  command -v setsid >/dev/null || PATH="$KIT/macos:$PATH"   # macOS has no setsid(1); flock: brew install flock
+  PATH="$KQ_RENDER_OUT/bpyenv/bin:$PATH"   # python3 for the checks (numpy, Pillow) is the kit's venv
+  KQ_DF_PATH=${KQ_DF_PATH:-$KQ_RENDER_OUT}   # / is the read-only system volume
+fi
 OUT=$KQ_RENDER_OUT/out
 F=$OUT/final
 S=$OUT/seq4
@@ -22,7 +27,7 @@ mkdir -p "$LOGD" "$S"
 touch "$DONE"
 
 log() { echo "$(date -u +%FT%TZ) $*"; }
-free_mb() { df -Pm / | awk 'NR==2{print $4}'; }
+free_mb() { df -Pm "${KQ_DF_PATH:-/}" | awk 'NR==2{print $4}'; }
 want() { [ -z "$ONLY" ] || [[ " $ONLY " == *" $1 "* ]]; }
 done_mark() { grep -qxF "$1" "$DONE"; }
 mark() { echo "$1" >> "$DONE"; }
@@ -103,12 +108,14 @@ seq() {
 export_stills() {   # export_stills <marker> "<msg>" <ids...>
   local m=$1 msg=$2; shift 2
   done_mark "$m" && return 0
+  [ "${KQ_NO_EXPORT:-0}" = 1 ] && { log "EXPORT-SKIP $m (KQ_NO_EXPORT=1: the cloud exports)"; return 0; }
   if "$KIT/export_push.sh" stills "$msg" "$@" >> "$LOGD/export.log" 2>&1; then mark "$m"; log "EXPORT $m ok"; else log "ERROR export $m (see $LOGD/export.log)"; fi
 }
 
 export_seq() {      # export_seq <marker> "<msg>" <names...>
   local m=$1 msg=$2; shift 2
   done_mark "$m" && return 0
+  [ "${KQ_NO_EXPORT:-0}" = 1 ] && { log "EXPORT-SKIP $m (KQ_NO_EXPORT=1: the cloud exports)"; return 0; }
   if "$KIT/export_push.sh" seq "$msg" "$S" "$@" >> "$LOGD/export.log" 2>&1; then mark "$m"; log "EXPORT $m ok"; else log "ERROR export $m (see $LOGD/export.log)"; fi
 }
 

@@ -7,7 +7,7 @@
 set -u
 KIND=$1; MSG=$2; shift 2
 BR=${KQ_BRANCH:-wip/owner-update}
-MAIN=/home/user/kinetiq
+MAIN=${KQ_MAIN:-$(cd "$(dirname "$0")/.." && pwd)}   # the shared checkout (was /home/user/kinetiq)
 WT=${KQ_EXPORT_WT:-/home/user/wt-render}
 export KQ_RENDER_OUT=${KQ_RENDER_OUT:-/home/user/kinetiq-render-out}
 cd "$MAIN" || exit 1
