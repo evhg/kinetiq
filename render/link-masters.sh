@@ -48,6 +48,10 @@ l K09-case-three-card-pace.png K09-card-pace
 l K12-sweet-spot-pace-base.png K12-base-pace
 l K12-sweet-spot-pace-full.png K12-full-pace
 l K03-section-cut-pace-full.png K03-pace
+# K03's base pass (no lg_shell, so no baked amber hairline on the rim's shoulder), the Sealed core chapter's still under
+# its registered trace (Mac node, 2026-11-04, REQUEST K03-base; same render and rig as K03)
+l K03-section-cut-base.png K03-base
+l K03-section-cut-pace-base.png K03-base-pace
 l K03b-tubular-pace-full.png K03b-tubular-pace
 l K04-hole-macro-pace-base.png K04-base-pace
 l K04-hole-macro-pace-full.png K04-full-pace
