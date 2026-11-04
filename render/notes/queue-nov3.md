@@ -79,3 +79,16 @@ The Mac (notes/mac-handoff.md) pushes masters to `evhg/kinetiq-masters` and a `S
    ~18 min per sequence on 4 cores.
 4. `og.jpg` is written from the Command grip K01-full only (stills.mjs skips `-pace` and `-nogrip` ids since
    2026-11-04: the p2c export had overwritten it with the Pace face).
+
+## Cloud export of the Mac's queue-nov3b (2026-11-04, 17:30-21:00 UTC)
+- Exported, each looked at against the live export at 5K display size first: p4 K15 (wrapped bores: the twill runs
+  over the lip and down the wall as one lining; Pace bores read black as before), p3 K05 v7 (both feels and the four
+  Naked twins, desktop and phone; cut from the 16-bit `-master.png`: desktop = its top 2880 rows, phone = the box
+  (146, 486, 4828 x 2715) turned 90 deg CCW, found by matching the Mac's 8-bit crops, identical in the high byte),
+  p5a K14, p5b K04, p5c K16, p5d K17, p5e K06, p5f K07/K08, p5g K02 (stills and the four swivels), and K03-base
+  (REQUEST 14:09Z; link-masters.sh maps it). Nothing refused.
+- K02 swivels: the masters repo holds only the desktop sets (seq_masters layout); `seq_rebuild.py` (4 shards) rebuilds
+  them, the phone sets are the desktop frames turned 90 deg CCW at 16 bits (sharp `rotate(270)`, as K02-edge-line.py
+  `--phone`), Command and Naked Command phone sets keep 45 of 60 frames. A 60-frame 5120 rebuild is 1.3 GB: one
+  sequence per lane, frames deleted once exported. Two `sequence.mjs` runs at once only with `--out` for one of them
+  (each rewrites the manifest it read at its start), merged by hand afterwards.

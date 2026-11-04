@@ -301,9 +301,9 @@ native radio group, every option at least 44 px square to the touch, pressing to
   rendered by the same shot with `KQ_NOGRIP=1` (render/README.md), in the canon of the grip-on still they replace
   (the 1.5 mm edge with `KQ_EDGE_MM=1.5` where the site still shows it), so a flip changes only the handle. The
   hero swivel turns in Naked too (2026-11-04: `K01-swivel-nogrip-<feel>-<layout>`, both feels, the light sweep, frame 0
-  the K01-nogrip-full / -hero-full-phone still); Unibody's K02 has no grip-off sequence yet, so with Naked it shows its
-  still as it scrolls (the Swivel is given `K02-swivel-nogrip`, which finds no frames; a future
-  `K02-swivel-nogrip-<feel>-<layout>` export plays with no code change). Not changed: the
+  the K01-nogrip-full / -hero-full-phone still), and so does Unibody's K02 (2026-11-04: `K02-swivel-nogrip-<feel>-<layout>`,
+  rendered on the Mac node at 5120 with the new-canon K02 stills, the phone sets the desktop frames turned 90 degrees,
+  frame 0 each one's still). Not changed: the
   social card (`og.jpg`: crawlers carry no cookie) and G01's drawing in Specifications (it names the overgrip).
 - No wrist cord (owner, 2026-11-03: "no need to add the wrist cord"): no render shows the FIP cord, with the grip or
   without it; the canon keeps "no wrist cord" (render/notes/canon.md). The product must still ship with one (CLAIMS.md
@@ -327,11 +327,15 @@ native radio group, every option at least 44 px square to the touch, pressing to
   as the turn starts. The HD re-renders are committed in the masters repo and reproduce bit for bit with
   `node scripts/stills.mjs <masters>/stills/K01 <ids>` (and K02); export them in the same commit as the new swivels.
 - A twin follows its grip-on sibling's canon (2026-11-03): K01's hero and finale twins and K08, K12 are the 1.0 mm
-  canon; K02, K05, K06, K07, K09, K10 and K11 twins are the 1.5 mm canon (`KQ_EDGE_MM=1.5`), as their grip-on stills.
-  When a grip-on still moves to the new canon (K02 with its new swivel), re-render its twin in the same commit
-  (the same command without `KQ_EDGE_MM` and `--set HD=0`), or a flip of the toggle changes the edge and the weave too.
-  K02's Unibody turn has no grip-off sequence: render one (K02-edge-line.py `--set NOGRIP=1`, the swivel's own
-  arguments) with the new-canon K02 swivel; until then Naked holds the still there, as in the hero.
+  canon; K09, K10 and K11 twins are the 1.5 mm canon (`KQ_EDGE_MM=1.5`), as their grip-on stills. When a grip-on still
+  moves to the new canon, re-render its twin in the same commit (the same command without `KQ_EDGE_MM` and
+  `--set HD=0`), or a flip of the toggle changes the edge and the weave too.
+- 5K pass (Mac node, exported 2026-11-04): K02 (with its four swivels, grip and Naked, both feels), K04, K05 v7 (with
+  its Naked twins, desktop and phone, the first K05 twins on the site), K06, K07, K08, K14, K15 (wrapped bores),
+  K16 and K17 are 5120 x 2880 masters on the 1.0 mm canon, grip and twin from one canon; their wide crops export to
+  5120, K08's and K16's half crops to 2048 and 2560 (the `left`/`right` ladders), phone crops unchanged.
+  `scripts/probe-5k.mjs` at rest: none upscaled; the scrubs' entry scales (K04 1.22, K05 and K17 1.08, K06 1.05)
+  draw past 5120 for their first moments. K03, K03-base and K03b stay 3200 masters (not re-rendered at 5K).
 
 ## Micro-interactions
 Pressables scale 0.97 on `:active`; hover only behind `(hover: hover) and (pointer: fine)`; transform and
