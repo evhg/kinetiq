@@ -17,6 +17,6 @@ for t in 1 2 3 4 5; do
     git add --sparse STATUS-mac.md && git commit -q -m "STATUS-mac: ${LINE:0:120}" && git push -q origin main \
       && { cd /; rm -rf "$TMP"; echo "status: pushed"; exit 0; }
   fi
-  cd /; rm -rf "$TMP"; sleep $((t * 5))
+  cd /; rm -rf "$TMP"; sleep $((t * 30))
 done
 echo "status: PUSH FAILED"; exit 1

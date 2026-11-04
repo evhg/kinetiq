@@ -110,6 +110,7 @@ K2C="0.09 0.92 0.20 0.86"
 k02seq() {   # k02seq <name> <frames> <env/cmd...> (cmd has --seq, --phone, --crop, --out seq4/<name>)
   local name=$1 n=$2; shift 2
   local d=$S/$name-desktop t0=$(date +%s) did=0
+  done_mark "seqmasters $name-desktop" && { log "SEQ-SKIP $name (masters pushed; frames 1.. deleted)"; return 0; }
   log "SEQ-START $name ($n frames)"
   for i in 0 $((n - 1)) $(command seq 1 $((n - 2))); do
     local f=$(printf "f%03d.png" "$i")

@@ -8,7 +8,7 @@ cd "$KIT"
 export KQ_RENDER_OUT=${KQ_RENDER_OUT:-/home/user/kinetiq-render-out}
 PY=$KQ_RENDER_OUT/bpyenv/bin/python
 if [ "$(uname -s)" = Darwin ]; then   # the Mac render node (2026-11-04, notes/mac-handoff.md)
-  command -v setsid >/dev/null || PATH="$KIT/macos:$PATH"   # macOS has no setsid(1); flock: brew install flock
+  command -v setsid >/dev/null || PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/macos:$PATH"   # macOS has no setsid(1); flock: brew install flock
   PATH="$KQ_RENDER_OUT/bpyenv/bin:$PATH"   # python3 for the checks (numpy, Pillow) is the kit's venv
   KQ_DF_PATH=${KQ_DF_PATH:-$KQ_RENDER_OUT}   # / is the read-only system volume
 fi

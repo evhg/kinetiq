@@ -96,6 +96,21 @@ Outs carry `-nogrip` before `-pace` (`final/K06-mould-nogrip-pace-base.png`); `l
 with `-nogrip` after the K-number (`K06-nogrip-base-pace`), which `<Still>` finds by name. Check each against its
 grip-on export (only the handle may change) and with `fillcheck.py`. K01 keeps its own `--set NOGRIP=1`.
 
+## Mac render node (2026-11-04, notes/mac-handoff.md)
+Renders run on Erik's M3 Max; the cloud keeps exports, checks and releases. On the Mac:
+```sh
+export KQ_RENDER_OUT=~/kinetiq-render/out KQ_LOCK=~/kinetiq-render/render.lock RENDER_ROOT=~/kinetiq-render/kinetiq/render
+nohup caffeinate -dimsu render/queue-mac.sh >> $KQ_RENDER_OUT/logs/queue-mac.log 2>&1 &   # ONLY="p2b" for one item
+```
+- `KQ_DEVICE=METAL` (`studio.reset()`, opt-in; queue-mac.sh sets it): path tracing on the Metal GPU, CPU device off
+  (`KQ_METAL_CPU=1` adds it); samples, seeds and look unchanged, both denoisers stay on the CPU.
+- macOS needs `brew install flock bash fribidi` (bash 5 for the queues; fribidi for Pillow's raqm text layout, which the
+  serial etch uses). The venv's `sitecustomize.py` (local, not in git) re-execs Python once with
+  `DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib`, as macOS strips DYLD_* through system binaries. The queues put
+  `render/macos/setsid` (a setsid(1) shim) and the venv's python3 on PATH on Darwin only.
+- `queue-mac.sh` pushes masters only (`KQ_NO_EXPORT=1` skips export_push.sh) and, after each item, one line to
+  `STATUS-mac.md` in the masters repo (`status_push.sh`).
+
 ## Export to the site
 ```sh
 render/link-masters.sh                                   # out/final/*.png -> $KQ_RENDER_OUT/masters/<still id>.png
