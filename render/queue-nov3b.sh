@@ -111,7 +111,7 @@ k02seq() {   # k02seq <name> <frames> <env/cmd...> (cmd has --seq, --phone, --cr
   local name=$1 n=$2; shift 2
   local d=$S/$name-desktop t0=$(date +%s) did=0
   log "SEQ-START $name ($n frames)"
-  for i in 0 $((n - 1)) $(seq 1 $((n - 2))); do
+  for i in 0 $((n - 1)) $(command seq 1 $((n - 2))); do
     local f=$(printf "f%03d.png" "$i")
     [ -f "$d/$f" ] && [ -f "$S/$name-phone/$f" ] && continue
     wait_disk

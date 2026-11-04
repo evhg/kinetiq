@@ -229,3 +229,7 @@ any more. How to switch, part names, lighting notes: `../renders4/canon.md`. Pro
   every other shot keeps "clamp" until re-rendered.
 - **Masters** now go through `masters_push.sh` (a throwaway blobless depth-1 clone per push); `/home/user/kinetiq-masters`
   is a blobless sparse clone (README and deal-notes only), which freed 12 GB.
+- **Queue bug (4 Nov, fixed):** the queues define a shell function `seq()` (one swivel), which shadowed `/usr/bin/seq`
+  inside it, so `$(seq 1 34)` produced no frame numbers and a swivel stopped after its last frame ("2 of 36 on disk").
+  Every frame loop now calls `command seq` (queue-nov3.sh, queue_lib.sh, queue-nov3b.sh k02seq). Caught on the first
+  swivel, K01 Command phone, 08:31 UTC; the queues were stopped, fixed and restarted, nothing was exported from it.

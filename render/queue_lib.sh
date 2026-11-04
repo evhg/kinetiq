@@ -81,7 +81,7 @@ seq() {
     cp "$f0" "$d/f000.png"
   fi
   log "SEQ-START $name ($n frames) $*"
-  for i in $((n - 1)) $(seq 1 $((n - 2))); do
+  for i in $((n - 1)) $(command seq 1 $((n - 2))); do
     local f=$(printf "f%03d.png" "$i")
     if [ ! -f "$d/$f" ]; then
       wait_disk

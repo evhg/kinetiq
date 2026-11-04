@@ -43,6 +43,11 @@ export, delete its line from the `.done` file. `ONLY="p2a"` runs one item. Never
   portrait swivel 35 x ~3.5 min ~2 h, desktop swivel 35 x ~12 min (5120, spp 16; 4x the 2560 frames' ~3 min) ~7 h,
   exports at the end -> ~18:30 on 4 Nov; p2b Command Naked ~9 h -> ~03:30 on 5 Nov; p2c/p2d Pace ~11 h + ~9 h.
   Then queue-nov3b (p4 K15, p3 K05, p5a-p5g), about an hour per 5K still.
+- 4 Nov: p1a Pace (beam 50 min, portrait 18 min) exported c99170e; p1b exported e3f8ee7 (only the K11 pairs pasted,
+  every other cap patch was refused by the ring check and re-rendered whole, 4-25 min each); p1c exported 1e69436
+  (K09 gallery 11 min, card 8 min; K10 50 min Command, 29 min Pace). p2a stills: beam 5120 44 min, portrait 19 min.
+  08:31: the `seq()` shadowing bug (RENDER_NOTES) ended the first swivel after one frame; fixed with `command seq`,
+  both queues restarted at 08:31. Phone frames ~3 min, 5120 desktop frames ~12 min (estimate) -> p2a exports ~17:00.
 - Never edit a queue script or export_push.sh while it runs: bash reads scripts as it goes (an edit broke the first
   K01 export mid-run; re-run by hand). Kill the waiting queue, edit, restart. `run_locked` starts Blender under
   `setsid`, so killing a queue leaves its current render running (and holding the lock) until it ends: kill that
