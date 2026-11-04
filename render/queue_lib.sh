@@ -11,6 +11,7 @@ if [ "$(uname -s)" = Darwin ]; then   # the Mac render node (2026-11-04, notes/m
   command -v setsid >/dev/null || PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/macos:$PATH"   # macOS has no setsid(1); flock: brew install flock
   PATH="$KQ_RENDER_OUT/bpyenv/bin:$PATH"   # python3 for the checks (numpy, Pillow) is the kit's venv
   KQ_DF_PATH=${KQ_DF_PATH:-$KQ_RENDER_OUT}   # / is the read-only system volume
+  KQ_RETRY=${KQ_RETRY:-2}   # Metal kernel-compile aborts (run_locked)
 fi
 OUT=$KQ_RENDER_OUT/out
 F=$OUT/final
@@ -42,21 +43,30 @@ wait_disk() {
 }
 
 # run_locked <label> <cmd...> (env assignments go in front via `env`)
+# A render killed by a signal (exit >= 128: Blender 4.2.0's Metal kernel compile thread aborts now and then, NSException
+# in MetalKernelPipeline::compile, 2026-11-04) is run again up to KQ_RETRY times (default 0; 2 on Darwin); a Python
+# error (exit 1) is deterministic and is not retried.
 run_locked() {
   local label=$1; shift
-  local blog="$LOGD/$label.log"
-  setsid flock "$LOCK" "$@" >> "$blog" 2>&1 &
-  local pid=$!
-  while kill -0 "$pid" 2>/dev/null; do
-    if [ "$(free_mb)" -lt "$STOP_MB" ]; then
-      log "STOP-DISK free $(free_mb) MB < $STOP_MB MB during $label: killing it"
-      kill -TERM -- "-$pid" 2>/dev/null; sleep 5; kill -KILL -- "-$pid" 2>/dev/null
-      exit 3
+  local blog="$LOGD/$label.log" try=0 rc pid
+  while :; do
+    setsid flock "$LOCK" "$@" >> "$blog" 2>&1 &
+    pid=$!
+    while kill -0 "$pid" 2>/dev/null; do
+      if [ "$(free_mb)" -lt "$STOP_MB" ]; then
+        log "STOP-DISK free $(free_mb) MB < $STOP_MB MB during $label: killing it"
+        kill -TERM -- "-$pid" 2>/dev/null; sleep 5; kill -KILL -- "-$pid" 2>/dev/null
+        exit 3
+      fi
+      sleep 10
+    done
+    wait "$pid"
+    rc=$?
+    if [ $rc -ge 128 ] && [ $try -lt "${KQ_RETRY:-0}" ]; then
+      try=$((try + 1)); log "RETRY $label after exit $rc ($try of $KQ_RETRY; see $blog)"; sleep 10; continue
     fi
-    sleep 10
+    break
   done
-  wait "$pid"
-  local rc=$?
   [ $rc -ne 0 ] && log "ERROR $label exit $rc (see $blog)"
   return $rc
 }
