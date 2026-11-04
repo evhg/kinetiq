@@ -64,3 +64,18 @@ Not queued yet: K02 (its still must ship with a new-canon swivel), K03/K03b, K09
 ```sh
 setsid nohup render/queue-nov3b.sh >> /home/user/kinetiq-render-out/logs/queue-nov3b.log 2>&1 &
 ```
+
+## Cloud side: exporting a Mac item (2026-11-04, p2b to p2d)
+The Mac (notes/mac-handoff.md) pushes masters to `evhg/kinetiq-masters` and a `STATUS-mac.md` line; the cloud exports.
+1. Fetch only what the item names (a blobless sparse clone; `git sparse-checkout add '/stills/K01/<name>-*'`, or
+   `git show HEAD:<path> > <file>` for single stills). Disk: a 5120 swivel is ~0.9 GB of region masters and ~2.1 GB
+   rebuilt; the container has ~16 GB free, so export one swivel and delete its frames before the next.
+2. Stills: copy the finals into `$KQ_RENDER_OUT/out/final/` under their queue names (they replace the cloud's of the
+   same name), `render/link-masters.sh`, then `node scripts/stills.mjs $KQ_RENDER_OUT/masters <ids>` (export_push.sh's
+   ids for the item; never two stills.mjs or two sequence.mjs runs at once: each rewrites its manifest at the end).
+3. Swivels: `$PY render/seq_rebuild.py <masters>/sequences/<name> <dir>/<name> k 4` for k = 0..3 in parallel, check
+   frame 0 against the `-full` still (export-swivels.md step 2), then `sequence.mjs` with export_push.sh's options
+   (`*-phone`: `--formats=avif,webp --avif-quality=50`; desktop: `--formats=avif,webp`). Phone ~9 min, a 5120 desktop
+   ~18 min per sequence on 4 cores.
+4. `og.jpg` is written from the Command grip K01-full only (stills.mjs skips `-pace` and `-nogrip` ids since
+   2026-11-04: the p2c export had overwritten it with the Pace face).

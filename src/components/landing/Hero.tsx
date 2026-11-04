@@ -25,9 +25,9 @@ const PORTRAIT_SIZES = "(min-width: 700px) 140vw, 100vw";
 const BARE_BASE = { id: "K01-nogrip-base", phoneId: "K01-nogrip-hero-base-phone" };
 const BARE_FULL = { id: "K01-nogrip-full", phoneId: "K01-nogrip-hero-full-phone" };
 /**
- * The swivel's sequences (`<name>-<feel>-desktop|phone`). Without the grip no sequence is rendered yet, so the name
- * finds none and the still shows alone (Swivel: "Missing sequence ... the still shows"); the grip's frames already
- * downloaded stay cached for a switch back. A future "K01-swivel-nogrip" export plays with no code change.
+ * The swivel's sequences (`<name>-<feel>-desktop|phone`): Grip and Naked, both feels, each in the light-sweep scene
+ * (2026-11-04), frame 0 being the BARE_FULL or K01-full still it is drawn over. A sequence missing for a feel or layout
+ * finds no manifest entry and the still shows alone (Swivel: "Missing sequence ... the still shows").
  */
 const SWIVEL = { on: "K01-swivel", off: "K01-swivel-nogrip" } as const;
 

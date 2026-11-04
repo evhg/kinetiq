@@ -100,7 +100,8 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
   Grip toggle (every still that shows the handle, owner 2026-11-03): DESIGN.md "Grip toggle" (`lib/grip-store.ts`,
   `kq-grip` in localStorage and a cookie: the proxy serves /, /reserve, /reserved bare from `app/feel/[<feel>/]bare`;
   people read "Grip" / "Naked" (owner, 2026-11-03: Naked is 100% carbon, no overgrip and no cap; ids keep "bare");
-  `<Still>` finds a `-nogrip` twin by name; no grip-off swivel yet). `check.mjs --grip=off`. No wrist cord in renders.
+  `<Still>` finds a `-nogrip` twin by name; the hero swivel has Naked sequences, Unibody's K02 not yet).
+  `check.mjs --grip=off`. No wrist cord in renders.
 - One canonical racket in every still and graphic (`racket-shape.ts`, render audit 2026-10-22): 455.0 × 260.0 × 38.0 mm
   (the FIP limits); 42 moulded holes, a crown of 8 of Ø14.0 mm along the top and 34 of Ø12.4 mm below; 1.0 mm edge
   radius, the flat face ending 1.0 mm from the edge (`FACE_INSET`, owner 2026-11-02; was 1.5 and 4 mm); one handle: a

@@ -13,7 +13,7 @@ import { ServerGripContext } from "./grip-context";
 
 /**
  * The hero racket with or without its overgrip (owner, 2026-11-02), shared by the grip toggle, the hero's stills (the
- * K01-nogrip variants, `<Still bare>`) and the hero swivel (no sequence without the grip yet, so the still shows).
+ * K01-nogrip variants, `<Still bare>`) and the hero swivel (K01-swivel-nogrip-<feel>-<layout> without the grip).
  * Kept in the visitor's own browser (localStorage, GRIP_PREFERENCE_KEY) and mirrored in a first-party cookie of the
  * same name, as the feel is (lib/feel-store.ts): src/proxy.ts serves a returning "Naked" visitor / already rendered bare
  * (app/feel/bare, app/feel/<feel>/bare), so the first screen downloads the bare stills alone. When storage is blocked

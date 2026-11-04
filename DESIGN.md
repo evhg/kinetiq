@@ -300,9 +300,10 @@ native radio group, every option at least 44 px square to the touch, pressing to
   A crop or feel whose twin is not exported yet keeps its grip-on file (never the other feel's face). The twins are
   rendered by the same shot with `KQ_NOGRIP=1` (render/README.md), in the canon of the grip-on still they replace
   (the 1.5 mm edge with `KQ_EDGE_MM=1.5` where the site still shows it), so a flip changes only the handle. The
-  swivels have no sequence without the grip yet: with Naked the hero and Unibody show their still as they scroll
-  (the Swivel is given `K01-swivel-nogrip` / `K02-swivel-nogrip`, which find no frames; the grip's frames stay cached
-  for a switch back, and a future `<name>-nogrip-<feel>-<layout>` export plays with no code change). Not changed: the
+  hero swivel turns in Naked too (2026-11-04: `K01-swivel-nogrip-<feel>-<layout>`, both feels, the light sweep, frame 0
+  the K01-nogrip-full / -hero-full-phone still); Unibody's K02 has no grip-off sequence yet, so with Naked it shows its
+  still as it scrolls (the Swivel is given `K02-swivel-nogrip`, which finds no frames; a future
+  `K02-swivel-nogrip-<feel>-<layout>` export plays with no code change). Not changed: the
   social card (`og.jpg`: crawlers carry no cookie) and G01's drawing in Specifications (it names the overgrip).
 - No wrist cord (owner, 2026-11-03: "no need to add the wrist cord"): no render shows the FIP cord, with the grip or
   without it; the canon keeps "no wrist cord" (render/notes/canon.md). The product must still ship with one (CLAIMS.md
@@ -317,8 +318,9 @@ native radio group, every option at least 44 px square to the touch, pressing to
   ever loads. /reserve and /reserved have bare variants too (`app/feel/[<feel>/]bare/reserve`, `.../reserved`; owner,
   2026-11-03). `check.mjs --grip=off` (with `--feel=pace`, and on any `--path`) checks it: LCP budget and no grip-on
   file of a still with a twin fetched.
-- Release precondition: no grip-off swivel exists (`K01-swivel-nogrip-<feel>-<layout>`), so with Naked the hero holds
-  its still as it scrolls away. Render it (as the K01 swivel, `--set NOGRIP=1`) before main, or accept the still.
+- Release 7 (2026-11-04): the four K01 hero swivels (Grip and Naked, Command and Pace) are rendered on the Mac node
+  (Metal) in the light-sweep scene with their stills on the same device, so each frame 0 is its still bit for bit; the
+  Naked hero turns as it scrolls away like the Grip one.
 - Release 6 (2026-11-02, accepted): Naked ships with its still. The grip-on hero stills (K01-base, K01-full, the two
   K01-hero phone masters) and K02, both feels, stay on the exports main had (the 1.5 mm canon), because each swivel's
   frame 0 must be its still and the swivels are not re-rendered yet: a new-canon still would visibly soften the weave
