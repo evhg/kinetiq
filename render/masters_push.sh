@@ -8,8 +8,12 @@ set -u
 DIR=$1; MSG=$2; shift 2
 REPO=${KQ_MASTERS_URL:-https://github.com/evhg/kinetiq-masters}
 TMP=${KQ_RENDER_OUT:-/home/user/kinetiq-render-out}/tmp-masters-$$
-rm -rf "$TMP"
-git clone -q --filter=blob:none --no-checkout --depth 1 "$REPO" "$TMP" || exit 1
+for t in 1 2 3 4 5 6; do   # retry the clone (a network blip must not drop a master)
+  rm -rf "$TMP"
+  git clone -q --filter=blob:none --no-checkout --depth 1 "$REPO" "$TMP" && break
+  [ $t -eq 6 ] && { echo "masters: CLONE FAILED $DIR"; exit 1; }
+  sleep $((t * 30))
+done
 cd "$TMP" || exit 1
 git sparse-checkout set --no-cone /README.md >/dev/null
 git checkout -q main || exit 1
@@ -22,7 +26,7 @@ ok=0
 for t in 1 2 3; do
   if git push -q origin main; then ok=1; break; fi
   git pull -q --rebase origin main || true
-  sleep 5
+  sleep $((t * 20))
 done
 cd / && rm -rf "$TMP"
 [ $ok -eq 1 ] && echo "masters: pushed $DIR ($#)" || { echo "masters: PUSH FAILED $DIR"; exit 1; }

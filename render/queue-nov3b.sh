@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # queue-nov3b.sh (owner feedback 2026-11-03, after queue-nov3.sh): P4 K15 with wrapped bores at 5K, P3 K05 v7 at 5K
 # (its look from render/notes/k05-v7.args, read when the item starts, so it can be decided while this runs), then P5:
 # the full-bleed stills a 5K screen upscales (scripts/probe-5k.mjs), most visible first, into out/final/v5k/<same
@@ -10,7 +10,7 @@ QNAME=queue-nov3b
 V=$F/v5k
 mkdir -p "$V"
 if [ "${WAIT_FOR_NOV3:-1}" = 1 ]; then
-  while ps -eo cmd | grep -q "^/bin/bash render/queue-nov3.sh\|^/bin/bash .*/queue-nov3.sh"; do sleep 120; done
+  while ps -eo args | grep -q "^[^ ]*bash [^ ]*queue-nov3\.sh"; do sleep 120; done   # args: Linux and macOS
 fi
 log "QUEUE-START (nov3b) free $(free_mb) MB"
 NG="env KQ_NOGRIP=1"
@@ -110,6 +110,7 @@ K2C="0.09 0.92 0.20 0.86"
 k02seq() {   # k02seq <name> <frames> <env/cmd...> (cmd has --seq, --phone, --crop, --out seq4/<name>)
   local name=$1 n=$2; shift 2
   local d=$S/$name-desktop t0=$(date +%s) did=0
+  done_mark "seqmasters $name-desktop" && { log "SEQ-SKIP $name (masters pushed; frames 1.. deleted)"; return 0; }
   log "SEQ-START $name ($n frames)"
   for i in 0 $((n - 1)) $(command seq 1 $((n - 2))); do
     local f=$(printf "f%03d.png" "$i")
