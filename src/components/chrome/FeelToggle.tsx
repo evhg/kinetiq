@@ -11,9 +11,10 @@ type Props = {
   labels: Record<FeelId, string>;
   /**
    * "hero": two face swatches with their names, quiet beside or above Reserve Now; "compact": the header's, the
-   * swatches alone below 700 px (the names stay as the radios' labels for assistive tech), with their names from 700 px.
+   * swatches alone below 700 px (the names stay as the radios' labels for assistive tech), with their names from 700 px;
+   * "panel": in the header's view panel (ViewControl), always with the names.
    */
-  size?: "hero" | "compact";
+  size?: "hero" | "compact" | "panel";
   className?: string;
   /** Out of the tab order and the accessibility tree while hidden (the header's, when its Reserve Now is hidden). */
   inert?: boolean;

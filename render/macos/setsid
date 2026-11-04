@@ -1,0 +1,9 @@
+#!/usr/bin/perl
+# setsid for macOS (2026-11-04, the Mac render node): macOS has no setsid(1). Starts the command in a new session and
+# process group with the same PID (exec, no fork), so `setsid cmd &` then `kill -- -$!` stops the command and its
+# children, as on Linux. Only put on PATH where setsid is missing (queue_lib.sh, Darwin).
+use strict;
+use POSIX ();
+@ARGV or die "usage: setsid <command> [args...]\n";
+POSIX::setsid();   # fails only if already a group leader; the command then runs in the current group
+exec { $ARGV[0] } @ARGV or die "setsid: $ARGV[0]: $!\n";

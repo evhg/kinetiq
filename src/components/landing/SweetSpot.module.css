@@ -1,20 +1,29 @@
-/* Sweet spot, the payoff after the sealed core (owner, 2026-10-28). Phones and tablets (below 1000 px): one column, the
-   headline, the image, then the words. Wide: with G15, the words in the left five columns and the drawing on the
-   right; with K14, the macro full bleed across the top and the words under it (see below).
-   The floor is --stage at both ends, the sealed core's floor above and Feel's below, with a lift behind the image
-   (fill rule: never flat black), so neither boundary is a step. Check with a pixel probe, not by eye. */
-.section {
+/* Sweet spot, the payoff after the sealed core (owner, 2026-10-28), a pinned chapter since 2026-11-03 (SweetSpot.tsx).
+   Stacked (phones, tablets, and reduced motion at any width): the headline, the image, the lines, the numbers; from
+   900 px the macro runs full bleed across the top with the words under it. Pinned (900 px and up, with motion): one
+   screen, K14 covering the stage moved right and down so the rim arcs across its right half, the words in columns 1
+   to 5 on the dark studio to its left. The floor is --stage at both ends, the sealed core's floor above and Surface's
+   below, with lifts behind the image and the words (fill rule: never flat black). Check seams with a pixel probe. */
+.chapter {
+  background:
+    radial-gradient(ellipse 90% 34% at 50% 34%, rgb(50 50 55 / 0.9), rgb(36 36 40 / 0.55) 50%, transparent 82%),
+    var(--stage);
+}
+.beat {
   position: relative;
   isolation: isolate;
   overflow: hidden;
   display: grid;
   gap: 0;
   padding: clamp(72px, 14vw, 128px) var(--margin) clamp(80px, 16vw, 144px);
-  background:
-    radial-gradient(ellipse 90% 34% at 50% 34%, rgb(50 50 55 / 0.9), rgb(36 36 40 / 0.55) 50%, transparent 82%),
-    var(--stage);
+}
+/* The words' wrapper takes no box: its blocks are placed on the beat's grid, so on phones the headline can come before
+   the image that precedes it in the source. */
+.words {
+  display: contents;
 }
 .head {
+  order: 0;
   display: grid;
   gap: clamp(12px, 1vw + 6px, 28px);
 }
@@ -22,6 +31,7 @@
   max-width: 12ch;
 }
 .media {
+  order: 1;
   position: relative;
   justify-self: center;
   width: min(100%, 560px);
@@ -30,18 +40,17 @@
 .graphic {
   width: 100%;
 }
-/* K14: the macro, its 4:5 portrait crop on phones, feathered into the floor at its top and foot (and at its sides
+/* K14: the macro, its 4:5 portrait crop below 900 px, feathered into the floor at its top and foot (and at its sides
    where the frame is narrower than the screen), so its backdrop never shows as a box. */
 .frame {
   position: relative;
   aspect-ratio: 4 / 5;
   overflow: hidden;
+  isolation: isolate;
   -webkit-mask-image: linear-gradient(transparent, #000 10%, #000 88%, transparent);
   mask-image: linear-gradient(transparent, #000 10%, #000 88%, transparent);
 }
-/* Tablets (700 to 999 px): the frame is narrower than the screen, so its sides feather too (the lit face read as a
-   box with hard sides at 768 px). From 1000 px the macro runs the full width; under 700 px the full phone width. */
-@media (min-width: 700px) and (max-width: 999px) {
+@media (min-width: 700px) and (max-width: 899px) {
   .frame {
     -webkit-mask-image:
       linear-gradient(transparent, #000 10%, #000 88%, transparent),
@@ -62,7 +71,64 @@
   height: 100%;
   object-fit: cover;
 }
+/* The dark the face comes up out of (pinned only: the timeline fades it from 0.62 to 0; at rest it is gone). */
+.veil {
+  position: absolute;
+  inset: 0;
+  background: var(--void);
+  opacity: 0;
+  pointer-events: none;
+}
+/* The light: a soft warm band parallel to the rim (turned -23 degrees, the rim's mean slope across the frame), which
+   the timeline moves along the rim's normal, from inside the face out past the edge (transform only: GSAP's yPercent
+   acts in the turned frame, after the CSS rotate). Only a strip, 160% x 30% of the frame, so its layer stays small on
+   a 5K screen. Colour dodge brightens what is already lit in proportion, so the weave and the edge radius flare while
+   the near-black studio beyond the rim barely moves. Hidden at rest and with reduced motion. */
+.light {
+  position: absolute;
+  left: -30%;
+  top: 35%;
+  width: 160%;
+  height: 30%;
+  rotate: -23deg;
+  background: linear-gradient(
+    transparent,
+    rgb(92 84 74 / 0.35) 30%,
+    rgb(96 88 78) 50%,
+    rgb(92 84 74 / 0.35) 70%,
+    transparent
+  );
+  mix-blend-mode: color-dodge;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+/* The 1 mm line on the render (SweetSpotEdge): drawn in the crop's own pixel space and fitted like the image. The wide
+   tracing from 900 px, the portrait one below, as the still's own crops switch (Still phoneMedia). */
+.edge {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.edge svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.edgeWide {
+  display: none;
+}
+@media (min-width: 900px) {
+  .edgeWide {
+    display: block;
+  }
+  .edgePortrait {
+    display: none;
+  }
+}
 .body {
+  order: 2;
   display: grid;
   gap: 16px;
   margin-top: clamp(28px, 6vw, 48px);
@@ -76,6 +142,7 @@
 }
 /* the two numbers side by side, under one amber hairline (Apple Watch Series 7: a share, then a border in mm) */
 .lockup {
+  order: 3;
   position: relative;
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -119,101 +186,187 @@
   color: var(--steel);
   text-wrap: balance;
 }
+@media (max-width: 699px) {
+  .title {
+    font-size: 2.75rem;
+  }
+  /* K14 runs the full width of the phone */
+  .beat[data-media="still"] .media {
+    width: 100vw;
+    margin-inline: calc(var(--margin) * -1);
+  }
+}
 
-/* Wide: the words in columns 1 to 5, centred in the screen; G15 in columns 6 to 12 at the height of the screen. K14
-   instead runs full bleed across the top (below). */
-@media (min-width: 1000px) {
-  .section {
-    min-height: 100svh;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    grid-template-rows: 1fr auto auto auto 1fr;
-    column-gap: var(--gutter);
-    padding: calc(var(--chrome-h) + clamp(16px, 3vh, 64px)) var(--margin) clamp(32px, 5vh, 96px);
-    background:
-      radial-gradient(ellipse 30% 48% at 66% 54%, rgb(54 53 58 / 0.95), rgb(38 38 42 / 0.6) 48%, transparent 80%),
-      var(--stage);
-  }
-  .head,
-  .body,
-  .lockup {
-    grid-column: 1 / span 5;
-  }
-  .head {
-    grid-row: 2;
-  }
-  .body {
-    grid-row: 3;
-    margin-top: clamp(20px, 1.8vw, 48px);
-  }
-  .lockup {
-    grid-row: 4;
-    margin-top: clamp(32px, 3.4vw, 88px);
-  }
-  .media {
-    grid-column: 6 / -1;
-    grid-row: 1 / -1;
-    justify-self: stretch;
-    width: auto;
-    margin: 0;
-    display: grid;
-    align-items: center;
-    justify-items: end;
-  }
-  /* G15 as tall as the screen allows below the header, the racket a little right of the column's middle */
-  .graphic {
-    width: min(100%, calc((100svh - var(--chrome-h)) * 0.9 * 446 / 494));
-  }
-  /* K14 full bleed across the top: the 16:9 frame at the screen's width, no taller than 72% of the screen (a wider
-     screen crops its top and foot), feathered into the floor at both ends; the words and the numbers under it, the
-     head and the lines in columns 1 to 6 and the numbers in columns 7 to 12, level with the lines. */
-  .section[data-media="still"] {
-    min-height: 0;
-    grid-template-rows: auto auto auto;
-    row-gap: 0;
-    padding-top: 0;
-    padding-bottom: clamp(80px, 8vw, 200px);
-    /* a second, lower lift behind the words and the numbers (fill rule at 2560: the band under the macro read as flat
-       floor), ending well above the foot so the section still meets Feel on --stage */
+/* Stacked from 900 px (reduced motion; the server render before the motion attribute is read): K14 full bleed across
+   the top (16:9 at the screen's width, at most 72svh, feathered at both ends), the head and lines in columns 1 to 6,
+   the numbers in 7 to 12, level with the lines; with G15, the words in columns 1 to 5 and the drawing on the right. */
+@media (min-width: 900px) {
+  .chapter {
     background:
       radial-gradient(ellipse 70% 40% at 50% 30%, rgb(50 50 55 / 0.9), rgb(36 36 40 / 0.55) 50%, transparent 82%),
       radial-gradient(ellipse 85% 26% at 50% 68%, rgb(64 64 70 / 0.9), rgb(42 42 47 / 0.55) 55%, transparent 100%),
       var(--stage);
   }
-  .section[data-media="still"] .media {
+  .beat {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+    padding: 0 var(--margin) clamp(80px, 8vw, 200px);
+  }
+  .media {
     grid-column: 1 / -1;
     grid-row: 1;
+    justify-self: stretch;
+    width: auto;
     margin: 0 calc(var(--margin) * -1) clamp(32px, 3vw, 80px);
-    display: block;
   }
-  .section[data-media="still"] .frame {
+  .frame {
     width: 100%;
     aspect-ratio: auto;
     height: min(56.25vw, 72svh);
     -webkit-mask-image: linear-gradient(transparent, #000 14%, #000 82%, transparent);
     mask-image: linear-gradient(transparent, #000 14%, #000 82%, transparent);
   }
-  .section[data-media="still"] .head {
+  .head {
     grid-column: 1 / span 6;
     grid-row: 2;
   }
-  .section[data-media="still"] .body {
+  .body {
     grid-column: 1 / span 6;
     grid-row: 3;
   }
-  .section[data-media="still"] .lockup {
+  .lockup {
     grid-column: 7 / -1;
     grid-row: 2 / span 2;
     align-self: end;
     margin-top: 0;
   }
-}
-@media (max-width: 699px) {
-  .title {
-    font-size: 2.75rem;
+  .beat[data-media="graphic"] {
+    min-height: 100svh;
+    grid-template-rows: 1fr auto auto auto 1fr;
+    padding: calc(var(--chrome-h) + clamp(16px, 3vh, 64px)) var(--margin) clamp(32px, 5vh, 96px);
   }
-  /* K14 runs the full width of the phone */
-  .section[data-media="still"] .media {
-    width: 100vw;
-    margin-inline: calc(var(--margin) * -1);
+  .beat[data-media="graphic"] .media {
+    grid-column: 6 / -1;
+    grid-row: 1 / -1;
+    margin: 0;
+    display: grid;
+    align-items: center;
+    justify-items: end;
+  }
+  .beat[data-media="graphic"] .graphic {
+    width: min(100%, calc((100svh - var(--chrome-h)) * 0.9 * 446 / 494));
+  }
+  .beat[data-media="graphic"] .head,
+  .beat[data-media="graphic"] .body,
+  .beat[data-media="graphic"] .lockup {
+    grid-column: 1 / span 5;
+  }
+  .beat[data-media="graphic"] .head {
+    grid-row: 2;
+  }
+  .beat[data-media="graphic"] .body {
+    grid-row: 3;
+  }
+  .beat[data-media="graphic"] .lockup {
+    grid-row: 4;
+    margin-top: clamp(32px, 3.4vw, 88px);
+  }
+}
+
+/* Pinned (900 px and up, with motion): one screen. K14 covers the stage, moved right and down (translate 28% 14%) so the
+   rim arcs from the lower middle to the upper right and the dark studio opens on the left for the words; its frame
+   feathers into the stage at the left and the foot. The words in columns 1 to 5, centred in the screen below the
+   header: the head, the lines, then the numbers. Every size is capped by the height too, so 1536 x 730 holds it all. */
+@media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
+  :global(html[data-motion="on"]) .chapter {
+    background:
+      radial-gradient(ellipse 46% 60% at 22% 52%, rgb(46 46 52 / 0.9), transparent 78%),
+      var(--stage);
+  }
+  :global(html[data-motion="on"]) .beat {
+    grid-template-rows: 1fr auto auto auto 1fr;
+    align-content: center;
+    padding: calc(var(--chrome-h) + clamp(16px, 3vh, 56px)) var(--margin) clamp(24px, 5vh, 88px);
+  }
+  :global(html[data-motion="on"]) .beat[data-media="still"] .media {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    margin: 0;
+    transform: translate(28%, 14%);
+    -webkit-mask-image:
+      linear-gradient(to right, transparent 2%, #000 30%),
+      linear-gradient(transparent, #000 6%, #000 80%, transparent 96%);
+    -webkit-mask-composite: source-in;
+    mask-image:
+      linear-gradient(to right, transparent 2%, #000 30%),
+      linear-gradient(transparent, #000 6%, #000 80%, transparent 96%);
+    mask-composite: intersect;
+  }
+  :global(html[data-motion="on"]) .beat[data-media="still"] .frame {
+    position: absolute;
+    inset: 0;
+    height: auto;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  :global(html[data-motion="on"]) .head,
+  :global(html[data-motion="on"]) .body,
+  :global(html[data-motion="on"]) .lockup {
+    grid-column: 1 / span 5;
+  }
+  :global(html[data-motion="on"]) .head {
+    grid-row: 2;
+  }
+  :global(html[data-motion="on"]) .title {
+    font-size: min(var(--fs-h2), 10svh);
+  }
+  :global(html[data-motion="on"]) .body {
+    grid-row: 3;
+    margin-top: clamp(16px, 2.6svh, 44px);
+  }
+  :global(html[data-motion="on"]) .body :global(.t-lead) {
+    max-width: 38ch;
+    font-size: max(1.0625rem, min(var(--fs-lead), 2.6svh));
+  }
+  :global(html[data-motion="on"]) .lockup {
+    grid-row: 4;
+    align-self: start;
+    margin-top: clamp(24px, 4svh, 80px);
+  }
+  :global(html[data-motion="on"]) .value {
+    font-size: min(clamp(3.5rem, 5.4vw, 9.5rem), 10.5svh);
+  }
+  /* the light and the line start hidden; the timeline brings them in */
+  :global(html[data-motion="on"]) .edge {
+    visibility: hidden;
+  }
+}
+/* Pinned in a portrait window (the 12.9-inch iPad Pro, 1024 x 1366): the words across the top, K14 filling the lower
+   part of the stage, feathered into it at its top. */
+@media (min-width: 900px) and (max-aspect-ratio: 5/4) and (prefers-reduced-motion: no-preference) {
+  :global(html[data-motion="on"]) .beat {
+    grid-template-rows: auto auto auto 1fr;
+    align-content: start;
+  }
+  :global(html[data-motion="on"]) .head,
+  :global(html[data-motion="on"]) .body {
+    grid-column: 1 / span 9;
+  }
+  :global(html[data-motion="on"]) .head {
+    grid-row: 1;
+  }
+  :global(html[data-motion="on"]) .body {
+    grid-row: 2;
+  }
+  :global(html[data-motion="on"]) .lockup {
+    grid-row: 3;
+    grid-column: 1 / -1;
+  }
+  :global(html[data-motion="on"]) .beat[data-media="still"] .media {
+    inset: 46% 0 0;
+    transform: none;
+    -webkit-mask-image: linear-gradient(transparent, #000 22%, #000 90%, transparent);
+    mask-image: linear-gradient(transparent, #000 22%, #000 90%, transparent);
   }
 }

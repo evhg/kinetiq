@@ -64,8 +64,9 @@ for (const [id, still] of Object.entries(config.stills)) {
       const avif = await resized.clone().avif({ quality: 74, effort: 5, chromaSubsampling: "4:4:4" }).toBuffer();
       const webp = await resized.clone().webp({ quality: 86, effort: 5, smartSubsample: true }).toBuffer();
       encoded.push({ w, avif, webp });
-      // Social cards: crawlers want a plain JPEG at 1200 x 630.
-      if (crop === "og" && w === top) await resized.clone().resize({ width: 1200, height: 630, fit: "cover" }).jpeg({ quality: 86, mozjpeg: true }).toFile(join(out, "og.jpg"));
+      // Social cards: crawlers want a plain JPEG at 1200 x 630, from the default still only (Command, with the grip:
+      // crawlers carry no cookie), never from a Pace or Naked twin that shares the og crop.
+      if (crop === "og" && w === top && !/-pace$|-nogrip/.test(id)) await resized.clone().resize({ width: 1200, height: 630, fit: "cover" }).jpeg({ quality: 86, mozjpeg: true }).toFile(join(out, "og.jpg"));
     }
     const digest = createHash("sha256");
     for (const e of encoded) digest.update(e.avif).update(e.webp);

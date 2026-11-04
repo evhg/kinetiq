@@ -1,7 +1,7 @@
 "use client";
 
 import { SealedCoreTrace } from "@/components/graphics/SealedCoreTrace";
-import { Still } from "@/components/media/Still";
+import { Still, hasStill } from "@/components/media/Still";
 import { PinnedChapter } from "@/components/motion/PinnedChapter";
 import { sealedCore } from "@/content/copy";
 import { gsap } from "@/lib/gsap";
@@ -14,8 +14,16 @@ import styles from "./SealedCore.module.css";
  * the right, where Unibody's beat B left it; the scrub settles the frame, lists the three callouts and draws the
  * shell's amber line around the core once, then holds. The heading and the image are on screen from the first frame,
  * so the chapter never enters blank. Stacked (phones, reduced motion, below 900 px): the words, the callouts, then
- * K03, with the trace drawn from 700 px, where the frame is the 16:9 crop the trace is drawn on.
+ * K03, with the trace drawn on it in its final state (on phones through the square window onto the card crop).
  */
+/**
+ * The still under the trace. K03 is the "full" pass of its render, which also carries a 2700 K amber hairline along the
+ * shell's shoulder (lg_shell, for Unibody's light line); here, beside the traced core, that baked line read as a second
+ * outline "placed at the wrong angle" (owner, 2026-11-03). Its "base" pass (the same render without lg_shell), once
+ * exported as K03-base with K03's crops, takes its place in this chapter, so the only amber is the registered trace.
+ */
+const STILL = hasStill("K03-base") ? "K03-base" : "K03";
+
 export function SealedCore() {
   return (
     <PinnedChapter
@@ -60,8 +68,9 @@ export function SealedCore() {
         </div>
         <div className={styles.media} aria-hidden="true">
           <div className={styles.frame}>
-            <Still id="K03" crop="wide" phoneCrop="card" alt="" sizes="100vw" className={styles.still} />
-            <SealedCoreTrace className={styles.trace} />
+            <Still id={STILL} crop="wide" phoneCrop="card" alt="" sizes="100vw" className={styles.still} />
+            <SealedCoreTrace className={`${styles.trace} ${styles.traceWide}`} />
+            <SealedCoreTrace crop="square" className={`${styles.trace} ${styles.traceSquare}`} />
           </div>
         </div>
       </div>

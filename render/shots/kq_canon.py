@@ -91,7 +91,16 @@ NECK_SPLIT_Y = -0.150                    # face / neck light-linking boundary
 # edge's radius is 1.0 mm (was 1.5 mm). racket-shape.ts FACE_INSET / EDGE_RADIUS carry the same numbers (the sweet-spot
 # claim is computed from them). head_kw={"r_frame": 0.0015} rebuilds the previous 1.5 mm edge.
 EDGE_R = 0.0010
+# KQ_EDGE_MM=1.5 in the environment rebuilds the previous canon's 1.5 mm edge (the default arguments below bind EDGE_R),
+# so a shot whose grip-on still on the site is still the 1.5 mm canon gets a grip-off twin from the same geometry
+# (owner, 2026-11-03: Bare on every image), with no change to the shot.
+if os.environ.get("KQ_EDGE_MM"):
+    EDGE_R = float(os.environ["KQ_EDGE_MM"]) / 1000.0
 FACE_INSET = EDGE_R
+# KQ_NOGRIP=1 in the environment: every build_racket() call leaves the overgrip off (grip=False), and its parts dict keeps
+# a "grip" entry: the overgrip's mesh with hide_render on (not rendered, cast or reflected), so any shot that light-links,
+# hides, measures or loops over the grip runs unchanged and its grip-only lights then light nothing (owner, 2026-11-03: Bare on every image; render/README.md).
+ENV_NOGRIP = os.environ.get("KQ_NOGRIP") == "1"
 # grip-off (owner, 2026-11-02): build_racket(..., grip=False) leaves the overgrip off and runs the carbon core on, the
 # same 33.0 x 29.0 mm section, straight down into the butt cap; its round end (NECK y_cut) sits inside the cap, so the
 # bare handle reads as one piece flowing out of the head. The cap stays as it is.
@@ -325,9 +334,16 @@ CAP_TAGS = (T_FACE, T_BACK, T_NECKCAP)
 
 def build_head(name="KQ", holes=None, r_frame=EDGE_R, r_hole=0.0008, seg_frame=14, seg_hole=6, throat_fillet=0.0035,
                outline_fillet=0.003, hole_seg=72, neck=NECK, taper=NECK_TAPER, round_=NECK_ROUND,
-               throat_wall="clamp", throat_segs=None, split_y=NECK_SPLIT_Y, neck_uv=NECK_UV):
+               throat_wall="clamp", throat_segs=None, split_y=NECK_SPLIT_Y, neck_uv=NECK_UV, hole_uv=None):
     """k10_lib.build_head_k10 with the canonical holes (a radius per hole), the canonical neck (its edge radius grows
-    along it) and the light-linking split. Returns {part: object}."""
+    along it) and the light-linking split. Returns {part: object}.
+    hole_uv: None / "clamp" (the bores' UVs stop at the lip: the twill runs straight down every wall as stripes, which
+    read as glued-in slats in close views, owner 2026-11-03) or "cyl" (HOLE_UV_CYL: each bore wrapped as a cylinder, u
+    round it, one weave tile per turn, v down its depth, so the twill turns over the lip and runs on down the wall as one
+    moulded lining). Default HOLE_UV (env KQ_HOLE_UV)."""
+    hole_uv = hole_uv or HOLE_UV
+    if hole_uv == "cyl" and HOLE_SEG_CYL:   # a round bore up close: 72 facets drew vertical lines in the lining
+        hole_seg = max(hole_seg, HOLE_SEG_CYL)
     outline = outline_canon(outline_fillet, neck=neck)
     throat = L.throat_loop(throat_fillet)
     hl = holes if holes is not None else holes_canon()
@@ -372,6 +388,11 @@ def build_head(name="KQ", holes=None, r_frame=EDGE_R, r_hole=0.0008, seg_frame=1
         if kind == "throat":
             s_thr, _ = L.throat_arclength(lp)
             segb = [b_ * 0.001 for b_ in throat_segs] if throat_segs else None
+        if kind == "hole" and hole_uv == "cyl":
+            hcx = sum(p_[0] for p_ in lp) / n
+            hcy = sum(p_[1] for p_ in lp) / n
+            hole_u = [((math.atan2(p_[1] - hcy, p_[0] - hcx) / (2 * math.pi)) % 1.0) * L.TILE for p_ in lp]
+            hole_v0 = hcy * 7.0 + hcx * 3.0    # a different phase of the weave in every bore
         nr = 2 * (S + 1)
         rings = [[None] * n for _ in range(nr)]
         for i, ((x, y), (ox, oy)) in enumerate(zip(lp, outw)):
@@ -389,7 +410,9 @@ def build_head(name="KQ", holes=None, r_frame=EDGE_R, r_hole=0.0008, seg_frame=1
             for k, (inset, z, c, s_) in enumerate(prof):
                 v = bm.verts.new((x - ox * inset, y - oy * inset, z))
                 v[nl] = (ox * c, oy * c, s_)
-                if kind == "hole" or (kind == "throat" and throat_wall == "clamp"):
+                if kind == "hole" and hole_uv == "cyl":
+                    v[ul] = (hole_u[i], hole_v0 - pv[k], 0.0)
+                elif kind == "hole" or (kind == "throat" and throat_wall == "clamp"):
                     d = min(pv[k], p_b)
                     v[ul] = (p0x + ox * d, p0y + oy * d, 0.0)
                 elif kind == "throat" and k > S:
@@ -479,6 +502,12 @@ def build_head(name="KQ", holes=None, r_frame=EDGE_R, r_hole=0.0008, seg_frame=1
         flat_cap = f.material_index in CAP_TAGS
         for lp_ in f.loops:
             lp_[uvl].uv = (lp_.vert.co.x, lp_.vert.co.y) if flat_cap else tuple(lp_.vert[ul])[:2]
+        if hole_uv == "cyl" and f.material_index == T_HOLES:   # the wrap's seam: one tile on (the maps repeat)
+            us = [lp_[uvl].uv[0] for lp_ in f.loops]
+            if max(us) - min(us) > L.TILE / 2:
+                for lp_ in f.loops:
+                    if lp_[uvl].uv[0] < L.TILE / 2:
+                        lp_[uvl].uv = (lp_[uvl].uv[0] + L.TILE, lp_[uvl].uv[1])
     groups = {"face": {T_FACE}, "back": {T_BACK}, "rim": {T_RIM}, "wall": {T_WALL}, "neck": {T_NECK, T_NECKCAP},
               "holes": {T_HOLES}, "bridgewall": {T_BRIDGE}, "throat": {T_THROAT}}
     if throat_segs:
@@ -628,6 +657,140 @@ def build_cap(name, n=192):
     ys = [y for (_, y) in prof]
     cap = _lathe_uv(name, lambda j, y: G * prof[j][0], ys, n, cap_end=True)
     return cap
+
+
+# NAKED (owner, 2026-11-03: "rename bare to Naked which shows 100% carbon"; "the bottom doesn't show the carbon"): with
+# no overgrip the butt is no longer the satin black cap but the shell's own carbon, moulded on as one piece: the bare
+# 33.0 x 29.0 mm core flares by NAKED_BUTT["grow"] (the old cap's 1.9 mm, so every silhouette is the grip-off twins'),
+# runs a short band that carries the engraved Q, and closes with a rounded end at y = -0.300 (455.0 mm kept). The
+# butt's UVs continue the neck's exactly (u = the neck's fold coordinate round the section, pre-taper arc length from
+# the front centre; v = y, then the arc length on over the end), so the twill runs straight on down into the end with
+# no seam, and the butt is joined into the `neck` part: every light linked to the neck lights it the same way. The
+# `cap` part stays as a hidden stub (like the grip under KQ_NOGRIP), so shots that link or loop over it run unchanged.
+# KQ_CAPBLACK=1 gives back the 2026-11-02 grip-off (bare core into the satin black cap).
+# the bores' UV (build_head hole_uv): None = "clamp", the canon's look since 2026-10-22 (every shot rendered so far);
+# "cyl" wraps each bore (owner, 2026-11-03, K15: "doesn't look like single mould continuous carbon"). KQ_HOLE_UV=cyl.
+HOLE_UV = os.environ.get("KQ_HOLE_UV") or "clamp"
+HOLE_SEG_CYL = int(os.environ.get("KQ_HOLE_SEG", "0"))        # bore facets under "cyl" (0: keep hole_seg 72; 288 broke the face tessellation)
+BORE_ANISO = os.environ.get("KQ_BORE_ANISO")                  # the bore lining's fibre anisotropy under "cyl" (None: the face's)
+NAKED_BUTT = dict(y_top=-0.2785, y_flare=-0.2893, y_band=-0.2955, r_end=0.0045, grow=0.0019, g0=0.00002)
+NAKED_CARBON = os.environ.get("KQ_CAPBLACK") != "1"
+
+
+def _neck_u(P):
+    """The neck's fold UV u for points P (x, z) of the handle section (post-taper): signed pre-taper arc length round
+    the section from the front centre (kq_canon build_head: u = sign(x) (hw_end - R + pv) on the edge profile, x on the
+    flat front and back), so a lathe over the section continues the neck's twill without a seam."""
+    a, s1, R = NECK["hw_end"], NECK_TAPER[2], NECK_ROUND[2]
+    T = T2                      # pre-taper half thickness
+    cx, cz = a - R, T - R       # the edge circle's centre (pre-taper)
+    u = np.empty(len(P))
+    for k, (x, z) in enumerate(P):
+        zp = z / s1
+        ax = abs(x)
+        if zp >= T - 1e-6 and ax <= cx + 1e-9:          # front flat
+            u[k] = x
+            continue
+        if zp <= -T + 1e-6 and ax <= cx + 1e-9:         # back flat (the neck's back face is (x, y) too)
+            u[k] = x
+            continue
+        if zp > cz:          # front corner: angle from the side axis
+            th = math.atan2(zp - cz, ax - cx)
+            pv = R * (math.pi / 2 - th)
+        elif zp >= -cz:      # straight side wall
+            pv = R * math.pi / 2 + (cz - zp)
+        else:                # back corner
+            th = math.atan2(-cz - zp, ax - cx)
+            pv = R * math.pi / 2 + 2 * cz + R * th
+        u[k] = math.copysign(cx + pv, x if x != 0 else 1.0)
+    return u
+
+
+def build_naked_butt(name, n=288, nb=None):
+    """The Naked butt (NAKED_BUTT): a lathe over the handle section, offset outward along its normals by the flare,
+    rounded into a flat end at y = -0.300, with UVs that continue the neck's (see _neck_u). Returns the object."""
+    b = dict(NAKED_BUTT, **(nb or {}))
+    P, N = section(n)
+    u0 = _neck_u(P)
+    rows = []   # (grow, scale, y, v)
+    k_fl = 24
+    for j in range(k_fl + 1):
+        t = j / k_fl
+        y = b["y_top"] + (b["y_flare"] - b["y_top"]) * t
+        rows.append((b["g0"] + (b["grow"] - b["g0"]) * _smooth(t), 1.0, y, y))
+    for j in range(1, 5):
+        y = b["y_flare"] + (b["y_band"] - b["y_flare"]) * j / 4
+        rows.append((b["grow"], 1.0, y, y))
+    re_ = b["r_end"]
+    k_c = 14
+    for j in range(1, k_c + 1):
+        th = math.pi / 2 * j / k_c
+        rows.append((b["grow"] - re_ * (1 - math.cos(th)), 1.0, b["y_band"] - re_ * math.sin(th), b["y_band"] - re_ * th))
+    g_end, y_end, v_end = rows[-1][0], rows[-1][2], rows[-1][3]
+    Pe = P + N * g_end
+    r_mean = float(np.mean(np.hypot(Pe[:, 0], Pe[:, 1])))
+    for s_ in (0.85, 0.68, 0.50, 0.32, 0.16):
+        rows.append((g_end, s_, y_end, v_end - (1 - s_) * r_mean))
+    bm = bmesh.new()
+    uvl = bm.loops.layers.uv.new("UVMap")
+    rings = []
+    for (g, s_, y, v) in rows:
+        XZ = (P + N * g) * s_
+        rings.append([bm.verts.new((float(x), float(y), float(z))) for (x, z) in XZ])
+    for j in range(len(rows) - 1):
+        sa, sb = rows[j][1], rows[j + 1][1]
+        va, vb = rows[j][3], rows[j + 1][3]
+        for k in range(n):
+            k2 = (k + 1) % n
+            f = bm.faces.new((rings[j][k], rings[j][k2], rings[j + 1][k2], rings[j + 1][k]))
+            ua, ub = u0[k], u0[k2]
+            if k2 == 0 or abs(ub - ua) > 0.01:   # the back seam (the neck has it too): no stretched quad across it
+                ub = ua + (u0[1] - u0[0]) if abs(u0[1] - u0[0]) < 0.01 else ua
+            for lp, (uu, vv) in zip(f.loops, ((ua * sa, va), (ub * sa, va), (ub * sb, vb), (ua * sb, vb))):
+                lp[uvl].uv = (uu, vv)
+    c = bm.verts.new((0.0, float(y_end), 0.0))
+    for k in range(n):
+        f = bm.faces.new((rings[-1][k], rings[-1][(k + 1) % n], c))
+        for lp in f.loops:
+            lp[uvl].uv = (0.0, v_end - r_mean)
+    me = bpy.data.meshes.new(name)
+    bm.to_mesh(me)
+    bm.free()
+    me.shade_smooth()
+    ob = bpy.data.objects.new(name, me)
+    bpy.context.scene.collection.objects.link(ob)
+    # outward winding: the lathe runs down -y with the section CCW in (x, z); check the volume sign
+    bm = bmesh.new(); bm.from_mesh(me)
+    if bm.calc_volume(signed=True) < 0:
+        bmesh.ops.reverse_faces(bm, faces=bm.faces)
+        bm.to_mesh(me)
+    bm.free()
+    return ob
+
+
+def mat_q_carbon(feel, white):
+    """The Q engraved in the Naked butt's carbon: the floor is laser frost (graphite on white Command, as the throat
+    serial and the wall etch; pale satin on black Pace), the chamfer the clear coat's cut edge (a glossy dielectric of
+    the face's tone, its normals sloping into the cut). Returns (floor, chamfer)."""
+    if white:
+        fl = mat_wall_frost("KQ_QFrost_white", level=0.075)
+        tone = 0.62
+    else:
+        fl = mat_wall_frost("KQ_QFrost_pace", level=0.22)
+        tone = 0.03
+    name = "KQ_QCoat_" + ("white" if white else "black")
+    m = bpy.data.materials.get(name)
+    if m is None:
+        m = K.new_mat(name)
+        nb = K.NB(m)
+        out = nb.n.new("ShaderNodeOutputMaterial")
+        bs = nb.n.new("ShaderNodeBsdfPrincipled")
+        bs.inputs["Base Color"].default_value = (tone, tone, tone * 1.01, 1)
+        bs.inputs["Roughness"].default_value = 0.35
+        bs.inputs["Coat Weight"].default_value = 1.0
+        bs.inputs["Coat Roughness"].default_value = 0.04
+        nb.l.new(bs.outputs[0], out.inputs["Surface"])
+    return fl, m
 
 
 # THE company mark (owner, 2026-10-22: the logo is the Q). One drawing everywhere: the site icon
@@ -1322,7 +1485,8 @@ def mat_carbon(feel, role, serial=None, o=None):
     white = is_white(feel, o)
     rest = {k: v for k, v in (o or {}).items() if k != "white"}
     tag = "command-black" if (feel == "command" and not white) else feel
-    key = "KQc_%s_%s" % (tag, role) + ("_" + (serial or "nomark") if role == "face" else "")
+    key = "KQc_%s_%s" % (tag, role) + ("_" + (serial or "nomark") if role == "face" else "") + \
+        ("_cyl" if (role == "bore" and HOLE_UV == "cyl") else "")
     m = bpy.data.materials.get(key)
     if m is not None and not rest:
         return m
@@ -1333,8 +1497,11 @@ def mat_carbon(feel, role, serial=None, o=None):
         if role == "throat":
             m = mat_white(key, o, wall=True)
         elif role == "bore":
-            m = _bore_wrap(mat_white(key, o, wall=True), z_dark=float(p["bore_dark"]), occ=float(p["bore_occ"]),
-                           col=float(p["bore_col"]))
+            # HOLE_UV "cyl": the bore keeps the face's per-tow fibre direction (the wall branch lays every fibre
+            # round the bore, and on a cylinder that draws vertical anisotropic streaks: the glued-slat look)
+            ob_ = dict(o or {}, aniso=float(BORE_ANISO)) if (HOLE_UV == "cyl" and BORE_ANISO is not None) else o
+            m = _bore_wrap(mat_white(key, ob_, wall=(HOLE_UV != "cyl")), z_dark=float(p["bore_dark"]),
+                           occ=float(p["bore_occ"]), col=float(p["bore_col"]))
         else:
             m = mat_white(key, o, etch=etch)
     elif feel == "command":
@@ -1507,6 +1674,9 @@ def build_racket(name="KQ", feel="command", serial=SERIAL, walls=True, holes=Non
     black K10 twill, then k10_lib.mat_carbon_k10 keys), PACE keys for Pace. mark_az (deg): turn the engraved Q round the
     handle axis toward model +x so it faces a shot's camera (the cap itself follows the grip section and does not turn)."""
     assert feel in FEELS, feel
+    stub = False
+    if ENV_NOGRIP and grip:
+        grip, stub = False, True
     hk = dict(head_kw or {})
     if not grip and "neck" not in hk:  # grip-off: the core runs on, bare, into the cap (NOGRIP_Y_CUT)
         hk["neck"] = dict(NECK, y_cut=NOGRIP_Y_CUT)
@@ -1521,13 +1691,34 @@ def build_racket(name="KQ", feel="command", serial=SERIAL, walls=True, holes=Non
     cap = build_cap(name + "_cap")
     cap.data.materials.append(mat_cap())
     cap["kq_part"] = "cap"
-    mark = build_cap_mark(name + "_capmark", cap, az=mark_az)
-    mark.data.materials.append(mat_engraving_floor())   # 0: the floor of the cut
-    mark.data.materials.append(mat_engraving())         # 1: the bright-cut chamfer
+    naked = (not grip) and NAKED_CARBON
+    if naked:   # NAKED_BUTT: the carbon butt carries the Q and joins the neck; the satin cap stays as a hidden stub
+        butt = build_naked_butt(name + "_butt")
+        butt.data.materials.append(head["neck"].data.materials[0])
+        mark = build_cap_mark(name + "_capmark", butt, az=mark_az)
+        for m_ in mat_q_carbon(feel, is_white(feel, mat_opts)):
+            mark.data.materials.append(m_)              # 0: the laser-frost floor, 1: the coat's cut edge
+        neck_ob = head["neck"]
+        with bpy.context.temp_override(active_object=neck_ob, object=neck_ob, selected_objects=[neck_ob, butt],
+                                       selected_editable_objects=[neck_ob, butt]):
+            bpy.ops.object.join()
+        cap["kq_stub"] = 1
+        cap.hide_render = True
+    else:
+        mark = build_cap_mark(name + "_capmark", cap, az=mark_az)
+        mark.data.materials.append(mat_engraving_floor())   # 0: the floor of the cut
+        mark.data.materials.append(mat_engraving())         # 1: the bright-cut chamfer
     mark["kq_part"] = "capmark"
     parts_ = dict(head)
     parts_.update(cap=cap, capmark=mark)
     if grip_ob is not None:
+        parts_["grip"] = grip_ob
+    elif stub:  # KQ_NOGRIP: the overgrip's own mesh, hidden from the render, stands in for it (see ENV_NOGRIP)
+        grip_ob = build_grip(name + "_grip")
+        grip_ob.data.materials.append(mat_overgrip())
+        grip_ob["kq_part"] = "grip"
+        grip_ob["kq_stub"] = 1
+        grip_ob.hide_render = True
         parts_["grip"] = grip_ob
     if walls:
         if is_white(feel, mat_opts):  # a graphite laser mark on the white wall
@@ -1551,6 +1742,7 @@ def build_racket(name="KQ", feel="command", serial=SERIAL, walls=True, holes=Non
     root["kq_serial"] = serial or ""
     root["kq_mat_opts"] = repr(dict(mat_opts or {}))
     root["kq_grip"] = int(bool(grip))
+    root["kq_naked"] = int(bool(naked))
     return root, parts_
 
 

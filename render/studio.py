@@ -35,12 +35,41 @@ def reset():
     sc.render.image_settings.file_format = "PNG"
     sc.render.image_settings.color_depth = "16"
     sc.render.threads_mode = "AUTO"
+    device(sc)
     world = bpy.data.worlds.new("World")
     world.use_nodes = True
     world.node_tree.nodes["Background"].inputs["Color"].default_value = (0, 0, 0, 1)
     world.node_tree.nodes["Background"].inputs["Strength"].default_value = 0.0
     sc.world = world
     return sc
+
+
+def device(sc):
+    """Render device (2026-11-04, the Mac render node). KQ_DEVICE unset or CPU: unchanged (Cycles on the CPU).
+    KQ_DEVICE=METAL: path tracing on every Metal GPU (Apple Silicon), CPU device off (KQ_METAL_CPU=1 adds it).
+    Only the device changes: samples, seeds, adaptive sampling, bounces and the look are untouched, and the
+    denoisers stay on the CPU as on the cloud (Cycles' OIDN and the compositor's Denoise node). Called from
+    reset(), after read_factory_settings (which resets the preferences)."""
+    dev = os.environ.get("KQ_DEVICE", "CPU").strip().upper()
+    if dev in ("", "CPU"):
+        return
+    if dev != "METAL":
+        raise SystemExit("KQ_DEVICE=%s: only CPU or METAL" % dev)
+    prefs = bpy.context.preferences.addons["cycles"].preferences
+    prefs.compute_device_type = "METAL"
+    prefs.get_devices()
+    use_cpu = os.environ.get("KQ_METAL_CPU", "0") == "1"
+    on = []
+    for d in prefs.devices:
+        d.use = d.type == "METAL" or (use_cpu and d.type == "CPU")
+        if d.use:
+            on.append(d.name)
+    if not any(d.type == "METAL" and d.use for d in prefs.devices):
+        raise SystemExit("KQ_DEVICE=METAL: no Metal device found")
+    sc.cycles.device = "GPU"
+    sc.cycles.denoising_use_gpu = False
+    sc.render.compositor_device = "CPU"
+    print("KQ_DEVICE=METAL:", ", ".join(on), flush=True)
 
 
 def settings(w, h, samples=128, pct=100):
@@ -145,9 +174,92 @@ def backdrop(color=(0.003, 0.003, 0.0035), rough=0.6, y=3.0, height=6):
     return bd
 
 
+def _auto_border(sc, path):
+    """KQ_BORDER_AUTO=1 (2026-11-03, the Naked cap patches): render only the butt region (Cycles border, full-size
+    output, black outside), found from the projected bounding box of every racket's cap (the hidden stub under Naked)
+    and Q mark, grown by KQ_BORDER_GROW (default 0.6 of its size) and 48 px, and KQ_BORDER_DOWN (default 1.5 heights)
+    further down for floor reflections. Writes <path>.border.json (x0 x1 y0 y1, top-left origin) for patch_paste.py."""
+    import json
+    import numpy as np
+    dg = bpy.context.evaluated_depsgraph_get()
+    cam = sc.camera
+    W, H = sc.render.resolution_x, sc.render.resolution_y
+    proj = np.array(cam.calc_matrix_camera(dg, x=W, y=H) @ cam.matrix_world.inverted())
+    lo, hi = np.array([9.0, 9.0]), np.array([-9.0, -9.0])
+    for ob in sc.objects:
+        if ob.type != "MESH" or ob.get("kq_part") not in ("cap", "capmark"):
+            continue
+        me = ob.data
+        co = np.empty(len(me.vertices) * 3)
+        me.vertices.foreach_get("co", co)
+        co = co.reshape(-1, 3)
+        hom = np.c_[co, np.ones(len(co))] @ (proj @ np.array(ob.matrix_world)).T
+        ok = hom[:, 3] > 1e-6
+        xy = hom[ok, :2] / hom[ok, 3:4]
+        f = np.c_[(xy[:, 0] + 1) / 2, 1 - (xy[:, 1] + 1) / 2]
+        lo = np.minimum(lo, f.min(0)); hi = np.maximum(hi, f.max(0))
+    if hi[0] < lo[0]:
+        raise SystemExit("KQ_BORDER_AUTO: no cap in the scene")
+    g = float(os.environ.get("KQ_BORDER_GROW", "0.6"))
+    dn = float(os.environ.get("KQ_BORDER_DOWN", "1.5"))
+    sz = hi - lo
+    x0 = lo[0] - sz[0] * g - 48 / W
+    x1 = hi[0] + sz[0] * g + 48 / W
+    y0 = lo[1] - sz[1] * g - 48 / H
+    y1 = hi[1] + sz[1] * (g + dn) + 48 / H
+    b = [max(0.0, x0), min(1.0, x1), max(0.0, y0), min(1.0, y1)]
+    r = sc.render
+    r.use_border = True
+    r.use_crop_to_border = False
+    r.border_min_x, r.border_max_x = b[0], b[1]
+    r.border_min_y, r.border_max_y = 1 - b[3], 1 - b[2]
+    with open(path + ".border.json", "w") as fh:
+        json.dump(dict(border=b, w=W, h=H), fh)
+    print("KQ_BORDER_AUTO border", " ".join("%.4f" % v for v in b), flush=True)
+
+
 def render(name):
     os.makedirs(OUT, exist_ok=True)
     path = os.path.join(OUT, name + ".png")
     bpy.context.scene.render.filepath = path
     bpy.ops.render.render(write_still=True)
     return path
+
+
+# KQ_BORDER_AUTO=1: every render of the process (studio.render or a shot's own bpy.ops.render.render) takes the cap
+# border first: bpy.ops.render.render is wrapped through the bpy.ops module's __getattr__ (a render_pre handler runs
+# after the render has read its settings). The sidecar is named after the scene's output path, or out/_border/<n>
+# when a shot saves its result itself.
+_BORDER_N = [0]
+
+
+def _border_now():
+    scene = bpy.context.scene
+    fp = bpy.path.abspath(scene.render.filepath or "")
+    if not fp or fp.endswith(os.sep) or fp.endswith("/tmp/"):
+        os.makedirs(os.path.join(OUT, "_border"), exist_ok=True)
+        _BORDER_N[0] += 1
+        fp = os.path.join(OUT, "_border", "%03d" % _BORDER_N[0])
+    _auto_border(scene, fp)
+
+
+class _RenderOpsProxy:
+    """bpy.ops.render with .render wrapped (_border_now first); everything else forwarded."""
+    def __init__(self, sub):
+        self._sub = sub
+
+    def __getattr__(self, name):
+        if name == "render":
+            orig = self._sub.render
+
+            def render_wrapped(*a, **k):
+                _border_now()
+                return orig(*a, **k)
+            return render_wrapped
+        return getattr(self._sub, name)
+
+
+if os.environ.get("KQ_BORDER_AUTO") == "1":
+    _ops = sys.modules["bpy.ops"]
+    if not isinstance(_ops.__dict__.get("render"), _RenderOpsProxy):
+        setattr(_ops, "render", _RenderOpsProxy(getattr(_ops, "render")))

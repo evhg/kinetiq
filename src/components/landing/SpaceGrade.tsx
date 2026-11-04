@@ -2,6 +2,7 @@
 
 import { Still } from "@/components/media/Still";
 import { spaceGrade } from "@/content/copy";
+import { spec } from "@/content/specs";
 import { Reveal } from "./Reveal";
 import { Scrub } from "./Scrub";
 import styles from "./SpaceGrade.module.css";
@@ -13,9 +14,9 @@ import styles from "./SpaceGrade.module.css";
  * planet's limb. Two passes of one render: K15-base (before sunrise: the limb's glow on the edge) and K15-full (the sun
  * on the weave). As the section scrolls in, the sun comes up: the lit pass fades in over the base and the frame settles
  * (scale 1.06 to 1). Server render and reduced motion: the lit pass, at rest. G16 (CarbonLayup) lives on in /lab/g16.
- * Under the three points, the spec sheet (owner, 2026-11-02): mechanical, thermal and environmental, each figure with
- * the method that measures it, ruled like an Apple tech-specs page (specs.ts; provisional until the factory's values).
- * Not pinned.
+ * Under each of the three points, the numbers that back it (owner, 2026-11-03: "the Carbon specs is too much, doesn't
+ * need its own section"; it replaced the 2026-11-02 spec sheet): three figures in the stat face, each with its term and
+ * the test method that measures it (specs.ts; provisional until the factory's values). Not pinned.
  */
 export function SpaceGrade() {
   return (
@@ -56,54 +57,39 @@ export function SpaceGrade() {
           <li key={p.title} className={styles.point}>
             <h3 className="t-h3">{p.title}</h3>
             <p className="t-body">{p.body}</p>
+            <Figures ids={p.figures} />
           </li>
         ))}
       </Reveal>
-      <SpecSheet />
     </Scrub>
   );
 }
 
-/** The spec sheet: a heading and one line, then a group per discipline, each row a term, its figure and its method. */
-function SpecSheet() {
-  const { sheet } = spaceGrade;
+/**
+ * A point's figures: each the number in the stat face (a bound, "≥" or "≤", muted and a step down; the unit in
+ * t-unit), its term, then its test method. A description list, the term first; the number is set above it.
+ */
+function Figures({ ids }: { ids: string[] }) {
   return (
-    <section className={styles.sheet} aria-labelledby="space-grade-specs">
-      <Reveal className={styles.sheetHead}>
-        <p className="t-eyebrow">{sheet.eyebrow}</p>
-        <h3 id="space-grade-specs" className={`t-h3 ${styles.sheetTitle}`}>
-          {sheet.headline}
-        </h3>
-        <p className="t-body">{sheet.lead}</p>
-      </Reveal>
-      <div className={styles.groups}>
-      {sheet.groups.map((g) => (
-        <section key={g.id} className={styles.group} aria-labelledby={`spec-${g.id}`}>
-          <h4 id={`spec-${g.id}`} className={`t-label ${styles.groupTitle}`}>
-            {g.title}
-          </h4>
-          <Reveal as="dl" className={styles.rows} items={`.${styles.row}`} stagger={0.04} y={10}>
-            {g.specs.map((s) => (
-              <div key={s.id} className={styles.row}>
-                <dt className={styles.term}>
-                  <span className={styles.termLabel}>{s.label}</span>
-                  {s.note ? <span className={`t-fine ${styles.note}`}>{s.note}</span> : null}
-                </dt>
-                <dd className={`t-stat ${styles.figure}`}>
-                  {s.bound ? <span className={styles.bound}>{`${s.bound}\u00a0`}</span> : null}
-                  {s.value}
-                  {s.unit ? <span className="t-unit">{s.unit}</span> : null}
-                </dd>
-                <dd className={`t-fine t-num ${styles.method}`}>
-                  <span className="visually-hidden">{`${sheet.methodLabel}: `}</span>
-                  {s.method}
-                </dd>
-              </div>
-            ))}
-          </Reveal>
-        </section>
-      ))}
-      </div>
-    </section>
+    <dl className={styles.figures}>
+      {ids.map((id) => {
+        const s = spec(id);
+        return (
+          <div key={id} className={styles.figure}>
+            <dt className={`t-label ${styles.term}`}>{s.label}</dt>
+            <dd className={`t-stat ${styles.value}`}>
+              {s.bound ? <span className={styles.bound}>{`${s.bound}\u00a0`}</span> : null}
+              {s.value}
+              {s.unit ? <span className="t-unit">{s.unit}</span> : null}
+            </dd>
+            <dd className={`t-fine ${styles.method}`}>
+              <span className="visually-hidden">{`${spaceGrade.methodLabel}: `}</span>
+              {s.method}
+              {s.note ? <span className={styles.note}>{s.note}</span> : null}
+            </dd>
+          </div>
+        );
+      })}
+    </dl>
   );
 }

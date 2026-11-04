@@ -146,7 +146,10 @@ any more. How to switch, part names, lighting notes: `../renders4/canon.md`. Pro
 - **Grip-off** (`build_racket(..., grip=False)`): no overgrip; the core runs on (NECK y_cut = `NOGRIP_Y_CUT` -0.2985,
   its round end inside the cap), so the bare 33.0 x 29.0 mm carbon handle flows from the neck into the cap with the twill
   straight down it. The cap and its Q stay. K01: `--set NOGRIP=1` (finals `final/K01-hero-*-nogrip*`, still ids
-  `K01-nogrip-*`). Light linking by name skips the missing grip (C.objs).
+  `K01-nogrip-*`). Light linking by name skips the missing grip (C.objs). Every other shot (owner, 2026-11-03):
+  `KQ_NOGRIP=1` in the environment (kq_canon `ENV_NOGRIP`; a hidden grip mesh stands in, so shots run unchanged), plus
+  `KQ_EDGE_MM=1.5` for a still whose grip-on version is still the 1.5 mm canon; still ids `<K-number>-nogrip-...`
+  (README "Grip-off twins").
 - **WEAVE_HD** (`kq_canon.WEAVE_HD`, opt-in): the whole-racket shots' twill (2.6 mm tows at 4 to 7 px) given crisp tow
   outlines: `relief_k` (the height map darkens tow edges and ends), `gap_k` (k04_tex2 gap16, the resin gaps), a stronger
   direction step, relief and sheen, a slightly lighter tint (the relief takes about 3 % off the mean). K01, K02 and K08
@@ -195,3 +198,38 @@ any more. How to switch, part names, lighting notes: `../renders4/canon.md`. Pro
   (`P_HD`) barely changes the face at display width (review: high-frequency contrast +1 to 2 %); it needs a look-dev
   pass (the weave card and light) before the K01 Pace stills and swivels are rendered again.
 
+
+## Owner feedback 2026-11-03 PM: Naked, 5K, light sweep, bores (render owner)
+- **Naked** (`kq_canon.NAKED_BUTT`, on whenever there is no grip; `KQ_CAPBLACK=1` for the old cap): the bare core flares
+  1.9 mm (the old cap's silhouette) into a short band and a 4.5 mm rounded end at y = -0.300; UVs continue the neck's fold
+  coordinate (`_neck_u`: pre-taper arc length round the section), so the twill runs straight on into the end; the butt is
+  joined into the `neck` object (every neck light lights it); the satin cap stays as a hidden stub; the Q is engraved in
+  laser frost (graphite 0.075 on white, 0.22 on Pace) with a clear-coat chamfer. Proofs: `out/naked/` (canon_test
+  handle views). Pace: a small bracket-shaped reflection of the bare-handle card on the flare in K08 (acceptable).
+- **5K:** a 5K screen is 2560 x 1440 CSS at DPR 2; `scripts/probe-5k.mjs` (site agent) measures every still: the hero
+  draws at 5299 device px, K04 6246, K05 5530 (3 Nov). K01 desktop masters are now 5120 x 2880 (spp 64: about 75-85
+  min each at 4 cores; spp 96 estimated 1 h 45), the portrait stays 2160 x 3840 (its 2160 export already covers the iPad
+  portrait 1.33x case only partly; phones never need more). `stills.json` wide and `sequence.mjs` landscape ladders
+  end at 5120.
+- **Light sweep** (`k01_lib` SWEEP_*): a glossy-only panel (lg_sweep) designed on the face plane like proj_sweep, but its
+  mirrored camera and band centre are shader Values that `sweep_update()` sets per frame, and the panel turns with the
+  racket, so the band crosses at the same pace at any yaw: half width 30 mm with a 5 mm core (0.6), radiance 60 white /
+  5 Pace, travelling perpendicular to the SW diagonal from beyond the upper-left extreme to below the throat
+  (`sweep_range`). At strength 22 it added only 10-30 % on the lit white face and did not read. Exactly 0 at t = 0, so
+  stills and frame 0 are unchanged; the swivel frame 0 is the still's `-full` copied (queue-nov3 `seq`).
+- **Cap-region patches** (`KQ_BORDER_AUTO=1`): `studio.py` wraps `bpy.ops.render.render` (a proxy on the `bpy.ops`
+  module: a render_pre handler runs after the render has read its border) so any shot renders only the projected caps
+  (+60 %, 1.5 heights down for floor reflections, 48 px), full-size output black outside, `<out>.border.json` beside
+  it; `patch_paste.py` pastes with a 32 px dead band + 32 px ramp and refuses when the ring 64-128 px inside differs by
+  over 1.5 display levels (a non-local comp), and the queue then re-renders whole.
+- **Bores** (`build_head(hole_uv="cyl")`, env `KQ_HOLE_UV=cyl`): the clamped hole UVs stopped at the lip, so every tow
+  ran straight down the bore as a stripe (the owner's "vertical lats glued in", K15). "cyl" wraps each bore (u round
+  it, one 41.6 mm weave tile per turn, the seam face shifted a tile; v down the depth), and the bore material keeps the
+  per-tow fibre direction (the wall branch's horizontal fibres drew vertical anisotropic streaks on a cylinder). Opt-in:
+  every other shot keeps "clamp" until re-rendered.
+- **Masters** now go through `masters_push.sh` (a throwaway blobless depth-1 clone per push); `/home/user/kinetiq-masters`
+  is a blobless sparse clone (README and deal-notes only), which freed 12 GB.
+- **Queue bug (4 Nov, fixed):** the queues define a shell function `seq()` (one swivel), which shadowed `/usr/bin/seq`
+  inside it, so `$(seq 1 34)` produced no frame numbers and a swivel stopped after its last frame ("2 of 36 on disk").
+  Every frame loop now calls `command seq` (queue-nov3.sh, queue_lib.sh, queue-nov3b.sh k02seq). Caught on the first
+  swivel, K01 Command phone, 08:31 UTC; the queues were stopped, fixed and restarted, nothing was exported from it.

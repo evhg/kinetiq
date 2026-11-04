@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { TierId } from "@/content/lineup";
 import { DEFAULT_FEEL, type FeelId } from "@/content/site";
-import { setFeel, useFeel } from "@/lib/feel-store";
+import { onFeelChoice, setFeel, useFeel } from "@/lib/feel-store";
 import { Gallery } from "./Gallery";
 import { ReservePanel } from "./ReservePanel";
 import styles from "./Reserve.module.css";
@@ -29,6 +29,8 @@ export function ReserveExperience({ initialTier, initialFeel = null, invitesOpen
   const [picked, setPicked] = useState<FeelId | null>(null);
   // The site-wide choice (the landing's toggle, or an earlier visit here), followed across tabs (lib/feel-store.ts).
   const { chosen: stored } = useFeel();
+  // A choice made anywhere later (the header's Feel toggle, lib/feel-store.ts) replaces the link's ?feel= and this one.
+  useEffect(() => onFeelChoice(setPicked), []);
   const choice = picked ?? initialFeel ?? stored;
   const feel = choice ?? DEFAULT_FEEL;
 

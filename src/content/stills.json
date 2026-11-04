@@ -5,7 +5,9 @@
       828,
       1280,
       1920,
-      2560
+      2560,
+      3840,
+      5120
     ],
     "portrait": [
       828,
@@ -733,6 +735,278 @@
         "wide": {},
         "phone": {
           "x": 0.06,
+          "y": 0,
+          "w": 0.45,
+          "h": 1
+        }
+      }
+    },
+    "K01-nogrip-finale": {
+      "crops": {
+        "wide": {},
+        "portrait": {
+          "x": 0.341,
+          "y": 0,
+          "w": 0.316,
+          "h": 1
+        },
+        "card": {
+          "x": 0.3,
+          "y": 0,
+          "w": 0.4,
+          "h": 1
+        }
+      }
+    },
+    "K01-nogrip-finale-pace": {
+      "crops": {
+        "wide": {},
+        "portrait": {
+          "x": 0.341,
+          "y": 0,
+          "w": 0.316,
+          "h": 1
+        },
+        "card": {
+          "x": 0.3,
+          "y": 0,
+          "w": 0.4,
+          "h": 1
+        }
+      }
+    },
+    "K02-nogrip": {
+      "crops": {
+        "wide": {},
+        "portrait": {
+          "rotate": 90
+        }
+      }
+    },
+    "K02-nogrip-pace": {
+      "crops": {
+        "wide": {},
+        "portrait": {
+          "rotate": 90
+        }
+      }
+    },
+    "K05-nogrip": {
+      "crops": {
+        "wide": {}
+      }
+    },
+    "K05-nogrip-pace": {
+      "crops": {
+        "wide": {}
+      }
+    },
+    "K05-nogrip-phone": {
+      "crops": {
+        "portrait": {}
+      }
+    },
+    "K05-nogrip-phone-pace": {
+      "crops": {
+        "portrait": {}
+      }
+    },
+    "K06-nogrip-base": {
+      "crops": {
+        "wide": {},
+        "card": {
+          "x": 0.275,
+          "y": 0,
+          "w": 0.45,
+          "h": 1
+        }
+      }
+    },
+    "K06-nogrip-full": {
+      "crops": {
+        "wide": {},
+        "card": {
+          "x": 0.275,
+          "y": 0,
+          "w": 0.45,
+          "h": 1
+        }
+      }
+    },
+    "K06-nogrip-base-pace": {
+      "crops": {
+        "wide": {},
+        "card": {
+          "x": 0.275,
+          "y": 0,
+          "w": 0.45,
+          "h": 1
+        }
+      }
+    },
+    "K06-nogrip-full-pace": {
+      "crops": {
+        "wide": {},
+        "card": {
+          "x": 0.275,
+          "y": 0,
+          "w": 0.45,
+          "h": 1
+        }
+      }
+    },
+    "K07-nogrip": {
+      "crops": {
+        "wide": {},
+        "trio": {
+          "x": 0.24,
+          "y": 0,
+          "w": 0.52,
+          "h": 0.92
+        }
+      }
+    },
+    "K08-nogrip": {
+      "crops": {
+        "wide": {},
+        "left": {
+          "x": 0.025,
+          "y": 0,
+          "w": 0.4,
+          "h": 1
+        },
+        "right": {
+          "x": 0.575,
+          "y": 0,
+          "w": 0.4,
+          "h": 1
+        }
+      }
+    },
+    "K09-nogrip": {
+      "crops": {
+        "wide": {},
+        "card": {
+          "x": 0.2,
+          "y": 0,
+          "w": 0.6,
+          "h": 1
+        }
+      }
+    },
+    "K09-nogrip-card": {
+      "crops": {
+        "card": {}
+      }
+    },
+    "K09-nogrip-pace": {
+      "crops": {
+        "wide": {},
+        "card": {
+          "x": 0.2,
+          "y": 0,
+          "w": 0.6,
+          "h": 1
+        }
+      }
+    },
+    "K09-nogrip-card-pace": {
+      "crops": {
+        "card": {}
+      }
+    },
+    "K10-nogrip": {
+      "crops": {
+        "wide": {
+          "x": 0.0225,
+          "y": 0.045,
+          "w": 0.955,
+          "h": 0.955
+        },
+        "card": {
+          "x": 0.285,
+          "y": 0.045,
+          "w": 0.43,
+          "h": 0.955
+        }
+      }
+    },
+    "K10-nogrip-pace": {
+      "crops": {
+        "wide": {
+          "x": 0.0225,
+          "y": 0.045,
+          "w": 0.955,
+          "h": 0.955
+        },
+        "card": {
+          "x": 0.285,
+          "y": 0.045,
+          "w": 0.43,
+          "h": 0.955
+        }
+      }
+    },
+    "K11-nogrip-command": {
+      "crops": {
+        "wide": {},
+        "card": {
+          "x": 0.275,
+          "y": 0,
+          "w": 0.45,
+          "h": 1
+        }
+      }
+    },
+    "K11-nogrip-pace": {
+      "crops": {
+        "wide": {},
+        "card": {
+          "x": 0.275,
+          "y": 0,
+          "w": 0.45,
+          "h": 1
+        }
+      }
+    },
+    "K11-nogrip-command-pace": {
+      "crops": {
+        "wide": {},
+        "card": {
+          "x": 0.275,
+          "y": 0,
+          "w": 0.45,
+          "h": 1
+        }
+      }
+    },
+    "K11-nogrip-single": {
+      "crops": {
+        "wide": {},
+        "card": {
+          "x": 0.275,
+          "y": 0,
+          "w": 0.45,
+          "h": 1
+        }
+      }
+    },
+    "K11-nogrip-single-pace": {
+      "crops": {
+        "wide": {},
+        "card": {
+          "x": 0.275,
+          "y": 0,
+          "w": 0.45,
+          "h": 1
+        }
+      }
+    },
+    "K12-nogrip-base": {
+      "crops": {
+        "wide": {},
+        "portrait": {
+          "x": 0.435,
           "y": 0,
           "w": 0.45,
           "h": 1

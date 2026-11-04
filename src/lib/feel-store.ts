@@ -102,6 +102,21 @@ export function setFeel(f: FeelId) {
   writeCookie(f);
   mark(f);
   for (const l of listeners) l();
+  for (const l of choiceListeners) l(f);
+}
+
+const choiceListeners = new Set<(f: FeelId) => void>();
+
+/**
+ * Calls `onChoice` whenever any toggle on the page records a choice (setFeel), never for the hydration or another tab.
+ * For a reader that holds its own feel above the stored one (the /reserve experience, preselected from ?feel=), so a
+ * later choice in the header still reaches it. Returns the unsubscribe.
+ */
+export function onFeelChoice(onChoice: (f: FeelId) => void) {
+  choiceListeners.add(onChoice);
+  return () => {
+    choiceListeners.delete(onChoice);
+  };
 }
 
 const none = () => null;

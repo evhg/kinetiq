@@ -37,7 +37,7 @@
 
 import { lifetime } from "./lineup";
 import { site } from "./site";
-import { carbonSpecs, spec, specValue } from "./specs";
+import { spec, specValue } from "./specs";
 
 export const hero = {
   eyebrow: site.swissMade,
@@ -235,26 +235,31 @@ export const spaceGrade = {
   // No-break spaces keep "space hardware" and "most padel rackets" whole wherever the lead wraps.
   lead: "KINETIQ is moulded from carbon fibre and resin of the grades used in space\u00a0hardware, to the same engineering standards, which are written for extreme mechanical, thermal and environmental conditions. That carbon is stronger for its weight than the standard carbon most padel\u00a0rackets use, so your racket holds its shape and its feel, shot after\u00a0shot.",
   points: [
-    { title: "Strength without extra weight.", body: "Each fibre carries more load per gram than standard carbon, so the strength is in the shell rather than in added material." },
+    {
+      title: "Strength without extra weight.",
+      body: "Each fibre carries more load per gram than standard carbon, so the strength is in the shell rather than in added material.",
+      figures: ["fibreStrength", "fibreModulus", "flexStrength"],
+    },
     // Porosity, the factory's strongest number (owner, 2026-11-02): "almost no air", never "no air" (CLAIMS.md row 43).
     {
       title: "Solid through every layer.",
       body: `The resin is cured to the same standard as space hardware, so the layers bond with almost no air between them: voids make up ${specValue("voids")} of the shell at\u00a0most.`,
+      figures: ["voids", "ilss", "fibreVolume"],
     },
-    { title: "Steady in heat and cold.", body: "Made for the temperature swings of space, the shell keeps its stiffness on a hot summer court and on a cold winter one." },
-  ],
+    {
+      title: "Steady in heat and cold.",
+      body: "Made for the temperature swings of space, the shell keeps its stiffness on a hot summer court and on a cold winter one.",
+      figures: ["tg", "service", "moisture"],
+    },
+  ] satisfies { title: string; body: string; figures: string[] }[],
   /**
-   * The spec sheet under the three points (owner, 2026-11-02): three groups, every figure with the method that
-   * measures it. The heading and the line say only that the numbers exist and how they are measured, never that a
-   * test is done (CLAIMS.md row 46).
+   * The numbers under the points (owner, 2026-11-03: "the Carbon specs is too much, doesn't need its own section, I'd
+   * add some of these numbers below each of the relevant sub section"): three figures per point, each with the test
+   * method that measures it, all from specs.ts (provisional until the factory's values; the launch gate is unchanged).
+   * The other carbon figures (flexural modulus, thermal expansion, UV, salt fog) stay in specs.ts, off the page.
+   * `methodLabel` is read by screen readers before each method.
    */
-  sheet: {
-    eyebrow: "Carbon specifications",
-    headline: "The numbers behind the carbon.",
-    lead: "Every figure comes with the test method that measures it, so you can hold us to each\u00a0one.",
-    methodLabel: "Method",
-    groups: carbonSpecs,
-  },
+  methodLabel: "Test method",
   /** G16: the shell cut through and magnified, standard carbon beside ours. Drawn from typical values (row 44). */
   graphic: {
     kicker: "Through the shell, magnified",

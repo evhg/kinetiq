@@ -1,6 +1,7 @@
 // Swivel probe: for each device, which sequence and export width the swivels (hero K01, Unibody K02) pick, the
 // canvas's backing size, how much the frame is scaled up to fill it, and how the drawn frame follows the scroll.
-// Usage: node scripts/swivel-probe.mjs <base url> [--only=name,...] [--shots=<dir>] [--strip]
+// Usage: node scripts/swivel-probe.mjs <base url> [--only=name,...] [--shots=<dir>] [--strip] [--grip=off] [--feel=pace]
+// (--grip/--feel: a returning visitor's stored choices, cookie and localStorage, as check.mjs sets them)
 // Reads the page through an init script that tags each decoded frame with its URL (fetch -> blob -> bitmap/img) and
 // records every drawImage onto a swivel canvas, then scrolls through each swivel in small steps.
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -56,6 +57,16 @@ for (const d of DEVICES) {
   if (only && !only.includes(d.name)) continue;
   const ctx = await browser.newContext({ viewport: { width: d.width, height: d.height }, deviceScaleFactor: d.dpr, isMobile: d.mobile, hasTouch: d.mobile });
   await ctx.addCookies([ndaCookie(base)]);
+  const host = new URL(base).hostname;
+  if (flags.feel) await ctx.addCookies([{ name: "kq-feel", value: flags.feel, domain: host, path: "/" }]);
+  if (flags.grip) await ctx.addCookies([{ name: "kq-grip", value: flags.grip, domain: host, path: "/" }]);
+  if (flags.feel || flags.grip)
+    await ctx.addInitScript(([f, g]) => {
+      try {
+        if (f) localStorage.setItem("kq-feel", f);
+        if (g) localStorage.setItem("kq-grip", g);
+      } catch {}
+    }, [flags.feel, flags.grip]);
   await ctx.addInitScript(init);
   const page = await ctx.newPage();
   const requests = [];

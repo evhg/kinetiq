@@ -122,6 +122,13 @@ HD = 1
 # still one uniform coat with no seam (the v6 rules: no checkerboard from albedo)
 P_HD = dict(tone=0.08, streak_alb=0.05, fib_h=7.0, rstreak=0.25)
 P_WEAVE_S_HD = 9.5      # HD: the Pace weave card (P_WEAVE_S) a little stronger, so the tapes read over more of the face
+# owner note 7 (2026-11-02): P_HD alone moved the Pace face's fine contrast only 1-2 % at display width. A deeper analytic
+# arch per tape (crimp 30 -> 75 um) gives every tape its own sheen gradient, so the 12K reads over the whole face, not
+# only where the weave card lands; the black stays black. Measured on the face (pace_hf.py, luma minus a 4 px gaussian,
+# K01 beam crop at spp 32): hf 4.18 -> 5.73 at 1170 wide (+37 %), 3.99 -> 5.34 at 1920 (+34 %); face p50 37.1 -> 38.0.
+# Rejected: a stronger, larger, closer or floored weave card, or one nearer the mirror (P_WEAVE_S_HD 16, SIZE 3.4 x 2.0,
+# D 1.0, FLOOR 0.25, UP 13): +0 to +17 % at best, and the face greys (p50 51 to 103). aniso 0.97 / rough 0.10: +5 %.
+P_MAT = dict(crimp=75.0)  # K01-only extra Pace material keys over P_HD (K02 and K08 import P_HD, not this: unchanged)
 # owner, 2026-11-02: grip-off. NOGRIP = 1 builds the racket without its overgrip (kq_canon grip=False): the bare carbon
 # handle runs out of the head into the butt cap as one piece. Outputs K01-nogrip-*.
 NOGRIP = 0
@@ -183,20 +190,40 @@ GLOSSY_FLOOR = 0.15     # the floor's albedo as seen by glossy rays (see mat_stu
 # one-piece neck come round). 0 (the default) changes nothing: the stills render exactly as before.
 # --seq N --yaw-range A B renders N frames (yaw A..B, linear) of the lit "full" look from ONE scene build into
 # out/<--out>/f000.png ..; frames already on disk are skipped (resume). See render_seq().
+# ------------------------------------------------------------------ the light sweep (owner, 2026-11-03: "It should have
+# nice lighting effect passing thru as you scroll down")
+# A soft band of light crosses the face and frame as the racket turns: a glossy-only panel (lg_sweep) whose reflection
+# on the face plane is a designed band parallel to the SW_A -> SW_B diagonal, travelling across the head from its upper
+# left (t = 0) to past the throat (t = 1). It turns with the racket and re-aims its design at the camera every frame
+# (the mirrored camera and the band's centre are shader Values, updated per frame), so the band crosses at the same
+# pace at every yaw. White Command: the clear coat shows the band and the fibre sheen flips inside it; Pace: the coat's
+# gloss band over the black 12K. The profile is exactly 0 beyond SWEEP_W, and at t = 0 the band sits off the head:
+# the stills (t = 0) and the swivel's frame 0 are unchanged by it. render_seq sets SWEEP_T = i / (n - 1) per frame.
+SWEEP = 1               # 0: no sweep panel at all (the 2026-11-02 scene exactly)
+SWEEP_T = 0.0           # progress 0..1 (the stills: 0)
+SWEEP_W = 0.030         # band half width on the face plane (m): a soft band about a quarter of the head across
+SWEEP_CORE, SWEEP_CW = 0.6, 0.005   # a brighter core inside the band (relative radiance, half width m): the light bar
+SWEEP_S = 60.0          # white Command radiance (22 added only 10-30 % to the lit white face: it did not read)
+SWEEP_S_P = 5.0         # Pace radiance
+SWEEP_PAD = 0.010       # the band starts and ends this far (m) beyond the head's extreme points along its travel
+SWEEP_HEAD_Y = -0.150   # the travel spans the head down to here (model y): the face, the throat and the neck's top
+SWEEP_K = 6500.0
+SWEEP_EASE = 0          # 1: smoothstep the travel (slow in and out); 0: constant pace with the scroll
+SWEEP_RECV = ("face", "rim", "wall", "neck", "holes", "throat", "bridgewall")
 SWIVEL = 0.0
 SWIVEL_SIGN = 1.0       # +1: the swivel continues YAW's turn (face toward camera-left)
 
 EMBER = K.hex_lin("#ff3a1e")
 WHITE = (0.95, 0.97, 1.0)
 GROUPS = ["lg_cyc", "lg_face", "lg_gloss", "lg_top", "lg_side", "lg_rim", "lg_lip", "lg_floor", "lg_grip", "lg_cap", "lg_key",
-          "lg_horizon", "lg_wkey", "lg_wfill"]
+          "lg_horizon", "lg_wkey", "lg_wfill", "lg_sweep"]
 VARIANTS = {
     "base": dict(lg_cyc=1, lg_face=0.35, lg_gloss=0.35, lg_top=1, lg_side=1, lg_rim=1, lg_lip=1, lg_floor=1, lg_grip=1,
-                 lg_cap=0.35, lg_key=0, lg_horizon=0, lg_wkey=0.38, lg_wfill=1.0),   # white: full's face about 10-12 % darker
+                 lg_cap=0.35, lg_key=0, lg_horizon=0, lg_wkey=0.38, lg_wfill=1.0, lg_sweep=0),   # white: full's face about 10-12 % darker
     "full": dict(lg_cyc=1, lg_face=1, lg_gloss=1, lg_top=1, lg_side=1, lg_rim=1, lg_lip=1, lg_floor=1, lg_grip=1, lg_cap=1,
-                 lg_key=1, lg_horizon=0, lg_wkey=1, lg_wfill=1),
+                 lg_key=1, lg_horizon=0, lg_wkey=1, lg_wfill=1, lg_sweep=1),
     "finale": dict(lg_cyc=1, lg_face=1, lg_gloss=1, lg_top=1, lg_side=1, lg_rim=1, lg_lip=1, lg_floor=1, lg_grip=1, lg_cap=1,
-                   lg_key=1, lg_horizon=1, lg_wkey=1, lg_wfill=1),
+                   lg_key=1, lg_horizon=1, lg_wkey=1, lg_wfill=1, lg_sweep=1),
 }
 
 
@@ -226,6 +253,8 @@ def parse_args(argv, default_out):
             o["seq"] = int(argv[i + 1]); i += 2
         elif a == "--only":
             o["only"] = [int(v) for v in argv[i + 1].split(",")]; i += 2
+        elif a == "--spp0":
+            o["spp0"] = int(argv[i + 1]); i += 2
         elif a == "--yaw-range":
             o["yaw_range"] = (float(argv[i + 1]), float(argv[i + 2])); i += 3
         else:
@@ -483,6 +512,91 @@ def sm(x, e0, e1):
     return CT.sm(x, e0, e1)
 
 
+_SWEEP = {}
+
+
+def sweep_range():
+    """(sd0, sd1): the band centre's travel (signed distance from the SW_A -> SW_B line, m), from beyond the head's
+    upper-left extreme to beyond its lower-right one (down to SWEEP_HEAD_Y), each padded by SWEEP_W + SWEEP_PAD."""
+    A, B = Vector(SW_A), Vector(SW_B)
+    ab = (B - A).normalized()
+    pts = [p for p in C.outline_canon() if p[1] >= SWEEP_HEAD_Y]
+    sd = [(x - A.x) * ab.y - (y - A.y) * ab.x for (x, y) in pts]
+    m = SWEEP_W + SWEEP_PAD
+    return min(sd) - m, max(sd) + m
+
+
+def sweep_c(t):
+    a, b = sweep_range()
+    if SWEEP_EASE:
+        t = t * t * (3 - 2 * t)
+    return a + (b - a) * min(max(t, 0.0), 1.0)
+
+
+def sweep_panel(name, cam_m, centre, size, dist, strength, color):
+    """proj_sweep's designed reflection with the mirrored camera and the band centre as shader Values (_SWEEP), so
+    render_seq can re-aim it every frame: emission = strength * smooth(|sd - c|, SWEEP_W, 0)^2 (0 beyond SWEEP_W)."""
+    ZT = C.ZT
+    cm = Vector((cam_m.x, cam_m.y, 2 * ZT - cam_m.z))
+    Cc = Vector(centre)
+    d = (Cc - cam_m).normalized()
+    r = (d - 2 * d.dot(Vector((0, 0, 1))) * Vector((0, 0, 1))).normalized()
+    ob = K.plane(name, size, tuple(Cc + r * dist), normal_to=tuple(Cc))
+    loc0, rot0 = ob.location.copy(), ob.rotation_euler.copy()
+    A, B = Vector(SW_A), Vector(SW_B)
+    ab = B - A
+    ln = ab.length
+    ax, ay, bx, by = A.x, A.y, ab.x / ln, ab.y / ln
+
+    def s(nb):
+        vals = {}
+        for k_, v_ in (("cx", cm.x), ("cy", cm.y), ("cz", cm.z), ("c", sweep_c(SWEEP_T))):
+            vn = nb.n.new("ShaderNodeValue")
+            vn.name = "sweep_" + k_
+            vn.outputs[0].default_value = float(v_)
+            vals[k_] = vn
+        _SWEEP["vals"] = vals
+        cx, cy, cz, cc = (vals[k_].outputs[0] for k_ in ("cx", "cy", "cz", "c"))
+        tc = nb.n.new("ShaderNodeTexCoord")
+        mp = nb.n.new("ShaderNodeMapping")
+        mp.vector_type = "POINT"
+        mp.inputs["Location"].default_value = tuple(loc0)
+        mp.inputs["Rotation"].default_value = tuple(rot0)
+        nb.l.new(tc.outputs["Object"], mp.inputs["Vector"])
+        sep = nb.n.new("ShaderNodeSeparateXYZ")
+        nb.l.new(mp.outputs["Vector"], sep.inputs["Vector"])
+        X, Y, Z = sep.outputs["X"], sep.outputs["Y"], sep.outputs["Z"]
+        t = nb.math("DIVIDE", nb.math("SUBTRACT", ZT, cz), nb.math("SUBTRACT", Z, cz))
+        px = nb.math("ADD", nb.math("MULTIPLY", nb.math("SUBTRACT", X, cx), t), cx)
+        py = nb.math("ADD", nb.math("MULTIPLY", nb.math("SUBTRACT", Y, cy), t), cy)
+        sd = nb.math("SUBTRACT", nb.math("MULTIPLY", nb.math("SUBTRACT", px, ax), by),
+                     nb.math("MULTIPLY", nb.math("SUBTRACT", py, ay), bx))
+        dist = nb.math("ABSOLUTE", nb.math("SUBTRACT", sd, cc))
+        band = nb.smooth(dist, SWEEP_W, 0.0)
+        g = nb.math("MULTIPLY", band, band)
+        if SWEEP_CORE:
+            g = nb.math("MULTIPLY_ADD", nb.smooth(dist, SWEEP_CW, 0.0), SWEEP_CORE, g)
+        return nb.math("MULTIPLY", g, strength)
+
+    ob.data.materials.append(K.emitter_mat(name + "Mat", color, s, additive=True))
+    K.visibility(ob, camera=False, diffuse=False, glossy=True, shadow=False)
+    return ob
+
+
+def sweep_update(sc, t):
+    """Per swivel frame: the band's centre for progress t, and the camera mirrored in the face plane in the racket's
+    model space (the panel turns with the racket, so its design stays on the face at every yaw)."""
+    vals = _SWEEP.get("vals")
+    if not vals:
+        return
+    root = bpy.data.objects[sc["racket_root"]]
+    cam_m = root.matrix_world.inverted() @ sc.camera.matrix_world.translation
+    vals["cx"].outputs[0].default_value = cam_m.x
+    vals["cy"].outputs[0].default_value = cam_m.y
+    vals["cz"].outputs[0].default_value = 2 * C.ZT - cam_m.z
+    vals["c"].outputs[0].default_value = sweep_c(t)
+
+
 # ------------------------------------------------------------------ the scene
 def build(o, mode):
     F = framing(o, mode)
@@ -517,7 +631,7 @@ def build(o, mode):
     dq = M0.inverted() @ cam_loc - Vector((0.0, -0.2925, 0.0))
     mark_az = math.degrees(math.atan2(dq.x, dq.z))
     if pace:
-        mo = dict(P_HD) if HD else None
+        mo = dict(P_HD, **P_MAT) if HD else (dict(P_MAT) or None)
     else:
         mo = dict(MAT_OPTS, **C.WEAVE_HD) if (HD and C.is_white("command", MAT_OPTS)) else MAT_OPTS
     root, P = C.build_racket("KQ", feel=FEEL, serial=C.SERIAL, mat_opts=mo, mark_az=mark_az, grip=not NOGRIP)
@@ -564,6 +678,13 @@ def build(o, mode):
                     P_GLOSS_S if pace else (GLOSS_S_W if white else GLOSS_S), gloss_profile_w if white else gloss_profile)
     L.link_only(place(gl), [P["face"]], "recv_gloss")
     group(gl, "lg_gloss")
+
+    # --- lg_sweep: the scroll's light sweep (SWEEP_*), a soft band crossing the face and frame; off the head at t = 0
+    if SWEEP:
+        swp = sweep_panel("SweepBand", cam_m, fc, (SW_SIZE * 1.2, SW_SIZE * 1.2), SW_DIST * 1.2,
+                          SWEEP_S_P if pace else SWEEP_S, K.kelvin(SWEEP_K))
+        L.link_only(place(swp), C.objs(P, *SWEEP_RECV), "recv_sweep")
+        group(swp, "lg_sweep")
 
     # --- Pace: the weave card (K08 / K11): a soft graded card above the face's mirror direction; the clear coat cannot
     # see it, the 12K's fibre lobes stretched along one tape direction can, so alternate tapes light up
@@ -725,6 +846,8 @@ def build(o, mode):
     _BASE[sc.name] = root.matrix_world.copy()
     if SWIVEL:
         swivel(sc, SWIVEL)
+    if SWEEP:
+        sweep_update(sc, SWEEP_T)
     sc["white"] = bool(white)
     sc["frame"] = json.dumps({k: (list(v) if isinstance(v, tuple) else v) for k, v in F.items()})
     return sc
@@ -760,8 +883,13 @@ def swivel(sc, deg):
     (the racket stands on its butt cap there; C.pose's translation is along Z only). Lights stay where build() put them."""
     root = bpy.data.objects[sc["racket_root"]]
     root.matrix_world = Matrix.Rotation(math.radians(-SWIVEL_SIGN * deg), 4, "Z") @ _BASE[sc.name]
+    sp = bpy.data.objects.get("SweepBand")
+    if sp is not None:   # the sweep panel turns with the racket (its band is designed in model space)
+        bpy.context.view_layer.update() if (sc.name + "/SweepBand") not in _BASE else None
+        base = _BASE.setdefault(sc.name + "/SweepBand", sp.matrix_world.copy())
+        sp.matrix_world = Matrix.Rotation(math.radians(-SWIVEL_SIGN * deg), 4, "Z") @ base
     if FEEL == "pace" and P_FOLLOW:
-        if not any(k.startswith(sc.name + "/") for k in _BASE):
+        if not any(k.startswith(sc.name + "/") and not k.endswith("/SweepBand") for k in _BASE):
             bpy.context.view_layer.update()      # the cards' matrix_world must be current before it is recorded
         for name in SWIVEL_FOLLOW:
             ob = bpy.data.objects.get(name)
@@ -821,8 +949,12 @@ def render_seq(o, mode, shot):
     for i in todo:
         t1 = time.time()
         swivel(sc, yaws[i])
+        sweep_update(sc, i / max(1, n - 1))
         bb = racket_bbox(sc)
         fc = crop if (crop and i > 0) else None
+        # --spp0 N (2026-11-02): frame 0 at the still's samples, so the frame the page swaps in over the still matches it
+        spp_i = (o.get("spp0") or o["spp"]) if i == 0 else o["spp"]
+        sc.cycles.samples = spp_i
         sc.render.use_border = bool(fc)
         sc.render.use_crop_to_border = bool(fc)
         if fc:
@@ -835,7 +967,7 @@ def render_seq(o, mode, shot):
         setup_passes(sc, od, stem)
         studio.render(os.path.join(o["out"], "_w", "f%03d__all" % i))
         collect(od, stem)
-        meta = dict(w=o["w"], h=o["h"], spp=o["spp"], crop=fc, mode=mode, shot=shot, frame=json.loads(sc["frame"]),
+        meta = dict(w=o["w"], h=o["h"], spp=spp_i, crop=fc, mode=mode, shot=shot, frame=json.loads(sc["frame"]),
                     bbox=bb, set=o["set"], white=bool(sc["white"]), yaw=yaws[i], feel=FEEL)
         with open(os.path.join(od, stem + "_meta.json"), "w") as fh:
             json.dump(meta, fh)
@@ -854,7 +986,8 @@ def render_seq(o, mode, shot):
             os.remove(allp)
         dt = time.time() - t1
         with open(os.path.join(seq_dir, "frames.jsonl"), "a") as fh:
-            fh.write(json.dumps(dict(i=i, yaw=round(yaws[i], 4), sec=round(dt, 1), spp=o["spp"], w=o["w"], h=o["h"],
+            fh.write(json.dumps(dict(i=i, yaw=round(yaws[i], 4), sec=round(dt, 1), spp=spp_i, w=o["w"], h=o["h"],
+                                     sweep=round(i / max(1, n - 1), 4) if SWEEP else None,
                                      bbox=[round(q, 4) for q in bb])) + "\n")
         print("frame %d yaw %.2f %.1f s bbox %s" % (i, yaws[i], dt, " ".join(f"{100 * q:.1f}" for q in bb)), flush=True)
     print("seq done %.1f s" % (time.time() - t0), flush=True)

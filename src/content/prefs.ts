@@ -22,7 +22,7 @@ export const DEFAULT_GRIP: GripId = "on";
 /**
  * Where the grip choice is kept in the visitor's own browser (localStorage), mirrored in a first-party cookie of the
  * same name exactly as the feel is (FEEL_COOKIE_MAX_AGE, SameSite=Lax, not HttpOnly; src/proxy.ts renews it): a
- * returning visitor who chose "Bare" gets / already rendered without the grip (app/feel/bare, app/feel/<feel>/bare),
+ * returning visitor who chose "Naked" gets / already rendered without the grip (app/feel/bare, app/feel/<feel>/bare),
  * so the phone's first screen loads the bare stills alone, with no grip-on download first (review, 2026-11-02: LCP
  * 5.4 s without it). The head script mirrors it on html[data-grip] before the first paint. Nothing stores or logs it.
  */

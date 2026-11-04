@@ -38,10 +38,19 @@ export const site = {
    * The two options are `gripToggleLabels`.
    */
   gripToggleLabel: "Handle",
+  /**
+   * The header's view control (owner, 2026-11-03: "when on iphone, I have to scroll all the way back up to change the
+   * toggle?"): the button below 1024 px that opens the Feel and Handle choices from anywhere on /, /reserve and
+   * /reserved. Its accessible name; HeaderClient gets it as a prop.
+   */
+  viewToggleLabel: "Feel and handle",
 } as const;
 
-/** The grip toggle's two labels, in its order: the racket as it ships first, then the bare shell. */
-export const gripToggleLabels: Record<GripId, string> = { on: "Grip", off: "Bare" };
+/**
+ * The grip toggle's two labels, in its order: the racket as it ships first, then Naked (owner, 2026-11-03: "rename bare
+ * to Naked which shows 100% carbon"): no overgrip and no cap, the handle and its end the shell's own carbon.
+ */
+export const gripToggleLabels: Record<GripId, string> = { on: "Grip", off: "Naked" };
 
 /**
  * The two feels. A set is one feel: every racket in it is Command, or every racket is Pace. Apart from the core and

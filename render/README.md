@@ -71,10 +71,45 @@ scene syncs once. The region must hold everything that moves: check the last fra
 reports the change crop; it must sit inside the region). Then `node scripts/sequence.mjs $KQ_RENDER_OUT/out/seq2 <names>`
 (frames counted from the folder; widths up to 1440 portrait and 2560 landscape). OIDN makes 16 to 24 spp read as
 48 at 100% on these shots (2026-10-29 comparison).
+| Swivels, new canon (2026-11-02) | `render/queue-swivels.sh` (detached; log `$KQ_RENDER_OUT/logs/queue-swivels.log`): K01 portrait/desktop and K02, Command then Pace, then the grip-off K01s, into `out/seq3/<name>`, plus the K01 Pace stills with the note-7 weave (`-n7` names). Frame 0 at the still's samples (`--spp0`), the rest at 24 (K02 32) inside `--crop`; `seq_cropcheck.py` checks the region after the last frame. Export and release steps: `render/export-swivels.md` |
+| K01 Pace weave (2026-11-02) | `k01_lib.P_MAT` (K01-only, crimp 75 um): the 12K tapes read over the whole face at display width (+34 to 37 % fine contrast, `pace_hf.py`); K01 Pace stills from before it (13:00-16:35 on 2026-11-02) do not match it |
 | K15 | `K15-space.py --w 2560 --h 1440 --spp 64 --out final/K15-space` (`--feel pace --out final/K15-space-pace`; about 5 to 6 min each; writes `-base` and `-full`; re-grade from the EXR with `--comp final/K15-space.exr --out ...`, adding `--feel pace` for Pace) |
 | K01 grip-off (2026-11-02) | as K01 beam / phone with `--set NOGRIP=1` and `-nogrip` in the out name (`final/K01-hero-beam-nogrip`, `final/K01-hero-frame-phone-nogrip`, Pace `-nogrip-pace`); beam `--variants base,full` |
 | K17 (2026-11-02) | `K17-roughness.py --w 2560 --h 1440 --spp 64 --out final/K17-roughness` (31 min; the defaults since 2026-11-02 give the optic-yellow ball, the same in both feels) (writes the full look and `-base`; `--comp final/K17-roughness.exr --out final/K17-roughness` re-grades); Pace `--feel pace --out final/K17-roughness-pace` |
 | K16 | `K16-pair.py --mode drilled --w 1440 --h 1620 --spp 80 --out final/K16-drilled` and `--mode moulded ... --out final/K16-moulded` (about 12 and 14 min), then `K16-pair.py --combine final/K16-drilled final/K16-moulded --out final/K16-pair --gutter 0` (bpy reads the PNGs, no render). Pace: add `--feel pace` to all three and `-pace` to the names (2026-11-01) |
+
+## Grip-off twins (owner, 2026-11-03: Bare on every image)
+Every still that shows the handle has a twin without the overgrip, rendered by the same shot and command with two
+environment switches and no change to the shot (`kq_canon.py`, notes/canon.md):
+- `KQ_NOGRIP=1`: every `build_racket()` is grip-off (the bare core runs into the cap). The parts dict keeps a `grip`
+  entry, the overgrip's own mesh with `hide_render` on, so light links, `centre()`, masks and loops still work.
+- `KQ_EDGE_MM=1.5`: the previous canon's 1.5 mm edge, for a twin whose grip-on still on the site is that canon (K02
+  while its old swivel ships, and K05, K06, K07, K09, K10, K11). Add `--set HD=0` where the shot has an `HD` switch.
+```sh
+KQ_NOGRIP=1 KQ_EDGE_MM=1.5 flock render.lock $PY shots/K11-single.py --w 3200 --h 1800 --spp 256 --out final/K11-single-nogrip
+```
+The k789 shots (K07, K08, K09, K11) add a bare-handle card per racket under `KQ_NOGRIP` (`k789_lib.bare_handle_lights`,
+notes/canon.md "Bare handle light"): their grip strips light only the overgrip, so without it the bare core rendered
+near-black in Command. `KQ_BARE_E=<scale>` tunes it per run. Twins rendered before 2026-11-03 13:00 UTC with k789
+shots have the dark handle and are re-rendered.
+Outs carry `-nogrip` before `-pace` (`final/K06-mould-nogrip-pace-base.png`); `link-masters.sh` maps them to still ids
+with `-nogrip` after the K-number (`K06-nogrip-base-pace`), which `<Still>` finds by name. Check each against its
+grip-on export (only the handle may change) and with `fillcheck.py`. K01 keeps its own `--set NOGRIP=1`.
+
+## Mac render node (2026-11-04, notes/mac-handoff.md)
+Renders run on Erik's M3 Max; the cloud keeps exports, checks and releases. On the Mac:
+```sh
+export KQ_RENDER_OUT=~/kinetiq-render/out KQ_LOCK=~/kinetiq-render/render.lock RENDER_ROOT=~/kinetiq-render/kinetiq/render
+nohup caffeinate -dimsu render/queue-mac.sh >> $KQ_RENDER_OUT/logs/queue-mac.log 2>&1 &   # ONLY="p2b" for one item
+```
+- `KQ_DEVICE=METAL` (`studio.reset()`, opt-in; queue-mac.sh sets it): path tracing on the Metal GPU, CPU device off
+  (`KQ_METAL_CPU=1` adds it); samples, seeds and look unchanged, both denoisers stay on the CPU.
+- macOS needs `brew install flock bash fribidi` (bash 5 for the queues; fribidi for Pillow's raqm text layout, which the
+  serial etch uses). The venv's `sitecustomize.py` (local, not in git) re-execs Python once with
+  `DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib`, as macOS strips DYLD_* through system binaries. The queues put
+  `render/macos/setsid` (a setsid(1) shim) and the venv's python3 on PATH on Darwin only.
+- `queue-mac.sh` pushes masters only (`KQ_NO_EXPORT=1` skips export_push.sh) and, after each item, one line to
+  `STATUS-mac.md` in the masters repo (`status_push.sh`).
 
 ## Export to the site
 ```sh

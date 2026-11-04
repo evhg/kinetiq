@@ -602,11 +602,87 @@ def visual_only(*names):
             m.cycles.emission_sampling = "NONE"
 
 
+# KQ_NOGRIP (grip-off twins): the k789 shots light the overgrip with its own strips, linked to the grip only, and their
+# head lights (band, weave, pool, fill) reach no lower than the neck. With the overgrip hidden, the bare core below the
+# neck was lit by nothing and read near-black in Command (verifier, 2026-11-03), where K01, K02, K06 and K12 show it
+# white like the face. bare_handle_lights() gives each grip-off racket one soft card in front of and above its handle,
+# linked to the racket's neck part only (the bare core is the neck run on to the cap), so the bare handle shades like
+# the face it is moulded with: white 3K in Command, black 12K with a soft sheen in Pace. Energies are calibrated on
+# K08 and K11 crops against the face just above the throat (notes/canon.md "Bare handle light"); KQ_BARE_E=<scale>
+# multiplies them for a shot that needs it, KQ_BARE_E=0 turns the card off.
+BARE_E = {"command": 5.0, "pace": 6.0}   # W, at BARE_D from the handle centre (K08 sweep 2026-11-03)
+BARE_D = 0.50
+BARE_SIZE = (0.30, 0.45)                # across, along the handle
+BARE_UP = 0.55                          # how far the card sits up the handle axis (toward the head), per unit of front
+BARE_SIDE = 0.25                        # and to the camera's side of the racket, for some modelling on the round edges
+
+
+def bare_handle_lights(sc):
+    """One card per grip-off racket (a hidden `kq_stub` grip), linked to that racket's neck. Returns the lights."""
+    scale = float(os.environ.get("KQ_BARE_E", "1"))
+    cam = sc.camera
+    if scale <= 0 or cam is None:
+        return []
+    bpy.context.view_layer.update()
+    camp = cam.matrix_world.translation
+    out = []
+
+    def grip_light(stub):  # the shot's own light for this overgrip (linked to the stub), if any
+        for o_ in sc.objects:
+            rc = getattr(getattr(o_, "light_linking", None), "receiver_collection", None)
+            if o_.type == "LIGHT" and rc is not None and stub.name in rc.objects:
+                return o_
+        return None
+
+    stubs = [ob for ob in sc.objects if ob.get("kq_stub") and ob.get("kq_part") == "grip" and ob.parent is not None]
+    gl = {ob.name: grip_light(ob) for ob in stubs}
+    e_max = max([g.data.energy for g in gl.values() if g is not None] or [0.0])
+    for ob in stubs:
+        root = ob.parent
+        neck = next((c for c in root.children if c.get("kq_part") == "neck"), None)
+        if neck is None:
+            continue
+        mname = neck.material_slots[0].material.name if neck.material_slots and neck.material_slots[0].material else ""
+        feel = "pace" if "pace" in mname else "command"
+        pts = [ob.matrix_world @ Vector(b) for b in ob.bound_box]
+        ctr = sum(pts, Vector()) / 8.0
+        m3 = root.matrix_world.to_3x3()
+        ax = (m3 @ Vector((0.0, 1.0, 0.0))).normalized()   # up the handle, toward the head
+        nz = (m3 @ Vector((0.0, 0.0, 1.0))).normalized()   # the face normal
+        to_cam = (camp - ctr).normalized()
+        if nz.dot(to_cam) < 0:
+            nz = -nz
+        side = (to_cam - nz * to_cam.dot(nz) - ax * to_cam.dot(ax))
+        side = side.normalized() if side.length > 1e-6 else Vector()
+        d = (nz + ax * BARE_UP + side * BARE_SIDE).normalized()
+        # a racket the shot keeps a step back in the light (K11's rear: GRIP_REAR) keeps its handle there too
+        g_ = gl[ob.name]
+        rel = (g_.data.energy / e_max) if (g_ is not None and e_max > 0) else 1.0
+        lt = area_at("BareHandle_" + root.name, ctr + d * BARE_D, ctr, BARE_SIZE[0], BARE_SIZE[1],
+                     BARE_E[feel] * scale * rel, color=kelvin(5800), recv=[neck])
+        # the card's long side along the handle
+        lt.rotation_mode = "QUATERNION"
+        z = (lt.location - ctr).normalized()             # area lights emit along their local -Z
+        y = (ax - z * ax.dot(z)).normalized()
+        x = y.cross(z)
+        lt.rotation_quaternion = Matrix((x, y, z)).transposed().to_quaternion()
+        # the light group of the racket's own grip light (the one linked to the stub), so light-group passes and
+        # sequences (K07 --seq, --lightgroups) carry the bare handle with the racket it belongs to
+        if g_ is not None and getattr(g_, "lightgroup", ""):
+            lt.lightgroup = g_.lightgroup
+        print("bare handle light", lt.name, feel, round(lt.data.energy, 2), "W", "group", lt.lightgroup or "-",
+              flush=True)
+        out.append(lt)
+    return out
+
+
 def render_main(build, o):
     """Build, optional crop, render to out/<out>.png; with --lightgroups also a multilayer EXR."""
     import time
     t0 = time.time()
     sc = build(o)
+    if os.environ.get("KQ_NOGRIP") == "1":
+        bare_handle_lights(sc)
     if o["crop"]:
         x0, x1, y0, y1 = o["crop"]
         sc.render.use_border = True

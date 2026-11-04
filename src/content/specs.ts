@@ -28,7 +28,11 @@ export type Spec = {
 
 export type SpecGroup = { id: "mechanical" | "thermal" | "environmental" | "impact" | "surface"; title: string; specs: Spec[] };
 
-/** The carbon shell's specifications, shown under Space-grade carbon. The Command and Pace laminates both meet them. */
+/**
+ * The carbon shell's specifications. Nine are printed under Space-grade carbon's three points (copy.ts
+ * `spaceGrade.points[].figures`, owner 2026-11-03: no separate sheet); the rest are held here for the factory's reports.
+ * The Command and Pace laminates both meet them.
+ */
 export const carbonSpecs: SpecGroup[] = [
   {
     id: "mechanical",

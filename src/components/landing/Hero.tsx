@@ -21,13 +21,13 @@ import styles from "./Hero.module.css";
 const PORTRAIT = "(max-width: 699px), (max-width: 999px) and (max-aspect-ratio: 1/1), (max-aspect-ratio: 4/5)";
 /** On a portrait tablet the master is drawn wider than the screen (up to about 1.4 times), sized by its band. */
 const PORTRAIT_SIZES = "(min-width: 700px) 140vw, 100vw";
-/** The same two stills rendered without the overgrip (owner, 2026-11-02), shown while the grip toggle is on "Bare". */
+/** The same two stills rendered without the overgrip (owner, 2026-11-02), shown while the grip toggle is on "Naked". */
 const BARE_BASE = { id: "K01-nogrip-base", phoneId: "K01-nogrip-hero-base-phone" };
 const BARE_FULL = { id: "K01-nogrip-full", phoneId: "K01-nogrip-hero-full-phone" };
 /**
- * The swivel's sequences (`<name>-<feel>-desktop|phone`). Without the grip no sequence is rendered yet, so the name
- * finds none and the still shows alone (Swivel: "Missing sequence ... the still shows"); the grip's frames already
- * downloaded stay cached for a switch back. A future "K01-swivel-nogrip" export plays with no code change.
+ * The swivel's sequences (`<name>-<feel>-desktop|phone`): Grip and Naked, both feels, each in the light-sweep scene
+ * (2026-11-04), frame 0 being the BARE_FULL or K01-full still it is drawn over. A sequence missing for a feel or layout
+ * finds no manifest entry and the still shows alone (Swivel: "Missing sequence ... the still shows").
  */
 const SWIVEL = { on: "K01-swivel", off: "K01-swivel-nogrip" } as const;
 
@@ -148,7 +148,9 @@ export function Hero() {
           <ReserveLink href="/reserve" className={`btn btn-primary ${styles.cta}`}>
             {site.ctaLabel}
           </ReserveLink>
-          <div className={styles.toggles}>
+          {/* data-view-toggles: the header's own Feel and Handle choices show as soon as this row is not wholly in view
+              below the header (HeaderClient), so one set is always within reach */}
+          <div className={styles.toggles} data-view-toggles="">
             <FeelToggle label={site.feelToggleLabel} labels={feelToggleLabels} size="hero" />
             <span className={styles.rule} aria-hidden="true" />
             <GripToggle label={site.gripToggleLabel} labels={gripToggleLabels} />

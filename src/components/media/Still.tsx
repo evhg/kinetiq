@@ -32,12 +32,20 @@ type Props = {
    */
   feel?: FeelId;
   /**
-   * The same still rendered without the overgrip (owner, 2026-11-02: the grip toggle), with the same crops and the same
-   * "-pace" convention: its id and, with phoneCrop, its phone id ("K01-nogrip-base", "K01-nogrip-hero-base-phone").
-   * The picture then follows the grip toggle too, holding one variant at a time (the default, grip on, first).
+   * The same still rendered without the overgrip (the grip toggle, owner 2026-11-02; on every image that shows the
+   * handle, owner 2026-11-03), with the same crops and the same "-pace" convention: its id and, with phoneCrop, its
+   * phone id. Omitted, it is found by name (`bareId`: "K11-single" has "K11-nogrip-single", "K02" has "K02-nogrip");
+   * false keeps the grip whatever the toggle says. Where one is exported the picture follows the grip toggle too,
+   * holding one variant at a time (the default, grip on, first).
    */
-  bare?: { id: string; phoneId?: string };
+  bare?: { id: string; phoneId?: string } | false;
 };
+
+/**
+ * A still's grip-off twin: "-nogrip" after its K-number, as K01's first ones ("K01-full" -> "K01-nogrip-full",
+ * "K05-phone" -> "K05-nogrip-phone"), then "-pace" and the crop as usual (DESIGN.md "Grip toggle").
+ */
+export const bareId = (id: string) => id.replace(/^(K\d+[a-z]?)(?=-|$)/, "$1-nogrip");
 
 const PHONE = "(max-width: 699px)";
 /** A still's Pace version: its id plus "-pace", with the same crops ("K01-full-pace", "K05-phone-pace"). */
@@ -108,16 +116,23 @@ export function Still({
     decoding: priority ? "sync" : "async",
   } as const;
   const pace = paceMain || pacePhone ? pictureSet(paceMain ?? main, pacePhone ?? phone, phoneMedia, sz, phoneSizes) : command;
-  // Without the grip: the bare still's own crops, Command and Pace, where they are exported.
-  const bareMain = bare ? entry(`${bare.id}-${crop}`) : null;
+  // Without the grip: the bare still's own crops, Command and Pace, where they are exported (named by bareId unless
+  // the caller names them). A feel or crop with no bare export keeps its grip-on file, never the other feel's face.
+  const twin = bare === false ? null : (bare ?? { id: bareId(id), phoneId: phoneId ? bareId(phoneId) : undefined });
+  const bareMain = twin ? entry(`${twin.id}-${crop}`) : null;
   let bareSets: { command: PictureSet; pace: PictureSet } | undefined;
-  if (bare && bareMain) {
-    const bPhoneBase = bare.phoneId ?? bare.id;
+  if (twin && bareMain) {
+    const bPhoneBase = twin.phoneId ?? twin.id;
     const bPhone = phoneCrop ? entry(`${bPhoneBase}-${phoneCrop}`) : null;
     const bCommand = pictureSet(bareMain, bPhone ?? phone, phoneMedia, sz, phoneSizes);
-    const bPaceMain = entry(`${bare.id}${PACE}-${crop}`);
+    const bPaceMain = entry(`${twin.id}${PACE}-${crop}`);
     const bPacePhone = phoneCrop ? entry(`${bPhoneBase}${PACE}-${phoneCrop}`) : null;
-    const bPace = bPaceMain || bPacePhone ? pictureSet(bPaceMain ?? bareMain, bPacePhone ?? bPhone ?? phone, phoneMedia, sz, phoneSizes) : bCommand;
+    const bPace =
+      bPaceMain || bPacePhone
+        ? pictureSet(bPaceMain ?? bareMain, bPacePhone ?? bPhone ?? phone, phoneMedia, sz, phoneSizes)
+        : paceMain || pacePhone
+          ? pace
+          : bCommand;
     bareSets = { command: bCommand, pace: bPace };
   }
   if (paceMain || pacePhone || bareSets) {
@@ -131,6 +146,11 @@ export function Still({
       <img src={command.src} width={command.width} height={command.height} alt={alt} {...img} />
     </picture>
   );
+}
+
+/** Whether a still has a grip-off twin exported for this crop (bareId). */
+export function hasBareStill(id: string, crop = "wide") {
+  return Boolean(sizes[`${bareId(id)}-${crop}`]);
 }
 
 export function hasStill(id: string, crop = "wide") {

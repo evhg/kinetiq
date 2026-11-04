@@ -7,6 +7,7 @@ import { useMotion } from "@/components/motion/MotionProvider";
 import { PinnedChapter } from "@/components/motion/PinnedChapter";
 import { GluedSection, KinetiqSection, buildSectionTimeline } from "@/components/graphics/SectionComparison";
 import { unibody } from "@/content/copy";
+import { useGrip } from "@/lib/grip-store";
 import { gsap, useGSAP } from "@/lib/gsap";
 import styles from "./Unibody.module.css";
 
@@ -20,6 +21,12 @@ const { edge, section } = unibody;
  * stays there. Plain media queries, never range syntax (older iOS Safari cannot parse it).
  */
 const SWIVEL = "K02-swivel";
+/**
+ * With the grip toggle on Naked (owner, 2026-11-03: Naked on every image), the still is K02's grip-off twin (K02-nogrip,
+ * through <Still>) and the swivel looks for `K02-swivel-nogrip-<feel>-<layout>`: none is rendered yet, so the still
+ * shows without the turn, as the hero does, and an export of it plays with no code change.
+ */
+const SWIVEL_BARE = "K02-swivel-nogrip";
 const PHONE = "(max-width: 699px)";
 const SWIVEL_MEDIA = "(max-width: 699px), (min-width: 900px)";
 const TURNS = hasSequence(SWIVEL);
@@ -35,6 +42,7 @@ export function Unibody() {
   const beatA = useRef<HTMLDivElement>(null);
   const swivel = useRef<SwivelHandle>(null);
   const { motionOn } = useMotion();
+  const { grip } = useGrip();
 
   // Phones: not pinned. The racket turns as it crosses the screen, from its centre at 85% of the screen to 30%.
   useGSAP(
@@ -127,7 +135,7 @@ export function Unibody() {
           {/* The still and, over it, its swivel's canvas (frame 0 is this still), in one box the still fills. */}
           <div className={styles.still}>
             <Still id="K02" phoneCrop="portrait" alt="" sizes="100vw" className={styles.picture} />
-            <Swivel ref={swivel} sequence={SWIVEL} portraitQuery={PHONE} media={SWIVEL_MEDIA} lead={1} className={styles.swivel} />
+            <Swivel ref={swivel} sequence={grip === "off" ? SWIVEL_BARE : SWIVEL} portraitQuery={PHONE} media={SWIVEL_MEDIA} lead={1} className={styles.swivel} />
           </div>
           <span className={styles.edgeLight} />
         </div>
