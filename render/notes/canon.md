@@ -338,6 +338,18 @@ width. Self-test passes (455.00 x 260.12 x 38.00, 42 holes, 8 crown, both feels 
   stays a step back). `BARE_E` command 5.0 W (K08 sweep at 0.5 / 1 / 2x: handle luma 142 / 174 / 200 against the
   face's p50 153; 0.5x of 9 W chosen), pace 6.0 W (the black 12K handle stays black; the sheen line down it is the
   face's own band, as before). `KQ_BARE_E=<scale>` multiplies it, `0` turns it off. Grip-on renders are unchanged.
+- **Naked handle fix (2026-11-05, cloud requests K11+k789-naked-handles and K08-naked-pace-handle):** three causes,
+  all in the k789 shots' Naked lighting, none in the geometry or a patch. (1) The bare-handle card was seen in glossy
+  rays: on Pace it lit every other 8 mm tape of the 12K fibre lobe (the tape boundary sits on the handle's centre
+  line), a stair-stepped streak down the handle; on both feels it mirrored in the butt's flare as a bright band that
+  read as a collar. It is now diffuse only (`visible_glossy` off, 6500 K like the rigs), and K01's two grip hairlines
+  (`BareLineL/R`, 1.0 / 0.25 W, level with the handle centre, `KQ_BARE_LINE=<scale>`) draw the corner lines K01 Naked
+  shows. (2) The face's band card (`Band*`; K09's lid `FaceSheen`) reached the neck, which on Naked carries the joined
+  carbon butt: its flare mirrored the band as a bracket above the Q (K08 Pace) or crossed lines (K09 Pace). Those
+  cards no longer reach Naked necks (`BARE_UNLINK`; `KQ_NAKED_BAND=1` keeps the old links). (3) K07, K09 and K11 gave
+  the bare handle the shot's default twill, which reads as a pale matte sleeve at card size: `naked_neck_hd()` gives
+  the neck the hero's HD weave (K01 `WEAVE_W` + `WEAVE_HD` on white, `K01.P_HD` on Pace), as K08 already had. The
+  flare itself is canon (`NAKED_BUTT` grow 1.9 mm, also in K01) and is unchanged. Grip-on renders are untouched.
 - **No wrist cord (owner, 2026-11-03: "no need to add the wrist cord"):** no render has the FIP cord, grip on or off.
 - **WEAVE_HD:** an opt-in mat_opts preset for whole-racket shots (relief and resin-gap tone, a stronger direction step,
   relief and sheen); see RENDER_NOTES "Owner notes after the factory meeting". Default COMMAND_WHITE is unchanged.

@@ -296,6 +296,8 @@ def build(o):
             roots.append(srcs[feel])
         else:
             roots.append(C.clone(srcs[feel], f"KQ{i + 1}", serial=SERIALS[i])[0])
+    for feel in sorted(set(ROW)):   # Naked twins only: the hero's HD weave down the bare handle (2026-11-05)
+        L.naked_neck_hd([r for r, f_ in zip(roots, ROW) if f_ == feel], feel, MAT_OPTS if feel == "command" else None)
     if "pace" in ROW and CLAMP_IND > 0:
         sc.cycles.sample_clamp_indirect = CLAMP_IND
     stand0 = build_stand("ST1")

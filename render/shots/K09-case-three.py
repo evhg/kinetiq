@@ -586,6 +586,7 @@ def build(o):
     # the canonical racket, three times: KQ-000427, -428, -429 left to right (camera right is world +X)
     src, _ = C.build_racket("KQA", feel=FEEL, serial=SERIALS[0], mat_opts=MAT_OPTS, mark_az=MARK_AZ)
     roots = [src] + [C.clone(src, nm, serial=sr)[0] for nm, sr in (("KQB", SERIALS[1]), ("KQC", SERIALS[2]))]
+    L.naked_neck_hd(roots, "pace" if FEEL == "pace" else "command", MAT_OPTS)   # Naked twins only (2026-11-05)
     for r, x in zip(roots, xs):
         C.pose(r, (x, HEAD_Y, Z_CAV + C.T2 + 0.0004), tilt_deg=0.0)
     bpy.context.view_layer.update()

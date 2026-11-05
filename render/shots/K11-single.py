@@ -588,6 +588,7 @@ def build_single():
     mo = None if pace else white_opts()
     front, _ = C.build_racket("KQS", feel="pace" if pace else "command", serial=SERIAL, walls=bool(WALLS), mat_opts=mo)
     rear, _ = C.clone(front, "KQB")
+    L.naked_neck_hd((front, rear), "pace" if pace else "command", mo)   # Naked twins only (2026-11-05)
     return front, rear, C.serial_box(SERIAL)
 
 

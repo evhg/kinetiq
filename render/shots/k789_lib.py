@@ -615,11 +615,17 @@ BARE_D = 0.50
 BARE_SIZE = (0.30, 0.45)                # across, along the handle
 BARE_UP = 0.55                          # how far the card sits up the handle axis (toward the head), per unit of front
 BARE_SIDE = 0.25                        # and to the camera's side of the racket, for some modelling on the round edges
+BARE_K = 6500                           # K (was 5800; the k789 rigs are 6400-6500 K)
+BARE_LINE_E = (1.0, 0.25)               # W: K01's GripL / GripR hairlines (k01_lib GRIP_W, GRIP2_W)
+BARE_LINE_K = {"command": 1.0, "pace": 1.0}
+BARE_LINE_D = 0.45
+BARE_UNLINK = ("Band", "FaceSheen")    # face sheen cards the Naked butt's flare mirrored (K07/K08/K11 Band*, K09 lid)
 
 
 def bare_handle_lights(sc):
     """One card per grip-off racket (a hidden `kq_stub` grip), linked to that racket's neck. Returns the lights."""
     scale = float(os.environ.get("KQ_BARE_E", "1"))
+    line_scale = float(os.environ.get("KQ_BARE_LINE", "1"))   # the hairlines; 0 = off
     cam = sc.camera
     if scale <= 0 or cam is None:
         return []
@@ -642,6 +648,15 @@ def bare_handle_lights(sc):
         neck = next((c for c in root.children if c.get("kq_part") == "neck"), None)
         if neck is None:
             continue
+        # 2026-11-05: the face's band card (Band*; K09's lid FaceSheen) is linked to the neck, which on Naked carries
+        # the joined carbon butt; its flare mirrored it as a bracket above the Q (K08 Pace; crossed lines on K09 Pace).
+        # Naked necks only; KQ_NAKED_BAND=1 keeps the old links.
+        if os.environ.get("KQ_NAKED_BAND", "0") != "1":
+            for o_ in sc.objects:
+                rc = getattr(getattr(o_, "light_linking", None), "receiver_collection", None)
+                if o_.name.startswith(BARE_UNLINK) and rc is not None and neck.name in rc.objects:   # emissive meshes
+                    rc.objects.unlink(neck)
+                    print("bare handle: neck", neck.name, "off", o_.name, flush=True)
         mname = neck.material_slots[0].material.name if neck.material_slots and neck.material_slots[0].material else ""
         feel = "pace" if "pace" in mname else "command"
         pts = [ob.matrix_world @ Vector(b) for b in ob.bound_box]
@@ -659,21 +674,64 @@ def bare_handle_lights(sc):
         g_ = gl[ob.name]
         rel = (g_.data.energy / e_max) if (g_ is not None and e_max > 0) else 1.0
         lt = area_at("BareHandle_" + root.name, ctr + d * BARE_D, ctr, BARE_SIZE[0], BARE_SIZE[1],
-                     BARE_E[feel] * scale * rel, color=kelvin(5800), recv=[neck])
-        # the card's long side along the handle
-        lt.rotation_mode = "QUATERNION"
-        z = (lt.location - ctr).normalized()             # area lights emit along their local -Z
-        y = (ax - z * ax.dot(z)).normalized()
-        x = y.cross(z)
-        lt.rotation_quaternion = Matrix((x, y, z)).transposed().to_quaternion()
+                     BARE_E[feel] * scale * rel, color=kelvin(BARE_K), recv=[neck])
+        # 2026-11-05 (cloud requests K11+k789-naked-handles, K08-naked-pace-handle): diffuse fill only. Seen in
+        # glossy rays, the card lit every other 8 mm tape of the Pace 12K fibre lobe (a staircase down the handle)
+        # and mirrored in the Naked butt's flare (a bracket above the Q; a bright band that read as a collar).
+        lt.visible_glossy = False
+        along(lt, ctr, ax)
+        lts = [lt]
+        # and K01's two grip hairlines (k01_lib GripL / GripR), level with the handle centre, so the coat draws
+        # lines down the 12 mm corners like the K01 Naked hero (the reference the owner names)
+        for nm, dv, sz, e0 in (("BareLineL", nz * 0.68 - side * 0.73, 0.02, BARE_LINE_E[0]),
+                               ("BareLineR", nz * 0.92 + side * 0.38, 0.03, BARE_LINE_E[1])):
+            e = e0 * BARE_LINE_K[feel] * line_scale * rel
+            if e <= 0 or dv.length < 1e-6:
+                continue
+            s_ = area_at(nm + "_" + root.name, ctr + dv.normalized() * BARE_LINE_D, ctr, sz, 0.32, e,
+                         color=kelvin(BARE_K), recv=[neck])
+            along(s_, ctr, ax)
+            lts.append(s_)
         # the light group of the racket's own grip light (the one linked to the stub), so light-group passes and
         # sequences (K07 --seq, --lightgroups) carry the bare handle with the racket it belongs to
-        if g_ is not None and getattr(g_, "lightgroup", ""):
-            lt.lightgroup = g_.lightgroup
-        print("bare handle light", lt.name, feel, round(lt.data.energy, 2), "W", "group", lt.lightgroup or "-",
-              flush=True)
-        out.append(lt)
+        for l_ in lts:
+            if g_ is not None and getattr(g_, "lightgroup", ""):
+                l_.lightgroup = g_.lightgroup
+            print("bare handle light", l_.name, feel, round(l_.data.energy, 2), "W", "group", l_.lightgroup or "-",
+                  flush=True)
+        out.extend(lts)
     return out
+
+
+def naked_neck_hd(roots, feel, base_opts=None):
+    """Naked twins (KQ_NOGRIP, carbon butt) only: the neck part, which carries the bare handle and the joined butt,
+    gets the hero's HD weave (K01 WEAVE_W + kq_canon.WEAVE_HD on white Command, K01.P_HD on Pace), as K08 and K01
+    do, so the weave reads down the handle at card size (cloud request K11+k789-naked-handles, 2026-11-05: K11's
+    handle read as a pale grey matte sleeve with the default twill). Faces, walls and rims keep the shot's own
+    materials, so the grip-on twins are untouched. base_opts: the shot's mat_opts (bore keys etc.)."""
+    import kq_canon as C
+    if not (C.ENV_NOGRIP and C.NAKED_CARBON):
+        return None
+    import k01_lib as K01
+    if feel == "pace":
+        opts = dict(base_opts or {}, **K01.P_HD)
+    else:
+        opts = dict(base_opts or {}, **dict(K01.WEAVE_W, **C.WEAVE_HD))
+    m = C.mat_carbon(feel, "skin", None, opts)
+    m.name = m.name if feel in m.name else m.name + "_" + feel   # bare_handle_lights reads the feel from the name
+    for r in roots:
+        override_material(C.parts(r)["neck"], m)
+    print("naked neck HD weave", feel, m.name, flush=True)
+    return m
+
+
+def along(lt, ctr, ax):
+    """Turn an area light aimed at ctr so its long side (size_y) runs along the handle axis ax."""
+    lt.rotation_mode = "QUATERNION"
+    z = (lt.location - ctr).normalized()             # area lights emit along their local -Z
+    y = (ax - z * ax.dot(z)).normalized()
+    x = y.cross(z)
+    lt.rotation_quaternion = Matrix((x, y, z)).transposed().to_quaternion()
 
 
 def render_main(build, o):

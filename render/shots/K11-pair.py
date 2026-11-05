@@ -381,6 +381,7 @@ def build_pair(feel):
         if mo:  # clone() makes the rear face with the default material options; give it the shot's
             L.override_material(C.parts(rear)["face"], C.mat_carbon(feel, "face", "KQ-000428", mo))
         box = C.serial_box("KQ-000427")
+    L.naked_neck_hd((front, rear), "pace" if feel == "pace" else "command", mo)   # Naked twins only (2026-11-05)
     return front, rear, box
 
 
