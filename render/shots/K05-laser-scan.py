@@ -1240,6 +1240,8 @@ def main():
             if (ob.name.startswith("lg_") or ob.name.startswith("lw_")) and ob not in keep:
                 ob.hide_render = True
 
+    import k789_lib as _KL2   # Pace Naked only (REQUEST pace-naked-weave): the handle weave card
+    _KL2.pace_handle_weave(sc)
     glow_comp(sc, w, float(o.get("glow", 0.35)))
     # crops: desktop = the top h rows; phone = a 9:16 box centred on the racket, rotated (handle down)
     from bpy_extras.object_utils import world_to_camera_view

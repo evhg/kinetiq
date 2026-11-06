@@ -638,6 +638,8 @@ def build(o):
             k = min(range(nt), key=lambda k_: abs(sa[k_] - b_ * mm))
             print("  seg boundary %5.1f mm -> frame" % b_, fc((thr[order[k]][0], thr[order[k]][1], ZT)))
     print("lens %.1f mm, focus %.3f m" % (cd.lens, cd.dof.focus_distance))
+    import k789_lib as _KL   # Pace Naked only (REQUEST pace-naked-weave): the handle weave card
+    _KL.pace_handle_weave(sc)
     return sc, cam
 
 

@@ -424,6 +424,8 @@ def build(o):
         group(sw, "lg_swivel")
     sc["racket_root"] = root.name
     sc["racket_base"] = json.dumps([list(r) for r in M])
+    import k789_lib as _KL   # Pace Naked only (REQUEST pace-naked-weave): the handle weave card, in the base pose
+    _KL.pace_handle_weave(sc)
     if SWIVEL:
         swivel(sc, SWIVEL)
     return sc

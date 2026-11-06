@@ -715,6 +715,8 @@ def naked_neck_hd(roots, feel, base_opts=None):
     import k01_lib as K01
     if feel == "pace":
         opts = dict(base_opts or {}, **K01.P_HD)
+        if os.environ.get("KQ_PH_CRIMP") == "1":   # test: K01's own Pace keys (P_MAT crimp) on the bare handle
+            opts.update(K01.P_MAT)
     else:
         opts = dict(base_opts or {}, **dict(K01.WEAVE_W, **C.WEAVE_HD))
     m = C.mat_carbon(feel, "skin", None, opts)
@@ -723,6 +725,142 @@ def naked_neck_hd(roots, feel, base_opts=None):
         override_material(C.parts(r)["neck"], m)
     print("naked neck HD weave", feel, m.name, flush=True)
     return m
+
+
+# Pace Naked handle weave (cloud REQUEST pace-naked-weave, owner 2026-11-06: "make the Pace weave visible on the handle
+# too"): with light, not material. A soft graded card PH_UP degrees above the handle's mirror direction, as the face's
+# weave cards sit above the face's (PaceWeave / pw_weave / WEAVE): the clear coat cannot see it, the 12K's fibre lobes
+# stretched along one tape direction can, so alternate 8 mm tapes light up and the tiles run down the handle to the Q
+# end as they read on the face. Pace Naked necks only (the cap is a hidden stub, a Pace neck material); Command, the grip twins and
+# the face are untouched (linked to the neck only). It turns with the racket (parented to the root), so a swivel
+# keeps its tiles and frame 0 is the still. KQ_PACE_HANDLE=0 turns it off; KQ_PH_* tune it.
+# Tuned on K01 Naked Pace (out/k05b/pw_*, 2026-11-06): the handle's straight front is coplanar with the face, so a
+# card placed as the face's weave card is (12 deg above the handle's own mirror direction, 1.4 m, 2.2 x 1.8 m graded)
+# lights alternate tapes from the neck down to the Q band; at 18-24 deg only the upper taper lit, and a small area
+# light along the axis (the first try, KQ_PH_MODE=area) lit the taper as a grey wash and the butt band.
+PH_E = 10.0                # emission strength of the graded card (K01 PaceWeave: 7)
+PH_UP = 12.0               # deg above the handle's mirror direction
+PH_D = 1.4                 # m from the handle centre
+PH_SIZE = (2.2, 1.8)       # width, height (the graded axis)
+PH_K = 6500
+PH_SPLIT = -0.156          # model y: the neck above it (its junction with the face) is split off and left out (0 = off)
+PH_RAMP = (0.0, 1.0)       # the card's brightness ramp up its height (v: 0 bottom, 1 top; lo > hi fades toward the top)
+PH_K789 = (20.0, -30.0)    # K07/K08/K09/K11 (k789 render_main): up, roll. At K01's 12 deg, 0 the k789 cameras saw a grey
+                           # wash (both tape directions); 30 deg round the handle lights one (out/k05b/rk11_*)
+
+
+def _split_neck_top(sc, neck, y_cut):
+    """Split the top of the neck (model y above y_cut, where it meets the face) into its own object with the same
+    material, parent and light links, so the handle weave card can leave it out: that rounded junction caught the
+    card as a bright line across the neck under the serial, which read as a joint (owner: no collar, no joint)."""
+    import bmesh as _bm
+    top = neck.copy()
+    top.data = neck.data.copy()
+    top.name = neck.name + "_top"
+    top["kq_part"] = "neck_top"
+    for c in neck.users_collection:
+        c.objects.link(top)
+    for ob_, keep_top in ((top, True), (neck, False)):
+        bm = _bm.new()
+        bm.from_mesh(ob_.data)
+        bm.faces.ensure_lookup_table()
+        kill = [f for f in bm.faces if (f.calc_center_median().y > y_cut) != keep_top]
+        _bm.ops.delete(bm, geom=kill, context="FACES")
+        bm.to_mesh(ob_.data)
+        bm.free()
+    for o_ in sc.objects:   # every light, card or blocker that sees the neck sees the strip too
+        ll = getattr(o_, "light_linking", None)
+        for attr in ("receiver_collection", "blocker_collection"):
+            col = getattr(ll, attr, None) if ll is not None else None
+            if col is not None and neck.name in col.objects and top.name not in col.objects:
+                col.objects.link(top)
+    return top
+
+
+def pace_handle_weave(sc, up=None, roll=None, e=None, default_on=False):
+    """Add the Pace handle weave card to every Pace Naked racket in the scene (idempotent). Returns the lights."""
+    import kq_canon as C
+    e = float(os.environ.get("KQ_PH_E", PH_E if e is None else e))
+    # on by default only where its look is set (K01, default_on=True); elsewhere KQ_PACE_HANDLE=1 (the k789 cameras
+    # saw a grey wash, out/k05b/g_k11_*: the owner chooses how to go on, STATUS NOTE2 2026-11-06)
+    if os.environ.get("KQ_PACE_HANDLE", "1" if default_on else "0") == "0" or e <= 0 or sc.camera is None:
+        return []
+    up = float(os.environ.get("KQ_PH_UP", PH_UP if up is None else up))
+    roll0 = float(os.environ.get("KQ_PH_ROLL", 0.0 if roll is None else roll))
+    dist = float(os.environ.get("KQ_PH_D", PH_D))
+    sw = float(os.environ.get("KQ_PH_W", PH_SIZE[0]))
+    sl = float(os.environ.get("KQ_PH_L", PH_SIZE[1]))
+    bpy.context.view_layer.update()
+    camp = sc.camera.matrix_world.translation
+    out = []
+    g_loc = None   # the canon overgrip's bounding-box centre in model space (where the handle is)
+    # Naked = the satin cap is a hidden stub (kq_canon build_racket: KQ_NOGRIP or grip=False with the carbon butt)
+    for cap in [o_ for o_ in sc.objects if o_.get("kq_stub") and o_.get("kq_part") == "cap" and o_.parent is not None]:
+        root = cap.parent
+        neck = next((c for c in root.children if c.get("kq_part") == "neck"), None)
+        if neck is None or bpy.data.objects.get("PaceHandle_" + root.name) is not None:
+            continue
+        mname = neck.material_slots[0].material.name if neck.material_slots and neck.material_slots[0].material else ""
+        if "pace" not in mname.lower():
+            continue
+        y_cut = float(os.environ.get("KQ_PH_SPLIT", PH_SPLIT))
+        if y_cut < 0:
+            _split_neck_top(sc, neck, y_cut)
+        if g_loc is None:
+            g_ = C.build_grip("_ph_grip_probe")
+            g_loc = sum((Vector(b) for b in g_.bound_box), Vector()) / 8.0
+            me_ = g_.data
+            bpy.data.objects.remove(g_)
+            bpy.data.meshes.remove(me_)
+        ctr = root.matrix_world @ (g_loc + Vector((0.0, float(os.environ.get("KQ_PH_DY", "0")), 0.0)))
+        m3 = root.matrix_world.to_3x3()
+        ax = (m3 @ Vector((0.0, 1.0, 0.0))).normalized()     # up the handle, toward the head
+        nz = (m3 @ Vector((0.0, 0.0, 1.0))).normalized()     # the face normal
+        v = (camp - ctr).normalized()
+        if nz.dot(v) < 0:
+            nz = -nz
+        dm = (2 * nz.dot(v) * nz - v).normalized()             # the handle front's mirror direction
+        t = nz.cross(ax).normalized()                          # rotating about t tilts dm along the handle axis
+        d = (Matrix.Rotation(math.radians(up), 3, t) @ dm).normalized()
+        if d.dot(ax) * up < 0:
+            d = (Matrix.Rotation(math.radians(-up), 3, t) @ dm).normalized()
+        if os.environ.get("KQ_PH_MODE", "face") == "face":
+            # the face's own weave card (K01 PaceWeave, K05 pw_weave, K08/K11 WEAVE), moved so the handle sees it as
+            # the face sees its own: the handle's front is coplanar with the face (same normal), so the same angle
+            # above its mirror direction gives the handle the face's tiles. A soft graded card, glossy and diffuse.
+            hz = Vector((-dm.y, dm.x, 0.0))
+            hz = hz.normalized() if hz.length > 1e-6 else t
+            d = (Matrix.Rotation(math.radians(up), 3, hz) @ dm).normalized()
+            if d.z < dm.z:
+                d = (Matrix.Rotation(math.radians(-up), 3, hz) @ dm).normalized()
+            if roll0:   # round the handle (deg about its axis): the k789 cameras need it to catch one tape direction
+                d = (Matrix.Rotation(math.radians(roll0), 3, ax) @ d).normalized()
+            lt = gradient_card("PaceHandle_" + root.name, tuple(ctr + d * dist), (sw, sl), e, tuple(ctr),
+                               color=kelvin(PH_K), axis="v", lo=float(os.environ.get("KQ_PH_LO", PH_RAMP[0])),
+                               hi=float(os.environ.get("KQ_PH_HI", PH_RAMP[1])), floor=float(os.environ.get("KQ_PH_FLOOR", "0")))
+            link_receivers(lt, [neck], "recv_PaceHandle_" + root.name)
+        else:
+            lt = area_at("PaceHandle_" + root.name, ctr + d * dist, ctr, sl, sw, e, color=kelvin(PH_K), recv=[neck])
+            along(lt, ctr, t)                                  # long side round the roll: every corner catches it
+
+        # the light group of a light that already lights this neck (passes, swivels and comps carry it)
+        for o_ in sc.objects:
+            rc = getattr(getattr(o_, "light_linking", None), "receiver_collection", None)
+            if o_ is not lt and getattr(o_, "lightgroup", "") and rc is not None and neck.name in rc.objects:
+                lt.lightgroup = o_.lightgroup
+                if o_.name.startswith(("BareHandle", "GripL", "Grip")):
+                    break
+        bpy.context.view_layer.update()                        # matrix_world is stale until the depsgraph updates
+        mw = lt.matrix_world.copy()
+        lt.parent = root
+        lt.matrix_world = mw
+        bpy.context.view_layer.update()
+        nb = [neck.matrix_world @ Vector(b) for b in neck.bound_box]
+        print("pace handle weave", lt.name, round(e, 2), "W up", up, "group", lt.lightgroup or "-", "centre",
+              tuple(round(c_, 3) for c_ in ctr), "light", tuple(round(c_, 3) for c_ in lt.matrix_world.translation),
+              "neck box", tuple(round(c_, 3) for c_ in (sum(nb, Vector()) / 8.0)), flush=True)
+        out.append(lt)
+    return out
 
 
 def along(lt, ctr, ax):
@@ -741,6 +879,7 @@ def render_main(build, o):
     sc = build(o)
     if os.environ.get("KQ_NOGRIP") == "1":
         bare_handle_lights(sc)
+        pace_handle_weave(sc, up=PH_K789[0], roll=PH_K789[1])   # Pace Naked only (REQUEST pace-naked-weave)
     if o["crop"]:
         x0, x1, y0, y1 = o["crop"]
         sc.render.use_border = True

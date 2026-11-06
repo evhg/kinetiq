@@ -843,6 +843,9 @@ def build(o, mode):
     cam.data.sensor_fit = "HORIZONTAL"
     sc["racket_objs"] = [ob.name for k, ob in P.items() if k not in ("etchR", "etchL")]
     sc["racket_root"] = root.name
+    if pace and NOGRIP:   # Pace Naked: the handle weave card (k789_lib, REQUEST pace-naked-weave), in the base pose
+        import k789_lib as KL789
+        KL789.pace_handle_weave(sc, default_on=True)
     _BASE[sc.name] = root.matrix_world.copy()
     if SWIVEL:
         swivel(sc, SWIVEL)

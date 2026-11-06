@@ -1356,6 +1356,8 @@ def build(o):
                 for n in s.material.node_tree.nodes) for s in ob.material_slots))
         if emits and not ob.lightgroup and ob.visible_camera + ob.visible_glossy + ob.visible_diffuse:
             print("  WARNING emitter without light group:", ob.name, flush=True)
+    import k789_lib as _KL   # Pace Naked only (REQUEST pace-naked-weave): the handle weave card
+    _KL.pace_handle_weave(sc)
     return sc, g
 
 
