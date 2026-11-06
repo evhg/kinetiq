@@ -350,6 +350,18 @@ width. Self-test passes (455.00 x 260.12 x 38.00, 42 holes, 8 crown, both feels 
   the bare handle the shot's default twill, which reads as a pale matte sleeve at card size: `naked_neck_hd()` gives
   the neck the hero's HD weave (K01 `WEAVE_W` + `WEAVE_HD` on white, `K01.P_HD` on Pace), as K08 already had. The
   flare itself is canon (`NAKED_BUTT` grow 1.9 mm, also in K01) and is unchanged. Grip-on renders are untouched.
+- **K05 v7c (2026-11-06, cloud request K05-command-fix, supersedes K05-command-brighter):** the owner's seven points on
+  v7 Command, each a flag in `notes/k05-v7.args` (Pace's 3-6 in `k05-v7-pace.args`): (1) the low raking key left the
+  face mid-to-dark grey beside a white rim, throat and handle: `lw_card` (`--wcard 45`, a soft overhead spot on the
+  crown-side half, diffuse only, head only, Command only) and the fill at 9 W (was 3): display face luma about 160 at
+  2560 (v6 149, v7 125); (2) the coat band (`lg_face`, the hard stripe on the left third) off (`--face 0`); (3)+(4)
+  `--hole_break 1`: the laser has no hits on the bores or on stone seen through a hole, so it breaks at every hole,
+  and `--glow_wide 0` drops the 16 mm halo scale that filled the crossed hole with red; (5) `--nprof 0`: no profile
+  wake, only the scan line; (6) `--holefloor 0` (the stone patch's granite flecks read as sparkle in the bores) and
+  `--clamp 4`: dark bores, drawn by their walls' crescents; (7) Naked: `naked_neck_hd()` (K01's HD weave) and
+  `KQ_NAKED_FLARE=0` for K05 only: seen from straight above (82 deg) the canon 1.9 mm flare reads as a raised lip.
+  K01 and the k789 Naked twins keep the canon flare (at their angles it does not read); dropping it everywhere is a
+  canon change (`NAKED_BUTT["grow"]`) and every Naked render again.
 - **No wrist cord (owner, 2026-11-03: "no need to add the wrist cord"):** no render has the FIP cord, grip on or off.
 - **WEAVE_HD:** an opt-in mat_opts preset for whole-racket shots (relief and resin-gap tone, a stronger direction step,
   relief and sheen); see RENDER_NOTES "Owner notes after the factory meeting". Default COMMAND_WHITE is unchanged.

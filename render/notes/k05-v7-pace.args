@@ -10,3 +10,10 @@
 --rim 14
 --glow 2.4
 --laser 26
+# v7c (REQUEST K05-command-fix items 3-6 apply to Pace too, same laser rig): the laser breaks at every hole, no widest
+# halo scale, no profile wake, no stone patch in the holes (the bore walls' crescents draw the holes; out/k05b/fix_p).
+# The face, its lacquer band and Pace's lights are unchanged.
+--hole_break 1
+--nprof 0
+--glow_wide 0
+--holefloor 0

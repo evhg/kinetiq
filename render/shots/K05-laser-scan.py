@@ -70,6 +70,11 @@ Dev flags: --norender, --measure, --crop x0,x1,y0,y1, --solo lg_x, --glow f, --l
 --fleck_n f, --fleck_b f (v3 = 1, 1), --mosaic f, --spec_var f, --serial s,
 v5 (white): --white 0|1, --wpool W, --wp_x/--wp_y/--wp_z/--wp_tx/--wp_ty m, --wp_deg d, --wfill W, --wstone W, --ws_deg d,
 --core r,g,b, --core_pow f, --pcol r,g,b, --laser_indirect f.
+v7b (Command only, 2026-11-06): --wcard W (lw_card, a soft diffuse-only overhead spot on the crown-side half of the head),
+--wc_x/--wc_y/--wc_z/--wc_tx/--wc_ty m, --wc_deg d, --wc_r m (notes/k05-v7.args).
+v7c (owner, 2026-11-06, K05-command-fix): --hole_break 1 (no laser on the bores or the stone seen through a hole),
+--nprof 0 (no profile wake), --glow_wide w (the widest halo scale, 0 drops it), --clamp f (indirect clamp, any feel);
+Naked: the neck gets K01's HD weave (k789_lib.naked_neck_hd); KQ_NAKED_FLARE=<mm> sets the butt's flare (kq_canon).
 """
 import math
 import os
@@ -814,7 +819,10 @@ def glow_comp(sc, w, amount=0.35):
         tr.links.new(tn_.outputs[0], tmix.inputs["Fac"])
         tr.links.new(acc, tmix.inputs[1])
         acc = tmix.outputs["Image"]
-    for (rel, wgt) in ((0.0012, 0.55), (0.0045, 0.35), (0.016, 0.20)):
+    # v7c: --glow_wide 0 drops the widest scale (16 mm at the face: it filled the hole the line crosses with red)
+    for (rel, wgt) in ((0.0012, 0.55), (0.0045, 0.35), (0.016, float(OPT.get("glow_wide", 0.20)))):
+        if wgt <= 0:
+            continue
         bl = tr.nodes.new("CompositorNodeBlur")
         bl.filter_type = "GAUSS"
         bl.use_relative = False
@@ -881,8 +889,12 @@ def main():
         for k_, v_ in WHITE_DEFAULTS.items():
             o.setdefault(k_, v_)
         OPT.update(o)
+    if float(o.get("clamp", 0)) > 0:   # v7c: indirect clamp on Command too (bright speckle in the bores)
+        sc.cycles.sample_clamp_indirect = float(o["clamp"])
     root, P = C.build_racket("KQ", feel=feel, serial=str(o.get("serial", "KQ-000427")), mat_opts=mo)
     C.pose(root, (0.0, 0.0, T / 2), yaw_deg=-90.0)
+    import k789_lib as _KL
+    _KL.naked_neck_hd([root], feel, mo)   # Naked only (v7c): the bare handle carries K01's HD weave, not flat white
     bpy.context.view_layer.update()
     if o.get("measure"):
         print("measure", C.measure(root))
@@ -917,11 +929,19 @@ def main():
     step = float(o.get("step", 0.00012))
     n = int((t_hi - t_lo) / step)
     hits = []
+    # v7c (owner, 2026-11-06): like a real line laser the line drops into each hole and breaks there: no hits on the
+    # bores, none on the stone seen through a hole (a plate hit with the racket above it), so no red inside any hole
+    hole_break = bool(int(float(o.get("hole_break", 0))))
+    bore_set = set(C.objs(P, "holes"))
+    up = Vector((0, 0, 1))
     for k in range(n + 1):
         t = t_lo + k * step
         tgt = P0 + a * t
         d = (tgt - S).normalized()
         hit = world.cast(S, d)
+        if hit is not None and hole_break:
+            if hit[2] in bore_set or (hit[2] is plate and world.cast(hit[0] + up * 0.0002, up) is not None):
+                hit = None
         if hit is None:
             hits.append(None)
             continue
@@ -1005,6 +1025,8 @@ def main():
             pruns.append(cur)
     pmat = mat_points_line("ProfileMat", tuple(float(v) for v in str(o.get("pcol", "1.0,0.78,0.65")).split(",")),
                            float(o.get("pts", 10.0)))
+    if not pruns:   # --nprof 0 (v7c: only the crisp scan line itself; the profile wake read as misregistration)
+        pruns = [[(Vector((0, 0, -1.0)), 0.0), (Vector((0.001, 0, -1.0)), 0.0)]]
     pobj = laser_tube("lg_points", pruns, float(o.get("pr", 0.00004)), pmat, nseg=4)
     # v6 (fix 1): a display line only: no shadow, no light on the face, no mirror double in the coat
     pobj.visible_shadow = False
@@ -1168,6 +1190,19 @@ def main():
                                                float(o.get("fill_z", 0.75))),
                                    1.0, fill_s, color=(0.94, 0.96, 1.0), target=(-0.0725, 0.0, T))
             link_to(fl, head_recv, "fill_receivers")
+        card_s = float(o.get("wcard", 0.0)) if not pace else 0.0
+        if card_s > 0:
+            # v7b (owner, 2026-11-06, Command only): v7's low raking key left the crown-side half of the white face
+            # (past the laser, toward the camera) mid-to-dark grey. A soft overhead card, diffuse only (the clear coat
+            # and the polish never mirror it, so the coat band, laser and scan lines are untouched), on the head only,
+            # lifts that half to white-in-light while the key's rake still carries the gradient and the tow relief.
+            cd = studio.spot_light("lw_card", (float(o.get("wc_x", 0.14)), float(o.get("wc_y", -0.10)),
+                                               float(o.get("wc_z", 0.55))),
+                                   card_s, float(o.get("wc_deg", 40.0)), blend=1.0, color=(1.0, 0.985, 0.97),
+                                   target=(float(o.get("wc_tx", 0.14)), float(o.get("wc_ty", -0.08)), T),
+                                   radius=float(o.get("wc_r", 0.15)))
+            cd.visible_glossy = False
+            link_to(cd, head_recv, "card_receivers")
         wall_s = float(o.get("wall", 0.0))
         if wall_s > 0:
             # v6 (fix 3): light the wall itself (canon). The 38 mm near wall (the -Y side, toward the camera) saw only

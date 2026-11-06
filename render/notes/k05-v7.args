@@ -10,9 +10,27 @@
 --wp_y 0.40
 --wp_deg 16
 --wpool 260
---wfill 3
---face 22
+--wfill 9
+--face 0
 --rim 14
 --amb 0.20
 --glow 2.4
 --laser 26
+# v7c (cloud REQUEST K05-command-fix, owner 2026-11-06 "this doesn't look right"; supersedes v7b's card alone), every
+# item checked on previews out/k05b/fix_a, fix_b, fix_p, fix_p2:
+#  1 white across the whole face: lw_card (a soft overhead spot over the crown-side half, diffuse only, head only,
+#    Command only: 45 W at 0.14, -0.10, 0.55 m, 40 deg) and the fill back to 9 W (was 3): display face luma about 160
+#    at 2560 (v6 149, v7 125), the face reads as the same white as the rim, throat and handle
+#  2 the coat band (lg_face, the hard vertical stripe down the left third and over the throat) off: --face 0
+#  3+4 the laser breaks at every hole (--hole_break 1: no hits on the bores or the stone seen through a hole) and the
+#    widest halo scale is dropped (--glow_wide 0: at 16 mm it filled the crossed hole with red)
+#  5 no profile wake beside the line (--nprof 0): only the crisp scan line
+#  6 dark holes: no stone patch under the hole field (--holefloor 0; its granite flecks read as sparkle in the bores)
+#    and an indirect clamp (--clamp 4)
+#  7 Naked (kit, not a flag): K01's HD weave on the bare handle (k789_lib.naked_neck_hd) and KQ_NAKED_FLARE=0 (req-nov6.sh)
+--wcard 45
+--hole_break 1
+--nprof 0
+--glow_wide 0
+--holefloor 0
+--clamp 4
