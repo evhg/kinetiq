@@ -92,3 +92,15 @@ The Mac (notes/mac-handoff.md) pushes masters to `evhg/kinetiq-masters` and a `S
   `--phone`), Command and Naked Command phone sets keep 45 of 60 frames. A 60-frame 5120 rebuild is 1.3 GB: one
   sequence per lane, frames deleted once exported. Two `sequence.mjs` runs at once only with `--out` for one of them
   (each rewrites the manifest it read at its start), merged by hand afterwards.
+
+## Cloud export of K11+k789-naked-handles (2026-11-06, Release 9)
+- The Mac's 2026-11-05 15:17-15:27Z lines (K08-naked-pace-handle; K11+k789-naked-handles: K11, K07, K09): masters by
+  `git show origin/main:<path>` into `in-mac/r9/`, installed under their queue names (K07/K08 in `final/v5k/`, K09/K11
+  in `final/`; the replaced finals kept in `final/pre-r9/`), `link-masters.sh`, one `stills.mjs` run for the 11 ids
+  (K07-nogrip, K08-nogrip, K09-nogrip{,-pace}, K09-nogrip-card{,-pace}, K11-nogrip-{command,pace,command-pace},
+  K11-nogrip-single{,-pace}). K09's card twin is the `--hover-mix` composite (`-card-nogrip.png`), never `-check`/`-hover`.
+- K11's Naked masters are now 5120 x 2880 (were 3200): wide to 5120, the card crop 2304 x 2880 exported to 1440 with the
+  1170 rung; K09's card twins gain the 1170 rung too. The grip-on K11/K09 stay on the 1.5 mm edge, and so do their twins.
+- Looked at before export, against the live files and K01 Naked: weave on the Command handle, the canon butt, Q in
+  the carbon, K01's two hairlines; the Pace staircase, bracket and the collar band are gone. Pace's handle reads as
+  black lacquer at card size (as K01 Naked Pace does): its 12K weave shows only in the hairlines.
