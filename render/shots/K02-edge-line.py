@@ -192,6 +192,8 @@ def swivel(sc, deg):
     base = Matrix(json.loads(sc["racket_base"]))
     root.matrix_world = Matrix.Rotation(math.radians(deg), 4, SWIVEL_AXIS) @ base
     bpy.context.view_layer.update()
+    import k789_lib as _KL   # the Pace Naked handle card keeps its place relative to the handle's mirror direction
+    _KL.pace_handle_reaim(sc)
 
 
 def build(o):
@@ -222,6 +224,9 @@ def build(o):
     else:
         mo = dict(MAT_OPTS, **dict(C.WEAVE_HD, **HD_W)) if (HD and white) else MAT_OPTS
     root, P = C.build_racket("KQ", feel=FEEL, serial=C.SERIAL, mat_opts=mo)
+    if pace:   # Pace Naked only: the bare handle gets K01's Pace keys (pace-naked-weave, owner 2026-11-07)
+        import k789_lib as _KLn
+        _KLn.naked_neck_hd([root], "pace", None)
     if pace and P_CLAMP:
         sc.cycles.sample_clamp_indirect = P_CLAMP
     root.matrix_world = (Matrix.Translation((X_SHIFT, 0, 0)) @ Matrix.Rotation(math.radians(ROLL), 4, "X")

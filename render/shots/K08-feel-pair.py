@@ -352,6 +352,7 @@ def build(o):
     right, RP = C.build_racket("KQR", feel="pace", serial="KQ-000428",
                                mat_opts=dict(C.PACE_V4, aniso=PACE_ANISO, organic=PACE_ORGANIC, flip=PACE_FLIP)
                                if PACE_V4 else (dict(K01.P_HD) if HD else None))
+    L.naked_neck_hd([right], "pace", None)   # Pace Naked only: the bare handle gets K01's Pace keys (owner 2026-11-07)
     L.pose(left, (-X, 0.0, HC), yaw_deg=YAW + los(-X), roll_deg=-ROLL)
     L.pose(right, (X, 0.0, HC), yaw_deg=-YAW + los(X), roll_deg=ROLL)
     bpy.context.view_layer.update()

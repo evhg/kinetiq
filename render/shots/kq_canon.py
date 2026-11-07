@@ -156,6 +156,7 @@ COMMAND_WHITE = dict(tint=(0.70, 0.69, 0.665), alb_k=0.65, dir_tone=0.14, streak
 WEAVE_HD = dict(dir_tone=0.36, alb_k=0.85, bump=0.65, aniso=0.90, relief_k=0.32, relief_lo=0.50, relief_hi=0.90,
                 tint=(0.715, 0.705, 0.68),  # the relief and gaps take about 3 % off the mean tone: given back
                 gap_k=0.55)
+WHITE_HERO = dict(dict(dir_tone=0.26, alb_k=0.80, bump=0.45, aniso=0.85), **WEAVE_HD)   # K01: WEAVE_W + WEAVE_HD
 # the previous canon Command (K10's black twill): mat_opts={"white": 0}
 COMMAND = dict(coat_rough=0.032)
 COMMAND_WALL = dict(coat_rough=0.032)
@@ -388,6 +389,16 @@ def build_head(name="KQ", holes=None, r_frame=EDGE_R, r_hole=0.0008, seg_frame=1
         if kind == "throat":
             s_thr, _ = L.throat_arclength(lp)
             segb = [b_ * 0.001 for b_ in throat_segs] if throat_segs else None
+        wrap = FRAME_UV == "wrap" and kind == "throat"
+        if wrap:
+            # full-weave (owner 2026-11-07): the throat walls wrapped as one band, as the K15 bores: u = the true arc
+            # length round the throat from its apex (the one closing seam, in the apex fillet), v = the arc length across
+            # the edge profile, face edge to back edge: tiles at the true 3K / 12K scale, turning over both lips (the
+            # clamp drew the throat's twill straight down the wall as stripes). The outline keeps the fold UVs: they run
+            # the face's weave over the 1.0 mm edge radius and down the 38 mm wall without a seam, and the neck / Naked
+            # butt mapping (_neck_u) is built on them; an arc-length band there put seams down the handle corners, at
+            # the butt and at the crown.
+            wrap_u, wrap_L = L.throat_arclength(lp)
         if kind == "hole" and hole_uv == "cyl":
             hcx = sum(p_[0] for p_ in lp) / n
             hcy = sum(p_[1] for p_ in lp) / n
@@ -410,7 +421,9 @@ def build_head(name="KQ", holes=None, r_frame=EDGE_R, r_hole=0.0008, seg_frame=1
             for k, (inset, z, c, s_) in enumerate(prof):
                 v = bm.verts.new((x - ox * inset, y - oy * inset, z))
                 v[nl] = (ox * c, oy * c, s_)
-                if kind == "hole" and hole_uv == "cyl":
+                if wrap:
+                    v[ul] = (wrap_u[i], 0.37 - pv[k], wrap_L)
+                elif kind == "hole" and hole_uv == "cyl":
                     v[ul] = (hole_u[i], hole_v0 - pv[k], 0.0)
                 elif kind == "hole" or (kind == "throat" and throat_wall == "clamp"):
                     d = min(pv[k], p_b)
@@ -502,6 +515,13 @@ def build_head(name="KQ", holes=None, r_frame=EDGE_R, r_hole=0.0008, seg_frame=1
         flat_cap = f.material_index in CAP_TAGS
         for lp_ in f.loops:
             lp_[uvl].uv = (lp_.vert.co.x, lp_.vert.co.y) if flat_cap else tuple(lp_.vert[ul])[:2]
+        if FRAME_UV == "wrap" and not flat_cap and f.material_index != T_HOLES:   # a loop's closing seam: u on by L
+            Lw = f.loops[0].vert[ul][2]
+            us = [lp_[uvl].uv[0] for lp_ in f.loops]
+            if Lw > 0 and max(us) - min(us) > Lw / 2:
+                for lp_ in f.loops:
+                    if lp_[uvl].uv[0] < Lw / 2:
+                        lp_[uvl].uv = (lp_[uvl].uv[0] + Lw, lp_[uvl].uv[1])
         if hole_uv == "cyl" and f.material_index == T_HOLES:   # the wrap's seam: one tile on (the maps repeat)
             us = [lp_[uvl].uv[0] for lp_ in f.loops]
             if max(us) - min(us) > L.TILE / 2:
@@ -671,6 +691,21 @@ def build_cap(name, n=192):
 # the bores' UV (build_head hole_uv): None = "clamp", the canon's look since 2026-10-22 (every shot rendered so far);
 # "cyl" wraps each bore (owner, 2026-11-03, K15: "doesn't look like single mould continuous carbon"). KQ_HOLE_UV=cyl.
 HOLE_UV = os.environ.get("KQ_HOLE_UV") or "clamp"
+# full-weave (cloud REQUEST 2026-11-07, owner: the weave on every part, rims too): "wrap" (canon) lays the throat walls
+# on arc-length UVs (build_head); "fold" gives back the clamp (the throat's twill straight down its walls).
+FRAME_UV = os.environ.get("KQ_FRAME_UV") or "wrap"
+# the edge radius' coat weight (full-weave): under a full coat the 1.0 mm radius mirrors every light as one smooth line
+# and hides its weave; less coat lets the fibre sheen, which flips from tile to tile, carry the highlight, so the weave
+# runs over the edge. 1 = before (the radius shares the skin material).
+# full-weave canon (cloud REQUEST 2026-11-07, owner: "full detailed carbon weave at every resolution at every part of the
+# racket"): K01's hero weave is every racket's, every part (face, back, rim, wall, neck, throat, bores), both feels, as
+# defaults under each shot's own keys. Before, most shots ran the plain canon and the Naked necks alone got K01's keys
+# (k789_lib.naked_neck_hd), which drew a material step where neck meets head (K02's wall, 2026-11-07). KQ_HERO_WEAVE=0:
+# before. Pace: k01_lib P_HD + P_MAT (crimp 75: each tape its own sheen gradient); white Command: K01's WEAVE_W + WEAVE_HD.
+HERO_WEAVE = os.environ.get("KQ_HERO_WEAVE", "1") == "1"
+PACE_HERO = dict(tone=0.08, streak_alb=0.05, fib_h=7.0, rstreak=0.25, crimp=75.0)
+RIM_FLIP = float(os.environ.get("KQ_RIM_FLIP", "0.5"))     # coat roughness of alternate tows on the 1.0 mm radius (canon 0.5, preview 2026-11-07: the edge highlight breaks at every tow / tape and K01 Pace's wall band shows its tiles; 0 = off, the radius shares the skin)
+RIM_COAT = float(os.environ.get("KQ_RIM_COAT", "1.0"))   # tried 0.35 and 0.12 on K14 (2026-11-07): the line only thins; the 1 mm radius is ~5 px at display size, too narrow for a tile to read across it
 HOLE_SEG_CYL = int(os.environ.get("KQ_HOLE_SEG", "0"))        # bore facets under "cyl" (0: keep hole_seg 72; 288 broke the face tessellation)
 BORE_ANISO = os.environ.get("KQ_BORE_ANISO")                  # the bore lining's fibre anisotropy under "cyl" (None: the face's)
 NAKED_BUTT = dict(y_top=-0.2785, y_flare=-0.2893, y_band=-0.2955, r_end=0.0045, grow=0.0019, g0=0.00002)
@@ -1290,9 +1325,15 @@ def mat_pace(name, etch=None, wall=False, o=None):
     nb.l.new(bump.outputs["Normal"], b.inputs["Normal"])
     b.inputs["Coat Weight"].default_value = 1.0
     b.inputs["Coat Roughness"].default_value = p["coat_rough"]
+    if float(p.get("coat_flip_r", 0.0)) > 0:   # the edge radius (RIM_FLIP): alternate tapes' coat rougher, so the
+        # radius' highlight breaks at every tape and the weave reads over the edge
+        nb.l.new(nb.math("MULTIPLY_ADD", hz, float(p["coat_flip_r"]) - float(p["coat_rough"]), float(p["coat_rough"])),
+                 b.inputs["Coat Roughness"])
     b.inputs["Coat IOR"].default_value = 1.52
     # K11's in-band tile flip: the coat of alternate tapes mirrors the light (1 - flip) as strongly (v5: flip 0)
     coat_w = nb.math("SUBTRACT", 1.0, nb.math("MULTIPLY", hz, p["flip"]))
+    if float(p.get("coat_w", 1.0)) != 1.0:   # the edge radius (role "rim", RIM_COAT): the fibre sheen carries its highlight
+        coat_w = nb.math("MULTIPLY", coat_w, float(p["coat_w"]))
     nb.l.new(coat_w, b.inputs["Coat Weight"])
     if fib and float(p.get("beckmann", 0.0)) > 0:
         # round 6: the fibre sheen as its own anisotropic BECKMANN glossy under the coat, added to a Principled that
@@ -1433,10 +1474,13 @@ def mat_white(name, o=None, etch=None, wall=False):
     cb.inputs["Strength"].default_value = float(p["print"])
     cb.inputs["Distance"].default_value = 0.00025
     nb.l.new(cot.outputs["Color"], cb.inputs["Height"])
-    b.inputs["Coat Weight"].default_value = 1.0
+    b.inputs["Coat Weight"].default_value = float(p.get("coat_w", 1.0))   # < 1 on the edge radius (RIM_COAT)
     b.inputs["Coat IOR"].default_value = 1.5
     coat_r = float(p["coat_rough"])
     b.inputs["Coat Roughness"].default_value = coat_r
+    if float(p.get("coat_flip_r", 0.0)) > 0:   # the edge radius (RIM_FLIP): tows along v get a rougher coat
+        nb.l.new(nb.math("MULTIPLY_ADD", nb.math("SUBTRACT", 1.0, along_u), float(p["coat_flip_r"]) - coat_r, coat_r),
+                 b.inputs["Coat Roughness"])
     occ = None
     if wall:  # as k10_lib's throat wall: tows fold straight down it, the fibre tangent turns horizontal, occlusion
         _, _, z = nb.coords("Object")
@@ -1486,6 +1530,18 @@ def mat_carbon(feel, role, serial=None, o=None):
     """role: face (with the serial etch), skin (back, rim, wall, neck), throat (throat walls), bore (holes).
     Cached by name: every racket of a feel shares its materials; each serial gets its own face material.
     Command is white (mat_white); o={"white": 0} gives the previous canon's black K10 twill (cached as command-black)."""
+    if HERO_WEAVE:   # K01's hero weave under every shot's own keys (full-weave canon, 2026-11-07)
+        o = dict(o or {})
+        if feel == "pace" and float(o.get("fibre", 1.0)) > 0:
+            for k_, v_ in PACE_HERO.items():
+                o.setdefault(k_, v_)
+        elif feel == "command" and is_white(feel, o):
+            for k_, v_ in WHITE_HERO.items():
+                o.setdefault(k_, v_)
+    if role == "rim":   # the 1.0 mm edge radius: the skin's material, its coat broken per tow (full-weave)
+        if RIM_COAT >= 1.0 and RIM_FLIP <= 0:
+            return mat_carbon(feel, "skin", serial, o)
+        o = dict(o or {}, coat_w=RIM_COAT, coat_flip_r=RIM_FLIP)
     white = is_white(feel, o)
     rest = {k: v for k, v in (o or {}).items() if k != "white"}
     tag = "command-black" if (feel == "command" and not white) else feel
@@ -1660,7 +1716,7 @@ def mat_wall_frost(name="KQ_WallFrost", level=0.30):
 
 
 # ------------------------------------------------------------------ the racket
-ROLE = {"face": "face", "back": "skin", "rim": "skin", "wall": "skin", "neck": "skin", "bridgewall": "throat",
+ROLE = {"face": "face", "back": "skin", "rim": "rim", "wall": "skin", "neck": "skin", "bridgewall": "throat",
         "throat": "throat", "holes": "bore"}
 
 

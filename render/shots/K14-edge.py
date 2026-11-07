@@ -107,6 +107,7 @@ DEFAULTS = dict(
 # edge and the face falls into shade lower left, where the rake draws the twill's relief; the 1.5 mm roll as one crisp
 # line (RIM 150). Fill rule (fillcheck): Command dark 14 % lit 53 %, Pace dark 39 % lit 31 %.
 DEFAULTS.update(
+    RIM_FACE=0.0,      # 1: the rim card lights the face too (see build)
     SHIFT_Y=-0.12, DIST=0.26, FW=0.085, FSTOP=32.0, EL=32.0, YAW=-35.0, PHI=38.0,
     RIM_EL=10.0, RIM_W=0.15, RIM=150.0, RAKE=2.0, RAKE_AZ=80.0, FILL=0.15,
     GLOSS_LEN=0.35, GLOSS_W=0.04, GLOSS=20.0,
@@ -296,7 +297,9 @@ def build(o, p):
         _orient_card(rk, P, t)
         rk.visible_diffuse = False
         rk.lightgroup = "rim"
-        rk.light_linking.receiver_collection = collection("rim_recv", [parts["rim"]])
+        # RIM_FACE (full-weave, 2026-11-07): the rim card also reaches the face, so its highlight runs on off the 1.0 mm
+        # radius across the weave just inside the edge (the radius alone is ~10 px wide at 5120)
+        rk.light_linking.receiver_collection = collection("rim_recv", [parts["rim"]] + ([parts["face"]] if p["RIM_FACE"] > 0 else []))
     if p["LIP"] > 0:
         lp_ = K04.panel("lg_lip", tuple(P + dirv(maz, p["LIP_EL"]) * p["LIP_D"]), (p["LIP_W"], p["LIP_LEN"]),
                         p["LIP"], tuple(P), color=(0.95, 0.97, 1.0), edge=(-1.0, -0.5), fade=(0, 1.0))

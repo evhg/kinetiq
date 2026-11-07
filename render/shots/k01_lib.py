@@ -132,6 +132,7 @@ P_MAT = dict(crimp=75.0)  # K01-only extra Pace material keys over P_HD (K02 and
 # owner, 2026-11-02: grip-off. NOGRIP = 1 builds the racket without its overgrip (kq_canon grip=False): the bare carbon
 # handle runs out of the head into the butt cap as one piece. Outputs K01-nogrip-*.
 NOGRIP = 0
+GRIP_FOLLOW = float(os.environ.get("KQ_GRIP_FOLLOW", "2.0"))   # Naked swivels: the grip strips turn 2x the yaw, so they keep their place relative to the handle front's mirror direction (a facet turned by a mirrors 2a): no streak mid-turn; frame 0 unchanged
 # white Command (model space: face +Z toward the camera, head up +Y; the racket's pose carries the lights)
 # lg_wkey: a spot whose cone edge lies on the sweep line SW_A -> SW_B (the same diagonal as the gloss line): the circle
 # of radius WK_EDGE_R on the face is centred WK_EDGE_R up-left of the line's midpoint, so its edge crosses the upper
@@ -843,6 +844,14 @@ def build(o, mode):
     cam.data.sensor_fit = "HORIZONTAL"
     sc["racket_objs"] = [ob.name for k, ob in P.items() if k not in ("etchR", "etchL")]
     sc["racket_root"] = root.name
+    if NOGRIP:   # Naked: the butt (flare, Q band, end) off the grip strips: its flare mirrored them as a bright band
+        # just above the Q that read as a collar (cloud review 2026-11-07); the hairlines run down the handle to it
+        import k789_lib as KL789
+        bt = KL789.split_naked_butt(sc, P["neck"])
+        for nm_ in ("GripL", "GripR"):
+            rc_ = bpy.data.objects[nm_].light_linking.receiver_collection if bpy.data.objects.get(nm_) else None
+            if bt is not None and rc_ is not None and bt.name in rc_.objects:
+                rc_.objects.unlink(bt)
     if pace and NOGRIP:   # Pace Naked: the handle weave card (k789_lib, REQUEST pace-naked-weave), in the base pose
         import k789_lib as KL789
         KL789.pace_handle_weave(sc, default_on=True)
@@ -900,7 +909,19 @@ def swivel(sc, deg):
                 continue
             base = _BASE.setdefault(sc.name + "/" + name, ob.matrix_world.copy())
             ob.matrix_world = Matrix.Rotation(math.radians(-SWIVEL_SIGN * deg * P_FOLLOW), 4, "Z") @ base
+    if NOGRIP and GRIP_FOLLOW:
+        # Naked: the coated bare handle mirrors the two grip strips (its hairlines at yaw 0); left in the world, mid-turn
+        # the flat front swung into their mirror direction and the strip read as a white streak and a bar at the neck top
+        bpy.context.view_layer.update()
+        for name in ("GripL", "GripR"):
+            ob = bpy.data.objects.get(name)
+            if ob is None:
+                continue
+            base = _BASE.setdefault(sc.name + "/" + name, ob.matrix_world.copy())
+            ob.matrix_world = Matrix.Rotation(math.radians(-SWIVEL_SIGN * deg * GRIP_FOLLOW), 4, "Z") @ base
     bpy.context.view_layer.update()
+    import k789_lib as KL789
+    KL789.pace_handle_reaim(sc)   # the Pace Naked handle card keeps its place relative to the handle's mirror direction
 
 
 SEQ_GROUPS = ["lg_rest", "lg_rim"]

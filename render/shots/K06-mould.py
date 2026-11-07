@@ -1332,6 +1332,8 @@ def build(o):
     pillars = build_pillars(mats)
     # the canonical racket: Command, KQ-000427, face up, head toward +X, hovering HOVER above the parting face
     root, P = C.build_racket("KQ", feel=FEEL, serial="KQ-000427", mat_opts=MAT_OPTS)
+    if FEEL == "pace":   # Pace Naked only: the bare handle gets K01's Pace keys (pace-naked-weave, owner 2026-11-07)
+        KL.naked_neck_hd([root], "pace", None)
     C.pose(root, (OX, 0.0, HOVER), yaw_deg=-90.0)
     bpy.context.view_layer.update()
     print("  racket", {k: round(v, 2) if isinstance(v, float) else v for k, v in C.measure(root).items()}, flush=True)
