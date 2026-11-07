@@ -749,7 +749,7 @@ PH_D = 1.4                 # m from the handle centre
 PH_SIZE = (2.2, 1.8)       # width, height (the graded axis)
 PH_K = 6500
 PH_SPLIT = -0.156          # model y: the neck above it (its junction with the face) is split off and left out (0 = off)
-PH_BUTT = -0.2785         # model y: the neck below it (the Naked butt's flare, Q band and end) is split off and left out
+PH_BUTT = 0.0             # model y: the neck below it (the Naked butt) split off and left out of the card; 0 = off (canon since the butt lost its flare, 2026-11-07: the tiles run to the Q end; -0.2785 kept the flare's collar out)
 PH_RAMP = (0.0, 1.0)       # the card's brightness ramp up its height (v: 0 bottom, 1 top; lo > hi fades toward the top)
 PH_K789 = (20.0, -30.0)    # K07/K08/K09/K11 (k789 render_main): up, roll. At K01's 12 deg, 0 the k789 cameras saw a grey
                            # wash (both tape directions); 30 deg round the handle lights one (out/k05b/rk11_*)

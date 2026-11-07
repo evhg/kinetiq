@@ -745,10 +745,10 @@ def build_naked_butt(name, n=288, nb=None):
     """The Naked butt (NAKED_BUTT): a lathe over the handle section, offset outward along its normals by the flare,
     rounded into a flat end at y = -0.300, with UVs that continue the neck's (see _neck_u). Returns the object."""
     b = dict(NAKED_BUTT, **(nb or {}))
-    if os.environ.get("KQ_NAKED_FLARE") is not None:
-        # per-shot override in mm (K05, 2026-11-06: seen from straight above the 1.9 mm flare reads as a raised lip;
-        # 0 runs the handle's section straight on into the rounded end, the Q band and UVs unchanged)
-        b["grow"] = max(b["g0"], float(os.environ["KQ_NAKED_FLARE"]) / 1000.0)
+    # the flare in mm: canon 0 since full-weave (cloud REVIEW2 2026-11-07: one Naked butt on every screen; the 1.9 mm
+    # flare read twice as a collar: K05 from above, K01's mirrored the beam-lit floor). 0 runs the handle's section
+    # straight on into the rounded end, the Q band and UVs unchanged; KQ_NAKED_FLARE=1.9 gives the flare back
+    b["grow"] = max(b["g0"], float(os.environ.get("KQ_NAKED_FLARE", "0")) / 1000.0)
     P, N = section(n)
     u0 = _neck_u(P)
     rows = []   # (grow, scale, y, v)
