@@ -55,6 +55,7 @@ P_GLOW = 1.3                    # Pace: the bore glow x 1.3 (cloud REVIEW 22:20Z
 P_OUT_S = 110.0                 # Pace: K11-dark's thin cool outline: big glossy-only cards linked to each racket's edge
 P_OUT_CARDS = ((0.0, 0.30, 0.90, 1.0), (-1.6, -0.2, 1.2, 1.6), (1.6, -0.2, 1.2, 1.6))  # radius and neck: (x, y, z, size)
 P_OUT_K = 8000.0
+P_NAKED_NECK_OFF = 1.0       # Pace Naked: the face cards and the outline leave the neck (the bare handle) alone
 
 
 def parse():
@@ -126,6 +127,18 @@ def main():
             oc.visible_diffuse = False
             L.link_receivers(oc, edge, "recv_outline%d" % i)
             oc.lightgroup = "lg_key"
+    if KC.PACE and os.environ.get("KQ_NOGRIP") == "1" and P_NAKED_NECK_OFF > 0:
+        # Pace Naked: the bare handle is the neck mesh, a glossy black cylinder that mirrored every face card linked to
+        # the neck (the lid band, the lid stand-in, the weave card, the outline) as a silver shaft (fw-k09dark 22:39Z);
+        # those cards light the head only, the handle keeps its own (k789 bare-handle lines and the Pace handle card)
+        necks = {C.parts(r)["neck"] for r in roots if "neck" in C.parts(r)}
+        for cn in ("recv_face", "recv_pacelid", "recv_paceweave", "recv_outline0", "recv_outline1", "recv_outline2"):
+            col = bpy.data.collections.get(cn)
+            if col is None:
+                continue
+            for nk in necks:
+                if nk.name in col.objects:
+                    col.objects.unlink(nk)
     # the glow (full pass only): bores, throat, the warm edge line
     gs = GLOW_S * (P_GLOW if KC.PACE else 1.0)
     for r in roots:
@@ -150,6 +163,14 @@ def main():
     for o_ in sc.objects:
         if o_.type == "LIGHT":
             o_.visible_camera = False
+    for sub in [x for x in os.environ.get("K09D_KILL", "").split(",") if x]:   # debug: lights off by name
+        for o_ in sc.objects:
+            if sub in o_.name and (o_.type == "LIGHT" or o_.type == "MESH" and not o_.data.vertices or True):
+                if o_.type == "LIGHT":
+                    o_.data.energy = 0.0
+                else:
+                    o_.hide_render = True
+                print("killed", o_.name, flush=True)
     base = {"lg_key": 1.0, "lg_lid": 1.0, "lg_rim": 1.0, "lg_base": 1.0}
     mixes = {"base": dict(base), "full": dict(base, lg_glow=1.0)}
     if a["variant"].startswith("card"):
