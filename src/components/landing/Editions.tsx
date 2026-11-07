@@ -95,6 +95,7 @@ function CardBody({ t, after, end }: { t: Tier; after?: ReactNode; end: ReactNod
         id={IMAGE[t.id].id}
         crop={IMAGE[t.id].crop}
         sizes="(max-width: 599px) 84vw, (max-width: 899px) 57vw, 33vw"
+        baseSizes="(max-width: 599px) 54vw, (max-width: 899px) 38vw, 33vw"
         className={styles.media}
         stillClassName={styles.still}
       />

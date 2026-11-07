@@ -26,7 +26,14 @@ export function ChooseFeel() {
         <div className={styles.panels}>
           {feelChoice.feels.map((f, i) => (
             <article key={f.id} className={styles.panel} aria-labelledby={`feel-${f.id}`}>
-              <SettleStill id="K08" crop={i === 0 ? "left" : "right"} sizes="100vw" className={styles.phoneMedia} stillClassName={styles.still} />
+              <SettleStill
+                id="K08"
+                crop={i === 0 ? "left" : "right"}
+                sizes="100vw"
+                baseSizes="54vw"
+                className={styles.phoneMedia}
+                stillClassName={styles.still}
+              />
               {/* the caption of the photo above it: "Command, built for control" */}
               <div className={styles.tag}>
                 <h3 id={`feel-${f.id}`} className={styles.name}>

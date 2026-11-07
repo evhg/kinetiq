@@ -20,6 +20,12 @@ type Props = {
   className?: string;
   /** Added to each pass's <picture> (the caller's object-fit, position and masks). */
   stillClassName?: string;
+  /**
+   * The base pass's sizes (default: `sizes`). It is seen only while the frame settles, under the full pass coming up,
+   * so on phones it asks for about two thirds of the full pass's width or less (a 2x rung on a 3x phone) (the phone load budget; DESIGN.md "Stills").
+   */
+  baseSizes?: string;
+  basePhoneSizes?: string;
   /** The scale the frame enters at (default 1.12, the edition cards'). */
   from?: number;
 };
@@ -35,7 +41,18 @@ type Props = {
  * render and reduced motion: the full pass at scale 1. Used by the edition cards, Choose your feel (K08) and Identical
  * (K07). The section reads without the image (Still renders nothing until a still is exported).
  */
-export function SettleStill({ id, crop = "wide", phoneCrop, sizes, phoneSizes, className, stillClassName, from = 1.12 }: Props) {
+export function SettleStill({
+  id,
+  crop = "wide",
+  phoneCrop,
+  sizes,
+  phoneSizes,
+  className,
+  stillClassName,
+  baseSizes,
+  basePhoneSizes,
+  from = 1.12,
+}: Props) {
   const root = useRef<HTMLDivElement>(null);
   const { motionOn } = useMotion();
   const layered =
@@ -62,20 +79,22 @@ export function SettleStill({ id, crop = "wide", phoneCrop, sizes, phoneSizes, c
     { scope: root, dependencies: [motionOn], revertOnUpdate: true },
   );
 
-  const pass = (key: string, extra = "") => (
-    <Still
-      id={key}
-      crop={crop}
-      phoneCrop={phoneCrop}
-      alt=""
-      sizes={sizes}
-      phoneSizes={phoneSizes}
-      className={`${still}${extra}`}
-    />
+  const pass = (key: string, extra = "", sz = sizes, phoneSz = phoneSizes) => (
+    <Still id={key} crop={crop} phoneCrop={phoneCrop} alt="" sizes={sz} phoneSizes={phoneSz} className={`${still}${extra}`} />
   );
   return (
     <div ref={root} className={className} aria-hidden="true">
-      <div className={styles.settle}>{layered ? <>{pass(`${id}-base`)}{pass(`${id}-full`, ` ${styles.full}`)}</> : pass(id)}</div>
+      <div className={styles.settle}>
+        {layered ? (
+          <>
+            {/* reduced motion never shows the base (the full pass is at rest), so it is not laid out or fetched */}
+            {pass(`${id}-base`, ` ${styles.base}`, baseSizes ?? sizes, basePhoneSizes ?? phoneSizes)}
+            {pass(`${id}-full`, ` ${styles.full}`)}
+          </>
+        ) : (
+          pass(id)
+        )}
+      </div>
     </div>
   );
 }

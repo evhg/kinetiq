@@ -61,7 +61,9 @@ for (const [id, still] of Object.entries(config.stills)) {
     const encoded = [];
     for (const w of widths) {
       const resized = base.clone().resize({ width: w, kernel: "lanczos3" });
-      const avif = await resized.clone().avif({ quality: 74, effort: 5, chromaSubsampling: "4:4:4" }).toBuffer();
+      // A crop may set its own AVIF quality ("q"): the base and full passes' phone and card crops (K07, K08, K11) are a
+      // step down, as the phone load budget needs for two layers per frame (DESIGN.md "Stills").
+      const avif = await resized.clone().avif({ quality: c.q ?? 74, effort: 5, chromaSubsampling: "4:4:4" }).toBuffer();
       const webp = await resized.clone().webp({ quality: 86, effort: 5, smartSubsample: true }).toBuffer();
       encoded.push({ w, avif, webp });
       // Social cards: crawlers want a plain JPEG at 1200 x 630, from the default still only (Command, with the grip:

@@ -16,7 +16,7 @@ export function Identical() {
   return (
     <>
       <section id="identical" className={styles.lineup} aria-labelledby="identical-title">
-        <SettleStill id="K07" phoneCrop="trio" className={styles.media} stillClassName={styles.still} />
+        <SettleStill id="K07" phoneCrop="trio" basePhoneSizes="67vw" className={styles.media} stillClassName={styles.still} />
         <Reveal className={styles.copy}>
           <h2 id="identical-title" className="t-h2">
             {identical.headline}

@@ -176,6 +176,12 @@ function feelSlides(tier: TierId, feel: FeelId): Slide[] {
   }
 }
 
+/**
+ * Renders in K04's language (Release 12: K07, K08 and K11's full passes): their near-black field gives way to the
+ * slide's floor (Reserve.module.css, `data-field`), so the frame has no edge and Pace's black face keeps its depth.
+ */
+const DARK_FIELD = new Set(["K07-full", "K08-full", "K11-command-full"]);
+
 /** A slide's identity, the same in both feels: the chosen feel's racket (K08's crop, K11's set) is one slide. */
 const slideKey = (s: Slide) =>
   s.kind === "still" ? (s.both ? "both" : s.feel ? "feel" : s.id) : s.kind === "reveal" ? s.base : s.kind;
@@ -279,6 +285,7 @@ export function Gallery({ tierId, feel, chosen }: { tierId: TierId; feel: FeelId
             data-active={i === index}
             data-fit={s.kind === "still" ? s.fit : undefined}
             data-phone-fit={s.kind === "still" ? s.phoneFit : undefined}
+            data-field={s.kind === "still" && DARK_FIELD.has(s.id) ? "dark" : undefined}
             role="group"
             aria-roledescription="slide"
             aria-label={`${i + 1} of ${slides.length}`}
