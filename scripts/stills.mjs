@@ -1,5 +1,5 @@
 // Export the product stills from 16-bit Blender masters to AVIF and WebP.
-// Usage: node scripts/stills.mjs <masters dir> [id ...]
+// Usage: node scripts/stills.mjs <masters dir> [id ...]   (KQ_CROPS=card,left only those crops)
 // Reads src/content/stills.json (crops and widths); writes public/stills/<id>-<crop>-<width>.<hash>.(avif|webp)
 // and src/content/stills.generated.json (pixel size, exported widths and content hash of every crop, read by
 // <Still>). The hash makes every name change with its bytes, so /stills is served immutable (next.config.ts);
@@ -40,6 +40,8 @@ for (const [id, still] of Object.entries(config.stills)) {
     continue;
   }
   for (const [crop, c] of Object.entries(still.crops)) {
+    // KQ_CROPS=card,trio re-exports only those crops (a quality change that leaves the wide crops as they are).
+    if (process.env.KQ_CROPS && !process.env.KQ_CROPS.split(",").includes(crop)) continue;
     let img = sharp(file, { limitInputPixels: false }).removeAlpha();
     if (c.rotate) img = sharp(await img.rotate(-c.rotate).png({ compressionLevel: 0 }).toBuffer());
     const meta = await img.metadata();

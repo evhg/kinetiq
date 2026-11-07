@@ -29,7 +29,8 @@ export function ChooseFeel() {
               <SettleStill
                 id="K08"
                 crop={i === 0 ? "left" : "right"}
-                sizes="100vw"
+                // contained in the 4:5 frame, the 2048 x 2880 half is 89% of its width
+                sizes="89vw"
                 baseSizes="54vw"
                 className={styles.phoneMedia}
                 stillClassName={styles.still}

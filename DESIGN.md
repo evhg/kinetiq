@@ -161,7 +161,7 @@ are in by 14 s. 390 x 664: 2.9 MB, 17.3 s busy. Pace: 2.2 MB, 14.4 s busy. iPad 
 60 desktop frames at 2560): 5.3 MB, 29.6 s busy at the phone profile's 1.6 Mbps, which an iPad on Wi-Fi does not see.
 2026-11-04 (the 5K pass; card, left and right ladders gained a 1170 rung so a 3x phone stops at it): iPhone Command
 3.3 MB, 19.1 s busy (Naked 19.6 s), 390 x 664 17.8 s, Pace 15.1 s (Naked 14.7 s); iPad Pro portrait 6.9 MB, 36.5 s.
-Release 12 (2026-11-07; K07, K08 and K11 in K04's language, two passes per frame): their card, left, right and trio crops are AVIF 60 (full pass) and 50 (base pass) through the crop's `q` in `stills.json` (wide crops stay 74; at 1170 the weave is unchanged by eye), the base pass asks for a smaller rung on phones (`baseSizes`: about 2x on a 3x phone; it is seen only while the full pass comes up) and is never fetched with reduced motion (display: none under html[data-motion="off"]).
+Release 12 (2026-11-07; K07, K08 and K11 in K04's language, two passes per frame): their card, left, right and trio crops are AVIF 56 (full pass) and 45 (base pass) through the crop's `q` in `stills.json` (wide crops stay 74; at 1170 the weave is unchanged by eye), the base pass asks for a smaller rung on phones (`baseSizes`: about 2x on a 3x phone; it is seen only while the full pass comes up) and is never fetched with reduced motion (display: none under html[data-motion="off"]).
 Graphics live in `src/components/graphics/` with review pages at `/lab/<id>` (dev only); G15 is the sweet spot
 (`SweetSpotField`, `/lab/g15`), G16 the carbon cross-sections (`CarbonLayup`, `/lab/g16` only since 2026-10-29), G17
 the slice after the bounce (`SliceBounce`, `/lab/g17`, Surface).
