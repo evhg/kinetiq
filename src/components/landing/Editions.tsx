@@ -6,18 +6,19 @@ import { Hyphens } from "@/components/text/Hyphens";
 import { editionsIntro, includeIcons, priceLabel, tiers, type Tier, type TierId } from "@/content/lineup";
 import { reserveCopy } from "@/content/reserve";
 import { invitationsOpen } from "@/lib/stripe-server";
-import { EditionStill } from "./EditionStill";
+import { SettleStill } from "./SettleStill";
 import { Reveal } from "./Reveal";
 import styles from "./Editions.module.css";
 
-// Each card's racket settles as the card scrolls in, and where its render has a base and a full pass (`<id>-base`,
-// `<id>-full`) the full pass comes up over the base, as K04 does in Holes (EditionStill.tsx).
+// Each card's racket settles as the card scrolls in, and its full pass (`<id>-full`: the warm glow in the bores, the
+// throat and along the edge) comes up over its base pass (`<id>-base`: the raking light alone), as K04 does in Holes
+// (SettleStill.tsx). K11's card ids carry their "-pace" and "-nogrip" twins (Still.tsx).
 const IMAGE: Record<TierId, { id: string; crop: string }> = {
   // KINETIQ: one white Command racket (KQ-000427) shot with K11's camera and light, so the three cards read as one
   // shoot (the hero and the finale show the beam camera, and Choose your feel shows K08 just before).
   reserve: { id: "K11-single", crop: "card" },
-  // First 500: the set of two, both throats laser-marked with the set number (027/500). Command: the K11 Pace render's
-  // 12K face reads as a flat checkerboard at this size (art review, 2026-10-22).
+  // First 500: the set of two, both throats laser-marked with the set number (027/500), in the feel on show (the Pace
+  // pair is the id's "-pace" twin).
   limited: { id: "K11-command", crop: "card" },
   // One of Ten: the set of three in its fitted case.
   invite: { id: "K09-card", crop: "card" },
@@ -90,7 +91,13 @@ export function Editions() {
 function CardBody({ t, after, end }: { t: Tier; after?: ReactNode; end: ReactNode }) {
   return (
     <>
-      <EditionStill id={IMAGE[t.id].id} crop={IMAGE[t.id].crop} sizes="(max-width: 599px) 84vw, (max-width: 899px) 57vw, 33vw" />
+      <SettleStill
+        id={IMAGE[t.id].id}
+        crop={IMAGE[t.id].crop}
+        sizes="(max-width: 599px) 84vw, (max-width: 899px) 57vw, 33vw"
+        className={styles.media}
+        stillClassName={styles.still}
+      />
       <div className={styles.body}>
         <div className={styles.head}>
           <TierGlyph tier={t.id} className={styles.glyph} />

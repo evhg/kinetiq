@@ -1,0 +1,26 @@
+/* SettleStill: the render's frame inside the caller's fixed-ratio, clipping box. The scroll settle scales it, the box
+   clips it, so nothing around it moves. Where a render has two passes, both lie here, the full pass over the base. */
+.settle {
+  position: absolute;
+  inset: 0;
+  transform-origin: var(--settle-origin, 50% 45%);
+  /* The renders' near-black field (luma about 1) gives way to the floor beneath (the caller's frame paints --stage), so
+     the frame has no edge and the section stays clear of the fill rule's flat black; the lit racket is far brighter
+     than the floor and keeps every value. */
+  mix-blend-mode: lighten;
+}
+.layer {
+  position: absolute;
+  inset: 0;
+}
+.layer img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* The full pass: at rest, on the server and with reduced motion it shows at full strength; the settle brings it up
+   from 0. */
+.full {
+  opacity: 1;
+}
