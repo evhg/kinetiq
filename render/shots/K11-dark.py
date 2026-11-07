@@ -92,6 +92,14 @@ EDGE_GLOW = 2.2     # the thin warm line along the edge radius (rim emission, gr
 CMD_EDGE_GLOW = 16.0  # Command (on white the line needs more to read)
 EDGE_POW = 3.0
 CLAMP_IND = 4.0
+PAIR_SET = 1.0      # 1 = the First 500 pair shows its set number on both throats (canon), 0 = the single's serial
+SET_TEXT = "027/500"
+GRIP_DARK = 1.0     # 1 = no light reaches the overgrip (canon: neutral black; k04-language-fix 2026-11-07: it read light
+                    # grey under the raking key, sheen and strips together); its wrap reads by GRIP_RIM_S alone
+GRIP_RIM_S = 40.0   # W: a thin glossy strip linked to the overgrip only (preview 2026-11-07: 40 rim + 3 side)
+GRIP_RIM_AZ = 150.0  # deg from the camera, about the vertical: behind the handle, a crisp silhouette line
+GRIP_SIDE_S = 3.0   # W: a second, faint strip from the side: the wrap's steps read as charcoal bands on black
+GRIP_SIDE_AZ = -100.0
 G_COOL = 0.0
 
 OPT = {}
@@ -296,8 +304,11 @@ def build_rackets(o):
     if o["mode"] == "pair":
         w = o.get("weave", "command")
         feels = {"command": ("command", "command"), "pace": ("pace", "pace"), "mix": ("command", "pace")}[w]
-        r0, _ = C.build_racket("KQ_F", feel=feels[0], serial=C.SERIAL)
-        r1, _ = C.build_racket("KQ_R", feel=feels[1], serial=C.SERIAL)
+        # canon: a First 500 set carries its set number on BOTH throats (k04-language-fix, cloud 21:51Z); the
+        # command / pace mix is not a set and keeps the single's serial
+        sn = SET_TEXT if (w in ("command", "pace") and PAIR_SET > 0) else C.SERIAL
+        r0, _ = C.build_racket("KQ_F", feel=feels[0], serial=sn)
+        r1, _ = C.build_racket("KQ_R", feel=feels[1], serial=sn)
         roots = [r0, r1]
     else:
         r0, _ = C.build_racket("KQ_F", feel=feel, serial=C.SERIAL)
@@ -496,6 +507,46 @@ def lights(roots, o):
             KL7.link_receivers(wc, [ob_ for r in pace_r for ob_ in C.objs(r, "all")], "recv_weave")
 
 
+def grip_dark(roots, cam):
+    """Unlink every light from the overgrip (the cap keeps its light: satin black with the Q); then, with GRIP_RIM_S, a
+    thin glossy strip that lights the overgrip alone, so its helical wrap reads as fine lines on black."""
+    if GRIP_DARK <= 0:
+        return
+    import k789_lib as KL7
+    grips = []
+    for r in roots:
+        P = C.parts(r)
+        if "grip" in P and not P["grip"].hide_render:
+            grips.append(P["grip"])
+    if not grips:
+        return
+    allo = [ob_ for r in roots for ob_ in C.objs(r, "all") if ob_ not in grips]
+    for L_ in [ob_ for ob_ in bpy.data.objects if ob_.type == "LIGHT"]:
+        rc = L_.light_linking.receiver_collection
+        if rc is None:
+            KL7.link_receivers(L_, allo, "recv_nogrip_" + L_.name)
+        else:
+            for g in grips:
+                if g.name in rc.objects:
+                    rc.objects.unlink(g)
+    from mathutils import Matrix
+    for nm, gs, gaz in (("rim", GRIP_RIM_S, GRIP_RIM_AZ), ("side", GRIP_SIDE_S, GRIP_SIDE_AZ)):
+        if gs <= 0:
+            continue
+        for g in grips:
+            bpy.context.view_layer.update()
+            bb = [g.matrix_world @ Vector(v) for v in g.bound_box]
+            gc = sum(bb, Vector()) / 8.0
+            vc = cam.location - gc
+            vc.z = 0.0
+            vc.normalize()
+            d = (Matrix.Rotation(math.radians(gaz), 3, Vector((0, 0, 1))) @ vc).normalized()
+            gl = studio.area_light("lg_grip%s_%s" % (nm, g.name), tuple(gc + d * 0.6), 0.02, gs, color=kelvin(6500.0),
+                                   size_y=0.30, target=tuple(gc))
+            gl.visible_diffuse = False
+            gl.lightgroup = "sheen"
+            KL7.link_receivers(gl, [g], "recv_grip%s_%s" % (nm, g.name))
+
 def build_comp(sc, src, o, out_stem):
     tr = sc.node_tree
     den = {}
@@ -644,6 +695,7 @@ def main():
     sc.camera = cam
     d = frame_camera(sc, cam, pts, aim, dirn)
     lights(roots, o)
+    grip_dark(roots, sc.camera)
     for ob_ in sc.objects:
         if ob_.type == "LIGHT":
             ob_.visible_camera = False      # no strip or card ever seen through a hole

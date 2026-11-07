@@ -286,6 +286,7 @@ def main():
     fl = studio.area_light("lg_fill", tuple(cam.location * 0.6 + Vector((0.0, 0.0, 0.25))), 1.6, KD.FILL_S,
                            color=KD.kelvin(7500.0), target=(0.0, 0.0, KD.HC - 0.1))
     fl.lightgroup = "fill"
+    KD.grip_dark(roots, cam)      # k04-language-fix (cloud 21:51Z): canon neutral-black overgrip, its wrap visible
     for ob_ in sc.objects:
         if ob_.type == "LIGHT":
             ob_.visible_camera = False

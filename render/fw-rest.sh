@@ -16,6 +16,11 @@ shot() {
   local tt=$(( $(date +%s) - T0 ))
   echo "$key $tt" >> "$LOGD/full-weave.times"
   [ "$PUSH" = 1 ] || { log "PUSH=0: $key rendered, not pushed"; return 0; }
+  # GitHub refuses files over 100 MB (K14's EXRs at the full weave: 360 and 148 MB): those stay on the Mac, named in STATUS
+  local keep=() big=() f; for f in "$@"; do
+    if [ "$(stat -f %z "$f")" -gt 99000000 ]; then big+=("$(basename "$f")"); else keep+=("$f"); fi; done
+  [ ${#big[@]} -gt 0 ] && { log "OVER-100MB kept on the Mac: ${big[*]}"; txt="$txt; kept on the Mac, over GitHub's 100 MB limit: ${big[*]} (the repo's copies are the previous render's)"; }
+  set -- "${keep[@]}"
   masters "fw m $key" "$dir" "$key, $R ($CANON)" "$@"
   done_mark "fw m $key" || return 1
   local list=$(for f in "$@"; do printf '%s/%s,' "$dir" "$(basename "$f")"; done | sed 's/,$//')
@@ -56,7 +61,7 @@ if ! held k07 && ! done_mark "fw status k07"; then T0=$(date +%s)
   shot k07 stills/K07-K08 "K07 lineup 5120x2880 spp 112 --seq, grip and Naked" "$V"/K07-lineup-five{,-nogrip}{,-seq0,-seq1,-seq2,-seq3,-seq4}.png || exit 1
 fi
 # ---- K09 (case of three): gallery 2400x1800, card 1440x1800 --hover-mix, spp 160, grip and Naked, both feels
-if ! done_mark "fw status k09"; then T0=$(date +%s)
+if ! held k09 && ! done_mark "fw status k09"; then T0=$(date +%s)
   G=K09-case-three
   aside k09 "$F/$G"-{gallery,card}{,-pace,-nogrip,-nogrip-pace}{.png,-check.png,-hover.png}
   for fe in command pace; do
