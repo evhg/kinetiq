@@ -42,7 +42,7 @@ RAKE_AT = (-1.05, 0.62, 0.42)   # world: camera-left and behind the heads, low
 RAKE_AIM = (0.10, 0.02, 0.03)
 CMD_PER = 1.0                   # Command: one raking spot per racket (same offset from each head), so all three fall
 CMD_RAKE_S = 500.0              # identically from a lit crown to white-in-shade at the throat (the shared spot lit
-CMD_RAKE_OFF = (-0.42, 0.34, 0.20)   # them flat); world offset from each head centre, aimed CMD_RAKE_AIM_DY toward the crown
+CMD_RAKE_OFF = (-0.40, 0.10, 0.26)   # them flat); world offset from each head centre, aimed CMD_RAKE_AIM_DY toward the crown
 CMD_RAKE_AIM_DY = 0.11
 CMD_RAKE_DEG, CMD_RAKE_BLEND = 24.0, 0.75
 CMD_POOL, CMD_NECK = 20.0, 10.0       # K09's white per-racket pool and neck spots, turned down (240 / 60)
@@ -51,6 +51,10 @@ GLOW_S = 30.0                   # K11-dark's bore / throat glow (W-equivalent em
 THROAT_GLOW = 1.0
 EDGE_GLOW_CMD, EDGE_GLOW_PACE = 16.0, 2.2
 HOVER_GAIN = 2.3
+P_GLOW = 1.3                    # Pace: the bore glow x 1.3 (cloud REVIEW 22:20Z)
+P_OUT_S = 110.0                 # Pace: K11-dark's thin cool outline: big glossy-only cards linked to each racket's edge
+P_OUT_CARDS = ((0.0, 0.30, 0.90, 1.0), (-1.6, -0.2, 1.2, 1.6), (1.6, -0.2, 1.2, 1.6))  # radius and neck: (x, y, z, size)
+P_OUT_K = 8000.0
 
 
 def parse():
@@ -112,14 +116,25 @@ def main():
                                color=KD.kelvin(5600.0), target=RAKE_AIM, radius=RAKE_SIZE)
         L.link_receivers(rf, felt, "recv_rake_felt")
         rf.lightgroup = "lg_key"
+    if KC.PACE and P_OUT_S > 0:
+        # the outline: the edge radius and the neck mirror big cool cards (glossy only) from behind and both sides, so
+        # each black head draws a thin line round its silhouette against the tray; the face and bores stay black
+        edge = [o_ for r in roots for kk, o_ in C.parts(r).items() if kk in ("rim", "neck")]
+        for i, (x, y, z, sz) in enumerate(P_OUT_CARDS):
+            oc = studio.area_light("lg_outline%d" % i, (x, y, z), sz, P_OUT_S, color=KD.kelvin(P_OUT_K),
+                                   target=(0.0, KC.HEAD_Y, 0.03))
+            oc.visible_diffuse = False
+            L.link_receivers(oc, edge, "recv_outline%d" % i)
+            oc.lightgroup = "lg_key"
     # the glow (full pass only): bores, throat, the warm edge line
+    gs = GLOW_S * (P_GLOW if KC.PACE else 1.0)
     for r in roots:
         P = C.parts(r)
         if "holes" in P:
-            KD.set_glow(P["holes"], "depth", GLOW_S)
+            KD.set_glow(P["holes"], "depth", gs)
         for kk, ob in P.items():
             if kk == "throat" or kk.startswith("thr") or kk == "bridgewall":
-                KD.set_glow(ob, "depth", GLOW_S * THROAT_GLOW)
+                KD.set_glow(ob, "depth", gs * THROAT_GLOW)
         eg = EDGE_GLOW_PACE if r.get("kq_feel") == "pace" else EDGE_GLOW_CMD
         if "rim" in P and eg > 0:
             KD.set_glow(P["rim"], "edge", eg)
