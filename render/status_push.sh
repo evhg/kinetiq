@@ -5,6 +5,9 @@
 # Each try starts from a fresh throwaway blobless sparse clone of main (as masters_push.sh), so a line the cloud
 # pushed meanwhile (REQUEST ...) is never overwritten; 5 tries.
 set -u
+if [ -z "${KQ_MLOCKED:-}" ] && command -v flock >/dev/null; then   # one masters/STATUS push at a time (masters_push.sh)
+  exec env KQ_MLOCKED=1 flock "${KQ_MASTERS_LOCK:-$HOME/kinetiq-render/masters.lock}" "$0" "$@"
+fi
 LINE=$1
 REPO=${KQ_MASTERS_URL:-https://github.com/evhg/kinetiq-masters}
 for t in 1 2 3 4 5; do

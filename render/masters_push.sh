@@ -5,6 +5,11 @@
 # (rebasing onto a newer main). Never use this for the public kinetiq repo.
 #   render/masters_push.sh <repo dir, e.g. stills/K01> "<commit message>" <file> [<file> ...]
 set -u
+# one masters/STATUS push at a time on this Mac (2026-11-07: the K09 batch and the full-weave pass pushed together and
+# the loser's retries kept pushing its stale commit: "cannot lock ref")
+if [ -z "${KQ_MLOCKED:-}" ] && command -v flock >/dev/null; then
+  exec env KQ_MLOCKED=1 flock "${KQ_MASTERS_LOCK:-$HOME/kinetiq-render/masters.lock}" "$0" "$@"
+fi
 DIR=$1; MSG=$2; shift 2
 REPO=${KQ_MASTERS_URL:-https://github.com/evhg/kinetiq-masters}
 TMP=${KQ_RENDER_OUT:-/home/user/kinetiq-render-out}/tmp-masters-$$
@@ -25,7 +30,9 @@ git commit -q -m "$MSG" || exit 1
 ok=0
 for t in 1 2 3; do
   if git push -q origin main; then ok=1; break; fi
-  git pull -q --rebase origin main || true
+  # rebuild the commit on the newest main (a shallow clone cannot rebase): reset the index to it, add the files again
+  git fetch -q --depth 1 origin main && git reset -q --mixed FETCH_HEAD && git add --sparse "$DIR" \
+    && { git diff --cached --quiet || git commit -q -m "$MSG"; }
   sleep $((t * 20))
 done
 cd / && rm -rf "$TMP"
