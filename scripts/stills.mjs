@@ -1,5 +1,5 @@
 // Export the product stills from 16-bit Blender masters to AVIF and WebP.
-// Usage: node scripts/stills.mjs <masters dir> [id ...]
+// Usage: node scripts/stills.mjs <masters dir> [id ...]   (KQ_CROPS=card,left only those crops)
 // Reads src/content/stills.json (crops and widths); writes public/stills/<id>-<crop>-<width>.<hash>.(avif|webp)
 // and src/content/stills.generated.json (pixel size, exported widths and content hash of every crop, read by
 // <Still>). The hash makes every name change with its bytes, so /stills is served immutable (next.config.ts);
@@ -40,6 +40,8 @@ for (const [id, still] of Object.entries(config.stills)) {
     continue;
   }
   for (const [crop, c] of Object.entries(still.crops)) {
+    // KQ_CROPS=card,trio re-exports only those crops (a quality change that leaves the wide crops as they are).
+    if (process.env.KQ_CROPS && !process.env.KQ_CROPS.split(",").includes(crop)) continue;
     let img = sharp(file, { limitInputPixels: false }).removeAlpha();
     if (c.rotate) img = sharp(await img.rotate(-c.rotate).png({ compressionLevel: 0 }).toBuffer());
     const meta = await img.metadata();
@@ -61,7 +63,9 @@ for (const [id, still] of Object.entries(config.stills)) {
     const encoded = [];
     for (const w of widths) {
       const resized = base.clone().resize({ width: w, kernel: "lanczos3" });
-      const avif = await resized.clone().avif({ quality: 74, effort: 5, chromaSubsampling: "4:4:4" }).toBuffer();
+      // A crop may set its own AVIF quality ("q"): the base and full passes' phone and card crops (K07, K08, K11) are a
+      // step down, as the phone load budget needs for two layers per frame (DESIGN.md "Stills").
+      const avif = await resized.clone().avif({ quality: c.q ?? 74, effort: 5, chromaSubsampling: "4:4:4" }).toBuffer();
       const webp = await resized.clone().webp({ quality: 86, effort: 5, smartSubsample: true }).toBuffer();
       encoded.push({ w, avif, webp });
       // Social cards: crawlers want a plain JPEG at 1200 x 630, from the default still only (Command, with the grip:

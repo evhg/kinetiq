@@ -79,12 +79,12 @@ const SWEET_SPOT: Slide | null = hasStill("K12-base", "portrait")
  */
 const BOTH_FEELS: Slide = {
   kind: "still",
-  id: "K08",
+  id: "K08-full",
   both: true,
   fit: "contain",
   // Stacked (phones, tablets): K08's 16:9 frame would sit small in the 4:5 track, so K07's square trio (Pace, Command,
   // Pace) shows both feels instead.
-  phoneId: "K07",
+  phoneId: "K07-full",
   phoneCrop: "trio",
   alt: "Command and Pace together: white 3K carbon twill faces beside black 12K spread-tow faces",
 };
@@ -103,7 +103,7 @@ function feelSlides(tier: TierId, feel: FeelId): Slide[] {
       // white Command, the canon's default, so a Pace buyer sees their racket first.
       const face: Slide = {
         kind: "still",
-        id: "K08",
+        id: "K08-full",
         feel,
         crop: feel === "command" ? "left" : "right",
         fit: "portrait",
@@ -131,7 +131,9 @@ function feelSlides(tier: TierId, feel: FeelId): Slide[] {
       return [
         {
           kind: "still",
-          id: `K11-${feel}`,
+          // the full pass of K11's First 500 render (the glow in the bores, the throats and along the edges), shown at
+          // rest as the landing's card ends; its "-pace" twin is the Pace set, which `feel` picks
+          id: "K11-command-full",
           feel,
           phoneCrop: "card",
           // phones and tablets: both crowns stay in a frame shorter than the crop (4:5 to square)
@@ -144,7 +146,7 @@ function feelSlides(tier: TierId, feel: FeelId): Slide[] {
           phoneCrop: "card",
           alt: `Close-up of a ${name} throat, laser-marked ${sampleSet.mark} above the KINETIQ wordmark`,
         },
-        { kind: "still", id: "K07", phoneCrop: "trio", fit: "contain", alt: "Identical KINETIQ rackets, each in its own shaft of light" },
+        { kind: "still", id: "K07-full", phoneCrop: "trio", fit: "contain", alt: "Identical KINETIQ rackets side by side, Command and Pace alternating" },
         { kind: "still", id: "K06-full", phoneCrop: "card", alt: "The mould, its cavity glowing warm" },
         { kind: "still", id: "K03", phoneCrop: "card", alt: "The head cut through: one carbon shell closed around the core, lining every hole" },
         {
@@ -168,11 +170,17 @@ function feelSlides(tier: TierId, feel: FeelId): Slide[] {
           kind: "court",
           alt: `A plan of a padel court marking the exclusive coaching session${ambassador.named ? ` with ${ambassador.name}` : ""}`,
         },
-        { kind: "still", id: "K07", phoneCrop: "trio", fit: "contain", alt: "Identical KINETIQ rackets, each in its own shaft of light" },
+        { kind: "still", id: "K07-full", phoneCrop: "trio", fit: "contain", alt: "Identical KINETIQ rackets side by side, Command and Pace alternating" },
         { kind: "still", id: "K01-finale", phoneCrop: "card", alt: "A KINETIQ racket in its beam, above a lit horizon" },
       ];
   }
 }
+
+/**
+ * Renders in K04's language (Release 12: K07, K08 and K11's full passes): their near-black field gives way to the
+ * slide's floor (Reserve.module.css, `data-field`), so the frame has no edge and Pace's black face keeps its depth.
+ */
+const DARK_FIELD = new Set(["K07-full", "K08-full", "K11-command-full"]);
 
 /** A slide's identity, the same in both feels: the chosen feel's racket (K08's crop, K11's set) is one slide. */
 const slideKey = (s: Slide) =>
@@ -277,6 +285,7 @@ export function Gallery({ tierId, feel, chosen }: { tierId: TierId; feel: FeelId
             data-active={i === index}
             data-fit={s.kind === "still" ? s.fit : undefined}
             data-phone-fit={s.kind === "still" ? s.phoneFit : undefined}
+            data-field={s.kind === "still" && DARK_FIELD.has(s.id) ? "dark" : undefined}
             role="group"
             aria-roledescription="slide"
             aria-label={`${i + 1} of ${slides.length}`}

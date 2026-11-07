@@ -509,7 +509,7 @@ async function runCase(browser, statsPage, vp, mode) {
 // Stills and frames fetched in the wrong feel. A still's Pace export is its key with "-pace" after the id
 // ("K01-full-pace-wide" beside "K01-full-wide"; Still.tsx), files are `/stills/<key>-<width>.<hash>.<type>`; a swivel's
 // frames live under `/stills/seq/<sequence>-<feel>-<layout>/`. In Pace no Command file of a still with a Pace export may
-// load, in Command no "-pace" file and no Pace frame. Stills that name a feel themselves (K08, K11-command) are left out.
+// load, in Command no "-pace" file and no Pace frame. Stills that name a feel themselves (K08, K07) are left out.
 const STILL_KEYS = new Set(Object.keys(JSON.parse(readFileSync(join(process.cwd(), "src/content/stills.generated.json"), "utf8"))));
 function wrongFeelFiles(urls, feel) {
   const wrong = new Set();
@@ -539,7 +539,7 @@ function wrongFeelFiles(urls, feel) {
 
 // With the grip off (kq-grip=off), no still that has a grip-off twin may load its grip-on file, on any page: the server
 // sends /, /reserve and /reserved bare (src/proxy.ts) and <Still> picks the twin. A twin is named as <Still>'s bareId
-// names it, "-nogrip" after the K-number ("K11-single-pace-card" -> "K11-nogrip-single-pace-card"); a crop counts only
+// names it, "-nogrip" after the K-number ("K11-single-full-pace-card" -> "K11-nogrip-single-full-pace-card"); a crop counts only
 // where its twin is exported.
 const nogripKey = (key) => key.replace(/^(K\d+[a-z]?)(?=-)/, "$1-nogrip");
 function gripOnFiles(urls) {

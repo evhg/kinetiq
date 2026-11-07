@@ -34,13 +34,17 @@
   display: grid;
 }
 .phoneMedia {
+  position: relative;
   aspect-ratio: 4 / 5;
   overflow: hidden;
-  /* the frame's lit backdrop rises out of the floor instead of starting on a line, and its vignette fades back into
-     it above the name: 20 px stays above the crown, which starts about 30 px down, and the foot feather starts at
-     86%, below the butt cap (about 79% of the frame) */
-  -webkit-mask-image: linear-gradient(transparent, #000 20px, #000 86%, transparent);
-  mask-image: linear-gradient(transparent, #000 20px, #000 86%, transparent);
+  background: var(--stage);
+  /* K08's half (2048 x 2880) is narrower than 4:5: shown whole (contain), its racket from 10% to 90% of the frame, and
+     its field the floor (SettleStill), so the sides need no edge; the ends feather over 20 px and from 94% */
+  -webkit-mask-image: linear-gradient(transparent, #000 20px, #000 94%, transparent);
+  mask-image: linear-gradient(transparent, #000 20px, #000 94%, transparent);
+}
+.phoneMedia .still img {
+  object-fit: contain;
 }
 /* the name and purpose, the photo's caption: the name in display type, "Built for control" in steel at lead size */
 .tag {
@@ -113,13 +117,17 @@
   color: var(--muted);
 }
 
-/* Wide: one 16:9 K08 frame (both rackets) with the words below each racket. The butt caps sit at 77% of
-   the still, which covers the frame centred (height max(frame, 56.25vw)), so the words start at least
-   48 px under the caps and run on below the frame; its top rises out of the floor and its foot fades into it. */
+/* Wide: one 16:9 K08 frame (both rackets) with the words below each racket. Release 12's K08 (K04's language)
+   stands each racket from 10% to 90% of the frame, so the frame is shown whole at 16:9, as tall as the window allows
+   with the name tags still on the same screen (100svh less 160 px), and centred: its field is the floor (SettleStill),
+   so a frame narrower than the window has no edge. The two columns take the frame's width, so each name stands under
+   its racket's cap (the rackets' centres sit at 22.5% and 77.5% of the frame); its top rises out of the floor and its
+   foot fades into it below the caps. */
 @media (min-width: 700px) {
   .stage {
-    --frame-h: max(480px, min(56.25vw, 100svh));
-    --butt-y: calc(var(--frame-h) / 2 + 0.27 * max(var(--frame-h), 56.25vw));
+    --frame-h: max(480px, min(56.25vw, 100svh - 160px));
+    --frame-w: min(100%, var(--frame-h) * 16 / 9);
+    --butt-y: calc(var(--frame-h) * 0.9);
     /* each racket's spotlight carries on as a soft pool on the floor under its words */
     background:
       radial-gradient(ellipse 24% 22% at 25% 75%, rgb(58 58 64), rgb(40 40 45 / 0.6) 50%, transparent 100%),
@@ -132,14 +140,20 @@
     height: var(--frame-h);
     z-index: -1;
     overflow: hidden;
-    /* both ends feather: the top over at most 64 px, which ends above the racket heads (about 11% down) */
-    -webkit-mask-image: linear-gradient(transparent, #000 min(8%, 64px), #000 82%, transparent);
-    mask-image: linear-gradient(transparent, #000 min(8%, 64px), #000 82%, transparent);
+    width: var(--frame-w);
+    margin-inline: auto;
+    background: var(--stage);
+    /* both ends feather: the top over at most 64 px, which ends above the racket heads (10% down), the foot below the
+       caps (90%) */
+    -webkit-mask-image: linear-gradient(transparent, #000 min(8%, 64px), #000 92%, transparent);
+    mask-image: linear-gradient(transparent, #000 min(8%, 64px), #000 92%, transparent);
   }
   /* The two columns share six rows (the name tag, the line and the four ruled rows) through subgrid, so each ruled
      row sits level with its counterpart and reads across, even where one feel's words run to more lines. The name
      tag sits directly under its racket's cap, so the photo and the names are seen together. */
   .panels {
+    width: var(--frame-w);
+    margin-inline: auto;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: repeat(6, auto);
   }

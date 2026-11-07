@@ -68,6 +68,15 @@
   width: 100%;
   height: 100%;
 }
+/* A render in K04's language (Gallery.tsx DARK_FIELD; its phone crop, K07's trio, too): a plain floor and the image's
+   near-black field lightened to it, so the frame has no edge, with no lift behind (it would grey Pace's black face). */
+.slide[data-field="dark"],
+.slide[data-field="dark"][data-fit="portrait"] {
+  background: var(--stage);
+}
+.slide[data-field="dark"] .slideStill img {
+  mix-blend-mode: lighten;
+}
 .slideStill img {
   object-fit: cover;
   object-position: var(--pos, 50% 50%);

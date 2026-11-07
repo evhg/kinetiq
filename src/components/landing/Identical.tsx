@@ -1,20 +1,22 @@
 import { ReserveLink } from "@/components/chrome/ReserveLink";
 import { ConsistencySpikes } from "@/components/graphics/ConsistencySpikes";
 import { MeasurementCard } from "@/components/graphics/MeasurementCard";
-import { Still } from "@/components/media/Still";
 import { identical } from "@/content/copy";
 import { site } from "@/content/site";
 import { Reveal } from "./Reveal";
+import { SettleStill } from "./SettleStill";
 import styles from "./Identical.module.css";
 
-/** Identical: five rackets (K07, Command and Pace alternating), one standard; the distribution, the certificate, and the second CTA. */
+/**
+ * Identical: five rackets (K07, Command and Pace alternating), one standard; the distribution, the certificate, and the
+ * second CTA. K07 is rendered in K04's language (owner, 2026-11-07): as the frame scrolls in, the row settles from
+ * close and the warm glow in the bores, the throats and along the edges comes up over the raking light (SettleStill.tsx).
+ */
 export function Identical() {
   return (
     <>
       <section id="identical" className={styles.lineup} aria-labelledby="identical-title">
-        <div className={styles.media} aria-hidden="true">
-          <Still id="K07" phoneCrop="trio" alt="" className={styles.still} />
-        </div>
+        <SettleStill id="K07" phoneCrop="trio" basePhoneSizes="67vw" className={styles.media} stillClassName={styles.still} />
         <Reveal className={styles.copy}>
           <h2 id="identical-title" className="t-h2">
             {identical.headline}

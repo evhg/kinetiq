@@ -66,25 +66,8 @@ a.card:active {
   overflow: hidden;
   background: var(--stage);
 }
-/* The racket's frame inside the fixed-ratio media box: the scroll settle scales it (EditionStill.tsx), the box clips
-   it, so nothing around it moves. Where a render has two passes, both lie here, the full pass over the base. */
-.settle {
-  position: absolute;
-  inset: 0;
-  transform-origin: 50% 45%;
-}
-.still {
-  position: absolute;
-  inset: 0;
-}
-/* The full pass: at rest and with reduced motion it shows at full strength; the settle brings it up from 0. */
-.full {
-  opacity: 1;
-}
+/* The racket's layers (SettleStill.tsx): the scroll settle scales them inside this box, which clips them. */
 .still img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
   transition: transform 300ms var(--ease-out);
 }
 /* A column whose foot (price and arrow) sits on the card's bottom edge, level across the three cards. */
