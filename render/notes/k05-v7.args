@@ -34,3 +34,16 @@
 --glow_wide 0
 --holefloor 0
 --clamp 4
+# K05-throat (cloud REQUEST 2026-11-07, owner "make the face beside the throat brighter too", Command only; previews
+# out/k05t/a..e): lw_card2, a second soft overhead spot, diffuse only, head only, from the handle side and the camera
+# side (-0.30, -0.20, 0.40 m, 22 deg, 32 W; overhead at 20 W it mirrored in the twill's sheen as a streak): the throat
+# wedge reads 158 against 171 for the rest of the face at 2560 (v7c 124 against 157), the neck 135 (was 96). The line
+# tapers to 15 % over the last 3.5 mm before each hole lip (--hb_fade, --hb_floor), so its halo no longer lands as a
+# pink blob on the lip.
+--wcard2 32
+--wc2_x -0.30
+--wc2_y -0.20
+--wc2_z 0.40
+--wc2_deg 22
+--hb_fade 3.5
+--hb_floor 0.15

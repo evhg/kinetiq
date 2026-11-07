@@ -49,7 +49,7 @@ if ! done_mark "fw status k06"; then T0=$(date +%s)
   shot k06 stills/K06 "K06 mould 5120x2880 spp 112, grip and Naked, both feels" "$V"/K06-mould{,-pace,-nogrip,-nogrip-pace}-{base,full}.png || exit 1
 fi
 # ---- K07 (lineup of five): 5120 spp 112 --seq, grip and Naked (the Pace Naked handles with their card)
-if ! done_mark "fw status k07"; then T0=$(date +%s)
+if ! held k07 && ! done_mark "fw status k07"; then T0=$(date +%s)
   aside k07 "$V"/K07-lineup-five{,-nogrip}{,-seq0,-seq1,-seq2,-seq3,-seq4}.png
   still fw-K07  "$V/K07-lineup-five.png"        - -- $PY shots/K07-lineup-five.py --w 5120 --h 2880 --spp 112 --seq --out final/v5k/K07-lineup-five
   still fw-K07n "$V/K07-lineup-five-nogrip.png" - -- $NGH $PY shots/K07-lineup-five.py --w 5120 --h 2880 --spp 112 --seq --out final/v5k/K07-lineup-five-nogrip

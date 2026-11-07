@@ -7,7 +7,7 @@ NGH="env KQ_NOGRIP=1 KQ_PACE_HANDLE=1"
 NG15H="env KQ_NOGRIP=1 KQ_EDGE_MM=1.5 KQ_PACE_HANDLE=1"
 log "FW-START K08 K11 device $KQ_DEVICE free $(free_mb) MB push $PUSH"
 # ---- K08
-if ! done_mark "fw status k08"; then
+if ! held k08 && ! done_mark "fw status k08"; then
   t0=$(date +%s)
   aside k08 "$V"/K08-feel-pair{,-nogrip}{.png,_left.png,_right.png,_masks.json}
   still fw-K08 "$V/K08-feel-pair.png" - -- $PY shots/K08-feel-pair.py --w 5120 --h 2880 --spp 96 --crops --out final/v5k/K08-feel-pair
@@ -22,7 +22,7 @@ if ! done_mark "fw status k08"; then
   fi
 fi
 # ---- K11
-if ! done_mark "fw status k11"; then
+if ! held k11 && ! done_mark "fw status k11"; then
   t0=$(date +%s)
   aside k11 "$V"/K11-{single,single-pace,single-nogrip,single-nogrip-pace,pair-command,pair-pace,pair-nogrip-command,pair-nogrip-pace}{.png,_card.png,_view.png,_masks.json}
   still fw-K11s   "$V/K11-single.png"              - -- $PY shots/K11-single.py --w 5120 --h 2880 --spp 256 --out final/v5k/K11-single

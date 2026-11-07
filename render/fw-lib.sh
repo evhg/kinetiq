@@ -36,5 +36,8 @@ aside() {   # aside <marker> <files or dirs...>: move the previous renders out o
   local f; for f in "$@"; do [ -e "$f" ] && mv "$f" "$OLD"/; done
   mark "$m"
 }
+# held <key>: a shot held out of the pass (one key per line in render/fw-hold, e.g. k11 while a new look is previewed,
+# cloud REQUEST k04-language 2026-11-07); the group goes on with its other shots and the held one is rendered later.
+held() { grep -qx "$1" "$KIT/fw-hold" 2>/dev/null && { log "FW-HOLD $1 (render/fw-hold)"; return 0; }; return 1; }
 unseq() { local n; for n in "$@"; do sed -i '' "/^seqmasters $n\$/d" "$DONE"; done; }   # seq_masters runs again
 nf() { ls "$S/$1" 2>/dev/null | grep -c '^f[0-9]*\.png$'; }

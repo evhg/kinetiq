@@ -934,6 +934,7 @@ def main():
     hole_break = bool(int(float(o.get("hole_break", 0))))
     bore_set = set(C.objs(P, "holes"))
     up = Vector((0, 0, 1))
+    brk = set()   # indices dropped by hole_break (the line's ends at a hole lip)
     for k in range(n + 1):
         t = t_lo + k * step
         tgt = P0 + a * t
@@ -942,11 +943,25 @@ def main():
         if hit is not None and hole_break:
             if hit[2] in bore_set or (hit[2] is plate and world.cast(hit[0] + up * 0.0002, up) is not None):
                 hit = None
+            if hit is None:
+                brk.add(len(hits))
         if hit is None:
             hits.append(None)
             continue
         cosi = max(0.0, -d.dot(hit[1]))
         hits.append((hit[0] + hit[1] * 0.00025, cosi, hit[2] is plate, t))
+    # K05-throat (owner, 2026-11-07): the halo of a line end at a hole lip spread a soft pink blob over the lip.
+    # --hb_fade mm tapers the line over that distance before each hole break, so its halo dies before the edge.
+    hbf = int(round(float(o.get("hb_fade", 0.0)) / 1000.0 / step))
+    hb_mul = [1.0] * len(hits)
+    if hbf > 0 and brk:
+        bl_ = sorted(brk)
+        import bisect
+        for k in range(len(hits)):
+            j = bisect.bisect_left(bl_, k)
+            dmin = min([abs(bl_[q] - k) for q in (j - 1, j) if 0 <= q < len(bl_)])
+            x_ = min(1.0, dmin / hbf)
+            hb_mul[k] = float(o.get("hb_floor", 0.0)) + (1 - float(o.get("hb_floor", 0.0))) * x_ * x_ * (3 - 2 * x_)
     grain = max(1, int(round(float(o.get("speck_mm", 0.45)) / 1000.0 / step)))
     sp_noise = value_noise(len(hits), grain, rnd)
     tc_mid = (t_lo + t_hi) / 2
@@ -967,7 +982,7 @@ def main():
         fall = min(1.0, max(float(o.get("lmin", 0.06)), (cosi / ccos) ** float(o.get("lpow", 1.6))))
         amp = float(o.get("speck_plate", 0.35)) if on_plate else float(o.get("speck_racket", 0.2))
         spk = 1.0 + amp * (2 * sp_noise[k] - 1)
-        li = fade * fall * spk * (float(o.get("plate_li", 0.85)) if on_plate else 1.0)
+        li = fade * fall * spk * (float(o.get("plate_li", 0.85)) if on_plate else 1.0) * hb_mul[k]
         if prev is not None and (p - prev).length > 0.0025:
             if len(cur) > 1:
                 runs.append(cur)
@@ -1203,6 +1218,18 @@ def main():
                                    radius=float(o.get("wc_r", 0.15)))
             cd.visible_glossy = False
             link_to(cd, head_recv, "card_receivers")
+        card2_s = float(o.get("wcard2", 0.0)) if not pace else 0.0
+        if card2_s > 0:
+            # K05-throat (owner, 2026-11-07, "make the face beside the throat brighter too", Command only): the low
+            # key's shade and lw_card's falloff left the wedge between the throat, the neck and the first holes darker
+            # than the rest of the face. A second soft overhead spot, diffuse only, on the head only, over the throat.
+            cd2 = studio.spot_light("lw_card2", (float(o.get("wc2_x", 0.0)), float(o.get("wc2_y", -0.04)),
+                                                 float(o.get("wc2_z", 0.45))),
+                                    card2_s, float(o.get("wc2_deg", 28.0)), blend=1.0, color=(1.0, 0.985, 0.97),
+                                    target=(float(o.get("wc2_tx", -0.01)), float(o.get("wc2_ty", 0.0)), T),
+                                    radius=float(o.get("wc2_r", 0.12)))
+            cd2.visible_glossy = False
+            link_to(cd2, head_recv, "card2_receivers")
         wall_s = float(o.get("wall", 0.0))
         if wall_s > 0:
             # v6 (fix 3): light the wall itself (canon). The 38 mm near wall (the -Y side, toward the camera) saw only
