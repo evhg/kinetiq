@@ -104,3 +104,12 @@ The Mac (notes/mac-handoff.md) pushes masters to `evhg/kinetiq-masters` and a `S
 - Looked at before export, against the live files and K01 Naked: weave on the Command handle, the canon butt, Q in
   the carbon, K01's two hairlines; the Pace staircase, bracket and the collar band are gone. Pace's handle reads as
   black lacquer at card size (as K01 Naked Pace does): its 12K weave shows only in the hairlines.
+
+## Cloud export of the Mac's 2026-11-06 lines (Release 10)
+- STATUS-mac 11:54Z-12:14Z (K05-command-fix, wider-5k-masters K04/K17, K03-5k-and-K03b): blobs by `git show
+  origin/main:<path>` (the masters clone has `gc.auto 0`: an auto repack of its 4.6 GB pack nearly filled the disk).
+- K05 v7c: `-master-a` over `-master-b` = 5760 x 3601 RGBA16; desktop = rows 0-3239, phone = the box (165, 546,
+  5430 x 3055) turned 90 deg CCW, both found by matching the Mac's 8-bit crops (mean |high byte - 8 bit| 0.34-0.38),
+  written as 16-bit RGB into `final/v5k/` under the queue names (replacing v7; v7 is in the masters repo's history).
+- K04 6400 x 3600 and K17 5760 x 3240 into `final/v5k/`; K03 base and `-line`, K03b `-line` into `final/`
+  (link-masters.sh maps K03 / K03b-tubular to `-line`). Wide crops still export to 5120 (DESIGN.md, Release 10).

@@ -17,10 +17,11 @@ import styles from "./SealedCore.module.css";
  * K03, with the trace drawn on it in its final state (on phones through the square window onto the card crop).
  */
 /**
- * The still under the trace. K03 is the "full" pass of its render, which also carries a 2700 K amber hairline along the
- * shell's shoulder (lg_shell, for Unibody's light line); here, beside the traced core, that baked line read as a second
- * outline "placed at the wrong angle" (owner, 2026-11-03). Its "base" pass (the same render without lg_shell), once
- * exported as K03-base with K03's crops, takes its place in this chapter, so the only amber is the registered trace.
+ * The still under the trace. K03 (Unibody's beat B) carries an amber hairline along the shell's shoulder (since
+ * 2026-11-06 the "-line" pass: the base render with the hairline drawn from a mask; before, lg_shell's baked 2700 K
+ * line); here, beside the traced core, that line read as a second outline "placed at the wrong angle" (owner,
+ * 2026-11-03). Its "base" pass (the same 5120 render with no line), exported as K03-base with K03's crops, takes its
+ * place in this chapter, so the only amber is the registered trace.
  */
 const STILL = hasStill("K03-base") ? "K03-base" : "K03";
 

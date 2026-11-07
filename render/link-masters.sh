@@ -133,3 +133,11 @@ l K01-hero-frame-phone-v5k-full.png K01-hero-full-phone
 l K01-hero-frame-phone-pace-v5k-base.png K01-hero-base-phone-pace
 l K01-hero-frame-phone-pace-v5k-full.png K01-hero-full-phone-pace
 true
+# 2026-11-06 (Mac node, REQUEST K03-5k-and-K03b): K03 and K03b at 5120 x 2880. Unibody's beat B (and the /reserve
+# gallery's K03) show the "-line" pass: the base render (no lg_shell) with k03s_line's hairline drawn from the 5120
+# mask, the same line on K03 and K03b, so the tubular cut dissolves into the shell under one registered line.
+l K03-section-cut-line.png K03
+l K03-section-cut-pace-line.png K03-pace
+l K03b-tubular-line.png K03b-tubular
+l K03b-tubular-pace-line.png K03b-tubular-pace
+true
