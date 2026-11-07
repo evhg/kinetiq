@@ -2,14 +2,16 @@ import Link from "next/link";
 import { ReserveLink } from "@/components/chrome/ReserveLink";
 import { Fragment, type ReactNode } from "react";
 import { Icon, TierGlyph } from "@/components/graphics/Icons";
-import { Still } from "@/components/media/Still";
 import { Hyphens } from "@/components/text/Hyphens";
 import { editionsIntro, includeIcons, priceLabel, tiers, type Tier, type TierId } from "@/content/lineup";
 import { reserveCopy } from "@/content/reserve";
 import { invitationsOpen } from "@/lib/stripe-server";
+import { EditionStill } from "./EditionStill";
 import { Reveal } from "./Reveal";
 import styles from "./Editions.module.css";
 
+// Each card's racket settles as the card scrolls in, and where its render has a base and a full pass (`<id>-base`,
+// `<id>-full`) the full pass comes up over the base, as K04 does in Holes (EditionStill.tsx).
 const IMAGE: Record<TierId, { id: string; crop: string }> = {
   // KINETIQ: one white Command racket (KQ-000427) shot with K11's camera and light, so the three cards read as one
   // shoot (the hero and the finale show the beam camera, and Choose your feel shows K08 just before).
@@ -88,9 +90,7 @@ export function Editions() {
 function CardBody({ t, after, end }: { t: Tier; after?: ReactNode; end: ReactNode }) {
   return (
     <>
-      <div className={styles.media} aria-hidden="true">
-        <Still id={IMAGE[t.id].id} crop={IMAGE[t.id].crop} alt="" sizes="(max-width: 599px) 84vw, (max-width: 899px) 57vw, 33vw" className={styles.still} />
-      </div>
+      <EditionStill id={IMAGE[t.id].id} crop={IMAGE[t.id].crop} sizes="(max-width: 599px) 84vw, (max-width: 899px) 57vw, 33vw" />
       <div className={styles.body}>
         <div className={styles.head}>
           <TierGlyph tier={t.id} className={styles.glyph} />
@@ -99,7 +99,9 @@ function CardBody({ t, after, end }: { t: Tier; after?: ReactNode; end: ReactNod
             {t.availability}
           </span>
         </div>
-        <p className={styles.line}>{t.cardLine}</p>
+        <p className={styles.line}>
+          <Hyphens text={t.cardLine} />
+        </p>
         <ul className={styles.includes}>
           {t.includes.map((inc, n) => (
             <li key={inc}>

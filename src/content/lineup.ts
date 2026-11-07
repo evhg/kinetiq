@@ -138,7 +138,7 @@ export const tiers: Tier[] = [
     priceEur: 410,
     // The owner's sentence (2026-10-23), a "first" claim (CLAIMS.md). "Every edition holds the same racket" is said by
     // the Editions h2 and lead, and on /reserve by the edition legend.
-    cardLine: "The world's first ultra high-precision unibody space-grade carbon padel\u00a0racket.",
+    cardLine: "The world's first ultra high-precision unibody aerospace-grade carbon padel\u00a0racket.",
     // Four includes, in the First 500 card's order (racket, number, card, shipping), so this card has no empty band
     // above its price. The serial on the throat is the canon mark (CLAIMS.md row 15); the ship month is the same as
     // `site.shipMonth` (typed here: site.ts imports this file). It ships after the First 500 sets, which keeps their

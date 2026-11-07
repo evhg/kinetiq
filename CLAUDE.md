@@ -129,9 +129,10 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
   `2026-09-30.endive` (`allowed_payment_method_types`). No keys: /reserve runs in preview. One of Ten fails closed
   (`invitationsOpen()`): `INVITE_CODES` (12+ characters each) stays empty until rows 20, 21, 29 are ready; no payment
   until the atomic one-use check exists (`INVITE_ONE_USE_ENFORCED`).
-- The hero lead is the owner's sentence (2026-10-22), verbatim though "one piece" is retired elsewhere: "One single
-  piece of space-grade carbon. No tube, no joints. Ultra-precision moulded to 15 microns and 1 gram. Every racket plays
-  exactly the same." Nothing follows it. Elsewhere "unibody", "no joint"; never "zero seams" (a parting line, row 8b).
+- The hero lead is the owner's sentence (2026-10-22; "aerospace-grade" since 2026-11-07), verbatim though "one piece"
+  is retired elsewhere: "One single piece of aerospace-grade carbon. No tube, no joints. Ultra-precision moulded to 15
+  microns and 1 gram. Every racket plays exactly the same." Nothing follows it. Elsewhere "unibody", "no joint";
+  never "zero seams" (a parting line, row 8b).
 - Sweet spot (row 6b): "Edge to edge.", the owner's "the world's largest sweet spot" (2026-11-02, once; market search
   before launch), "Nearly 99% of the hitting surface is sweet spot" (98.4%), "1 mm from the sweet spot to the edge",
   all from `SWEET_CLAIM` (never typed; /lab/g15 checks), up a whole number only with "Nearly". Never "bezel", "all sweet
@@ -154,7 +155,11 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
   sentence of the body copy ("as designed", "made to last"), or is dropped. /reserve keeps what the law needs at the
   payment: Due Today, the refund line, the order line.
 - One landing CTA, "Reserve Now"; then "Pay with Card" and "Place Reservation". Sold out: `available: false`.
-- Space-grade (rows 41 to 44): only against "the standard carbon most padel rackets use"; no defence, military, maker.
+- Aerospace-grade (rows 41 to 44; owner, 2026-11-07: it replaces "space-grade" everywhere shown): grades qualified for
+  aerospace use, only against "the standard carbon most padel rackets use"; no defence, military, maker, trade grade.
+  Under its three points, one figure each (fibre strength, voids, service range); the rest stay in `specs.ts`.
+- The Surface section's name is "High-Friction MicroWeave" (owner, 2026-11-07), written exactly so: friction claim
+  (rows 48 to 50, provisional) and a coined name to clear in class 28 before launch (row 53); never ™ or ®.
 - The coach is named "Paquito Navarro" (`COACH_FULL_NAME`, `lineup.ts`), approved in writing (owner, 2026-10-22), in
   the One of Ten coaching include and G12. Exactly that name; never his family, no descriptor until a true one is
   confirmed, signed rackets only with `signs`. His racket sponsor's contract must allow it (CLAIMS.md row 21).

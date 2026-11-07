@@ -2,7 +2,7 @@ import { spaceGrade } from "@/content/copy";
 import styles from "./CarbonLayup.module.css";
 
 /**
- * G16: the shell cut through and magnified, the standard carbon most padel rackets use beside KINETIQ's space-grade
+ * G16: the shell cut through and magnified, the standard carbon most padel rackets use beside KINETIQ's aerospace-grade
  * carbon, as a micrograph shows a laminate: four plies, 0° plies seen end-on (each fibre a disc) between 90° plies
  * seen along their length (streaks). Drawn honestly from typical values, never from a measurement of either: the same
  * fibre diameter on both sides; about 50% fibre by volume, set unevenly with resin-rich bands and a few air pockets

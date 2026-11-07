@@ -29,8 +29,9 @@ export type Spec = {
 export type SpecGroup = { id: "mechanical" | "thermal" | "environmental" | "impact" | "surface"; title: string; specs: Spec[] };
 
 /**
- * The carbon shell's specifications. Nine are printed under Space-grade carbon's three points (copy.ts
- * `spaceGrade.points[].figures`, owner 2026-11-03: no separate sheet); the rest are held here for the factory's reports.
+ * The carbon shell's specifications. Three are printed, one under each of Aerospace-grade carbon's points (copy.ts
+ * `spaceGrade.points[].figure`: fibreStrength, voids, service; owner 2026-11-07: "the 9 numbers are too much, reduce it
+ * to 3"); the rest are held here for the factory's reports.
  * The Command and Pace laminates both meet them.
  */
 export const carbonSpecs: SpecGroup[] = [
@@ -188,14 +189,14 @@ export const impactSpecs: SpecGroup = {
 };
 
 /**
- * The face's moulded texture, quoted by Surface (CLAIMS.md rows 48 and 49; owner, 2026-11-02: "unique surface
+ * The face's moulded texture, quoted by High-Friction MicroWeave (the Surface section; CLAIMS.md rows 48, 49 and 53; owner, 2026-11-02: "unique surface
  * roughness"). The headline number is grip, the friction between face and ball, because that is what turns a brushed
  * contact into spin (a published padel study: a face's friction changes the spin only when the ball slides across it,
  * on a slice or a drop shot, not on a flat hit). Never a comparison with a named racket or brand on the page.
  */
 export const surfaceSpecs: SpecGroup = {
   id: "surface",
-  title: "Surface",
+  title: "High-Friction MicroWeave",
   specs: [
     {
       id: "friction",

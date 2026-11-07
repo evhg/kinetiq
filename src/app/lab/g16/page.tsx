@@ -1,7 +1,7 @@
 import { CarbonLayup } from "@/components/graphics/CarbonLayup";
 import { spaceGrade } from "@/content/copy";
 
-// Review page for G16: the two cross-sections at the full content width, then in the 7 of 12 columns the Space-grade
+// Review page for G16: the two cross-sections at the full content width, then in the 7 of 12 columns the Aerospace-grade
 // carbon section gives it from 1000 px, then at a phone's measure; the text alternative is printed under them.
 export default function LabG16() {
   return (

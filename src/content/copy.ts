@@ -46,7 +46,7 @@ export const hero = {
    * The owner's own sentence (2026-10-22), verbatim by his instruction (CLAUDE.md): it keeps "One single piece"
    * and "1 gram" (the ±1.0 g weight tolerance, CLAIMS.md row 12) even though both rules apply everywhere else.
    */
-  lead: "One single piece of space-grade carbon. No tube, no joints. Ultra-precision moulded to 15 microns and 1 gram. Every racket plays exactly the same.",
+  lead: "One single piece of aerospace-grade carbon. No tube, no joints. Ultra-precision moulded to 15 microns and 1 gram. Every racket plays exactly the same.",
   /** Under Reserve Now: "From €410, fully refundable, and shipping in January 2027." */
   ctaNote: site.priceNote,
 };
@@ -115,7 +115,9 @@ export const sweetSpot = {
  * is told as what most players see (row 50, high risk).
  */
 export const surface = {
-  eyebrow: "Surface",
+  // The owner's name for the face (2026-11-07: "Change surface to High-Friction MicroWeave"), exactly so: a performance
+  // claim (rows 48 to 50, provisional until the friction is measured) and a coined name to clear (row 53).
+  eyebrow: "High-Friction MicroWeave",
   headline: "A face that grips the ball.",
   // No-break spaces keep "drop shot" and "more spin" whole wherever the lead wraps.
   lead: "In Switzerland, the same patent-pending process that forms the holes also moulds a fine texture into the carbon of the face, many times rougher than a smooth or painted face. When you slice, play a drop\u00a0shot or a bandeja, the face brushes across the ball, grips the felt instead of letting it slide, and sends it away with more\u00a0spin.",
@@ -219,9 +221,10 @@ export const sealedCore = {
 };
 
 /**
- * Space-grade carbon, the opening of Prove it (owner, 2026-10-23: "What makes space-grade carbon better than the
+ * Aerospace-grade carbon, the opening of Prove it (owner, 2026-10-23: "What makes space-grade carbon better than the
  * carbon used by [other] racket manufacturers? ... the same materials and engineering standards to withstand the
- * extreme mechanical, thermal, and environmental conditions of space travel"; CLAIMS.md rows 41 to 44). The material
+ * extreme mechanical, thermal, and environmental conditions of space travel"; owner, 2026-11-07: "change Space-grade
+ * carbon to Aerospace-grade carbon", everywhere it is shown; CLAIMS.md rows 41 to 44). The material
  * first, then the mould (Born whole). It says what the carbon and the standard do for the player, against "the
  * standard carbon most padel rackets use": never a country or a maker, never defence or military wording, never the
  * factory. Its numbers (owner, 2026-11-02: porosity in the claim itself, then the mechanical, thermal and
@@ -230,33 +233,37 @@ export const sealedCore = {
  * section tells it once. G16's words are here too (the drawing carries no caption).
  */
 export const spaceGrade = {
-  eyebrow: "Space-grade carbon",
-  headline: "We build it from the carbon made for space.",
-  // No-break spaces keep "space hardware" and "most padel rackets" whole wherever the lead wraps.
-  lead: "KINETIQ is moulded from carbon fibre and resin of the grades used in space\u00a0hardware, to the same engineering standards, which are written for extreme mechanical, thermal and environmental conditions. That carbon is stronger for its weight than the standard carbon most padel\u00a0rackets use, so your racket holds its shape and its feel, shot after\u00a0shot.",
+  eyebrow: "Aerospace-grade carbon",
+  headline: "We build it from the carbon made for aerospace.",
+  // No-break spaces keep "most padel rackets" and "shot after shot" whole wherever the lead wraps.
+  lead: "KINETIQ is moulded from carbon fibre and resin of the grades used in aerospace, to the same engineering standards, which are written for extreme mechanical, thermal and environmental conditions. That carbon is stronger for its weight than the standard carbon most padel\u00a0rackets use, so your racket holds its shape and its feel, shot after\u00a0shot.",
   points: [
     {
       title: "Strength without extra weight.",
       body: "Each fibre carries more load per gram than standard carbon, so the strength is in the shell rather than in added material.",
-      figures: ["fibreStrength", "fibreModulus", "flexStrength"],
+      figure: "fibreStrength",
     },
     // Porosity, the factory's strongest number (owner, 2026-11-02): "almost no air", never "no air" (CLAIMS.md row 43).
+    // The number itself is the figure under the body (2026-11-07), so the sentence no longer repeats it.
     {
       title: "Solid through every layer.",
-      body: `The resin is cured to the same standard as space hardware, so the layers bond with almost no air between them: voids make up ${specValue("voids")} of the shell at\u00a0most.`,
-      figures: ["voids", "ilss", "fibreVolume"],
+      body: "The resin is cured to the same standard as aerospace parts, so the layers bond with almost no air between\u00a0them.",
+      figure: "voids",
     },
     {
       title: "Steady in heat and cold.",
-      body: "Made for the temperature swings of space, the shell keeps its stiffness on a hot summer court and on a cold winter one.",
-      figures: ["tg", "service", "moisture"],
+      body: "Made for the temperature swings of flight, the shell keeps its stiffness on a hot summer court and on a cold winter\u00a0one.",
+      figure: "service",
     },
-  ] satisfies { title: string; body: string; figures: string[] }[],
+  ] satisfies { title: string; body: string; figure: string }[],
   /**
    * The numbers under the points (owner, 2026-11-03: "the Carbon specs is too much, doesn't need its own section, I'd
-   * add some of these numbers below each of the relevant sub section"): three figures per point, each with the test
-   * method that measures it, all from specs.ts (provisional until the factory's values; the launch gate is unchanged).
-   * The other carbon figures (flexural modulus, thermal expansion, UV, salt fog) stay in specs.ts, off the page.
+   * add some of these numbers below each of the relevant sub section"; 2026-11-07: "the 9 numbers are too much, reduce
+   * it to 3"): one figure per point, the one that means most to a player, with the test method that measures it, from
+   * specs.ts (provisional until the factory's values; the launch gate is unchanged): fibre tensile strength under
+   * strength, void content (the factory's strongest number) under the layers, the service range under heat and cold.
+   * The other carbon figures (modulus, flexural and shear strength, fibre volume, Tg, moisture, thermal expansion, UV,
+   * salt fog) stay in specs.ts, off the page.
    * `methodLabel` is read by screen readers before each method.
    */
   methodLabel: "Test method",
@@ -264,8 +271,8 @@ export const spaceGrade = {
   graphic: {
     kicker: "Through the shell, magnified",
     standard: { title: "Standard carbon", note: "Fewer fibres, set unevenly, with air trapped in the resin." },
-    kinetiq: { title: "Space-grade carbon", note: "More fibres, packed close and even, with solid resin between them." },
-    alt: "Two magnified cross-sections through a carbon shell. On the left, standard carbon: fewer fibres, set unevenly in the resin, with air pockets between the layers. On the right, KINETIQ's space-grade carbon: more fibres, packed close and even, with solid resin between the layers.",
+    kinetiq: { title: "Aerospace-grade carbon", note: "More fibres, packed close and even, with solid resin between them." },
+    alt: "Two magnified cross-sections through a carbon shell. On the left, standard carbon: fewer fibres, set unevenly in the resin, with air pockets between the layers. On the right, KINETIQ's aerospace-grade carbon: more fibres, packed close and even, with solid resin between the layers.",
   },
 };
 
@@ -505,5 +512,5 @@ export const finale = {
 export const meta = {
   title: "KINETIQ | The most precise padel racket ever made",
   description:
-    "KINETIQ is a unibody padel racket in space-grade carbon, with no frame tube and a sealed core, made in Switzerland to within 15 microns. Reserve yours now, fully refundable.",
+    "KINETIQ is a unibody padel racket in aerospace-grade carbon, with no frame tube and a sealed core, made in Switzerland to within 15 microns. Reserve yours now, fully refundable.",
 };
