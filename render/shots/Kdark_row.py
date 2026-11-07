@@ -273,10 +273,11 @@ def main():
     if o["mode"] == "row":
         # the row: a Pace face mirrored its lit white neighbour as a bright arc; the Command rackets are left out of
         # glossy rays (their own lacquer still mirrors the lights)
+        # (cloud 16:41Z) and a Command face mirrored its rim-lit Pace neighbour as a cold patch: no racket is seen in
+        # glossy rays in the row
         for r in roots:
-            if r.get("kq_feel") != "pace":
-                for ob_ in C.objs(r, "all"):
-                    ob_.visible_glossy = False
+            for ob_ in C.objs(r, "all"):
+                ob_.visible_glossy = False
     KD.world_field(sc)
     cam, boxes = layout(sc, o, roots)
     for i, r in enumerate(roots):
