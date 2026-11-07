@@ -8,21 +8,22 @@ import { Scrub } from "./Scrub";
 import styles from "./SpaceGrade.module.css";
 
 /**
- * Space-grade carbon (owner, 2026-10-23), right after Unibody: what the racket is made of, before the mould that makes
- * it (Born whole). Owner, 2026-10-29: "rather show a piece of great looking carbon in a space setting", so K15 carries
- * the section, full bleed above the words: the racket's crown in white 3K twill (black 12K in Pace) floating over a
+ * Aerospace-grade carbon (owner, 2026-10-23; "Space-grade" until 2026-11-07), right after Unibody: what the racket is
+ * made of, before the mould that makes it (Born whole). Owner, 2026-10-29: "rather show a piece of great looking
+ * carbon in a space setting", so K15 carries the section, full bleed above the words: the racket's crown in white 3K twill (black 12K in Pace) floating over a
  * planet's limb. Two passes of one render: K15-base (before sunrise: the limb's glow on the edge) and K15-full (the sun
  * on the weave). As the section scrolls in, the sun comes up: the lit pass fades in over the base and the frame settles
  * (scale 1.06 to 1). Server render and reduced motion: the lit pass, at rest. G16 (CarbonLayup) lives on in /lab/g16.
- * Under each of the three points, the numbers that back it (owner, 2026-11-03: "the Carbon specs is too much, doesn't
- * need its own section"; it replaced the 2026-11-02 spec sheet): three figures in the stat face, each with its term and
- * the test method that measures it (specs.ts; provisional until the factory's values). Not pinned.
+ * Under each of the three points, the number that backs it (owner, 2026-11-03: "the Carbon specs is too much, doesn't
+ * need its own section"; 2026-11-07: "the 9 numbers are too much, reduce it to 3"): one figure in the stat face, with
+ * its term and the test method that measures it (specs.ts; provisional until the factory's values). From 900 px the
+ * three stand level, one row of numbers across the section. Not pinned.
  */
 export function SpaceGrade() {
   return (
     <Scrub
-      id="space-grade"
-      aria-labelledby="space-grade-title"
+      id="aerospace-grade"
+      aria-labelledby="aerospace-grade-title"
       className={styles.section}
       start="top 92%"
       end="top 12%"
@@ -44,7 +45,7 @@ export function SpaceGrade() {
       <div className={styles.grid}>
         <Reveal className={styles.head}>
           <p className="t-eyebrow">{spaceGrade.eyebrow}</p>
-          <h2 id="space-grade-title" className="t-h2">
+          <h2 id="aerospace-grade-title" className="t-h2">
             {spaceGrade.headline}
           </h2>
         </Reveal>
@@ -57,7 +58,7 @@ export function SpaceGrade() {
           <li key={p.title} className={styles.point}>
             <h3 className="t-h3">{p.title}</h3>
             <p className="t-body">{p.body}</p>
-            <Figures ids={p.figures} />
+            <Figure id={p.figure} />
           </li>
         ))}
       </Reveal>
@@ -66,30 +67,24 @@ export function SpaceGrade() {
 }
 
 /**
- * A point's figures: each the number in the stat face (a bound, "≥" or "≤", muted and a step down; the unit in
- * t-unit), its term, then its test method. A description list, the term first; the number is set above it.
+ * A point's figure: the number in the stat face (a bound, "≥" or "≤", muted and a step down; the unit in t-unit) under
+ * a short amber rule, its term, then its test method. A description list, the term first; the number is set above it.
  */
-function Figures({ ids }: { ids: string[] }) {
+function Figure({ id }: { id: string }) {
+  const s = spec(id);
   return (
-    <dl className={styles.figures}>
-      {ids.map((id) => {
-        const s = spec(id);
-        return (
-          <div key={id} className={styles.figure}>
-            <dt className={`t-label ${styles.term}`}>{s.label}</dt>
-            <dd className={`t-stat ${styles.value}`}>
-              {s.bound ? <span className={styles.bound}>{`${s.bound}\u00a0`}</span> : null}
-              {s.value}
-              {s.unit ? <span className="t-unit">{s.unit}</span> : null}
-            </dd>
-            <dd className={`t-fine ${styles.method}`}>
-              <span className="visually-hidden">{`${spaceGrade.methodLabel}: `}</span>
-              {s.method}
-              {s.note ? <span className={styles.note}>{s.note}</span> : null}
-            </dd>
-          </div>
-        );
-      })}
+    <dl className={styles.figure}>
+      <dt className={`t-label ${styles.term}`}>{s.label}</dt>
+      <dd className={`t-stat ${styles.value}`}>
+        {s.bound ? <span className={styles.bound}>{`${s.bound}\u00a0`}</span> : null}
+        {s.value}
+        {s.unit ? <span className="t-unit">{s.unit}</span> : null}
+      </dd>
+      <dd className={`t-fine ${styles.method}`}>
+        <span className="visually-hidden">{`${spaceGrade.methodLabel}: `}</span>
+        {s.method}
+        {s.note ? <span className={styles.note}>{s.note}</span> : null}
+      </dd>
     </dl>
   );
 }

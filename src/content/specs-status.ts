@@ -17,7 +17,7 @@ export type SpecStatus = {
 };
 
 export const SPEC_STATUS: Record<string, SpecStatus> = {
-  fibreStrength: { provisional: true, source: `${RESEARCH}the lower end of the intermediate-modulus fibre class (about 5,500 to 5,900 MPa on datasheets), the class the space-grade claim needs (row 42: stronger for its weight than the standard-modulus class most padel rackets use, about 3,500 to 4,900 MPa). The factory confirms the load-bearing plies are of this class, per feel.` },
+  fibreStrength: { provisional: true, source: `${RESEARCH}the lower end of the intermediate-modulus fibre class (about 5,500 to 5,900 MPa on datasheets), the class the aerospace-grade claim needs (row 42: stronger for its weight than the standard-modulus class most padel rackets use, about 3,500 to 4,900 MPa). The factory confirms the load-bearing plies are of this class, per feel.` },
   fibreModulus: { provisional: true, source: `${RESEARCH}the lower end of the intermediate-modulus fibre class (about 275 to 295 GPa; standard-modulus class about 230 GPa). The factory confirms the class, per feel.` },
   flexStrength: { provisional: true, source: `${RESEARCH}woven carbon/epoxy 600 to 900 MPa; a 3K 2x2 twill prepreg datasheet gives 882 MPa.` },
   flexModulus: { provisional: true, source: `${RESEARCH}3K 2x2 twill prepreg datasheet 60.1 GPa; typical woven laminates 50 to 60 GPa.` },

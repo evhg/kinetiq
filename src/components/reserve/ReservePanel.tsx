@@ -542,7 +542,9 @@ export function ReservePanel({ tierId, onTier, feel, onFeel, invitesOpen, initia
                       {status}
                     </span>
                   </span>
-                  <span className={styles.tierLine}>{t.cardLine}</span>
+                  <span className={styles.tierLine}>
+                    <Hyphens text={t.cardLine} />
+                  </span>
                   <span className={`t-num ${styles.tierPrice}`}>{priceLabel(t.priceEur)}</span>
                 </>
               );

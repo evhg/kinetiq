@@ -1,4 +1,4 @@
-/* Space-grade carbon: K15 (the racket's crown over a planet's limb) feathers into the graphite floor; the lift behind
+/* Aerospace-grade carbon: K15 (the racket's crown over a planet's limb) feathers into the graphite floor; the lift behind
    the words keeps the fill rule where the image has scrolled away. Ends on --stage, Born whole's first colour. */
 .section {
   position: relative;
@@ -99,28 +99,22 @@
 .point :global(.t-h3) {
   text-wrap: balance;
 }
-/* Three points across from 900 px, each a title row, a body row and a row per figure (subgrid), so the bodies and
-   each figure share one top line. */
+/* Three points across from 900 px, each a title row, a body row and a figure row (subgrid), so the bodies and the
+   three figures each share one top line: the figures read as one row of numbers across the section. */
 @media (min-width: 900px) {
   .points {
     grid-template-columns: repeat(3, 1fr);
     gap: 40px var(--gutter);
   }
   .point {
+    grid-row: span 3;
     grid-template-rows: subgrid;
     row-gap: 12px;
   }
 }
 
-/* The figures under each point (owner, 2026-11-03: the spec sheet folded into the points): three numbers in the stat
-   face, each over its term and its test method, the first under a short amber rule. From 900 px the figures are rows
-   of the points' subgrid (the list takes no box), so each figure sits level with its counterparts in the other two
-   points, whatever their notes. */
-.figures {
-  display: grid;
-  gap: clamp(22px, 1.6vw + 6px, 44px);
-  margin: clamp(12px, 1vw, 24px) 0 0;
-}
+/* The figure under each point (owner, 2026-11-07: one number per point, "the 9 numbers are too much, reduce it to
+   3"): the number in the stat face under a short amber rule, then its term and its test method. */
 .figure {
   position: relative;
   display: grid;
@@ -130,11 +124,10 @@
     "method";
   align-content: start;
   gap: 6px;
-}
-.figure:first-child {
+  margin: clamp(16px, 1.4vw, 32px) 0 0;
   padding-top: clamp(20px, 1.4vw + 6px, 40px);
 }
-.figure:first-child::before {
+.figure::before {
   content: "";
   position: absolute;
   inset: 0 auto auto 0;
@@ -146,7 +139,7 @@
 .value {
   grid-area: value;
   margin: 0 0 4px;
-  font-size: clamp(2.5rem, 2.2vw + 1.25rem, 5rem);
+  font-size: clamp(2.75rem, 2.6vw + 1.25rem, 5.5rem);
   line-height: 1;
   color: var(--text);
   white-space: nowrap;
@@ -175,49 +168,6 @@
 /* a condition the figure holds under, on its own line under the method */
 .note {
   display: block;
-}
-/* Stacked tablets (700 to 899 px): a point spans the width, so its three figures stand side by side, the amber rule
-   over the first. Phones keep one column. */
-@media (min-width: 700px) and (max-width: 899px) {
-  .figures {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    column-gap: var(--gutter);
-    padding-top: clamp(20px, 1.4vw + 6px, 40px);
-    position: relative;
-  }
-  .figures::before {
-    content: "";
-    position: absolute;
-    inset: 0 auto auto 0;
-    width: 48px;
-    height: 1px;
-    background: var(--amber);
-    box-shadow: 0 0 6px rgb(227 164 103 / 0.6);
-  }
-  .figure:first-child {
-    padding-top: 0;
-  }
-  .figure:first-child::before {
-    content: none;
-  }
-  .value {
-    font-size: 2.25rem;
-  }
-}
-@media (min-width: 900px) {
-  .point {
-    grid-row: span 5;
-  }
-  .figures {
-    display: contents;
-  }
-  .figure:first-child {
-    margin-top: clamp(8px, 0.8vw, 20px);
-  }
-  /* the subgrid's 12 px row gap suits a title over its body; figures need more air between them */
-  .figure + .figure {
-    padding-top: clamp(14px, 1.1vw + 4px, 36px);
-  }
 }
 /* The long service range (−30 to +80 °C) sets a step smaller in the narrow three-column band, so it never wraps. */
 @media (min-width: 900px) and (max-width: 1279px) {

@@ -61,9 +61,25 @@ a.card:active {
   transform: scale(0.99);
 }
 .media {
+  position: relative;
   aspect-ratio: 4 / 5;
   overflow: hidden;
   background: var(--stage);
+}
+/* The racket's frame inside the fixed-ratio media box: the scroll settle scales it (EditionStill.tsx), the box clips
+   it, so nothing around it moves. Where a render has two passes, both lie here, the full pass over the base. */
+.settle {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 45%;
+}
+.still {
+  position: absolute;
+  inset: 0;
+}
+/* The full pass: at rest and with reduced motion it shows at full strength; the settle brings it up from 0. */
+.full {
+  opacity: 1;
 }
 .still img {
   width: 100%;
