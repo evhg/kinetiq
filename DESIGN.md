@@ -339,6 +339,15 @@ native radio group, every option at least 44 px square to the touch, pressing to
   5120, K08's and K16's half crops to 2048 and 2560 (the `left`/`right` ladders), phone crops unchanged.
   `scripts/probe-5k.mjs` at rest: none upscaled; the scrubs' entry scales (K04 1.22, K05 and K17 1.08, K06 1.05)
   draw past 5120 for their first moments. K03, K03-base and K03b stay 3200 masters (not re-rendered at 5K).
+- Release 10 (Mac node, 2026-11-06): K05 v7c (the owner's "this doesn't look right" on v7: a white face across the whole
+  face, no hard stripe, no glow in a hole, the laser breaking at every hole, no ghost lines, dark bores, the Naked handle
+  with its weave and no flare), K17 and K05 from 5760 x 3240 masters, K04 from 6400 x 3600, K03, K03-base and K03b at
+  5120 x 2880. The wide ladder still tops out at 5120: every wide still is drawn at `sizes="100vw"`, so a 2560 x 1440
+  DPR 2 screen at rest asks for 5120 and a wider rung would only serve the scrubs' first moments (K04 1.22, K05 and K17
+  1.08) while costing every 1920 DPR 1 screen a rung up; the bigger masters make the 5120 file sharper instead. Unibody's
+  beat B and the /reserve gallery show K03's `-line` pass (the base render with `k03s_line`'s hairline drawn from the
+  5120 mask, in place of lg_shell's baked line), and K03b-tubular the same pass with the same mask, so the tubular cut
+  dissolves into the shell under one registered line; the Sealed core chapter keeps K03-base under its trace.
 
 ## Micro-interactions
 Pressables scale 0.97 on `:active`; hover only behind `(hover: hover) and (pointer: fine)`; transform and
