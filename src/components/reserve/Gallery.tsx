@@ -160,7 +160,9 @@ function feelSlides(tier: TierId, feel: FeelId): Slide[] {
       return [
         {
           kind: "still",
-          id: "K09",
+          // the full pass of K09 in K04's language (Release 13: the glow in the bores, the throats and along the
+          // edges), shown at rest, as K11's set; its "-pace" and "-nogrip" twins follow the feel and the grip
+          id: "K09-full",
           phoneCrop: "card",
           // phones and tablets: the open lid stays in a frame shorter than the crop (4:5 to square)
           position: "50% 27%",
@@ -177,10 +179,10 @@ function feelSlides(tier: TierId, feel: FeelId): Slide[] {
 }
 
 /**
- * Renders in K04's language (Release 12: K07, K08 and K11's full passes): their near-black field gives way to the
+ * Renders in K04's language (Release 12: K07, K08 and K11's full passes; Release 13: K09's): their near-black field gives way to the
  * slide's floor (Reserve.module.css, `data-field`), so the frame has no edge and Pace's black face keeps its depth.
  */
-const DARK_FIELD = new Set(["K07-full", "K08-full", "K11-command-full"]);
+const DARK_FIELD = new Set(["K07-full", "K08-full", "K09-full", "K11-command-full"]);
 
 /** A slide's identity, the same in both feels: the chosen feel's racket (K08's crop, K11's set) is one slide. */
 const slideKey = (s: Slide) =>

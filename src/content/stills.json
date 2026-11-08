@@ -1189,6 +1189,110 @@
           "q": 56
         }
       }
+    },
+    "K09-card-base": {
+      "crops": {
+        "card": {
+          "q": 45
+        }
+      }
+    },
+    "K09-card-full": {
+      "crops": {
+        "card": {
+          "q": 56
+        }
+      }
+    },
+    "K09-full": {
+      "crops": {
+        "wide": {},
+        "card": {
+          "x": 0.2,
+          "y": 0,
+          "w": 0.6,
+          "h": 1,
+          "q": 56
+        }
+      }
+    },
+    "K09-card-base-pace": {
+      "crops": {
+        "card": {
+          "q": 45
+        }
+      }
+    },
+    "K09-card-full-pace": {
+      "crops": {
+        "card": {
+          "q": 56
+        }
+      }
+    },
+    "K09-full-pace": {
+      "crops": {
+        "wide": {},
+        "card": {
+          "x": 0.2,
+          "y": 0,
+          "w": 0.6,
+          "h": 1,
+          "q": 56
+        }
+      }
+    },
+    "K09-nogrip-card-base": {
+      "crops": {
+        "card": {
+          "q": 45
+        }
+      }
+    },
+    "K09-nogrip-card-full": {
+      "crops": {
+        "card": {
+          "q": 56
+        }
+      }
+    },
+    "K09-nogrip-full": {
+      "crops": {
+        "wide": {},
+        "card": {
+          "x": 0.2,
+          "y": 0,
+          "w": 0.6,
+          "h": 1,
+          "q": 56
+        }
+      }
+    },
+    "K09-nogrip-card-base-pace": {
+      "crops": {
+        "card": {
+          "q": 45
+        }
+      }
+    },
+    "K09-nogrip-card-full-pace": {
+      "crops": {
+        "card": {
+          "q": 56
+        }
+      }
+    },
+    "K09-nogrip-full-pace": {
+      "crops": {
+        "wide": {},
+        "card": {
+          "x": 0.2,
+          "y": 0,
+          "w": 0.6,
+          "h": 1,
+          "q": 56
+        }
+      }
     }
   }
 }
