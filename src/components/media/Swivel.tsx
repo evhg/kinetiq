@@ -461,7 +461,18 @@ export function Swivel({ ref, sequence, portraitQuery, media, lead, className }:
       // A 3x screen (an iPhone) resolves finer than the eye at arm's length: there a frame up to 18% short of the
       // canvas looks the same and is a third fewer bytes on a phone's connection; elsewhere within 8%.
       const slack = density() >= 2.5 ? 1.18 : 1.08;
-      return entry.widths.find((w) => (entry.crop.w * w) / entry.w * slack >= need) ?? entry.widths[entry.widths.length - 1];
+      const fit = entry.widths.find((w) => (entry.crop.w * w) / entry.w * slack >= need) ?? entry.widths[entry.widths.length - 1];
+      // Never sharper than the still under it (Release 13, the phone load budget): frame 0 is that still, and the
+      // stills and the frames share one ladder of whole-frame widths, so a frame wider than the still the browser
+      // chose would only sharpen the weave as the turn starts and cost bytes the eye cannot see (an iPhone's hero still
+      // is the 1170 portrait drawn at 1424 device px; its frames were fetched at 1440, 684 KB against 497 KB).
+      // The rung the browser chose, from its file name (`<id>-<crop>-<width>.<hash>.<ext>`): naturalWidth is in CSS px
+      // once a srcset density applies, so it cannot tell a 1170 file on a 3x screen from a 390 one.
+      const still = box.querySelector("img");
+      const rung = still && still.complete ? /-(\d+)\.[0-9a-f]{10}\.(?:avif|webp)$/.exec(still.currentSrc) : null;
+      const shown = rung ? Number(rung[1]) : 0;
+      const match = shown ? entry.widths.find((w) => w >= shown * 0.98) : undefined;
+      return match && match < fit ? match : fit;
     };
 
     const layout = () => {
