@@ -96,10 +96,15 @@ PAIR_SET = 1.0      # 1 = the First 500 pair shows its set number on both throat
 SET_TEXT = "027/500"
 GRIP_DARK = 1.0     # 1 = no light reaches the overgrip (canon: neutral black; k04-language-fix 2026-11-07: it read light
                     # grey under the raking key, sheen and strips together); its wrap reads by GRIP_RIM_S alone
-GRIP_RIM_S = 40.0   # W: a thin glossy strip linked to the overgrip only (preview 2026-11-07: 40 rim + 3 side)
+GRIP_RIM_S = 0.0    # W: a glossy strip from behind, linked to the overgrip only (preview 2026-11-07: 40 W, 2 x 30 cm); off
+                    # since grip-edge (cloud 2026-11-08): it caught the helical wrap's edges as a white staircase
 GRIP_RIM_AZ = 150.0  # deg from the camera, about the vertical: behind the handle, a crisp silhouette line
-GRIP_SIDE_S = 3.0   # W: a second, faint strip from the side: the wrap's steps read as charcoal bands on black
+GRIP_SIDE_S = 1.5   # W: a broad dim strip from the side (35 x 70 cm since grip-edge; was 3 W, 2 x 30 cm): the wrap
+                    # reads as soft charcoal bands on black, nothing brighter than the face's shade
 GRIP_SIDE_AZ = -100.0
+GRIP_RIM_W, GRIP_RIM_H = 0.02, 0.30    # m: the strips' size (grip-edge 2026-11-08: a thin strip drew the wrap's edges as a
+GRIP_SIDE_W, GRIP_SIDE_H = 0.35, 0.70  # white staircase; broad, dim strips give a soft continuous sheen)
+GRIP_DIST = 0.6                        # m from the grip's centre
 G_COOL = 0.0
 
 OPT = {}
@@ -530,7 +535,8 @@ def grip_dark(roots, cam):
                 if g.name in rc.objects:
                     rc.objects.unlink(g)
     from mathutils import Matrix
-    for nm, gs, gaz in (("rim", GRIP_RIM_S, GRIP_RIM_AZ), ("side", GRIP_SIDE_S, GRIP_SIDE_AZ)):
+    for nm, gs, gaz, gw, gh in (("rim", GRIP_RIM_S, GRIP_RIM_AZ, GRIP_RIM_W, GRIP_RIM_H),
+                                ("side", GRIP_SIDE_S, GRIP_SIDE_AZ, GRIP_SIDE_W, GRIP_SIDE_H)):
         if gs <= 0:
             continue
         for g in grips:
@@ -541,8 +547,8 @@ def grip_dark(roots, cam):
             vc.z = 0.0
             vc.normalize()
             d = (Matrix.Rotation(math.radians(gaz), 3, Vector((0, 0, 1))) @ vc).normalized()
-            gl = studio.area_light("lg_grip%s_%s" % (nm, g.name), tuple(gc + d * 0.6), 0.02, gs, color=kelvin(6500.0),
-                                   size_y=0.30, target=tuple(gc))
+            gl = studio.area_light("lg_grip%s_%s" % (nm, g.name), tuple(gc + d * GRIP_DIST), gw, gs, color=kelvin(6500.0),
+                                   size_y=gh, target=tuple(gc))
             gl.visible_diffuse = False
             gl.lightgroup = "sheen"
             KL7.link_receivers(gl, [g], "recv_grip%s_%s" % (nm, g.name))

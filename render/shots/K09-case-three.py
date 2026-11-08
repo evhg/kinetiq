@@ -88,6 +88,7 @@ CHAMFER_S = 9.0
 SATIN_S = 0.30
 FACE_DECAY, FACE_SOFT, FACE_LINE = 0.02, 0.003, 1.4   # canon note 1: a band (16-70 mm on the face), not a half-plane
 GRIP_E = 1.0
+GRIP_W = 0.02                     # m: GripStrip's width (K09-dark widens it: grip-edge 2026-11-08)
 BORE_E, BORE_SIZE = 6.0, 0.25     # hole-lip crescents (canon 'holes' part only)
 RAKE_E = float(os.environ.get("K09_RAKE", 0.8))                       # serial rake per racket (K10's rake)
 SERIALS = ("KQ-000427", "KQ-000428", "KQ-000429")
@@ -737,7 +738,7 @@ def build(o):
         for P in Ps:
             gc = P["grip"].parent.matrix_world @ Vector((0.0, -0.229, 0.0))
             loc = gc + Vector((-0.24, -0.06, 0.30))
-            gl_ = studio.area_light("GripStrip_" + P["grip"].name, tuple(loc), 0.02, GRIP_E, color=L.kelvin(5600),
+            gl_ = studio.area_light("GripStrip_" + P["grip"].name, tuple(loc), GRIP_W, GRIP_E, color=L.kelvin(5600),
                                     size_y=0.30)
             CT_look_at(gl_, loc, gc, (0.0, 1.0, 0.0))
             gl_.visible_camera = False
