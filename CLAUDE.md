@@ -105,8 +105,9 @@ React 19 · GSAP 3 + ScrollTrigger + `@gsap/react` · Lenis · Playwright (dev o
 - One canonical racket in every still and graphic (`racket-shape.ts`, render audit 2026-10-22): 455.0 × 260.0 × 38.0 mm
   (the FIP limits); 42 moulded holes, a crown of 8 of Ø14.0 mm along the top and 34 of Ø12.4 mm below; 1.0 mm edge
   radius, the flat face ending 1.0 mm from the edge (`FACE_INSET`, owner 2026-11-02; was 1.5 and 4 mm); one handle: a
-  round overgrip with a helical wrap, a satin black cap engraved Q (the company logo, owner 2026-10-22), the head
-  flowing into it with no collar or joint; no wrist cord. Only the face follows the feel: Command is white 3K twill (the default in any image that names no feel),
+  neutral black round overgrip with a helical wrap, a satin black cap engraved Q (the company logo, owner 2026-10-22),
+  the head flowing into it with no collar or joint; Naked, the handle runs straight into its Q end with no flare; the
+  weave on every part, handle and rim included (owner, 2026-11-07: "full detailed carbon weave"); no wrist cord. Only the carbon follows the feel (face, rim, Naked handle): Command is white 3K twill (the default in any image that names no feel),
   Pace black 12K (owner, 2026-10-22). Throats: a single racket's serial (KQ-000427), a First 500 set's number (027/500)
   on both. Change it and G01, G15, K12, K14 and the sweet-spot numbers change with it. Ship the canon graphics and the
   white-Command copy to `main` only with the canon re-exports of K01 to K12, so no screen shows two different rackets.

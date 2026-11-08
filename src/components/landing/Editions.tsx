@@ -20,7 +20,9 @@ const IMAGE: Record<TierId, { id: string; crop: string }> = {
   // First 500: the set of two, both throats laser-marked with the set number (027/500), in the feel on show (the Pace
   // pair is the id's "-pace" twin).
   limited: { id: "K11-command", crop: "card" },
-  // One of Ten: the set of three in its fitted case.
+  // One of Ten: the set of three in its fitted case, in the same language (Release 13: `K09-card-base` and
+  // `K09-card-full`, with their "-pace" and "-nogrip" twins), so it settles like the other two. The card is not a link,
+  // so it has no hover.
   invite: { id: "K09-card", crop: "card" },
 };
 
