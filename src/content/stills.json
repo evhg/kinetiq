@@ -183,12 +183,16 @@
     },
     "K05-phone": {
       "crops": {
-        "portrait": {}
+        "portrait": {
+          "q": 62
+        }
       }
     },
     "K05-phone-pace": {
       "crops": {
-        "portrait": {}
+        "portrait": {
+          "q": 62
+        }
       }
     },
     "K06-base": {
@@ -759,12 +763,16 @@
     },
     "K05-nogrip-phone": {
       "crops": {
-        "portrait": {}
+        "portrait": {
+          "q": 62
+        }
       }
     },
     "K05-nogrip-phone-pace": {
       "crops": {
-        "portrait": {}
+        "portrait": {
+          "q": 62
+        }
       }
     },
     "K06-nogrip-base": {
