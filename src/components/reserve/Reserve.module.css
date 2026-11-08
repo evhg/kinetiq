@@ -69,10 +69,14 @@
   height: 100%;
 }
 /* A render in K04's language (Gallery.tsx DARK_FIELD; its phone crop, K07's trio, too): a plain floor and the image's
-   near-black field lightened to it, so the frame has no edge, with no lift behind (it would grey Pace's black face). */
+   near-black field lightened to it, so the frame has no edge, with no lift behind the faces (it would grey Pace's black
+   face). Release 13 (fill rule: with the overgrips now neutral black, K08 left the desktop frame 7% lit): a soft
+   graphite pool on the floor under the rackets, low in the frame, below the faces, so the slide reads as a stage. */
 .slide[data-field="dark"],
 .slide[data-field="dark"][data-fit="portrait"] {
-  background: var(--stage);
+  background:
+    radial-gradient(ellipse 48% 24% at 50% 97%, rgb(62 62 68), rgb(48 48 54 / 0.85) 45%, rgb(34 34 39 / 0.4) 75%, transparent),
+    var(--stage);
 }
 .slide[data-field="dark"] .slideStill img {
   mix-blend-mode: lighten;

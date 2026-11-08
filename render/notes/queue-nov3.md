@@ -113,3 +113,18 @@ The Mac (notes/mac-handoff.md) pushes masters to `evhg/kinetiq-masters` and a `S
   written as 16-bit RGB into `final/v5k/` under the queue names (replacing v7; v7 is in the masters repo's history).
 - K04 6400 x 3600 and K17 5760 x 3240 into `final/v5k/`; K03 base and `-line`, K03b `-line` into `final/`
   (link-masters.sh maps K03 / K03b-tubular to `-line`). Wide crops still export to 5120 (DESIGN.md, Release 10).
+
+## Cloud export of the Mac's 2026-11-07 lines (Release 13)
+- STATUS-mac 03:48Z-23:28Z (full-weave, k04-language-fix, k09-dark): blobs by `git cat-file -p origin/main:<path>`
+  from a throwaway blobless clone (`gc.auto 0`; never `git ls-tree -l` there: it fetches every blob it lists), one
+  still at a time into a temp dir named by site id, `stills.mjs <dir> <id>`, deleted after; the clone's lazily
+  fetched blob-only promisor packs pruned between batches (disk).
+- Swivels: `seq_rebuild.py` in 3 shards, frame 0 against its still (K01 0.00, K02 0.02 to 0.10 mean luma), then
+  `sequence.mjs` (desktop AVIF 58, phone 50); K02's phone sets are its desktop frames turned 90 deg CCW at 16 bits
+  (PNG compression 5: a 5120 frame at level 1 is 68 MB), Command's two `--keep=30`. A 60-frame 5120 desktop set takes
+  about 45 minutes to encode on 4 cores.
+- K05: `-master-a` over `-master-b` joined in numpy (sharp turns a Uint16Array raw input into 8 bits), written as RGB16
+  PNG; desktop rows 0-3239, phone the box (165, 546, 5430 x 3055) turned 90 deg CCW, found again by matching the Mac's
+  8-bit crops (mean |high byte - 8 bit| 0.39 to 0.41).
+- K14 and K15 from the repo's PNGs (their new EXRs stay on the Mac). K07/K08/K11 under Release 12's ids; K09's card
+  and gallery as K09-card-{base,full} and K09-full (the `-hover` passes unused: the One of Ten card is not a link).
