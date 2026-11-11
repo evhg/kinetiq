@@ -1,0 +1,121 @@
+/* /preview/edge-to-edge: three full-screen options (EdgeOptions.tsx). The renders sit on pure black. A `lighten` layer
+   over the frame's images (inside the frame, so no outer stacking context can isolate it) raises that black to the
+   stage's colour with a soft lift at the middle, so the frame never shows as a box and no screen reads as flat black
+   (the fill rule); every lit pixel is untouched. Stacked below 900 px and with reduced motion; pinned from 900 px. */
+.chapter {
+  background: var(--stage);
+}
+.beat {
+  position: relative;
+  display: grid;
+  align-content: center;
+  min-height: 100svh;
+  padding: clamp(72px, 14vw, 128px) var(--margin) clamp(56px, 12vw, 112px);
+}
+.words {
+  display: grid;
+  gap: clamp(12px, 1vw + 6px, 24px);
+}
+.title {
+  max-width: 14ch;
+}
+.line {
+  max-width: 46ch;
+}
+.media {
+  margin: clamp(28px, 7vw, 56px) calc(var(--margin) * -1) 0;
+}
+.frame {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 4 / 5;
+  isolation: isolate;
+  -webkit-mask-image:
+    linear-gradient(transparent, #000 4%, #000 96%, transparent),
+    linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(transparent, #000 4%, #000 96%, transparent),
+    linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+  mask-composite: intersect;
+}
+/* B's camera looks along the face from beyond the crown: its phone crop keeps the whole width (the line bends over
+   the edge at both sides), so it is a band, not a portrait. */
+.beat[data-phone="band"] .frame {
+  aspect-ratio: 5120 / 2333;
+}
+.layer {
+  position: absolute;
+  inset: 0;
+}
+.frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 62% 58% at 50% 54%, rgb(32 32 37), var(--stage) 92%);
+  mix-blend-mode: lighten;
+  pointer-events: none;
+}
+.still,
+.still img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.still img {
+  object-fit: cover;
+}
+@media (min-width: 700px) and (max-width: 899px) {
+  .media {
+    margin-inline: 0;
+    justify-self: center;
+    width: min(100%, 560px);
+  }
+  .beat[data-phone="band"] .media {
+    width: 100%;
+  }
+}
+
+/* From 900 px: one screen per option, stacked (reduced motion) or pinned. The words across the top (the name on the
+   left, the sentence on the right), the 16:9 frame below them, as large as the rest of the screen allows. */
+@media (min-width: 900px) {
+  .beat {
+    height: 100svh;
+    min-height: 0;
+    grid-template-rows: auto minmax(0, 1fr);
+    align-content: stretch;
+    gap: clamp(16px, 3svh, 48px);
+    padding: calc(var(--chrome-h) + clamp(16px, 4svh, 64px)) var(--margin) clamp(16px, 4svh, 56px);
+  }
+  .words {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+    align-items: end;
+  }
+  .words > :nth-child(1),
+  .words > :nth-child(2) {
+    grid-column: 1 / span 6;
+  }
+  .title {
+    max-width: none;
+    font-size: min(var(--fs-h2), 8svh);
+  }
+  .line {
+    grid-column: 7 / -1;
+    grid-row: 1 / span 2;
+    align-self: end;
+    font-size: max(1.0625rem, min(var(--fs-lead), 2.5svh));
+  }
+  .media {
+    margin: 0;
+    min-height: 0;
+    container-type: size; /* a stacking context: the frame's lighten layer works inside the frame, never across it */
+    display: grid;
+    place-items: center;
+  }
+  .frame,
+  .beat[data-phone="band"] .frame {
+    aspect-ratio: 16 / 9;
+    width: min(100cqw, 100cqh * 16 / 9);
+  }
+}

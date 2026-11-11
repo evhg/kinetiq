@@ -1,0 +1,58 @@
+/* /preview/edge-to-edge: the intro and the reference block around the three options (EdgeOptions). */
+.main {
+  background: var(--stage);
+}
+.intro {
+  display: grid;
+  gap: clamp(12px, 1vw + 6px, 24px);
+  min-height: 72svh;
+  align-content: center;
+  padding: calc(var(--chrome-h) + clamp(40px, 8vw, 120px)) var(--margin) clamp(48px, 8vw, 120px);
+  background: radial-gradient(ellipse 80% 60% at 30% 50%, rgb(44 44 50 / 0.85), transparent 80%), var(--stage);
+}
+.h1 {
+  max-width: 18ch;
+}
+.lead {
+  max-width: 48ch;
+}
+.index {
+  display: grid;
+  gap: 8px;
+  margin: clamp(12px, 2vw, 32px) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.index a {
+  color: var(--steel);
+  text-decoration: none;
+  font-size: clamp(1rem, 0.4vw + 0.85rem, 1.25rem);
+}
+@media (hover: hover) and (pointer: fine) {
+  .index a:hover {
+    color: var(--text);
+  }
+}
+.reference {
+  display: grid;
+  gap: clamp(12px, 1vw + 6px, 24px);
+  padding: clamp(72px, 10vw, 160px) var(--margin);
+  background: radial-gradient(ellipse 70% 50% at 50% 60%, rgb(44 44 50 / 0.85), transparent 85%), var(--stage);
+}
+.reference:focus {
+  outline: none;
+}
+.refTitle {
+  max-width: 30ch;
+}
+.refFrame {
+  margin-top: clamp(16px, 3vw, 40px);
+  justify-self: center;
+  width: min(100%, 1400px);
+}
+.refStill,
+.refStill img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
