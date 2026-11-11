@@ -25,11 +25,23 @@
    view holds the whole frame and its arrows, dots and counter (56 px), clear of the fixed Due Today bar (74 px with
    its rule, plus the safe area) and of its 40 px fade: 390 x 664, 393 x 659, 375 x 667 and 768 x 1024 alike. Every
    slide keeps its subject whole from 4:5 to square (Gallery.tsx positions and phoneFit; the cards fit the height). */
+/* The first view either shows the heading whole ("Reserve your KINETIQ" and its ship line, about 190 px with its
+   padding) above the bar, or none of it: never a heading half under the bar's fade (owner, iPhone, 2026-11-08: it read
+   as cut off). Where the screen is tall enough for the frame (at least square) and the heading, the frame gives the
+   heading its room; where it is not (Safari's small viewport on an iPhone, about 660 px; tablets), the frame grows to
+   the bar, up to 4:5, and the heading starts at the bar and comes in as the page scrolls. */
 @media (max-width: 1023px), (max-aspect-ratio: 4/5) {
   .track {
     aspect-ratio: auto;
-    height: min(125vw, max(100vw, calc(100svh - var(--chrome-h) - 56px - 74px - env(safe-area-inset-bottom) - 40px)));
+    height: clamp(100vw, calc(100svh - var(--chrome-h) - 56px - 74px - env(safe-area-inset-bottom) - 196px), 125vw);
   }
+}
+@media (max-width: 600px) and (max-height: 760px), (min-width: 601px) and (max-width: 1023px) {
+  .track {
+    height: min(125vw, calc(100svh - var(--chrome-h) - 56px - 74px - env(safe-area-inset-bottom)));
+  }
+}
+@media (max-width: 1023px), (max-aspect-ratio: 4/5) {
   /* A crop taller than the frame (K02 edge-on) is contained, never cropped: it fills the frame's height, and its own
      sides feather into the slide. */
   .slide[data-phone-fit] .slideStill {

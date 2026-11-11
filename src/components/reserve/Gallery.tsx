@@ -65,6 +65,29 @@ type Slide =
  * portrait window (the 12.9-inch iPad Pro at 1024 x 1366), as the Hero treats it. Side by side it is about 66vw.
  */
 const STACKED = "(max-width: 1023px), (max-aspect-ratio: 4/5)";
+const BOTH_FEELS_ID = "K08-full";
+
+/**
+ * The gallery's opening still for the page shell (app/reserve/page.tsx), the moment before the chosen edition streams
+ * in: the two feels together (K08 whole, K07's trio when stacked), the same files and sizes as the first slide, so the
+ * phone's LCP image starts loading with the first bytes instead of after the server renders the edition (on live it
+ * waited for the function: 2.7 s phone LCP against 1.2 s locally). Decorative here (the shell is aria-hidden); the
+ * streamed gallery then shows the same image from cache.
+ */
+export function GalleryLead({ className }: { className?: string }) {
+  return (
+    <Still
+      id={BOTH_FEELS_ID}
+      phoneId="K07-full"
+      phoneCrop="trio"
+      phoneMedia={STACKED}
+      alt=""
+      sizes={SIZES}
+      className={className}
+      priority
+    />
+  );
+}
 const SIZES = "(max-width: 1023px) 100vw, (max-aspect-ratio: 4/5) 100vw, 66vw";
 
 const SWEET_SPOT: Slide | null = hasStill("K12-base", "portrait")
