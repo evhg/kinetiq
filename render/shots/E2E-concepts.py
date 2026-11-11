@@ -37,35 +37,43 @@ MASK_STEP = 0.0004       # m between distance levels
 STAGES = (0.0, 0.2, 0.4, 0.6, 0.8, 1.0)
 SOFT = 0.035             # the front's soft width (e2e_r units)
 FRONT_K, FRONT_W = 1.5, 0.03   # the brighter front: x (1 + FRONT_K) at the front, its gaussian width (e2e_r units)
-FLOOD_G = 3.5            # flood emission gain in the comp (shader emission 1)
-STUDIO_K = 0.18          # the studio groups under the flood stages (the light carries the image)
+FLOOD_G_PACE = 0.35      # A Pace: the under-coat light on the black 12K (0.8 read as copper paint)
+FLOOD_G = 0.8            # flood emission gain in the comp (shader emission 1)
+STUDIO_K = 0.45          # A: the studio outside the light (the light's advance reads; 10:45Z: not black)
+TINT_A = 0.35            # A (10:45Z): inside the light the white twill takes a 2700 K tint of this much (not opaque)
+IN_K = 1.05              # A: the studio inside the light, x
+HEAD_FIT = 0.10          # A (10:45Z): the head framed to 80 % of the height (air top and bottom), the handle runs out
+STUDIO_B = 0.6           # B, C (10:45Z): the command-dark-lift white face, undimmed
+STUDIO_C = 1.0
 LINE_W = 0.012           # the hairline's width (e2e_r units; the face's deepest point is ~0.1 m from its boundary)
-LINE_G = 15.0             # the hairline's gain over the flood
+LINE_G = 60.0             # the hairline's gain over the flood
 TOW_K = (0.55, 0.45)     # Command: flood x (TOW_K[0] + TOW_K[1] x tow height)
 P_TAPE_K = (0.85, 0.15)  # Pace: flood x (P_TAPE_K[0] + P_TAPE_K[1] x tape parity)
 FLOOD_K = 2700.0
 GLOW_K, GLOW_THR, GLOW_SIZE = 0.6, 0.8, 7   # a soft fog glow from the flood alone (the light reads as light)
 
 # ------------------------------------------------------------------ concept B: flat to the edge
-EL_B = 20.0               # deg: the camera above the face plane (grazing), looking across the face's width
-LENS_B, FW_B = 180.0, 0.42   # mm; frame width at the target (m): the head, crown at frame right
+EL_B = 16.0               # deg: the camera above the face plane (grazing), looking across the face's width
+LENS_B, FW_B = 100.0, 0.24   # mm; frame width at the target (m): the head, crown at frame right
 TY_B = 0.03              # m: the target along the long axis from the head centre
-FSTOP_B = 8.0
+FSTOP_B = 11.0
+BACK_B = 0.10            # B (10:45Z): the camera behind the crown, looking along the face toward the throat
 YS_B = (-0.075, 0.13)    # m (model y): the line's first and last stage (above the throat .. below the crown)
-BW_B = 0.0012            # m: the line's half width (gaussian)
+BW_B = 0.0015            # m: the line's half width (gaussian)
 TRAIL_B, TRAIL_L = 0.10, 0.03   # a faint trail behind the line (toward the throat): x, decay length (m)
-LINE_GB = 6.0            # the line's gain
+LINE_GB = 35.0            # the line's gain
 WALL_B = 0.5             # the line on the 38 mm wall, x (it bends over the radius and fades down the wall)
 
 # ------------------------------------------------------------------ concept C: a ball at the very edge
 VIEW_C = 1.0             # 1 hero (close, three-quarter), 0 wide (the whole racket)
-IMPACT_IN = 0.014        # m: the contact patch's centre inside the outline at the head's widest point
+IMPACT_IN = 0.004        # m: the contact patch's centre inside the outline at the head's widest point
 EL_C, AZ_C, LENS_C, FW_C = 18.0, 38.0, 100.0, 0.30   # hero camera: deg above the face plane / from the face normal
-RING_SP, RING_P = 0.022, 20.0   # ring spacing (m) and sharpness (power of the raised cosine)
+RING_SP, RING_P = 0.022, 8.0   # ring spacing (m) and sharpness (power of the raised cosine)
 RING_PH = 0.004          # m: ring phase
 RING0 = 0.028            # m: no rings inside this radius (the ball's own patch)
-RING_G = 5.0
-BALL_KEY = 15.0           # a soft key on the ball alone
+RING_G = 8.0
+BALL_KEY = 30.0
+FELT_C = (0.80, 0.95, 0.06)     # C (10:45Z): a brighter padel-ball yellow (K17's read olive here)           # a soft key on the ball alone
 
 EOPT = {}
 
@@ -79,6 +87,8 @@ def eparse():
                 globals()[k.strip()] = float(v)
         if a == "--concept" and i + 1 < len(argv):
             EOPT["concept"] = argv[i + 1]
+        if a == "--feel" and i + 1 < len(argv):
+            EOPT["feel"] = argv[i + 1]
 
 
 # ------------------------------------------------------------------ the face mask (distance to the flat face's boundary)
@@ -306,15 +316,17 @@ def frame_camera(sc, cam, pts, aim, dirn):
     if cpt == "b":
         T = c + up * TY_B
         el = math.radians(EL_B)
-        d = FW_B * LENS_B / 36.0
+        d = FW_B * LENS_B / 36.0 + BACK_B
         cam.data.lens = LENS_B
         cam.data.sensor_fit = "HORIZONTAL"
         cam.data.sensor_width = 36.0
         cam.data.shift_x = cam.data.shift_y = 0.0
-        for sd in (-1.0, 1.0):
-            # the side whose view keeps the face's normal pointing up the frame (the face above the near wall)
-            cam.location = T + (across * sd * math.cos(el) + nrm * math.sin(el)) * d
-            aim_roll(cam, T, up)
+        for sd in (1.0, -1.0):
+            # from beyond the crown, low over the face, looking along it toward the throat: a line across the face
+            # runs left-right across the frame and bends down over the radius at both side edges; the face's
+            # normal up the frame
+            cam.location = T + (up * math.cos(el) + nrm * math.sin(el)) * d
+            aim_roll(cam, T, across * sd)
             if nrm.dot(cam.matrix_world.to_3x3().col[1]) > 0:
                 break
         cam.data.dof.use_dof = FSTOP_B > 0
@@ -343,6 +355,15 @@ def frame_camera(sc, cam, pts, aim, dirn):
             d = _orig_frame(sc, cam, pts, aim, dirn)
         add_ball(r, P, cam)
         return d
+    if cpt == "a":
+        head = [p_ for p_ in pts if (p_ - c).dot(up) > -0.165]
+        ft = (KD.FIT_TOP, KD.FIT_BOT)
+        KD.FIT_TOP = KD.FIT_BOT = HEAD_FIT
+        lo = Vector((min(p_.x for p_ in head), min(p_.y for p_ in head), min(p_.z for p_ in head)))
+        hi = Vector((max(p_.x for p_ in head), max(p_.y for p_ in head), max(p_.z for p_ in head)))
+        d = _orig_frame(sc, cam, head, (lo + hi) / 2, dirn)
+        KD.FIT_TOP, KD.FIT_BOT = ft
+        return d
     return _orig_frame(sc, cam, pts, aim, dirn)
 
 
@@ -354,6 +375,8 @@ def add_ball(r, P, cam):
     spec.loader.exec_module(K17)
     p = dict(K17.DEFAULTS)
     p["COMPRESS"] = 0.006           # the instant of the strike: pressed harder than K17's slice
+    p["FELT"] = FELT_C
+    p["FIB_COL"] = FELT_C
     Mw = Matrix.Translation(P) @ r.matrix_world.to_3x3().normalized().to_4x4()
     cam_local = Mw.inverted() @ cam.location
     centre = Vector((0.0, 0.0, p["BALL_R"] - p["COMPRESS"]))
@@ -425,7 +448,7 @@ def build_comp(sc, src, o, out_stem):
     cpt = EOPT.get("concept", "a")
     if "flood" in den and cpt == "b":
         y, inside = rl.outputs["e2e_y"], rl.outputs["e2e_in"]
-        lit = mix("ADD", mix("MULTIPLY", base, STUDIO_K), den["glow"])
+        lit = mix("ADD", mix("MULTIPLY", base, STUDIO_B), den["glow"])
         fl = mix("MULTIPLY", den["flood"], LINE_GB)
         for k in range(6):
             ys = YS_B[0] + (YS_B[1] - YS_B[0]) * k / 5.0
@@ -437,7 +460,7 @@ def build_comp(sc, src, o, out_stem):
             outs["s%d" % (k + 1)] = mix("ADD", lit, glow(mix("MULTIPLY", fl, k_)))
     if "flood" in den and cpt == "c":
         dd, inside = rl.outputs["e2e_d"], rl.outputs["e2e_in"]
-        lit = mix("ADD", mix("MULTIPLY", base, STUDIO_K), den["glow"])
+        lit = mix("ADD", mix("MULTIPLY", base, STUDIO_C), den["glow"])
         fl = mix("MULTIPLY", den["flood"], RING_G)
         import math as _m
         ph = m("MULTIPLY", m("SUBTRACT", dd, RING_PH), 2.0 * _m.pi / RING_SP)
@@ -446,8 +469,25 @@ def build_comp(sc, src, o, out_stem):
         outs["rings"] = mix("ADD", lit, glow(mix("MULTIPLY", fl, k_)))
     if "flood" in den and cpt == "a":
         r, inside = rl.outputs["e2e_r"], rl.outputs["e2e_in"]
+        # 10:45Z: a warm light ON the white twill: inside the light the studio image x a 2700 K tint (TINT_A) and
+        # IN_K, plus a little of the flood emission; outside the studio x STUDIO_K. The weave reads through it.
         lit = mix("ADD", mix("MULTIPLY", base, STUDIO_K), den["glow"])
-        fl = mix("MULTIPLY", den["flood"], FLOOD_G)
+        kv = KD.kelvin(FLOOD_K)
+        tn = tr.nodes.new("CompositorNodeMixRGB")
+        tn.blend_type = "MULTIPLY"
+        tn.inputs["Fac"].default_value = 1.0
+        tr.links.new(base, tn.inputs[1])
+        tn.inputs[2].default_value = (*[IN_K * (1.0 - TINT_A * (1.0 - x)) for x in kv], 1)
+        warm = mix("ADD", tn.outputs["Image"], den["glow"])
+
+        def blend(a, b, fac):
+            n = tr.nodes.new("CompositorNodeMixRGB")
+            n.blend_type = "MIX"
+            tr.links.new(fac, n.inputs["Fac"])
+            tr.links.new(a, n.inputs[1])
+            tr.links.new(b, n.inputs[2])
+            return n.outputs["Image"]
+        fl = mix("MULTIPLY", den["flood"], FLOOD_G_PACE if EOPT.get("feel") == "pace" else FLOOD_G)
         for s in STAGES:
             tag = "s%03d" % round(s * 100)
             if s <= 0:
@@ -458,12 +498,12 @@ def build_comp(sc, src, o, out_stem):
             band = m("MULTIPLY", m("EXPONENT", m("MULTIPLY", m("POWER", m("DIVIDE", m("SUBTRACT", r, s), FRONT_W), 2.0),
                                                      -1.0)), inside)
             k = m("MULTIPLY", mk, m("ADD", m("MULTIPLY", band, FRONT_K if s < 1.0 else 0.0), 1.0))
-            outs[tag] = mix("ADD", lit, glow(mix("MULTIPLY", fl, k)))
+            outs[tag] = mix("ADD", blend(lit, warm, mk), glow(mix("MULTIPLY", fl, k)))
         ln = m("MULTIPLY", m("MULTIPLY", m("SUBTRACT", r, 1.0 - LINE_W), 1.0 / LINE_W, clamp=False), inside)
         ln = m("MULTIPLY", m("MINIMUM", m("MAXIMUM", ln, 0.0), 1.0), LINE_G)
         se = 1.0 + SOFT
         k1 = m("MULTIPLY", m("ADD", m("DIVIDE", m("SUBTRACT", se, r), SOFT), 0.5, clamp=True), inside)
-        outs["s100-line"] = mix("ADD", lit, glow(mix("MULTIPLY", fl, m("ADD", k1, ln))))
+        outs["s100-line"] = mix("ADD", blend(lit, warm, k1), glow(mix("MULTIPLY", fl, m("ADD", k1, ln))))
     fo = tr.nodes.new("CompositorNodeOutputFile")
     fo.base_path = os.path.dirname(out_stem)
     fo.format.file_format = "PNG"
