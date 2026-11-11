@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { SiteHeader } from "@/components/chrome/Chrome";
+import { GalleryLead } from "@/components/reserve/Gallery";
 import { ReserveExperience } from "@/components/reserve/ReserveExperience";
 import styles from "@/components/reserve/Reserve.module.css";
 import { tierById } from "@/content/lineup";
@@ -41,7 +42,10 @@ function ReserveShell() {
     <div className={styles.layout} data-reserve-shell="" aria-busy="true">
       <div className={`${styles.gallery} ${styles.shellGallery}`} aria-hidden="true">
         <div className={styles.track}>
-          <div className={styles.slide} data-active="true" />
+          {/* The opening still (both feels), so the phone's LCP image loads before the edition streams in. */}
+          <div className={styles.slide} data-active="true" data-fit="contain" data-field="dark">
+            <GalleryLead className={styles.slideStill} />
+          </div>
         </div>
       </div>
       <div className={`${styles.options} ${styles.shellOptions}`} aria-hidden="true" />

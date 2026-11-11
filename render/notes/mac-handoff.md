@@ -73,3 +73,19 @@ After each item: push masters, append to `STATUS-mac.md`, push.
 If the cloud asks (through `STATUS-mac.md` requests in the masters repo, lines starting `REQUEST`), run it here:
 preview renders for look decisions, image comparisons on full-size masters, heavy image processing. Answer by
 pushing results and a `DONE <request>` line.
+
+## 5. Exports on the Mac (owner, 2026-11-08: "moving the image encoding to Erik's Mac")
+- Since the grip-edge batch (mac/exports 96d767f2, Release 14) the Mac also EXPORTS what it renders: the AVIF/WebP
+  ladders (`scripts/stills.mjs`) and swivel frames (`render/seq_rebuild.py`, then `scripts/sequence.mjs`), 20-40x faster
+  than the 4-core cloud. The cloud keeps the review, the merge, the site checks and every release.
+- Set-up: a worktree `~/kinetiq-render/kinetiq-exports` on branch `mac/exports`; Node 22 (Homebrew node@22, keg-only);
+  `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm ci` (sharp 0.35.5 from the lockfile; never npm install/update).
+- Parity (2026-11-08, K04-base): WebP byte-identical to the cloud's; AVIF as faithful to the pre-encode pixels (arm64
+  aom takes other decisions), +2 to +5 % bytes at the smallest widths. Bounds for later checks: mean abs diff vs a cloud
+  encode <= 0.7/255, size within +6 %.
+- Every batch: `render/mac_export.sh` rebases mac/exports on the latest origin/wip/owner-update (the cloud owns
+  stills.json crops and q values, code and docs: never edit them on the Mac), exports only the batch's ids, commits ONLY
+  `public/stills/**` and `src/content/stills.generated.json`, refuses to push on any *.png/*.exr, any file over 5 MB or
+  any other path, pushes `mac/exports` (never main, never wip/owner-update), then a STATUS line
+  `EXPORTED <item> mac/exports@<sha> <ids>`. The cloud fast-forwards wip onto it after review.
+- Previews and concept renders that are not for the site (e.g. the Edge to edge concepts) push masters only, no export.
