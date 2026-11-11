@@ -152,7 +152,8 @@ def lights_for(r, i, cam, side):
     # the key: KD's offsets are in the racket's own frame; the across axis turns with the racket, so for a racket
     # turned the other way (side -1) the key comes from its other (outer) side
     kl = c + up * KD.KEY_UP + across * (KD.KEY_SIDE * side) + nrm * KD.KEY_OUT
-    key = studio.spot_light("lg_key_%d" % i, tuple(kl), KD.KEY_S, KD.KEY_DEG, blend=KD.KEY_BLEND,
+    lift = (not pace) and KD.C_LIFT > 0     # command-dark-lift (OK'd 09:58Z): K11-dark's Command lift, per racket
+    key = studio.spot_light("lg_key_%d" % i, tuple(kl), KD.KEY_S * (KD.C_KEY_K if lift else 1.0), KD.KEY_DEG, blend=KD.KEY_BLEND,
                             color=KD.kelvin(5600.0), target=tuple(c + up * KD.KEY_AIM_UP + across * (KD.KEY_AIM_SIDE * side)),
                             radius=KD.KEY_SIZE)
     key.lightgroup = "key"
@@ -161,7 +162,8 @@ def lights_for(r, i, cam, side):
     KL7.link_receivers(key, [ob_ for k, ob_ in C.parts(r).items() if not (pace and k in ("face", "holes"))],
                        "recv_key_%d" % i)
     sd = (Matrix.Rotation(math.radians(KD.SHEEN_EL), 3, ax_up) @ mirror).normalized()
-    sh = studio.area_light("lg_sheen_%d" % i, tuple(c + sd * KD.SHEEN_D), KD.SHEEN_LEN, KD.SHEEN_S,
+    sh = studio.area_light("lg_sheen_%d" % i, tuple(c + sd * KD.SHEEN_D), KD.SHEEN_LEN,
+                           KD.SHEEN_S * (KD.C_SHEEN_K if lift else 1.0),
                            color=KD.kelvin(6200.0), size_y=KD.SHEEN_W, target=tuple(c))
     lx = sh.matrix_world.to_3x3() @ Vector((1, 0, 0))
     ang = lx.angle(across)
@@ -215,11 +217,21 @@ def lights_for(r, i, cam, side):
             KL7.link_receivers(hl, mine, "recv_handle_%d" % i)
         if KD.CMD_WALL_S > 0:
             wd = (Matrix.Rotation(math.radians(-55.0 * side), 3, Vector((0, 0, 1))) @ (cam.location - c).normalized())
-            wl = studio.area_light("lg_wall_%d" % i, tuple(c - up * 0.12 + wd * 0.8), 0.5, KD.CMD_WALL_S,
+            wl = studio.area_light("lg_wall_%d" % i, tuple(c - up * 0.12 + wd * 0.8), 0.5,
+                                   KD.C_WALL_S if lift else KD.CMD_WALL_S,
                                    color=KD.kelvin(6500.0), size_y=0.6, target=tuple(c - up * 0.12))
             wl.visible_glossy = False
             wl.lightgroup = "fill"
             KL7.link_receivers(wl, C.objs(r, "wall", "neck", "rim"), "recv_wall_%d" % i)
+        if lift:
+            # K11-dark's soft fill toward the shaded half (mirrored for a racket keyed from its other side) and one
+            # diagonal sheen streak at the face's mirror direction, linked to this racket alone
+            az0 = KD.C_FILL_AZ
+            KD.C_FILL_AZ = az0 * side
+            try:
+                KD.cmd_lift_racket(r, cam)
+            finally:
+                KD.C_FILL_AZ = az0
 
 
 def crops16(paths, crops):
@@ -262,8 +274,9 @@ def main():
     for r in roots:
         P = C.parts(r)
         if "holes" in P:   # pace-dark-fix (c): Pace bores glow in a thin band inside each lip (K11-dark P_LIP)
-            lip = r.get("kq_feel") == "pace" and KD.P_FIX > 0 and KD.P_LIP > 0
-            KD.set_glow(P["holes"], "lip" if lip else "depth", KD.GLOW_S)
+            pc = r.get("kq_feel") == "pace"
+            lip = (pc and KD.P_FIX > 0 and KD.P_LIP > 0) or (not pc and KD.C_LIP > 0)
+            KD.set_glow(P["holes"], "lip" if lip else "depth", KD.GLOW_S * (KD.C_LIP_K if (not pc and KD.C_LIP > 0) else 1.0))
         for k, ob in P.items():   # pace-dark-fix (d): THROAT_GLOW 0 on both feels (the copper swoosh)
             if (k == "throat" or k.startswith("thr") or k == "bridgewall") and KD.THROAT_GLOW > 0:
                 KD.set_glow(ob, "depth", KD.GLOW_S * KD.THROAT_GLOW)

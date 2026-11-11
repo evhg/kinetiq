@@ -123,6 +123,8 @@ C_YAW = 25.0        # a little more frontal (was YAW 40): the face, not the wall
 C_FILL_S, C_FILL_AZ, C_FILL_D, C_FILL_UP, C_FILL_SIZE = 6.0, 35.0, 1.4, 0.2, 1.6   # diffuse-only soft card, camera side
 C_STREAK_S, C_STREAK_UP, C_STREAK_D = 30.0, 0.0, 1.5   # glossy-only strip at the face's mirror direction
 C_STREAK_LEN, C_STREAK_W, C_STREAK_ANG = 2.4, 0.10, 35.0
+C_LIP, C_LIP_K = 1.0, 0.5   # command-dark-lift:OK (09:58Z): Command bores glow as a thin ring inside each lip at half
+                            # strength (frontal, the whole lit wall read as copper dots); every Command frame
 C_WALL_S = 10.0     # the camera-side wall card (CMD_WALL_S 14): the 38 mm wall reads as white twill, not a grey slab
 # ------------------------------------------------------------------ Pace in the dark (cloud REQUEST pace-dark-fix, 2026-11-11:
 # the owner's iPhone screenshots: Pace read as line art). P_FIX 0 = the 2026-11-07 Pace exactly.
@@ -599,6 +601,19 @@ def cmd_lift(cmd_r, cam, c, up, across, nrm, mirror, ax_up):
                            "recv_streak")
 
 
+def cmd_lift_racket(r, cam):
+    """cmd_lift for one Command racket in another shot's scene (Kdark_row, K09-dark): its own frame and mirror direction;
+    returns the lights it made (the caller may move them to its own light groups)."""
+    from mathutils import Matrix
+    c, up, across, nrm = racket_frame(r)
+    v = (cam.location - c).normalized()
+    mirror = (2 * v.dot(nrm) * nrm - v).normalized()
+    ax_up = mirror.cross(up).normalized()
+    before = set(bpy.data.objects)
+    cmd_lift([r], cam, c, up, across, nrm, mirror, ax_up)
+    return [o_ for o_ in bpy.data.objects if o_ not in before]
+
+
 def grade_card(roots, cam):
     """pace-dark-fix (a): a long soft emissive card (glossy rays only, never seen) along the whole Pace racket, P_GRADE_OFF
     degrees off the face's mirror direction about the long axis, so the clear coat never mirrors it while the tapes' fibre
@@ -844,8 +859,9 @@ def main():
         P = C.parts(r)
         for k in ("holes",):
             if k in P:
-                lip = r.get("kq_feel") == "pace" and P_FIX > 0 and P_LIP > 0
-                set_glow(P[k], "lip" if lip else "depth", GLOW_S)
+                pc = r.get("kq_feel") == "pace"
+                lip = (pc and P_FIX > 0 and P_LIP > 0) or (not pc and C_LIP > 0)
+                set_glow(P[k], "lip" if lip else "depth", GLOW_S * (C_LIP_K if (not pc and C_LIP > 0) else 1.0))
         for k, ob in P.items():
             if (k == "throat" or k.startswith("thr") or k == "bridgewall") and THROAT_GLOW > 0:
                 set_glow(ob, "depth", GLOW_S * THROAT_GLOW)

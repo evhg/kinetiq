@@ -22,6 +22,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 
+C9_LIFT = 1.0    # command-dark-lift: K11-dark's Command fill + streak in the case, x this
+
 def _load(name, fn):
     sp = importlib.util.spec_from_file_location(name, os.path.join(HERE, fn))
     m = importlib.util.module_from_spec(sp)
@@ -119,6 +121,14 @@ def main():
                                    blend=CMD_RAKE_BLEND, color=KD.kelvin(5600.0), target=tuple(aim), radius=RAKE_SIZE)
             L.link_receivers(rk, [o_ for kk, o_ in P.items() if kk != "grip"], "recv_rake_" + r.name)
             rk.lightgroup = "lg_key"
+    if (not KC.PACE) and C9_LIFT > 0 and KD.C_LIFT > 0:
+        # command-dark-lift (OK'd 09:58Z): K11-dark's soft fill and diagonal sheen streak on each Command racket,
+        # linked to it alone; this case's own light groups (key for both: the fill is diffuse-only, the streak glossy-only)
+        for r in roots:
+            for o_ in KD.cmd_lift_racket(r, sc.camera):
+                if o_.type == "LIGHT":
+                    o_.data.energy *= C9_LIFT
+                    o_.lightgroup = "lg_key"
     if RAKE_FELT > 0:
         felt = [o_ for o_ in sc.objects if o_.name in ("Felt", "Tray")]
         rf = studio.spot_light("lg_rake_felt", RAKE_AT, RAKE_S * RAKE_FELT, RAKE_DEG + 10, blend=1.0,
@@ -159,7 +169,8 @@ def main():
     for r in roots:
         P = C.parts(r)
         if "holes" in P:   # pace-dark-fix (c): Pace bores glow in a thin band inside each lip
-            KD.set_glow(P["holes"], "lip" if (pfix and KD.P_LIP > 0) else "depth", gs)
+            clip = (not KC.PACE) and KD.C_LIP > 0   # command-dark-lift:OK: Command a thin lip ring at half strength
+            KD.set_glow(P["holes"], "lip" if ((pfix and KD.P_LIP > 0) or clip) else "depth", gs * (KD.C_LIP_K if clip else 1.0))
         for kk, ob in P.items():
             if (kk == "throat" or kk.startswith("thr") or kk == "bridgewall") and THROAT_GLOW > 0:
                 KD.set_glow(ob, "depth", gs * THROAT_GLOW)
