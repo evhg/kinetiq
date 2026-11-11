@@ -14,6 +14,13 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false, nocache: true },
 };
 
+/** The index: each option's key frame, linking to its chapter. */
+const CARDS = [
+  { key: "A", name: "The face fills with light", still: "E2E-A-s100-line" },
+  { key: "B", name: "Flat to the edge", still: "E2E-B-s4" },
+  { key: "C", name: "A ball at the very edge", still: "E2E-C-rings" },
+];
+
 export default function EdgeToEdgePreview() {
   return (
     <>
@@ -27,15 +34,16 @@ export default function EdgeToEdgePreview() {
             in the header changes the feel.
           </p>
           <ol className={styles.index}>
-            <li>
-              <a href="#option-a">A · The face fills with light</a>
-            </li>
-            <li>
-              <a href="#option-b">B · Flat to the edge</a>
-            </li>
-            <li>
-              <a href="#option-c">C · A ball at the very edge</a>
-            </li>
+            {CARDS.map((c) => (
+              <li key={c.key}>
+                <a href={`#option-${c.key.toLowerCase()}`} className={styles.card}>
+                  <Still id={c.still} crop="ewide" alt="" bare={false} sizes="(min-width: 700px) 30vw, 100vw" className={styles.cardStill} />
+                  <span className={styles.cardLabel}>
+                    <b>{c.key}</b> {c.name}
+                  </span>
+                </a>
+              </li>
+            ))}
           </ol>
         </header>
         <EdgeOptions />

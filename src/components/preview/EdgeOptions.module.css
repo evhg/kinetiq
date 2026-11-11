@@ -119,3 +119,52 @@
     width: min(100cqw, 100cqh * 16 / 9);
   }
 }
+
+/* The side layout (A, C) from 900 px: the words in columns 1 to 4, centred on the screen's height; the frame fills
+   columns 5 to 12 (and the margin) from the header to the foot, the 16:9 render cropped to that box (cover, at each layer's --pos), and
+   feathered into the stage on its left so the words sit on the studio's dark. */
+@media (min-width: 900px) {
+  .beat[data-layout="side"] {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-template-rows: minmax(0, 1fr);
+    column-gap: var(--gutter);
+    padding: var(--chrome-h) var(--margin) 0;
+  }
+  .beat[data-layout="side"] .words {
+    grid-column: 1 / span 4;
+    grid-row: 1;
+    align-self: center;
+    grid-template-columns: none;
+    position: relative;
+    z-index: 1;
+  }
+  .beat[data-layout="side"] .words > *,
+  .beat[data-layout="side"] .line {
+    grid-column: auto;
+    grid-row: auto;
+  }
+  .beat[data-layout="side"] .title {
+    font-size: min(var(--fs-h2), 8svh, 4.6vw);
+  }
+  .beat[data-layout="side"] .media {
+    grid-column: 5 / -1;
+    grid-row: 1;
+    margin-right: calc(var(--margin) * -1);
+    container-type: normal;
+    display: block;
+  }
+  .beat[data-layout="side"] .frame {
+    aspect-ratio: auto;
+    width: 100%;
+    height: 100%;
+    -webkit-mask-image:
+      linear-gradient(transparent, #000 7%, #000 93%, transparent),
+      linear-gradient(90deg, transparent, #000 18%, #000 97%, transparent);
+    mask-image:
+      linear-gradient(transparent, #000 7%, #000 93%, transparent),
+      linear-gradient(90deg, transparent, #000 18%, #000 97%, transparent);
+  }
+  .beat[data-layout="side"] .still img {
+    object-position: var(--pos, 50% 50%);
+  }
+}

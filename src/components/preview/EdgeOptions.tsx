@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, type CSSProperties } from "react";
 import { Still } from "@/components/media/Still";
 import { useMotion } from "@/components/motion/MotionProvider";
 import { PinnedChapter } from "@/components/motion/PinnedChapter";
@@ -16,7 +16,8 @@ import styles from "./EdgeOptions.module.css";
  * The stages of A and B are pixel-registered passes of one render: stacked, each fades in over the one before.
  */
 
-type Layer = { id: string; alt: string };
+/** pos: the image's object-position where the desktop side layout crops the 16:9 frame (default centred). */
+type Layer = { id: string; alt: string; pos?: string };
 type Option = {
   key: "a" | "b" | "c";
   next: string;
@@ -24,6 +25,12 @@ type Option = {
   line: string;
   /** Phone frame shape: the ephone crop's own aspect ratio. */
   phone: "portrait" | "band";
+  /**
+   * From 900 px: "side", the words in the left columns and the frame filling the rest of the screen (cropped, as the
+   * landing page crops its stills, so a centred subject is as large as the screen allows); "band", the words across
+   * the top and the whole 16:9 frame below them (B: its subject runs the frame's full width).
+   */
+  layout: "side" | "band";
   layers: Layer[];
   /** The scrubbed timeline (0 to 1): the same one pinned and, below 900 px, while the image crosses the screen. */
   build: (tl: gsap.core.Timeline, layer: (i: number) => string) => void;
@@ -47,6 +54,7 @@ const OPTIONS: Option[] = [
     name: "The face fills with light",
     line: "A warm light spreads from the centre of the face and reaches the edge all the way round at once, then a fine line draws where the flat face ends: the sweet spot, as designed, runs edge to edge.",
     phone: "portrait",
+    layout: "side",
     layers: A_STAGES.map((s, i) => ({
       id: `E2E-A-${s}`,
       alt:
@@ -70,6 +78,7 @@ const OPTIONS: Option[] = [
     name: "Flat to the edge",
     line: "Seen along the face, a warm line runs from the throat to the crown, dead straight across the flat face, and bends only where it meets the edge: flat, and sweet, as designed, right out to it.",
     phone: "band",
+    layout: "band",
     layers: B_STAGES.map((s, i) => ({
       id: `E2E-B-${s}`,
       alt: i === 0 ? "A KINETIQ face seen low along its surface, a warm line of light near the throat." : "The warm line further along the face toward the crown.",
@@ -87,9 +96,10 @@ const OPTIONS: Option[] = [
     name: "A ball at the very edge",
     line: "A ball meets the face at its widest point, right at the rim, as soft rings of light spread evenly across the whole face: as designed, a shot that far out still meets the sweet spot.",
     phone: "portrait",
+    layout: "side",
     layers: [
-      { id: "E2E-C-full", alt: "A padel ball pressed onto a KINETIQ face at its widest point, right at the rim." },
-      { id: "E2E-C-rings", alt: "The same ball at the rim, soft rings of warm light spreading evenly across the face." },
+      { id: "E2E-C-full", alt: "A padel ball pressed onto a KINETIQ face at its widest point, right at the rim.", pos: "22% 50%" },
+      { id: "E2E-C-rings", alt: "The same ball at the rim, soft rings of warm light spreading evenly across the face.", pos: "22% 50%" },
       { id: "E2E-Cwide-rings", alt: "The whole racket, the ball at the rim and the rings across the face." },
     ],
     build: (tl, layer) => {
@@ -140,7 +150,7 @@ function OptionChapter({ option, index }: { option: Option; index: number }) {
       length={2}
       build={(tl) => option.build(tl, layer)}
     >
-      <div ref={beat} className={`beat ${styles.beat}`} data-phone={option.phone}>
+      <div ref={beat} className={`beat ${styles.beat}`} data-phone={option.phone} data-layout={option.layout}>
         <div className={styles.words}>
           <p id={`option-${option.key}-eyebrow`} className="t-eyebrow">
             {`Option ${option.key.toUpperCase()} · ${index + 1} of ${OPTIONS.length}`}
@@ -153,7 +163,7 @@ function OptionChapter({ option, index }: { option: Option; index: number }) {
         <div className={styles.media}>
           <div className={styles.frame}>
             {option.layers.map((l, i) => (
-              <div key={l.id} className={styles.layer} data-layer={i}>
+              <div key={l.id} className={styles.layer} data-layer={i} style={l.pos ? ({ "--pos": l.pos } as CSSProperties) : undefined}>
                 <Still
                   id={l.id}
                   crop="ewide"
