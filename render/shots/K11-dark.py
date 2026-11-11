@@ -114,6 +114,16 @@ GRIP_FRONT_S, GRIP_FRONT_AZ, GRIP_FRONT_W, GRIP_FRONT_H, GRIP_FRONT_UP = 2.0, 0.
 GRIP_CAP = 1.0
 GRIP_CAP_S = 30.0   # W: the cap's own soft card (the front card's place and size, linked to the cap and its Q alone):
                     # satin black anodised metal reflects 4 %, so it needs more than the overgrip to sit at its level
+# ------------------------------------------------------------------ Command lifted (cloud REQUEST command-dark-lift,
+# 2026-11-11 09:25Z: the white face reads white across its whole width, as the K01 hero beam). C_LIFT 0 = before.
+C_LIFT = 1.0
+C_KEY_K = 0.3       # the raking key scaled for an all-Command frame (the white face sat at the view transform's
+C_SHEEN_K = 0.4     # shoulder and its twill washed out; the K01 hero's weave reads at mid-grey); the sheen strip too
+C_YAW = 25.0        # a little more frontal (was YAW 40): the face, not the wall, carries the image
+C_FILL_S, C_FILL_AZ, C_FILL_D, C_FILL_UP, C_FILL_SIZE = 6.0, 35.0, 1.4, 0.2, 1.6   # diffuse-only soft card, camera side
+C_STREAK_S, C_STREAK_UP, C_STREAK_D = 30.0, 0.0, 1.5   # glossy-only strip at the face's mirror direction
+C_STREAK_LEN, C_STREAK_W, C_STREAK_ANG = 2.4, 0.10, 35.0
+C_WALL_S = 10.0     # the camera-side wall card (CMD_WALL_S 14): the 38 mm wall reads as white twill, not a grey slab
 # ------------------------------------------------------------------ Pace in the dark (cloud REQUEST pace-dark-fix, 2026-11-11:
 # the owner's iPhone screenshots: Pace read as line art). P_FIX 0 = the 2026-11-07 Pace exactly.
 P_FIX = 1.0
@@ -353,12 +363,13 @@ def build_rackets(o):
     else:
         r0, _ = C.build_racket("KQ_F", feel=feel, serial=C.SERIAL, mat_opts=pace_opts(feel))
         roots = [r0]
-    C.pose(roots[0], (0.0, 0.0, HC), yaw_deg=YAW, roll_deg=ROLL, tilt_deg=90.0)
+    yaw = C_YAW if (C_LIFT > 0 and all(r.get("kq_feel") != "pace" for r in roots)) else YAW
+    C.pose(roots[0], (0.0, 0.0, HC), yaw_deg=yaw, roll_deg=ROLL, tilt_deg=90.0)
     if len(roots) > 1:
         bpy.context.view_layer.update()
         c, up, across, nrm = racket_frame(roots[0])
         loc = c - nrm * P_GAP + across * P_SHIFT + up * P_RISE
-        C.pose(roots[1], tuple(loc), yaw_deg=YAW, roll_deg=ROLL, tilt_deg=90.0)
+        C.pose(roots[1], tuple(loc), yaw_deg=yaw, roll_deg=ROLL, tilt_deg=90.0)
     bpy.context.view_layer.update()
     return roots
 
@@ -462,13 +473,15 @@ def lights(roots, o):
     # key: low, raking, from the crown side: a soft spot high at the crown's outer side, near the face plane, its cone
     # edge crossing the head so the face falls from a bright highlight to deep shade across its width
     kl = c + up * KEY_UP + across * KEY_SIDE + nrm * KEY_OUT
-    key = studio.spot_light("lg_key", tuple(kl), KEY_S, KEY_DEG, blend=KEY_BLEND, color=kelvin(5600.0),
+    ks = KEY_S * (C_KEY_K if (cmd_r and not pace_r and C_LIFT > 0) else 1.0)
+    key = studio.spot_light("lg_key", tuple(kl), ks, KEY_DEG, blend=KEY_BLEND, color=kelvin(5600.0),
                             target=tuple(c + up * KEY_AIM_UP + across * KEY_AIM_SIDE), radius=KEY_SIZE)
     key.lightgroup = "key"
     # sheen: a thin glossy-only strip SHEEN_EL degrees above the face's mirror direction: the face never mirrors it,
     # the lip of every hole (its upper side) and the edge radius at the crown catch it as a crescent / a line
     sd = (Matrix.Rotation(math.radians(SHEEN_EL), 3, ax_up) @ mirror).normalized()
-    sh = studio.area_light("lg_sheen", tuple(c + sd * SHEEN_D), SHEEN_LEN, SHEEN_S, color=kelvin(6200.0),
+    shs = SHEEN_S * (C_SHEEN_K if (cmd_r and not pace_r and C_LIFT > 0) else 1.0)
+    sh = studio.area_light("lg_sheen", tuple(c + sd * SHEEN_D), SHEEN_LEN, shs, color=kelvin(6200.0),
                            size_y=SHEEN_W, target=tuple(c))
     # the strip's long side runs across the racket: roll the light about its own axis so local X follows `across`
     lx = sh.matrix_world.to_3x3() @ Vector((1, 0, 0))
@@ -522,7 +535,7 @@ def lights(roots, o):
             KL7.link_receivers(rl_, [ob_ for r in (pace_r or roots) for k, ob_ in C.parts(r).items()
                                      if k not in ("holes", "throat", "bridgewall", "grip") and not k.startswith("thr")],
                                "recv_rim" + nm)
-    wsl = CMD_WALL_S if cmd_r else WALL_S
+    wsl = (C_WALL_S if C_LIFT > 0 else CMD_WALL_S) if cmd_r else WALL_S
     if wsl > 0:
         # Command: the wall and neck on the camera's left fall to clean, soft white-in-shade, not a streaky dark patch
         wd = (Matrix.Rotation(math.radians(-55.0), 3, Vector((0, 0, 1))) @ (cam.location - c).normalized())
@@ -534,6 +547,8 @@ def lights(roots, o):
         for r in (cmd_r or roots):
             wr += C.objs(r, "wall", "neck", "rim")
         KL7.link_receivers(wl, wr, "recv_wall")
+    if cmd_r and C_LIFT > 0:
+        cmd_lift(cmd_r, cam, c, up, across, nrm, mirror, ax_up)
     # fill: weak, cool, from the camera side
     fl = studio.area_light("lg_fill", tuple(cam.location * 0.6 + c * 0.4 + Vector((0.0, 0.0, 0.25))), 1.2, FILL_S,
                            color=kelvin(7500.0), target=tuple(c))
@@ -549,6 +564,39 @@ def lights(roots, o):
         wc.lightgroup = "sheen"
         if cmd_r:
             KL7.link_receivers(wc, [ob_ for r in pace_r for ob_ in C.objs(r, "all")], "recv_weave")
+
+
+def cmd_lift(cmd_r, cam, c, up, across, nrm, mirror, ax_up):
+    """command-dark-lift (cloud 09:25Z; the K01 hero beam as the yardstick): the white 3K face reads white across its whole
+    width. A broad soft fill card on the camera side, toward the shaded half (diffuse only: the lacquer never mirrors it),
+    lifts the shade to a soft light grey with a soft terminator; one soft diagonal streak card at the face's mirror
+    direction (glossy only) lays a single sheen streak across the face, as on the hero. Linked to the Command rackets."""
+    from mathutils import Matrix
+    import k789_lib as KL7
+    mine = [ob_ for r in cmd_r for k, ob_ in C.parts(r).items() if k not in ("grip", "cap", "capmark")]
+    if C_FILL_S > 0:
+        vc = (cam.location - c)
+        vc.z = 0.0
+        vc.normalize()
+        fd = (Matrix.Rotation(math.radians(C_FILL_AZ), 3, Vector((0, 0, 1))) @ vc).normalized()
+        fl = studio.area_light("lg_cfill", tuple(c + fd * C_FILL_D + Vector((0, 0, C_FILL_UP))), C_FILL_SIZE, C_FILL_S,
+                               color=kelvin(6000.0), size_y=C_FILL_SIZE * 1.3, target=tuple(c - up * 0.08))
+        fl.visible_glossy = False
+        fl.lightgroup = "fill"
+        KL7.link_receivers(fl, mine, "recv_cfill")
+    if C_STREAK_S > 0:
+        sd = (Matrix.Rotation(math.radians(C_STREAK_UP), 3, ax_up) @ mirror).normalized()
+        st = studio.area_light("lg_streak", tuple(c + sd * C_STREAK_D), C_STREAK_LEN, C_STREAK_S, color=kelvin(6200.0),
+                               size_y=C_STREAK_W, target=tuple(c))
+        # the strip's long side diagonal on the face: local X turned C_STREAK_ANG from `across` toward `up`
+        want = (across * math.cos(math.radians(C_STREAK_ANG)) + up * math.sin(math.radians(C_STREAK_ANG))).normalized()
+        lx = st.matrix_world.to_3x3() @ Vector((1, 0, 0))
+        ang = lx.angle(want)
+        st.rotation_euler.rotate(Matrix.Rotation(ang if lx.cross(want).dot(-sd) >= 0 else -ang, 3, -sd).to_euler())
+        st.visible_diffuse = False
+        st.lightgroup = "sheen"
+        KL7.link_receivers(st, [ob_ for r in cmd_r for k, ob_ in C.parts(r).items() if k in ("face", "back", "etchL", "etchR")],
+                           "recv_streak")
 
 
 def grade_card(roots, cam):
