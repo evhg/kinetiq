@@ -34,6 +34,7 @@ F_YAW, F_ROLL = 30.0, 6.0          # feels: each turned toward the centre by F_Y
 F_CX = (0.225, 0.775)              # feels: racket centres in the frame (the crops' centres)
 F_H = 0.80                         # feels: racket height as a fraction of the frame height
 F_LENS = 85.0
+ROW_GRADE_OFF = -20.0              # pace-dark-fix: K11-dark P_GRADE_OFF in the row (0: K11-dark's own)
 R_YAW, R_ROLL = 32.0, -5.0         # row: all five turned the same way
 R_N = 5
 R_SPAN = 0.68                      # row: first to last racket centre, fraction of the frame width
@@ -173,7 +174,9 @@ def lights_for(r, i, cam, side):
     vc.normalize()
     if pace:
         dirn = (Matrix.Rotation(math.radians(KD.WEAVE_UP), 3, ax_up) @ mirror).normalized()
-        wc = studio.area_light("lg_weave_%d" % i, tuple(c + dirn * 1.6), KD.WEAVE_SIZE, KD.P_WEAVE_S,
+        pk = KD.P_FIX > 0      # pace-dark-fix (a)+(b): the weave card and the back strips scaled as in K11-dark
+        wc = studio.area_light("lg_weave_%d" % i, tuple(c + dirn * 1.6), KD.WEAVE_SIZE,
+                               KD.P_WEAVE_S * (KD.P_WEAVE_K if pk else 1.0),
                                color=KD.kelvin(6200.0), target=tuple(c))
         wc.visible_diffuse = False
         wc.lightgroup = "sheen"
@@ -188,7 +191,8 @@ def lights_for(r, i, cam, side):
             az_ = sgn * abs(KD.RIM_AZ_R if wide else KD.RIM_AZ)
             rd = (Matrix.Rotation(math.radians(az_), 3, Vector((0, 0, 1))) @ vc).normalized()
             rl_ = studio.area_light("lg_rim%s_%d" % (nm, i), tuple(mid + rd * KD.RIM_D),
-                                    KD.RIM_W_R if wide else KD.RIM_W, KD.RIM_S_R if wide else KD.P_RIM_S,
+                                    KD.RIM_W_R if wide else KD.RIM_W,
+                                    (KD.RIM_S_R if wide else KD.P_RIM_S) * (KD.P_RIM_K if pk else 1.0),
                                     color=KD.kelvin(8000.0), size_y=KD.RIM_LEN, target=tuple(mid))
             ly = rl_.matrix_world.to_3x3() @ Vector((0, 1, 0))
             z = Vector((0, 0, 1))
@@ -253,14 +257,15 @@ def main():
     feels = ("command", "pace") if o["mode"] == "feels" else FEELS_ROW
     roots = []
     for i, f in enumerate(feels):
-        r, _ = C.build_racket("KQ_%d" % i, feel=f, serial="KQ-%06d" % (427 + i))
+        r, _ = C.build_racket("KQ_%d" % i, feel=f, serial="KQ-%06d" % (427 + i), mat_opts=KD.pace_opts(f))
         roots.append(r)
     for r in roots:
         P = C.parts(r)
-        if "holes" in P:
-            KD.set_glow(P["holes"], "depth", KD.GLOW_S)
-        for k, ob in P.items():
-            if k == "throat" or k.startswith("thr") or k == "bridgewall":
+        if "holes" in P:   # pace-dark-fix (c): Pace bores glow in a thin band inside each lip (K11-dark P_LIP)
+            lip = r.get("kq_feel") == "pace" and KD.P_FIX > 0 and KD.P_LIP > 0
+            KD.set_glow(P["holes"], "lip" if lip else "depth", KD.GLOW_S)
+        for k, ob in P.items():   # pace-dark-fix (d): THROAT_GLOW 0 on both feels (the copper swoosh)
+            if (k == "throat" or k.startswith("thr") or k == "bridgewall") and KD.THROAT_GLOW > 0:
                 KD.set_glow(ob, "depth", KD.GLOW_S * KD.THROAT_GLOW)
         eg = KD.EDGE_GLOW if r.get("kq_feel") == "pace" else KD.CMD_EDGE_GLOW
         if "rim" in P and eg > 0:
@@ -283,6 +288,11 @@ def main():
     for i, r in enumerate(roots):
         side = -1 if (o["mode"] == "feels" and i == 1) else 1
         lights_for(r, i, cam, side)
+        # pace-dark-fix (a): each Pace racket its own graded card, linked to it alone; in the row the card turns the other
+        # way off the mirror (ROW_GRADE_OFF: at +20 deg the fourth racket's tapes never caught it and stayed black)
+        if o["mode"] == "row" and ROW_GRADE_OFF != 0:
+            KD.P_GRADE_OFF = ROW_GRADE_OFF
+        KD.grade_card([r], cam)
     fl = studio.area_light("lg_fill", tuple(cam.location * 0.6 + Vector((0.0, 0.0, 0.25))), 1.6, KD.FILL_S,
                            color=KD.kelvin(7500.0), target=(0.0, 0.0, KD.HC - 0.1))
     fl.lightgroup = "fill"

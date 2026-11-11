@@ -87,7 +87,8 @@ GLOW_S = 9.0        # emission strength at the core (camera rays only)
 GLOW_LAM = 0.0022   # e-folding depth from the core (m): the bores glow toward the mid-plane
 GLOW_CORE = (1.0, 0.66, 0.36)
 GLOW_EDGE = (1.0, 0.42, 0.13)
-THROAT_GLOW = 1.0   # the throat's wall relative to the bores
+THROAT_GLOW = 0.0   # the throat's wall relative to the bores; 0 since pace-dark-fix (d): seen from K11's side the lit
+                    # wall drew a one-sided copper swoosh (both feels), too close to a famous sportswear mark
 EDGE_GLOW = 2.2     # the thin warm line along the edge radius (rim emission, grazing-weighted), Pace
 CMD_EDGE_GLOW = 16.0  # Command (on white the line needs more to read)
 EDGE_POW = 3.0
@@ -106,6 +107,28 @@ GRIP_RIM_W, GRIP_RIM_H = 0.02, 0.30    # m: the strips' size (grip-edge 2026-11-
 GRIP_SIDE_W, GRIP_SIDE_H = 0.35, 0.70  # white staircase; broad, dim strips give a soft continuous sheen)
 GRIP_DIST = 0.6                        # m from the grip's centre
 G_COOL = 0.0
+# pace-dark-fix:OK (cloud 09:12Z, grip twins, both feels): a broad soft card (glossy only) reaching the overgrip at low
+# strength, so the wrap reads as dark charcoal bands down the whole handle (still black, never grey); GRIP_CAP 1: the
+# cap and its Q lit by the grip's lights only (its highlight at the grip's level)
+GRIP_FRONT_S, GRIP_FRONT_AZ, GRIP_FRONT_W, GRIP_FRONT_H, GRIP_FRONT_UP = 2.0, 0.0, 0.8, 1.4, 0.0
+GRIP_CAP = 1.0
+GRIP_CAP_S = 30.0   # W: the cap's own soft card (the front card's place and size, linked to the cap and its Q alone):
+                    # satin black anodised metal reflects 4 %, so it needs more than the overgrip to sit at its level
+# ------------------------------------------------------------------ Pace in the dark (cloud REQUEST pace-dark-fix, 2026-11-11:
+# the owner's iPhone screenshots: Pace read as line art). P_FIX 0 = the 2026-11-07 Pace exactly.
+P_FIX = 1.0
+P_TAPE_ROUGH, P_TAPE_ANISO, P_COAT_ROUGH = 0.16, 0.60, 0.04   # (b) the tapes' fibre lobe less anisotropic (0.90 ->
+                    # 0.60), a touch rougher, the coat a little softer: the 12K reads grey to black with a sheen, not a
+                    # mirror-white chessboard
+P_GRADE_S = 7.0     # (a) a broad soft graded card (emission, glossy rays only, never seen) along the whole racket: crown
+P_GRADE_LOW = 0.25  # end W/m2-ish strength; the handle end relative to it (dimmer toward the Q, never black)
+P_GRADE_OFF = 20.0  # deg off the face's mirror direction, about the racket's long axis: the coat never mirrors its edge
+P_GRADE_D, P_GRADE_W, P_GRADE_L = 1.2, 1.6, 1.4   # distance (m), width across (smootherstep to 0 at the sides), length
+P_GRADE_CY = -0.05  # card centre along the racket's long axis from the head centre (m)
+P_RIM_K = 0.22      # (a) the back strips scaled: a soft rim light, not a hairline stroke
+P_WEAVE_K = 0.6     # (b) the old weave card scaled (its mirror-white squares)
+P_LIP = 1.0         # (c) Pace bores: the glow in a thin band just inside each lip, the bore's depth dark (a copper
+LIP_LAM = 0.0008    #     ring round a dark centre, not a copper stud); LIP_LAM its e-folding depth from the face (m)
 
 OPT = {}
 
@@ -173,14 +196,19 @@ def add_glow(mat, mode, strength):
     out = next(n for n in nodes if n.type == "OUTPUT_MATERIAL" and n.is_active_output)
     src = out.inputs["Surface"].links[0].from_socket
     lp = nodes.new("ShaderNodeLightPath")
-    if mode == "depth":
+    if mode in ("depth", "lip"):
         tc = nodes.new("ShaderNodeTexCoord")
         sp = nodes.new("ShaderNodeSeparateXYZ")
         links.new(tc.outputs["Object"], sp.inputs["Vector"])
         ab = _n(nodes, "ShaderNodeMath", "ABSOLUTE")
         links.new(sp.outputs["Z"], ab.inputs[0])
+        if mode == "lip":   # strongest at the faces (|z| = T2), falling toward the mid-plane
+            ab2 = _n(nodes, "ShaderNodeMath", "SUBTRACT")
+            ab2.inputs[0].default_value = C.T2
+            links.new(ab.outputs[0], ab2.inputs[1])
+            ab = ab2
         t = _n(nodes, "ShaderNodeMath", "MULTIPLY")
-        t.inputs[1].default_value = -1.0 / GLOW_LAM
+        t.inputs[1].default_value = -1.0 / (LIP_LAM if mode == "lip" else GLOW_LAM)
         links.new(ab.outputs[0], t.inputs[0])
         ex = _n(nodes, "ShaderNodeMath", "EXPONENT")
         links.new(t.outputs[0], ex.inputs[0])
@@ -303,6 +331,13 @@ def racket_frame(root):
     return c, up, across, nrm
 
 
+def pace_opts(feel):
+    """pace-dark-fix (b): the Pace tapes' material overrides (None: the canon's)."""
+    if feel != "pace" or P_FIX <= 0:
+        return None
+    return {"rough": P_TAPE_ROUGH, "aniso": P_TAPE_ANISO, "coat_rough": P_COAT_ROUGH}
+
+
 def build_rackets(o):
     feel = "pace" if o["feel"] == "pace" else "command"
     roots = []
@@ -312,11 +347,11 @@ def build_rackets(o):
         # canon: a First 500 set carries its set number on BOTH throats (k04-language-fix, cloud 21:51Z); the
         # command / pace mix is not a set and keeps the single's serial
         sn = SET_TEXT if (w in ("command", "pace") and PAIR_SET > 0) else C.SERIAL
-        r0, _ = C.build_racket("KQ_F", feel=feels[0], serial=sn)
-        r1, _ = C.build_racket("KQ_R", feel=feels[1], serial=sn)
+        r0, _ = C.build_racket("KQ_F", feel=feels[0], serial=sn, mat_opts=pace_opts(feels[0]))
+        r1, _ = C.build_racket("KQ_R", feel=feels[1], serial=sn, mat_opts=pace_opts(feels[1]))
         roots = [r0, r1]
     else:
-        r0, _ = C.build_racket("KQ_F", feel=feel, serial=C.SERIAL)
+        r0, _ = C.build_racket("KQ_F", feel=feel, serial=C.SERIAL, mat_opts=pace_opts(feel))
         roots = [r0]
     C.pose(roots[0], (0.0, 0.0, HC), yaw_deg=YAW, roll_deg=ROLL, tilt_deg=90.0)
     if len(roots) > 1:
@@ -473,6 +508,8 @@ def lights(roots, o):
             rd = (Matrix.Rotation(math.radians(az_), 3, Vector((0, 0, 1))) @ vc).normalized()
             wr_ = RIM_W_R if (sgn < 0 and RIM_W_R > 0) else RIM_W
             rs_ = RIM_S_R if (sgn < 0 and RIM_S_R > 0) else rs
+            if pace and P_FIX > 0:
+                rs_ *= P_RIM_K
             rl_ = studio.area_light("lg_rim" + nm, tuple(mid + rd * RIM_D), wr_, rs_, color=kelvin(8000.0),
                                     size_y=RIM_LEN, target=tuple(mid))
             ly = rl_.matrix_world.to_3x3() @ Vector((0, 1, 0))
@@ -502,6 +539,8 @@ def lights(roots, o):
                            color=kelvin(7500.0), target=tuple(c))
     fl.lightgroup = "fill"
     ws = P_WEAVE_S if pace else WEAVE_S
+    if pace and P_FIX > 0:
+        ws *= P_WEAVE_K
     if ws > 0:
         # Pace: a soft card a few degrees off the face's mirror direction (glossy only): the 12K tapes' lobes read
         dirn = (Matrix.Rotation(math.radians(WEAVE_UP), 3, ax_up) @ mirror).normalized()
@@ -512,34 +551,118 @@ def lights(roots, o):
             KL7.link_receivers(wc, [ob_ for r in pace_r for ob_ in C.objs(r, "all")], "recv_weave")
 
 
+def grade_card(roots, cam):
+    """pace-dark-fix (a): a long soft emissive card (glossy rays only, never seen) along the whole Pace racket, P_GRADE_OFF
+    degrees off the face's mirror direction about the long axis, so the clear coat never mirrors it while the tapes' fibre
+    lobes catch it from the crown to the Q end; its strength falls from P_GRADE_S at the crown end to P_GRADE_LOW of it at
+    the handle end (smoothstep), so the racket never drops to black below its top third."""
+    pace_r = [r for r in roots if r.get("kq_feel") == "pace"]
+    if not pace_r or P_FIX <= 0 or P_GRADE_S <= 0:
+        return None
+    from mathutils import Matrix
+    import k789_lib as KL7
+    c, up, across, nrm = racket_frame(pace_r[0])
+    v = (cam.location - c).normalized()
+    mirror = (2 * v.dot(nrm) * nrm - v).normalized()
+    dirn = (Matrix.Rotation(math.radians(P_GRADE_OFF), 3, up) @ mirror).normalized()
+    ctr = c + up * P_GRADE_CY + dirn * P_GRADE_D
+    zl = -dirn
+    yl = (up - up.dot(dirn) * dirn).normalized()
+    xl = yl.cross(zl).normalized()
+    w2, l2 = P_GRADE_W / 2, P_GRADE_L / 2
+    me = bpy.data.meshes.new("lg_grade")
+    me.from_pydata([(-w2, -l2, 0), (w2, -l2, 0), (w2, l2, 0), (-w2, l2, 0)], [], [(0, 1, 2, 3)])
+    ob = bpy.data.objects.new("lg_grade", me)
+    bpy.context.scene.collection.objects.link(ob)
+    M = Matrix((xl, yl, zl)).transposed().to_4x4()
+    M.translation = ctr
+    ob.matrix_world = M
+    m = bpy.data.materials.new("lg_grade")
+    m.use_nodes = True
+    nodes, links = m.node_tree.nodes, m.node_tree.links
+    for n in list(nodes):
+        nodes.remove(n)
+    out = nodes.new("ShaderNodeOutputMaterial")
+    em = nodes.new("ShaderNodeEmission")
+    em.inputs["Color"].default_value = (*kelvin(6200.0), 1)
+    tc = nodes.new("ShaderNodeTexCoord")
+    sp = nodes.new("ShaderNodeSeparateXYZ")
+    links.new(tc.outputs["Object"], sp.inputs["Vector"])
+    mr = _n(nodes, "ShaderNodeMapRange")
+    mr.interpolation_type = "SMOOTHSTEP"
+    mr.inputs["From Min"].default_value = -l2
+    mr.inputs["From Max"].default_value = l2
+    mr.inputs["To Min"].default_value = P_GRADE_S * P_GRADE_LOW
+    mr.inputs["To Max"].default_value = P_GRADE_S
+    links.new(sp.outputs["Y"], mr.inputs["Value"])
+    # soft across its width too (a flat face mirrors a hard card edge as a hard line): 1 at the centre line, 0 at the sides
+    ax = _n(nodes, "ShaderNodeMath", "ABSOLUTE")
+    links.new(sp.outputs["X"], ax.inputs[0])
+    mx = _n(nodes, "ShaderNodeMapRange")
+    mx.interpolation_type = "SMOOTHERSTEP"
+    mx.inputs["From Min"].default_value = 0.0
+    mx.inputs["From Max"].default_value = w2
+    mx.inputs["To Min"].default_value = 1.0
+    mx.inputs["To Max"].default_value = 0.0
+    links.new(ax.outputs[0], mx.inputs["Value"])
+    mm = _n(nodes, "ShaderNodeMath", "MULTIPLY")
+    links.new(mr.outputs["Result"], mm.inputs[0])
+    links.new(mx.outputs["Result"], mm.inputs[1])
+    links.new(mm.outputs[0], em.inputs["Strength"])
+    links.new(em.outputs[0], out.inputs["Surface"])
+    me.materials.append(m)
+    for k in ("visible_camera", "visible_diffuse", "visible_transmission", "visible_volume_scatter", "visible_shadow"):
+        setattr(ob, k, False)
+    ob.lightgroup = "sheen"
+    KL7.link_receivers(ob, [ob_ for r in pace_r for k, ob_ in C.parts(r).items()
+                            if k not in ("holes", "throat", "bridgewall", "grip", "cap", "capmark") and not k.startswith("thr")],
+                       "recv_grade")
+    # shadow linking: only these rackets block their card (in K07's row a neighbour stood between a Pace and its card)
+    bc = bpy.data.collections.new("block_grade")
+    for r in pace_r:
+        for ob_ in C.objs(r, "all"):
+            bc.objects.link(ob_)
+    ob.light_linking.blocker_collection = bc
+    return ob
+
+
 def grip_dark(roots, cam):
     """Unlink every light from the overgrip (the cap keeps its light: satin black with the Q); then, with GRIP_RIM_S, a
     thin glossy strip that lights the overgrip alone, so its helical wrap reads as fine lines on black."""
     if GRIP_DARK <= 0:
         return
     import k789_lib as KL7
-    grips = []
+    grips, caps = [], {}
     for r in roots:
         P = C.parts(r)
         if "grip" in P and not P["grip"].hide_render:
             grips.append(P["grip"])
+            # pace-dark-fix:OK (cloud 09:12Z): the satin cap read as a bright ring floating below a vanished overgrip;
+            # with GRIP_CAP the cap (and its Q) leave the scene lights and take the grip's own, so the handle reads as
+            # one object ending in the cap
+            caps[P["grip"].name] = [P[k] for k in ("cap", "capmark") if k in P and not P[k].hide_render] if GRIP_CAP > 0 else []
     if not grips:
         return
-    allo = [ob_ for r in roots for ob_ in C.objs(r, "all") if ob_ not in grips]
+    unl = grips + [c_ for v in caps.values() for c_ in v]
+    allo = [ob_ for r in roots for ob_ in C.objs(r, "all") if ob_ not in unl]
     for L_ in [ob_ for ob_ in bpy.data.objects if ob_.type == "LIGHT"]:
         rc = L_.light_linking.receiver_collection
         if rc is None:
             KL7.link_receivers(L_, allo, "recv_nogrip_" + L_.name)
         else:
-            for g in grips:
+            for g in unl:
                 if g.name in rc.objects:
                     rc.objects.unlink(g)
     from mathutils import Matrix
     for nm, gs, gaz, gw, gh in (("rim", GRIP_RIM_S, GRIP_RIM_AZ, GRIP_RIM_W, GRIP_RIM_H),
-                                ("side", GRIP_SIDE_S, GRIP_SIDE_AZ, GRIP_SIDE_W, GRIP_SIDE_H)):
+                                ("side", GRIP_SIDE_S, GRIP_SIDE_AZ, GRIP_SIDE_W, GRIP_SIDE_H),
+                                ("front", GRIP_FRONT_S, GRIP_FRONT_AZ, GRIP_FRONT_W, GRIP_FRONT_H),
+                                ("cap", GRIP_CAP_S, GRIP_FRONT_AZ, GRIP_FRONT_W, GRIP_FRONT_H)):
         if gs <= 0:
             continue
         for g in grips:
+            if nm == "cap" and not caps.get(g.name):
+                continue
             bpy.context.view_layer.update()
             bb = [g.matrix_world @ Vector(v) for v in g.bound_box]
             gc = sum(bb, Vector()) / 8.0
@@ -547,11 +670,14 @@ def grip_dark(roots, cam):
             vc.z = 0.0
             vc.normalize()
             d = (Matrix.Rotation(math.radians(gaz), 3, Vector((0, 0, 1))) @ vc).normalized()
-            gl = studio.area_light("lg_grip%s_%s" % (nm, g.name), tuple(gc + d * GRIP_DIST), gw, gs, color=kelvin(6500.0),
+            # the front card a little above the grip, so its broad sheen runs down the wrap's bands
+            lp = gc + d * GRIP_DIST + Vector((0, 0, GRIP_FRONT_UP if nm == "front" else 0.0))
+            gl = studio.area_light("lg_grip%s_%s" % (nm, g.name), tuple(lp), gw, gs, color=kelvin(6500.0),
                                    size_y=gh, target=tuple(gc))
             gl.visible_diffuse = False
             gl.lightgroup = "sheen"
-            KL7.link_receivers(gl, [g], "recv_grip%s_%s" % (nm, g.name))
+            rcv = caps[g.name] if nm == "cap" else [g]
+            KL7.link_receivers(gl, rcv, "recv_grip%s_%s" % (nm, g.name))
 
 def build_comp(sc, src, o, out_stem):
     tr = sc.node_tree
@@ -670,9 +796,10 @@ def main():
         P = C.parts(r)
         for k in ("holes",):
             if k in P:
-                set_glow(P[k], "depth", GLOW_S)
+                lip = r.get("kq_feel") == "pace" and P_FIX > 0 and P_LIP > 0
+                set_glow(P[k], "lip" if lip else "depth", GLOW_S)
         for k, ob in P.items():
-            if k == "throat" or k.startswith("thr") or k == "bridgewall":
+            if (k == "throat" or k.startswith("thr") or k == "bridgewall") and THROAT_GLOW > 0:
                 set_glow(ob, "depth", GLOW_S * THROAT_GLOW)
         eg = EDGE_GLOW if r.get("kq_feel") == "pace" else CMD_EDGE_GLOW
         if "rim" in P and eg > 0:
@@ -701,6 +828,7 @@ def main():
     sc.camera = cam
     d = frame_camera(sc, cam, pts, aim, dirn)
     lights(roots, o)
+    grade_card(roots, sc.camera)
     grip_dark(roots, sc.camera)
     for ob_ in sc.objects:
         if ob_.type == "LIGHT":
