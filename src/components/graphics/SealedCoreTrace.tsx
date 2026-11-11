@@ -17,9 +17,11 @@ import { useId } from "react";
  */
 const VIEW = { wide: "0 0 1280 720", square: "352 86.4 576 576" } as const;
 
-// The core's outline on the cut face, along the inner edge of the shell (traced from K03 at 2560 x 1440).
+// The core's outline on the cut face, on the shell's innermost line where the foam begins (measured on the 5120
+// K03-base renders, both feels, by brightness profiles across each edge, owner 2026-11-08: "incorrect around the
+// foam"; the 2026-10 trace ran up to 10 px out on the shell's layers along the top and round the right side).
 const CORE =
-  "M450 343 L652.5 373.5 C677.5 377.5 690 395 690.5 417.5 L691.5 525 C691.5 545 682.5 557.5 667.5 557 L451 530 Z";
+  "M449 341.5 L655 383.5 C676 388 689 402 689 425 L689 526 C689 546 675 561 652 562.5 L448.5 527 Z";
 // The two bores on the top face (centre, radii). The far wall shows in the upper half of each opening.
 const BORES = [
   { cx: 547.8, cy: 249.3, rx: 35.3, ry: 11.3 },
