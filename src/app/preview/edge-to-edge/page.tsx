@@ -34,10 +34,11 @@ export default function EdgeToEdgePreview() {
             in the header changes the feel.
           </p>
           <ol className={styles.index}>
-            {CARDS.map((c) => (
+            {CARDS.map((c, i) => (
               <li key={c.key}>
                 <a href={`#option-${c.key.toLowerCase()}`} className={styles.card}>
-                  <Still id={c.still} crop="ewide" alt="" bare={false} sizes="(min-width: 700px) 30vw, 100vw" className={styles.cardStill} />
+                  {/* the first card is in the phone's first screen: it loads with the page (LCP) */}
+                  <Still id={c.still} crop="ewide" alt="" bare={false} priority={i === 0} sizes="(min-width: 700px) 30vw, calc(100vw - 40px)" className={styles.cardStill} />
                   <span className={styles.cardLabel}>
                     <b>{c.key}</b> {c.name}
                   </span>
