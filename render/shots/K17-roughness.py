@@ -86,6 +86,10 @@ DEFAULTS = dict(
     GLOSS=5.0, GLOSS_D=0.5, GLOSS_W=0.10, GLOSS_LEN=0.6, GLOSS_DEL=1.5, GLOSS_AZ=30.0,
     RIM=10.0, RIM_AZ=150.0, RIM_EL=8.0, RIM_D=0.45, RIM_LEN=0.5,
     FILL=0.1, FILL_AZ=30.0, FILL_EL=40.0,
+    # k17-pace-weave (cloud 2026-11-11): Pace's own weave card, as K01's PaceWeave / K11-dark: a broad soft card a few
+    # degrees off the coat's mirror direction (glossy only, so the coat never mirrors it as glare), whose light the 12K
+    # tapes' anisotropic lobes catch tile by tile; in the fill group (base and full alike). 0 = off (Command)
+    WEAVE=0.0, WEAVE_DEL=12.0, WEAVE_AZ=25.0, WEAVE_D=0.6, WEAVE_SIZE=1.0,
     ARC=0.0, ARC_R=0.0040, ARC_A0=190.0, ARC_A1=250.0, ARC_W=0.00018,
     # backdrop (K14 make_bg, linear)
     BG_TOP=0.014, BG_HOR=0.032, BG_GLOW=0.035, BG_GX=0.30, BG_GY=-1.0, BG_GRX=0.45, BG_GRY=0.30, BG_WARM=0.03,
@@ -95,7 +99,7 @@ DEFAULTS = dict(
     b_key=1.0, b_pool=0.35, b_gloss=0.15, b_rim=1.0, b_fill=1.0, b_arc=0.0,
 )
 # Pace: black 12K shows its domes only in reflections: the pool's own glints (POOL_GLOSS) and a stronger gloss card
-PACE_SET = dict(GLOSS=10.0, POOL=40.0, POOL_GLOSS=1.0)
+PACE_SET = dict(GLOSS=10.0, POOL=40.0, POOL_GLOSS=1.0, WEAVE=4.0)
 
 
 def parse_args():
@@ -603,6 +607,16 @@ def build(o, p):
         gb.visible_diffuse = False
         gb.lightgroup = "gloss"
         gb.light_linking.receiver_collection = K14.collection("k17_gloss_recv", head)
+    if p["WEAVE"] > 0:
+        wel = mel + p["WEAVE_DEL"]
+        wd = (vh * math.cos(math.radians(wel)) + z * math.sin(math.radians(wel))).normalized()
+        wd = (Matrix.Rotation(math.radians(p["WEAVE_AZ"]), 3, z) @ wd).normalized()
+        wv = studio.area_light("lg_weave", tuple(G + wd * p["WEAVE_D"]), p["WEAVE_SIZE"], p["WEAVE"],
+                               color=(0.97, 0.98, 1.0), target=tuple(G))
+        wv.visible_diffuse = False
+        wv.lightgroup = "fill"
+        wv.light_linking.receiver_collection = K14.collection(
+            "k17_weave_recv", [parts[k] for k in ("face", "rim", "wall") if k in parts])
     if p["RIM"] > 0:
         rd = dirv(p["RIM_AZ"], p["RIM_EL"])
         rim = studio.area_light("lg_rim", tuple(centre + rd * p["RIM_D"]), p["RIM_LEN"], p["RIM"], color=(0.96, 0.975, 1.0),
