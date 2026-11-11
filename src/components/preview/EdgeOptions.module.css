@@ -31,12 +31,12 @@
   aspect-ratio: 4 / 5;
   isolation: isolate;
   -webkit-mask-image:
-    linear-gradient(transparent, #000 4%, #000 96%, transparent),
-    linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+    linear-gradient(transparent, #000 7%, #000 93%, transparent),
+    linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
   -webkit-mask-composite: source-in;
   mask-image:
-    linear-gradient(transparent, #000 4%, #000 96%, transparent),
-    linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+    linear-gradient(transparent, #000 7%, #000 93%, transparent),
+    linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
   mask-composite: intersect;
 }
 /* B's camera looks along the face from beyond the crown: its phone crop keeps the whole width (the line bends over
