@@ -72,6 +72,8 @@ RING_SP, RING_P = 0.022, 8.0   # ring spacing (m) and sharpness (power of the ra
 RING_PH = 0.004          # m: ring phase
 RING0 = 0.028            # m: no rings inside this radius (the ball's own patch)
 RING_G = 8.0
+RING_G_PACE = 3.0        # C Pace: the rings on the black 12K (8 read as bold stripes)
+WALL_BP = 4.0            # B Pace: a glossy-only card at the crown wall's mirror direction (its black 12K read as a void)
 BALL_KEY = 30.0
 FELT_C = (0.80, 0.95, 0.06)     # C (10:45Z): a brighter padel-ball yellow (K17's read olive here)           # a soft key on the ball alone
 
@@ -332,6 +334,17 @@ def frame_camera(sc, cam, pts, aim, dirn):
         cam.data.dof.use_dof = FSTOP_B > 0
         cam.data.dof.aperture_fstop = max(FSTOP_B, 1.0)
         cam.data.dof.focus_distance = d
+        if EOPT.get("feel") == "pace" and WALL_BP > 0:
+            # the crown wall faces the camera: a soft card where its (outward, ~up) normal mirrors the view
+            Wc = c + up * 0.15
+            v = (cam.location - Wc).normalized()
+            mir = (2 * v.dot(up) * up - v).normalized()
+            wl = studio.area_light("lg_e2e_wall", tuple(Wc + mir * 0.8), 0.6, WALL_BP, color=KD.kelvin(6500.0),
+                                   size_y=0.3, target=tuple(Wc))
+            wl.visible_diffuse = False
+            wl.lightgroup = "fill"
+            P_ = C.parts(r)
+            KL7.link_receivers(wl, [P_[k] for k in ("wall", "rim") if k in P_], "recv_e2e_wall")
         return d
     if cpt == "c":
         xi, yi = impact_point()
@@ -461,7 +474,7 @@ def build_comp(sc, src, o, out_stem):
     if "flood" in den and cpt == "c":
         dd, inside = rl.outputs["e2e_d"], rl.outputs["e2e_in"]
         lit = mix("ADD", mix("MULTIPLY", base, STUDIO_C), den["glow"])
-        fl = mix("MULTIPLY", den["flood"], RING_G)
+        fl = mix("MULTIPLY", den["flood"], RING_G_PACE if EOPT.get("feel") == "pace" else RING_G)
         import math as _m
         ph = m("MULTIPLY", m("SUBTRACT", dd, RING_PH), 2.0 * _m.pi / RING_SP)
         ring = m("POWER", m("ADD", m("MULTIPLY", m("COSINE", ph), 0.5), 0.5), RING_P)

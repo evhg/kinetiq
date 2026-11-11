@@ -21,8 +21,21 @@ r1() {
   masters "e2e m $stem" stills/E2E "E2E $c $feel, $R, 5120x2880" "${files[@]}"
   done_mark "e2e m $stem"
 }
+# redo1 <stem>: the previous final set aside and its masters marker cleared, so r1 renders and pushes it again
+redo1() { aside "e2e $1" "$E/$1"-*.png; sed -i '' "/^e2e m $1\$/d" "$DONE"; }
 for c in "$@"; do
   done_mark "e2e status $c" && continue
+  if [ "$c" = pace-fix ]; then   # PREVIEW review 11:15Z (Mac): B Pace's crown wall read as a black void, C Pace's rings as bold stripes
+    t0=$(date +%s)
+    redo1 E2E-B-pace; r1 E2E-B-pace b pace - s1 s2 s3 s4 s5 s6 || exit 1
+    for s in E2E-C-pace E2E-Cwide-pace; do redo1 $s; done
+    r1 E2E-C-pace c pace VIEW_C=1 rings full || exit 1
+    r1 E2E-Cwide-pace c pace VIEW_C=0 rings full || exit 1
+    tt=$(( $(date +%s) - t0 ))
+    [ "$PUSH" = 1 ] || continue
+    st "e2e status $c" "$(date -u +%FT%TZ) $R:pace-fix stills/E2E/E2E-B-pace-{s1..s6}.png stills/E2E/E2E-C{,wide}-pace-{rings,full}.png $(hm $tt) $DEVNAME replaces the Pace frames of B and C posted at 11:03Z / 11:13Z (Command unchanged): B Pace, a glossy-only soft card at the crown wall's mirror direction so the black 12K wall reads as a lit gloss band instead of a void; C Pace, the rings at 3/8 of the Command strength so they read as soft light on the black weave, not as bold stripes; 5120x2880 spp 160; shots/E2E-concepts.py; masters only, no export; render time this run" || exit 1
+    continue
+  fi
   t0=$(date +%s)
   case $c in
     a) for f in command pace; do r1 "E2E-A-$f" a $f - s000 s020 s040 s060 s080 s100 s100-line || exit 1; done
