@@ -5,6 +5,8 @@
 # one sequence at a time for disk), phone sets from the local --phone frames; desktop AVIF 58, Command phone AVIF 46
 # keeping 30 of 60 frames, Pace phone AVIF 50; WebP 84. Frame 0 checked against its still at 1920 (mean < 1 luma).
 #   render/one-racket-k02export.sh [variant ...]    variants: command pace nogrip-command nogrip-pace (default all)
+# one export at a time in the exports worktree (K02, K07 and K01 exports can overlap)
+if [ -z "${KQ_XLOCKED:-}" ]; then exec env KQ_XLOCKED=1 flock "$HOME/kinetiq-render/export.lock" "$(cd "$(dirname "$0")" && pwd)/$(basename "$0")" "$@"; fi
 set -euo pipefail
 cd "$(dirname "$0")"
 KIT=$PWD
@@ -90,7 +92,8 @@ bad=$(git diff --cached --name-only | grep -vE '^(public/stills/|src/content/(st
 [ -z "$bad" ] || { log "REFUSED: paths outside the allowed: $bad"; exit 1; }
 git -c user.name=Claude -c user.email=noreply@anthropic.com commit -q -m "K02 in the one-racket canon (STATUS-mac one-racket:K02): its stills and swivels, grip and Naked, both feels
 
-The ring fill reaches the whole racket (cloud review 2026-11-13T18:59Z). Desktop swivels rebuilt from their region
+The ring fill reaches the whole racket (cloud review 2026-11-13T18:59Z); the bores, the throat's inner wall and the
+bridge keep their authored light (KQ_ONE_RACKET_KEEP, review 20:37Z): dark holes as before. Desktop swivels rebuilt from their region
 masters (render/seq_rebuild.py), AVIF 58; phone from the --phone frames, Command AVIF 46 keeping 30 of 60, Pace AVIF 50;
 WebP 84. $(IFS=';'; echo "${summary[*]}").
 
@@ -105,5 +108,5 @@ git push -q --force-with-lease origin HEAD:refs/heads/mac/exports
 sha=$(git rev-parse --short HEAD)
 rm -rf "$T"
 ids=$(for v in "${VS[@]}"; do printf '%s,K02-swivel-%s-desktop,K02-swivel-%s-phone,' "${SID[$v]}" "$v" "$v"; done | sed 's/,$//')
-cd "$KIT" && ./status_push.sh "$(date -u +%Y-%m-%dT%H:%M:%SZ) EXPORTED one-racket:K02 mac/exports@$sha $ids (stills + swivels; the ring fill reaches the whole racket; $(IFS=';'; echo "${summary[*]}")) M3Max-METAL" >/dev/null
+cd "$KIT" && ./status_push.sh "$(date -u +%Y-%m-%dT%H:%M:%SZ) EXPORTED one-racket:K02 mac/exports@$sha $ids (stills + swivels; the ring fill reaches the whole racket, the bores, throat and bridge keep their own light, phone frames re-exported; $(IFS=';'; echo "${summary[*]}")) M3Max-METAL" >/dev/null
 log "EXPORTED K02 mac/exports@$sha"

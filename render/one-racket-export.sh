@@ -4,6 +4,8 @@
 #   render/one-racket-export.sh <group> [<group> ...]    groups: k05 k16 k06 k10 k12 cmdlift pacefix (and a "<note>" in ORE_NOTE_<group>)
 # Each master is the newest of final/w5760/, final/v5k/, final/<name>.png and must be newer than the one-racket start
 # (one-racket.cleared's first write), or the group is refused: only one-racket renders are exported.
+# one export at a time in the exports worktree (K02, K07 and K01 exports can overlap)
+if [ -z "${KQ_XLOCKED:-}" ]; then exec env KQ_XLOCKED=1 flock "$HOME/kinetiq-render/export.lock" "$(cd "$(dirname "$0")" && pwd)/$(basename "$0")" "$@"; fi
 set -u
 cd "$(dirname "$0")"
 KIT=$PWD
