@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, type CSSProperties } from "react";
 import { Still } from "@/components/media/Still";
 import { Swivel, hasSequence, type SwivelHandle } from "@/components/media/Swivel";
 import { useMotion } from "@/components/motion/MotionProvider";
@@ -10,7 +10,7 @@ import { useFeel } from "@/lib/feel-store";
 import { V2Chapter } from "./V2Chapter";
 import styles from "./SeqChapter.module.css";
 
-type Entry = { frames: number; widths: number[]; formats: Record<string, { hash: string }> };
+type Entry = { frames: number; w: number; h: number; widths: number[]; formats: Record<string, { hash: string }> };
 const manifest = generated as unknown as Record<string, Entry>;
 
 /** Portrait screens take the 9:16 phone sequence (Swivel's portraitQuery, and the poster's art direction). */
@@ -40,6 +40,27 @@ function frameSet(name: string, frame: number, type: "avif" | "webp") {
   return e.widths.map((w) => `/stills/seq/${name}/${n}-${w}.${f.hash}.${type} ${w}w`).join(", ");
 }
 
+type Crop = { x: number; y: number; w: number; h: number };
+type Full = Entry & { crop: Crop };
+
+/** One sequence frame as a poster placed exactly where Swivel's canvas will draw (see SeqChapter's box). */
+function Poster({ name, frame, className }: { name: string; frame: number; className: string }) {
+  const e = manifest[name] as Full | undefined;
+  if (!e) return null;
+  const pct = (v: number, of: number) => `${(v / of) * 100}%`;
+  return (
+    <span className={`${styles.poster} ${className}`} style={{ "--fw": e.w, "--fh": e.h } as CSSProperties}>
+      <picture
+        className={styles.posterCrop}
+        style={{ left: pct(e.crop.x, e.w), top: pct(e.crop.y, e.h), width: pct(e.crop.w, e.w), height: pct(e.crop.h, e.h) }}
+      >
+        <source type="image/avif" srcSet={frameSet(name, frame, "avif") ?? undefined} sizes="100vw" />
+        <img srcSet={frameSet(name, frame, "webp") ?? undefined} sizes="100vw" alt="" loading="lazy" decoding="async" />
+      </picture>
+    </span>
+  );
+}
+
 /**
  * Effects 1 to 3 (assembly, the dive into a hole, the exploded layers): a full-frame sequence scrubbed by scroll, an
  * Apple-style chapter. From 900 px the stage is pinned and the frames fill it, with the words in the lower left and
@@ -58,6 +79,7 @@ export function SeqChapter({ id, nextId, sequence, eyebrow, headline, steps, alt
   const last = (name: string) => Math.max(0, (manifest[name]?.frames ?? 1) - 1);
   const pick = (name: string) => (motionOn ? 0 : last(name));
   const titleId = `${id}-title`;
+  const poster = (name: string, className: string) => <Poster name={name} frame={pick(name)} className={className} />;
 
   return (
     <V2Chapter
@@ -93,25 +115,22 @@ export function SeqChapter({ id, nextId, sequence, eyebrow, headline, steps, alt
       }}
     >
       <div className={styles.stage}>
-        <div className={styles.frame} aria-hidden="true">
+        <div className={`${styles.frame} ${has ? styles.black : ""}`} aria-hidden="true">
           {has ? (
-            <picture>
-              {manifest[phone] && <source media={PORTRAIT} type="image/avif" srcSet={frameSet(phone, pick(phone), "avif") ?? undefined} sizes="100vw" />}
-              {manifest[phone] && <source media={PORTRAIT} type="image/webp" srcSet={frameSet(phone, pick(phone), "webp") ?? undefined} sizes="100vw" />}
-              <source type="image/avif" srcSet={frameSet(desk, pick(desk), "avif") ?? undefined} sizes="100vw" />
-              <img
-                className={styles.picture}
-                srcSet={frameSet(desk, pick(desk), "webp") ?? undefined}
-                sizes="100vw"
-                alt=""
-                loading="lazy"
-                decoding="async"
-              />
-            </picture>
+            <>
+              {/* The first frame (the last, with reduced motion) under the canvas. The exported frames hold only the
+                  crop that ever changes, so each poster sits where Swivel puts its canvas: the whole frame covers the
+                  box, centred, and the crop takes its place inside it (container units: .frame is a size container). */}
+              {poster(desk, styles.posterWide)}
+              {manifest[phone] && poster(phone, styles.posterTall)}
+            </>
           ) : (
             <Still id={fallback.id} crop={fallback.crop} phoneCrop={fallback.phoneCrop} phoneMedia={PORTRAIT} alt="" sizes="100vw" className={styles.picture} />
           )}
           {has && <Swivel ref={swivel} sequence={sequence} portraitQuery={PORTRAIT} lead={1.5} className={styles.canvas} />}
+          {/* The renders' black stage lifted to the site's graphite floor (screen blend: black becomes graphite, the
+              racket's lights are unchanged), so a full-screen sequence keeps the fill rule. */}
+          <span className={styles.floor} />
           <span className={styles.scrim} />
         </div>
         <div className={styles.copy}>
