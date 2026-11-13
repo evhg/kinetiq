@@ -7,6 +7,9 @@ K2C="0.09 0.92 0.20 0.86"
 # one-racket wall fill (cloud review 2026-11-13T18:59Z): the soft ring fill "Fill" reaches the whole racket, face and
 # walls alike (face mode dropped it: Pace's edge band went pure black, preview previews/wf/k02-p0 vs k02-pF)
 [ "${FW_R:-}" = one-racket ] && export KQ_ONE_RACKET_UNION=${KQ_ONE_RACKET_UNION:+$KQ_ONE_RACKET_UNION,}Fill
+# ... but the bores, the throat triangle's inner wall and the bridge keep their authored light (cloud review 20:37Z: the
+# fill lit every bore wall grey, the holes read as dimples; preview previews/wf/k02k-*: dark holes as the old K02)
+[ "${FW_R:-}" = one-racket ] && export KQ_ONE_RACKET_KEEP=${KQ_ONE_RACKET_KEEP:-holes,throat,bridgewall}
 log "FW-START K02 device $KQ_DEVICE free $(free_mb) MB push $PUSH"
 k02seq() {   # k02seq <name> <frames> <env/cmd...> (cmd has --seq, --phone, --crop, --out seq4/<name>)
   local name=$1 n=$2; shift 2
