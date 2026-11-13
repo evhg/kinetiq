@@ -1977,6 +1977,12 @@ ONE_RACKET_MODE = os.environ.get("KQ_ONE_RACKET_MODE", "face")
 # lights (name prefixes, comma list) widened to the whole racket even in face mode: e.g. K01's Naked Pace handle card,
 # rolled about the handle so the flat face does not mirror it (one-racket.sh, 2026-11-14)
 ONE_RACKET_UNION = tuple(u for u in os.environ.get("KQ_ONE_RACKET_UNION", "").split(",") if u)
+# lights (name prefixes) left exactly as their shot linked them (cloud review 2026-11-13T19:20Z: K11's glossy-only diagonal
+# streak, authored for the face, drew a seam line down the round Naked handle once it reached the neck)
+ONE_RACKET_ASIS = tuple(u for u in os.environ.get("KQ_ONE_RACKET_ASIS", "").split(",") if u)
+# racket parts (kq_part names) whose links stay as their shot authored them (same review: K07's Pace bores caught the
+# widened rim strips as silver beads; "exclude the bore surfaces from any new fill")
+ONE_RACKET_KEEP = tuple(u for u in os.environ.get("KQ_ONE_RACKET_KEEP", "").split(",") if u)
 CARBON_PARTS = ("face", "back", "rim", "wall", "neck", "throat", "bridgewall", "holes", "etchR", "etchL")
 
 
@@ -1999,6 +2005,10 @@ def one_racket(scene=None, verbose=True):
         rc = getattr(ll, "receiver_collection", None) if ll is not None else None
         if rc is None or rc.name in seen:
             continue
+        if any(o.name.startswith(u) for u in ONE_RACKET_ASIS):
+            if verbose:
+                print("one-racket: %s (%s) kept as linked (KQ_ONE_RACKET_ASIS)" % (rc.name, o.name), flush=True)
+            continue
         seen.add(rc.name)
         state = {ob.name: co.light_linking.link_state for ob, co in zip(rc.objects, rc.collection_objects)}
         nested = {ob.name for ob in rc.all_objects} - set(state)
@@ -2011,12 +2021,13 @@ def one_racket(scene=None, verbose=True):
                 return True
             return not has_inc
 
-        for r, ps in racks:
+        for r, ps_all in racks:
+            ps = [p for p in ps_all if p.get("kq_part") not in ONE_RACKET_KEEP]
             got = [recv(p) for p in ps]
             if any(o.name.startswith(u) for u in ONE_RACKET_UNION):
                 want = any(got)             # a light named here reaches the whole racket if it reached any part
             elif ONE_RACKET_MODE == "face":
-                face = [p for p in ps if p.get("kq_part") == "face"]
+                face = [p for p in ps_all if p.get("kq_part") == "face"]
                 want = recv(face[0]) if face else any(got)
             else:
                 want = any(got)
