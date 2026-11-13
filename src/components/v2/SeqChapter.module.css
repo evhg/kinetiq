@@ -1,0 +1,112 @@
+/* /v2 sequence chapters (SeqChapter.tsx). Phones and portrait tablets: the 9:16 frame, then the words. Pinned (from
+   900 px, motion on): the frame fills the stage and the words sit in its lower left over a soft scrim. */
+.chapter {
+  background: var(--stage);
+}
+.stage {
+  display: grid;
+  gap: 28px;
+  padding: calc(var(--chrome-h) + 24px) 20px 72px;
+}
+.frame {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 9 / 16;
+  max-height: 82svh;
+  width: 100%;
+  margin-inline: auto;
+  border-radius: 6px;
+  background: var(--graphite);
+}
+@media (min-aspect-ratio: 4/5) {
+  .frame {
+    aspect-ratio: 16 / 9;
+    max-height: none;
+  }
+}
+.picture,
+.frame picture,
+.picture img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* The canvas Swivel places over the picture (it shows from frame 1: opacity only, exit faster than entry). */
+.canvas {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 150ms var(--ease-out);
+}
+.canvas[data-on="true"] {
+  opacity: 1;
+  transition-duration: 240ms;
+}
+.scrim {
+  display: none;
+}
+.copy {
+  max-width: 34rem;
+}
+.title {
+  margin-top: 12px;
+}
+.steps {
+  list-style: none;
+  margin-top: 22px;
+  display: grid;
+  gap: 10px;
+  font-size: var(--fs-lead);
+  line-height: 1.35;
+  color: var(--text);
+}
+.step {
+  display: grid;
+  grid-template-columns: 2.4em 1fr;
+  align-items: baseline;
+}
+.num {
+  font-family: var(--font-data);
+  font-size: var(--fs-label);
+  color: var(--amber);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Pinned: one full screen, the frame edge to edge, the words over its lower left. */
+@media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
+  html[data-motion="on"] .chapter .stage {
+    position: relative;
+    height: 100svh;
+    padding: 0;
+    display: block;
+  }
+  html[data-motion="on"] .chapter .frame {
+    position: absolute;
+    inset: 0;
+    aspect-ratio: auto;
+    max-height: none;
+    border-radius: 0;
+  }
+  html[data-motion="on"] .chapter .scrim {
+    display: block;
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, rgb(6 6 7 / 0.86) 0%, rgb(6 6 7 / 0.62) 30%, rgb(6 6 7 / 0.2) 48%, transparent 62%);
+    pointer-events: none;
+  }
+  html[data-motion="on"] .chapter .copy {
+    position: absolute;
+    left: clamp(24px, 5vw, 96px);
+    bottom: clamp(32px, 8svh, 96px);
+    max-width: min(34rem, 44vw);
+  }
+}
+/* Wide but not pinned (reduced motion, or a short landscape window below 900 px): frame, then words, side by side. */
+@media (min-width: 900px) {
+  .stage {
+    padding-inline: clamp(24px, 5vw, 96px);
+  }
+}

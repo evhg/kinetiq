@@ -1,0 +1,111 @@
+/* Effect 4 (FeelWipe.tsx): one racket, two feels, a line of light between them. */
+.chapter {
+  background: var(--stage);
+}
+.stage {
+  position: relative;
+  display: grid;
+  gap: 24px;
+  padding: calc(var(--chrome-h) + 24px) 20px 64px;
+}
+.head {
+  max-width: 40rem;
+}
+.frame {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 9 / 16;
+  max-height: 78svh;
+  width: 100%;
+  margin-inline: auto;
+  border-radius: 6px;
+  background: var(--graphite);
+}
+@media (min-aspect-ratio: 4/5) {
+  .frame {
+    aspect-ratio: 16 / 9;
+    max-height: none;
+  }
+}
+.still,
+.still img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* The Pace layer shows to the right of the line: --cut is the line's distance from the left edge (100%: none). */
+.pace {
+  --cut: 50%;
+  position: absolute;
+  inset: 0;
+  clip-path: inset(0 0 0 var(--cut));
+}
+/* The line: a warm hairline with a soft glow, its bloom a wider gradient; it never catches the pointer. */
+.line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--amber-hot);
+  box-shadow:
+    0 0 12px 2px rgb(255 226 191 / 0.55),
+    0 0 48px 10px rgb(227 164 103 / 0.25);
+  pointer-events: none;
+}
+.labels {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+.labels p {
+  display: grid;
+  gap: 4px;
+}
+.labelPace {
+  text-align: right;
+}
+.name {
+  font-family: var(--font-display-112);
+  font-variation-settings: "wdth" 112;
+  font-weight: 580;
+  font-size: var(--fs-h3);
+  line-height: 1.05;
+}
+.sub {
+  font-family: var(--font-data);
+  font-size: var(--fs-label);
+  color: var(--muted);
+}
+
+@media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
+  html[data-motion="on"] .chapter .stage {
+    height: 100svh;
+    padding: 0;
+    display: block;
+  }
+  html[data-motion="on"] .chapter .frame {
+    position: absolute;
+    inset: 0;
+    aspect-ratio: auto;
+    max-height: none;
+    border-radius: 0;
+  }
+  html[data-motion="on"] .chapter .head {
+    position: absolute;
+    z-index: 2;
+    top: calc(var(--chrome-h) + clamp(24px, 6svh, 72px));
+    left: clamp(24px, 5vw, 96px);
+  }
+  html[data-motion="on"] .chapter .labels {
+    position: absolute;
+    z-index: 2;
+    left: clamp(24px, 5vw, 96px);
+    right: clamp(24px, 5vw, 96px);
+    bottom: clamp(32px, 8svh, 96px);
+  }
+}

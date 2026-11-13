@@ -1,0 +1,77 @@
+/* Effect 6 (TypeZoom.tsx): the giant word, cut from the carbon face. */
+.chapter {
+  background: var(--void);
+}
+.stage {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  min-height: 92svh;
+  place-items: center;
+  padding: calc(var(--chrome-h) + 24px) 20px 56px;
+}
+.backdrop {
+  position: absolute;
+  inset: 0;
+  opacity: 0.12;
+}
+.backdropStill,
+.backdropStill img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.center {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: clamp(16px, 2.5svh, 32px);
+  text-align: center;
+}
+/* The letters show the carbon (--fill: K14 in the visitor's feel); without background-clip: text, a light steel word. */
+.word {
+  font-family: var(--font-display-125);
+  font-variation-settings: "wdth" 125;
+  font-weight: 800;
+  font-size: clamp(3.75rem, 14vw, 20rem);
+  line-height: 0.86;
+  letter-spacing: -0.035em;
+  color: var(--steel);
+  white-space: nowrap;
+  will-change: transform;
+}
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .word {
+    background-image: linear-gradient(180deg, rgb(255 255 255 / 0.12), rgb(0 0 0 / 0.18)), var(--fill, linear-gradient(var(--steel), var(--edge)));
+    background-size: 160% auto;
+    background-position: 50% 50%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+}
+.word span {
+  display: inline-block;
+}
+.lead {
+  max-width: 30ch;
+  text-align: center;
+  color: var(--steel);
+}
+
+/* Pinned: one full screen, the racket behind the word, the word centred. */
+@media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
+  html[data-motion="on"] .chapter .stage {
+    height: 100svh;
+    min-height: 0;
+    padding: 0;
+  }
+}
+/* Reduced motion: the word over the racket, both still and fully lit. */
+html[data-motion="off"] .backdrop {
+  opacity: 0.55;
+}
