@@ -1,7 +1,7 @@
 #!/opt/homebrew/bin/bash
 # one-racket-export.sh (2026-11-14, the Mac render node): export the one-racket stills of the given groups with
 # mac_export.sh and post one EXPORTED line each (cloud 2026-11-13T18:27Z: "then export and post EXPORTED lines as before").
-#   render/one-racket-export.sh <group> [<group> ...]    groups: k05 k16 k06 k10 k12 (and a "<note>" in ORE_NOTE_<group>)
+#   render/one-racket-export.sh <group> [<group> ...]    groups: k05 k16 k06 k10 k12 cmdlift pacefix (and a "<note>" in ORE_NOTE_<group>)
 # Each master is the newest of final/w5760/, final/v5k/, final/<name>.png and must be newer than the one-racket start
 # (one-racket.cleared's first write), or the group is refused: only one-racket renders are exported.
 set -u
@@ -26,6 +26,8 @@ G[k16]="K16-base=K16-pair-base K16-full=K16-pair-full K16-base-pace=K16-pair-pac
 G[k06]="K06-base=K06-mould-base K06-full=K06-mould-full K06-base-pace=K06-mould-pace-base K06-full-pace=K06-mould-pace-full K06-nogrip-base=K06-mould-nogrip-base K06-nogrip-full=K06-mould-nogrip-full K06-nogrip-base-pace=K06-mould-nogrip-pace-base K06-nogrip-full-pace=K06-mould-nogrip-pace-full"
 G[k10]="K10=K10-throat-serial K10-pace=K10-throat-serial-pace K10-nogrip=K10-throat-serial-nogrip K10-nogrip-pace=K10-throat-serial-nogrip-pace"
 G[k12]="K12-base=K12-sweet-spot-base K12-full=K12-sweet-spot-full K12-base-pace=K12-sweet-spot-pace-base K12-full-pace=K12-sweet-spot-pace-full K12-nogrip-base=K12-sweet-spot-nogrip-base"
+G[cmdlift]="K11-single-base=K11-single-base K11-single-full=K11-single-full K11-nogrip-single-base=K11-single-nogrip-base K11-nogrip-single-full=K11-single-nogrip-full K11-command-base=K11-pair-command-base K11-command-full=K11-pair-command-full K11-nogrip-command-base=K11-pair-nogrip-command-base K11-nogrip-command-full=K11-pair-nogrip-command-full K08-base=K08-feel-pair-base K08-full=K08-feel-pair-full K08-nogrip-base=K08-feel-pair-nogrip-base K08-nogrip-full=K08-feel-pair-nogrip-full K07-base=K07-lineup-five-base K07-full=K07-lineup-five-full K07-nogrip-base=K07-lineup-five-nogrip-base K07-nogrip-full=K07-lineup-five-nogrip-full K09-full=K09-case-three-gallery-full K09-card-base=K09-case-three-card-base K09-card-full=K09-case-three-card-full K09-nogrip-full=K09-case-three-gallery-nogrip-full K09-nogrip-card-base=K09-case-three-card-nogrip-base K09-nogrip-card-full=K09-case-three-card-nogrip-full"
+G[pacefix]="K11-single-base-pace=K11-single-pace-base K11-single-full-pace=K11-single-pace-full K11-nogrip-single-base-pace=K11-single-nogrip-pace-base K11-nogrip-single-full-pace=K11-single-nogrip-pace-full K11-command-base-pace=K11-pair-pace-base K11-command-full-pace=K11-pair-pace-full K11-nogrip-command-base-pace=K11-pair-nogrip-pace-base K11-nogrip-command-full-pace=K11-pair-nogrip-pace-full K09-full-pace=K09-case-three-gallery-pace-full K09-card-base-pace=K09-case-three-card-pace-base K09-card-full-pace=K09-case-three-card-pace-full K09-nogrip-full-pace=K09-case-three-gallery-nogrip-pace-full K09-nogrip-card-base-pace=K09-case-three-card-nogrip-pace-base K09-nogrip-card-full-pace=K09-case-three-card-nogrip-pace-full"
 rc=0
 for g in "$@"; do
   [ -n "${G[$g]:-}" ] || { log "EXPORT $g: unknown group"; rc=1; continue; }
