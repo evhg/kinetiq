@@ -814,5 +814,35 @@
     }
    }
   }
+ },
+ "V2-assemble-pace-phone": {
+  "frames": 72,
+  "w": 1080,
+  "h": 1920,
+  "crop": {
+   "x": 48,
+   "y": 24,
+   "w": 984,
+   "h": 1872
+  },
+  "widths": [
+   828
+  ],
+  "formats": {
+   "avif": {
+    "hash": "327ac11612",
+    "quality": 50,
+    "bytes": {
+     "828": 1002555
+    }
+   },
+   "webp": {
+    "hash": "2da49648ce",
+    "quality": 84,
+    "bytes": {
+     "828": 2003758
+    }
+   }
+  }
  }
 }
