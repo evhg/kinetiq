@@ -41,7 +41,7 @@ export default function V2() {
       <main id="main">
         <Hero />
         <TypeZoom />
-        <Unibody />
+        <Unibody nextId={v2.explode.id} />
         <SeqChapter
           id={v2.explode.id}
           nextId="aerospace-grade"

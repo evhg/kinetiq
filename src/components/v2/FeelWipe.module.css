@@ -1,7 +1,5 @@
 /* Effect 4 (FeelWipe.tsx): one racket, two feels, a line of light between them. */
-.chapter {
-  background: var(--stage);
-}
+/* The floor is the site's lift (globals.css): a lit graphite floor around the dark frame (the fill rule). */
 .stage {
   position: relative;
   display: grid;
@@ -36,9 +34,14 @@
   height: 100%;
   object-fit: cover;
 }
+/* K05's racket lies in the lower part of its frame: keep it in view wherever the box crops. */
+.still img {
+  object-position: 50% 68%;
+}
 /* The Pace layer shows to the right of the line: --cut is the line's distance from the left edge (100%: none). */
 .pace {
-  --cut: 50%;
+  /* At rest (reduced motion, the server render): mostly Command, with Pace's edge beyond the line. */
+  --cut: 80%;
   position: absolute;
   inset: 0;
   clip-path: inset(0 0 0 var(--cut));
@@ -48,7 +51,7 @@
   position: absolute;
   top: 0;
   bottom: 0;
-  left: 50%;
+  left: 80%;
   width: 2px;
   margin-left: -1px;
   background: var(--amber-hot);
@@ -82,6 +85,16 @@
   color: var(--muted);
 }
 
+/* Wide but not pinned (reduced motion): the 16:9 frame no taller than about three quarters of the screen, centred. */
+@media (min-width: 900px) {
+  .stage {
+    padding-inline: clamp(24px, 5vw, 96px);
+  }
+  .frame {
+    width: min(100%, calc(64svh * 16 / 9));
+  }
+}
+
 @media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
   html[data-motion="on"] .chapter .stage {
     height: 100svh;
@@ -89,6 +102,7 @@
     display: block;
   }
   html[data-motion="on"] .chapter .frame {
+    width: auto;
     position: absolute;
     inset: 0;
     aspect-ratio: auto;

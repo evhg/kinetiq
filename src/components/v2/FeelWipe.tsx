@@ -13,7 +13,7 @@ const PORTRAIT = "(max-aspect-ratio: 4/5)";
  * Effect 4, the feel switch: one racket, two feels. K05 in Command and in Pace (one rig, one camera, so the two stills
  * register to the pixel) lie one over the other, and a line of light sweeps across: behind it the racket is Pace. Pinned
  * from 900 px; below, the sweep runs as the frame crosses the screen. Each feel's name and purpose sit on its own
- * side and brighten as their half takes the frame. Reduced motion: the line rests at the middle, half and half.
+ * side and brighten as their half takes the frame. Reduced motion: the line rests at 80%, mostly Command with Pace beyond it.
  */
 export function FeelWipe() {
   const [command, pace] = feelChoice.feels;
@@ -24,7 +24,7 @@ export function FeelWipe() {
       nextId="v2-feels"
       labelledBy={`${d.id}-title`}
       length={1.6}
-      className={styles.chapter}
+      className={`lift ${styles.chapter}`}
       flow={`.${styles.frame}`}
       flowStart="top 75%"
       flowEnd="bottom 40%"
@@ -34,7 +34,7 @@ export function FeelWipe() {
         const width = () => document.querySelector<HTMLElement>(`.${styles.frame}`)?.offsetWidth ?? 0;
         const span = mode === "pin" ? 0.7 : 1;
         // The sweep: the Pace layer's clip and the line move together (the line sits on the clip's edge). At rest (reduced
-        // motion, server render) the line stands at 50%, where the clip cuts.
+        // motion, server render) the line stands at 80%, where the clip cuts.
         gsap.set(`.${styles.line}`, { left: 0 });
         tl.fromTo(`.${styles.pace}`, { "--cut": "100%" }, { "--cut": "0%", duration: span, ease: "power1.inOut", immediateRender: true }, t0)
           .fromTo(

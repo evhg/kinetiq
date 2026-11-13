@@ -76,6 +76,16 @@
 }
 
 /* Pinned: one full screen, the frame edge to edge, the words over its lower left. */
+/* Wide but not pinned (reduced motion): the 16:9 frame no taller than about three quarters of the screen, centred. */
+@media (min-width: 900px) {
+  .stage {
+    padding-inline: clamp(24px, 5vw, 96px);
+  }
+  .frame {
+    width: min(100%, calc(74svh * 16 / 9));
+  }
+}
+
 @media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
   html[data-motion="on"] .chapter .stage {
     position: relative;
@@ -84,6 +94,7 @@
     display: block;
   }
   html[data-motion="on"] .chapter .frame {
+    width: auto;
     position: absolute;
     inset: 0;
     aspect-ratio: auto;
@@ -102,11 +113,5 @@
     left: clamp(24px, 5vw, 96px);
     bottom: clamp(32px, 8svh, 96px);
     max-width: min(34rem, 44vw);
-  }
-}
-/* Wide but not pinned (reduced motion, or a short landscape window below 900 px): frame, then words, side by side. */
-@media (min-width: 900px) {
-  .stage {
-    padding-inline: clamp(24px, 5vw, 96px);
   }
 }
