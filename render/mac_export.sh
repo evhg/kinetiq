@@ -33,7 +33,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 # the check before every push: everything on mac/exports past origin/wip/owner-update
 chg=$(git diff --name-only --diff-filter=AM origin/wip/owner-update...HEAD)
 all=$(git diff --name-only origin/wip/owner-update...HEAD)
-out=$(printf '%s\n' "$all" | grep -vE '^(public/stills/|src/content/stills\.generated\.json$)' || true)
+out=$(printf '%s\n' "$all" | grep -vE '^(public/stills/|src/content/(stills|sequences)\.generated\.json$)' || true)
 mst=$(printf '%s\n' "$all" | grep -iE '\.(png|exr)$' || true)
 big=$(for f in $chg; do [ "$(stat -f %z "$f")" -gt 5242880 ] && echo "$f"; done || true)
 if [ -n "$out$mst$big" ]; then echo "REFUSED to push: outside=[$out] masters=[$mst] over5MB=[$big]"; exit 1; fi
