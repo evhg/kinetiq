@@ -6,8 +6,8 @@
 # and spp as the k04-language masters. One STATUS line per item. Resumable (markers "cl ..."); the previous files go to
 # $F/pre-cmdlift once.
 . "$(cd "$(dirname "$0")" && pwd)/fw-lib.sh"
-R=command-dark-lift
-OLDF=$F/pre-cmdlift
+R=${FW_R:-command-dark-lift}
+OLDF=${FW_OLD:-$F/pre-cmdlift}
 mkdir -p "$OLDF"
 NAKED="the Naked twin (canon Naked, no butt flare)"
 NGK="KQ_NOGRIP=1 KQ_NAKED_FLARE=0 KQ_PACE_HANDLE=1"

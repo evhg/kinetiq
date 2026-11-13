@@ -6,8 +6,8 @@
 # spp as the k04-language masters. One STATUS line per item. Resumable (markers "pf ..."); the previous files go to
 # $F/pre-pacefix once.
 . "$(cd "$(dirname "$0")" && pwd)/fw-lib.sh"
-R=pace-dark-fix
-OLDF=$F/pre-pacefix
+R=${FW_R:-pace-dark-fix}
+OLDF=${FW_OLD:-$F/pre-pacefix}
 mkdir -p "$OLDF"
 NAKED="the Naked twin (canon Naked, no butt flare)"
 NGK="KQ_NOGRIP=1 KQ_NAKED_FLARE=0 KQ_PACE_HANDLE=1"

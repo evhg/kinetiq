@@ -15,14 +15,15 @@ QNAME=queue-mac
 . "$(cd "$(dirname "$0")" && pwd)/queue_lib.sh"
 DEVNAME="M3Max-$KQ_DEVICE"
 PUSH=${PUSH:-1}
-R=full-weave RT=2026-11-07T03:20:15Z
+R=${FW_R:-full-weave} RT=${FW_RT:-2026-11-07T03:20:15Z}   # a later pass (one-racket.sh) reuses these scripts under its own tag
 V=$F/v5k
-OLD=$F/pre-fullweave-20261107
+OLD=${FW_OLD:-$F/pre-fullweave-20261107}
 mkdir -p "$OLD"
 NG="env KQ_NOGRIP=1"
 NG15="env KQ_NOGRIP=1 KQ_EDGE_MM=1.5"
 NGF="env KQ_NOGRIP=1 KQ_NAKED_FLARE=0"
 CANON="full-weave canon (K01's hero weave on every part, both feels: Pace P_HD + crimp 75, white Command WEAVE_W + WEAVE_HD; the 1.0 mm edge radius's coat roughness alternating per tow / tape (RIM_FLIP 0.5, so the weave reads over the edge); throat walls on arc-length UVs; Naked handles lit by their per-camera handle card, the butt left out of it; every Naked twin without the butt flare, KQ_NAKED_FLARE 0 canon: the handle runs straight into the Q end with the weave to the end)"
+[ -n "${FW_CANON:-}" ] && CANON="$FW_CANON, on the $CANON"
 hm() { printf '%dh%02dm' $(($1 / 3600)) $(($1 % 3600 / 60)); }
 st() {   # st <marker> <line>
   done_mark "$1" && return 0

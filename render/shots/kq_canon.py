@@ -1974,6 +1974,9 @@ ONE_RACKET = os.environ.get("KQ_ONE_RACKET", "1") == "1"
 # receivers), so the face's approved look stays and the neck, walls and edges follow it. "union": every light that
 # reached any carbon part reaches all of it (preview v1 2026-11-13: the rim, wall and neck cards flood the face).
 ONE_RACKET_MODE = os.environ.get("KQ_ONE_RACKET_MODE", "face")
+# lights (name prefixes, comma list) widened to the whole racket even in face mode: e.g. K01's Naked Pace handle card,
+# rolled about the handle so the flat face does not mirror it (one-racket.sh, 2026-11-14)
+ONE_RACKET_UNION = tuple(u for u in os.environ.get("KQ_ONE_RACKET_UNION", "").split(",") if u)
 CARBON_PARTS = ("face", "back", "rim", "wall", "neck", "throat", "bridgewall", "holes", "etchR", "etchL")
 
 
@@ -2010,7 +2013,9 @@ def one_racket(scene=None, verbose=True):
 
         for r, ps in racks:
             got = [recv(p) for p in ps]
-            if ONE_RACKET_MODE == "face":
+            if any(o.name.startswith(u) for u in ONE_RACKET_UNION):
+                want = any(got)             # a light named here reaches the whole racket if it reached any part
+            elif ONE_RACKET_MODE == "face":
                 face = [p for p in ps if p.get("kq_part") == "face"]
                 want = recv(face[0]) if face else any(got)
             else:
