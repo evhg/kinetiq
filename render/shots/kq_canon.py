@@ -110,6 +110,14 @@ NOGRIP_Y_CUT = -0.2985
 # NECK_UV[1] the fold direction blends to the racket's cross axis, so below it the twill is laid along the handle axis
 # (u around the section, v = y) and the tows run straight down the neck (critic G1: no fish-scale arcs). None = old UVs.
 NECK_UV = (-0.095, -0.150)
+# one-racket canon (cloud REQUEST one-racket, 2026-11-13; owner: the handle reads as a separate piece): NECK_UV's blend
+# to the cross axis sheared the tiles on the shoulder wall and turned them inside the 18 mm fillet (K02 Naked: a swirl
+# down the neck wall). NECK_FOLD instead lays the wall's twill along a smoothed outline normal (gaussian over arc length,
+# sigma 15 mm, so the tows turn gradually over >= 40 mm with no scale change and the fillet cannot fold the UVs), from
+# y -0.06 down; below y -0.19 it is the exact normal again (the handle's straight sides, so the Naked butt's _neck_u
+# mapping still joins). KQ_NECK_FOLD=0: NECK_UV (before).
+NECK_FOLD = dict(sigma=0.015, y_on=(-0.060, -0.090), y_off=(-0.190, -0.210), y_min=-0.215) \
+    if os.environ.get("KQ_NECK_FOLD", "1") == "1" else None
 
 # handle (K05's overgrip and cap, without the ferrule, at the 455 mm positions)
 GRIP_Y = (-0.174, -0.2842)               # 110 mm, wraps over the last 2 mm of the neck taper
@@ -328,6 +336,31 @@ def _profile(R, S):
     return prof, pv
 
 
+def _fold_dirs(lp, outw, o):
+    """NECK_FOLD: the UV fold direction per outline point (unit 2D), a gaussian-smoothed normal on the neck."""
+    P = np.asarray(lp, float)
+    N = np.asarray(outw, float)
+    seg = np.hypot(*np.diff(np.vstack([P, P[:1]]), axis=0).T)
+    s_ = np.concatenate([[0.0], np.cumsum(seg)[:-1]])
+    Lt = float(seg.sum())
+    sig = o["sigma"]
+    ok = P[:, 1] > o["y_min"]
+    out = N.copy()
+    for i, (_, y) in enumerate(lp):
+        w = _smooth((o["y_on"][0] - y) / (o["y_on"][0] - o["y_on"][1])) * \
+            (1.0 - _smooth((o["y_off"][0] - y) / (o["y_off"][0] - o["y_off"][1])))
+        if w <= 0.0:
+            continue
+        d = np.abs(s_ - s_[i])
+        d = np.minimum(d, Lt - d)
+        k = np.where((d < 3 * sig) & ok, np.exp(-0.5 * (d / sig) ** 2), 0.0)
+        m = (N * k[:, None]).sum(0)
+        m /= np.linalg.norm(m)
+        f = (1 - w) * N[i] + w * m
+        out[i] = f / np.linalg.norm(f)
+    return out
+
+
 # ------------------------------------------------------------------ head
 T_FACE, T_BACK, T_RIM, T_WALL, T_NECK, T_HOLES, T_BRIDGE, T_THROAT, T_NECKCAP = 0, 1, 2, 3, 4, 5, 7, 8, 9
 CAP_TAGS = (T_FACE, T_BACK, T_NECKCAP)
@@ -390,6 +423,7 @@ def build_head(name="KQ", holes=None, r_frame=EDGE_R, r_hole=0.0008, seg_frame=1
             s_thr, _ = L.throat_arclength(lp)
             segb = [b_ * 0.001 for b_ in throat_segs] if throat_segs else None
         wrap = FRAME_UV == "wrap" and kind == "throat"
+        fold = _fold_dirs(lp, outw, NECK_FOLD) if (kind == "outline" and NECK_FOLD and neck_uv) else None
         if wrap:
             # full-weave (owner 2026-11-07): the throat walls wrapped as one band, as the K15 bores: u = the true arc
             # length round the throat from its apex (the one closing seam, in the apex fillet), v = the arc length across
@@ -412,7 +446,9 @@ def build_head(name="KQ", holes=None, r_frame=EDGE_R, r_hole=0.0008, seg_frame=1
             p_b = pv[S]
             p0x, p0y = x - ox * R, y - oy * R  # ring-0 point on the face
             fx, fy = ox, oy  # fold direction of the UVs over the edge (the outline normal; see NECK_UV for the neck)
-            if kind == "outline" and neck_uv:
+            if fold is not None:
+                fx, fy = float(fold[i][0]), float(fold[i][1])
+            elif kind == "outline" and neck_uv:
                 wn = _smooth((neck_uv[0] - y) / (neck_uv[0] - neck_uv[1]))
                 if wn > 0.0:
                     fx, fy = (1 - wn) * ox + wn * math.copysign(1.0, x), (1 - wn) * oy
@@ -1921,3 +1957,138 @@ if __name__ == "__main__":
     print("clone", measure(r2)["length"], P2["face"].material_slots[0].material.name)
     print("serial box (mm)", [round(v * 1000, 2) for v in serial_box(SERIAL)])
     print("ok %.1f s" % (time.time() - t0))
+
+
+# ------------------------------------------------------------------ one racket (cloud REQUEST one-racket, 2026-11-13)
+# Owner on K05 Precision: "the handle in this render looks like it is separate? ... you always need to render the entire
+# racket; also the one with grip has a weird inconsistent piece just above the overgrip". Canon rule "one racket, one
+# material, one light": (1) no face / neck light-linking: every light (lamp or emissive card) that reaches any carbon
+# part of a racket reaches all of it, so no brightness step can run along NECK_SPLIT_Y (the split stays a mesh boundary
+# only: parts are still separate objects for materials and measuring); (3) whole-frame renders only: no Cycles border
+# (KQ_BORDER_AUTO / patch_paste refused). Applied to the scene just before every render of the process: kq_canon wraps
+# bpy.ops.render.render (a render_pre handler runs after the render has read its settings; studio.py's border proxy
+# does the same). KQ_ONE_RACKET=0: before.
+ONE_RACKET = os.environ.get("KQ_ONE_RACKET", "1") == "1"
+# "face" (canon): every carbon part receives exactly the face's lights (a light that reached the face now reaches the
+# whole racket; one that did not, e.g. a rim hairline, wall or neck card, leaves the carbon and keeps only its grip / cap
+# receivers), so the face's approved look stays and the neck, walls and edges follow it. "union": every light that
+# reached any carbon part reaches all of it (preview v1 2026-11-13: the rim, wall and neck cards flood the face).
+ONE_RACKET_MODE = os.environ.get("KQ_ONE_RACKET_MODE", "face")
+CARBON_PARTS = ("face", "back", "rim", "wall", "neck", "throat", "bridgewall", "holes", "etchR", "etchL")
+
+
+def _carbon(root):
+    return [c for c in root.children if "kq_part" in c and (c["kq_part"] in CARBON_PARTS or c["kq_part"].startswith("thr"))
+            and not c.get("kq_stub") and not c.hide_render]
+
+
+def one_racket(scene=None, verbose=True):
+    """Unify every light link over each racket's carbon parts and switch the border off. Returns the number of
+    (emitter, racket) links widened."""
+    sc = scene or bpy.context.scene
+    roots = [o for o in sc.objects if "kq_feel" in o and o.type == "EMPTY"]
+    racks = [(r, _carbon(r)) for r in roots]
+    racks = [(r, ps) for r, ps in racks if ps]
+    fixed = 0
+    seen = set()
+    for o in sc.objects:
+        ll = getattr(o, "light_linking", None)
+        rc = getattr(ll, "receiver_collection", None) if ll is not None else None
+        if rc is None or rc.name in seen:
+            continue
+        seen.add(rc.name)
+        state = {ob.name: co.light_linking.link_state for ob, co in zip(rc.objects, rc.collection_objects)}
+        nested = {ob.name for ob in rc.all_objects} - set(state)
+        has_inc = any(s_ == "INCLUDE" for s_ in state.values()) or bool(nested)
+
+        def recv(ob):
+            if ob.name in state:
+                return state[ob.name] == "INCLUDE"
+            if ob.name in nested:
+                return True
+            return not has_inc
+
+        for r, ps in racks:
+            got = [recv(p) for p in ps]
+            if ONE_RACKET_MODE == "face":
+                face = [p for p in ps if p.get("kq_part") == "face"]
+                want = recv(face[0]) if face else any(got)
+            else:
+                want = any(got)
+            if all(g == want for g in got):
+                continue
+            for p, g in zip(ps, got):
+                if g == want:
+                    continue
+                names = [ob.name for ob in rc.objects]
+                if want:
+                    if p.name in state:            # excluded: include it (or drop the exclusion)
+                        if has_inc:
+                            rc.collection_objects[names.index(p.name)].light_linking.link_state = "INCLUDE"
+                        else:
+                            rc.objects.unlink(p)
+                    else:
+                        rc.objects.link(p)        # links as INCLUDE
+                        state[p.name] = "INCLUDE"
+                else:
+                    if has_inc:
+                        if p.name in state and state[p.name] == "INCLUDE":
+                            rc.objects.unlink(p)      # off the include list: not lit
+                            state.pop(p.name)
+                    else:
+                        if p.name not in state:
+                            rc.objects.link(p)
+                        rc.collection_objects[[ob.name for ob in rc.objects].index(p.name)].light_linking.link_state = "EXCLUDE"
+                        state[p.name] = "EXCLUDE"
+            if has_inc and not any(s_ == "INCLUDE" for s_ in state.values()) and not nested:
+                # an include list left empty would light everything: a hidden empty keeps it a list that lights nothing
+                dummy = bpy.data.objects.get("kq_no_receiver")
+                if dummy is None:
+                    dummy = bpy.data.objects.new("kq_no_receiver", None)
+                    dummy.hide_render = True
+                rc.objects.link(dummy)
+                state[dummy.name] = "INCLUDE"
+            fixed += 1
+            if verbose:
+                print("one-racket: %s (%s) now lights %s of %s (was %d/%d parts)"
+                      % (rc.name, o.name, "all" if want else "none", r.name, sum(got), len(ps)), flush=True)
+    # an emptied receiver list lights nothing in Cycles: an exclude list with no exclusions left means "lights all", so
+    # those emitters drop their linking (every emitter sharing the collection)
+    for o in sc.objects:
+        ll = getattr(o, "light_linking", None)
+        rc = getattr(ll, "receiver_collection", None) if ll is not None else None
+        if rc is not None and len(rc.all_objects) == 0 and rc.name in seen:
+            ll.receiver_collection = None
+            if verbose:
+                print("one-racket: %s (%s) emptied: unlinked, lights all" % (rc.name, o.name), flush=True)
+    if sc.render.use_border:
+        sc.render.use_border = False
+        print("one-racket: border off (whole-frame renders only)", flush=True)
+    if verbose:
+        print("one-racket: %d racket(s), %d link set(s) widened" % (len(racks), fixed), flush=True)
+    return fixed
+
+
+class _OneRacketOps:
+    """bpy.ops.render with .render running one_racket() first; everything else forwarded."""
+    def __init__(self, sub):
+        self._sub = sub
+
+    def __getattr__(self, name):
+        if name == "render":
+            orig = self._sub.render
+
+            def render_one(*a, **k):
+                one_racket()
+                return orig(*a, **k)
+            return render_one
+        return getattr(self._sub, name)
+
+
+if ONE_RACKET:
+    if os.environ.get("KQ_BORDER_AUTO") == "1":
+        raise SystemExit("one-racket canon: whole-frame renders only (KQ_BORDER_AUTO / patch_paste refused); "
+                         "KQ_ONE_RACKET=0 for the old behaviour")
+    _ops_mod = sys.modules["bpy.ops"]
+    if not isinstance(_ops_mod.__dict__.get("render"), _OneRacketOps):
+        setattr(_ops_mod, "render", _OneRacketOps(getattr(_ops_mod, "render")))
