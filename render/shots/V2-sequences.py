@@ -1243,7 +1243,7 @@ def run_explode(o, sc):
     for p_ in skin.data.polygons:
         counts[p_.material_index] = counts.get(p_.material_index, 0) + 1
     skin_m = skin.material_slots[max(counts, key=counts.get)].material
-    if feel == "pace":                          # a lacquered black ply mirrors the stage like chrome: satin prepreg
+    if feel == "pace" and os.environ.get("KQ_E_PACE_PREPREG", "0") == "1":   # satin prepreg (off: glossy reads as the finished black, once off the grade card)
         skin_m = prepreg(skin_m)
     A, b0 = skin_uv_fit(skin, R_inv)
     edge_m = mat_ply_edge(feel)
