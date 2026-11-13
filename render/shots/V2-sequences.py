@@ -111,9 +111,20 @@ D_LIP0, D_LIP1 = 1.0, 1.5    # lip ring, start / end (x the feel's lip strength)
 # ------------------------------------------------------------------ explode
 E_EL, E_AZ = 30.0, 35.0      # camera above / turned (deg)
 E_DRIFT = 5.0                # deg of azimuth drift over the whole sequence
-E_GAP = 0.110                # m between neighbouring layers when fully apart
-E_PLY = 0.0007               # m: a ply's drawn thickness
-E_GLOW = 6.0                 # edge glow strength at the moment the layers part / meet
+E_GAP = 0.110                # m between neighbouring layers when fully apart (solved per format for E_WFRAC)
+E_WFRAC = 0.70               # the stack's width, fully apart, as a fraction of the frame (cloud review 15:41Z)
+E_GAP_MAX = 0.20             # m: at 30/35 deg the stack runs diagonally, so 16:9 fills its height first; wider than
+                             # this only shrinks every piece (desktop reaches ~60%; portrait reaches E_WFRAC)
+E_MARG_Y = 0.04              # top/bottom air when fully apart
+E_GAP_PHONE = 0.12           # m: the phone's spacing (portrait fits the stack by its width)
+E_PLY = 0.0015               # m: a ply's drawn thickness (a thin clean sheet at screen scale)
+E_BEVEL = 0.0004             # m: the ply's rounded cut edge
+E_ANGS = (0.0, 45.0, -45.0)  # the weave's turn per ply, outer -> inner (front; the back mirrors it)
+E_YEND = -0.176              # m (model y): the plies end where the neck meets the handle
+E_SQ_Y0 = -0.140             # the core's head squeeze ramps out from here down to E_YEND
+E_DENSE, E_DENSE_Y0, E_DENSE_Y1 = 0.86, -0.150, -0.180   # the handle's denser foam: tone factor and its ramp
+E_GLOW = 4.0                 # edge glow strength as the layers meet
+E_GLOW_W = 3.0               # its width in frames (soft, ~60 to 68)
 E_T = (2.0, 30.0, 42.0, 64.0)
 UD_RGB = (0.020, 0.020, 0.022)
 PP_COAT, PP_ROUGH = 0.12, 0.38   # prepreg: a satin resin film, no lacquer
@@ -374,6 +385,28 @@ def finish_lights(sc):
     for ob_ in sc.objects:
         if ob_.type == "LIGHT":
             ob_.visible_camera = False
+
+
+def exclude_from(emitter, objs):
+    """`emitter` (a light or emissive mesh) no longer reaches `objs`."""
+    L_ = bpy.data.objects.get(emitter)
+    if L_ is None:
+        return
+    rc = L_.light_linking.receiver_collection
+    if rc is None:
+        rc = bpy.data.collections.new("recv_" + emitter)
+        L_.light_linking.receiver_collection = rc
+    has_inc = any(co.light_linking.link_state == "INCLUDE" for co in rc.collection_objects)
+    for ob in objs:
+        names = [o_.name for o_ in rc.objects]
+        if ob.name in names:
+            if has_inc:
+                rc.objects.unlink(ob)
+            else:
+                rc.collection_objects[names.index(ob.name)].light_linking.link_state = "EXCLUDE"
+        elif not has_inc:
+            rc.objects.link(ob)
+            rc.collection_objects[[o_.name for o_ in rc.objects].index(ob.name)].light_linking.link_state = "EXCLUDE"
 
 
 def share_links(src, news):
@@ -1004,70 +1037,230 @@ def run_dive(o, sc):
 
 
 # ================================================================== EXPLODE
+# Cloud review 2026-11-13 15:41Z: exactly seven pieces, front to back 3 face plies (the feel's weave at 0, +45, -45),
+# the foam core (one piece, head and handle, the handle a shade denser), 3 back plies; each ply a thin flat clean sheet
+# (no displacement, the skin's own bump), round holes, the throat a clean opening, covering the head and neck only;
+# the stack about 70% of the frame wide at full separation, evenly spaced, the camera still; a soft glow as they close.
+def _model_xyz(ob, R_inv):
+    me = ob.data
+    n = len(me.vertices)
+    co = np.empty(n * 3)
+    me.vertices.foreach_get("co", co)
+    M = np.array(R_inv @ ob.matrix_world)
+    return co.reshape(n, 3) @ M[:3, :3].T + M[:3, 3]
+
+
+def ply_outline(P, R_inv):
+    """The ply's plan in model space (metres): the canon outline (head and neck) down to E_YEND, less the 42 holes and
+    the throat, both taken from the face mesh's own boundary loops."""
+    import bmesh
+    from shapely.geometry import LineString, Polygon, box
+    from shapely.ops import polygonize, unary_union
+    face = P["face"]
+    M = R_inv @ face.matrix_world
+    bm = bmesh.new()
+    bm.from_mesh(face.data)
+    segs = []
+    for e in bm.edges:
+        if e.is_boundary:
+            a, b = (M @ v.co for v in e.verts)
+            segs.append(LineString([(round(a.x, 7), round(a.y, 7)), (round(b.x, 7), round(b.y, 7))]))
+    bm.free()
+    polys = sorted(polygonize(segs), key=lambda p: -p.area)
+    outer = Polygon(C.outline_canon())
+    cuts = [p for p in polys[1:] if p.area < 0.2 * polys[0].area]
+    ply = outer.intersection(box(-1.0, E_YEND, 1.0, 1.0)).difference(unary_union(cuts))
+    if ply.geom_type != "Polygon":
+        ply = max(ply.geoms, key=lambda g: g.area)
+    print("explode: ply plan %.1f x %.1f mm, %d openings (face loops %d), outline y %.3f..%.3f"
+          % (1000 * (ply.bounds[2] - ply.bounds[0]), 1000 * (ply.bounds[3] - ply.bounds[1]), len(ply.interiors),
+             len(polys), outer.bounds[1], outer.bounds[3]), flush=True)
+    return ply
+
+
+def skin_uv_fit(ob, R_inv):
+    """UV = A @ (x, y) + b over the skin's loops (model space): the weave's own scale and direction."""
+    me = ob.data
+    uvl = me.uv_layers.get("UVMap") or me.uv_layers[0]
+    nl = len(me.loops)
+    vi = np.empty(nl, dtype=np.int64)
+    me.loops.foreach_get("vertex_index", vi)
+    uv = np.empty(nl * 2)
+    uvl.data.foreach_get("uv", uv)
+    uv = uv.reshape(nl, 2)
+    xyz = _model_xyz(ob, R_inv)[vi]
+    X = np.c_[xyz[:, 0], xyz[:, 1], np.ones(nl)]
+    sol, *_ = np.linalg.lstsq(X, uv, rcond=None)
+    res = np.abs(X @ sol - uv).max()
+    A, b = sol[:2].T, sol[2]
+    print("explode: skin UV fit residual %.4f (A %s)" % (res, np.round(A, 2).tolist()), flush=True)
+    return A, b
+
+
+def mat_ply_edge(feel, name="V2_PlyEdge"):
+    """The ply's cut edge: the feel's tone, satin, with the closing glow (camera rays, node "kq_edge")."""
+    m = mat_edge_glow(name)
+    b = [n for n in m.node_tree.nodes if n.type == "BSDF_PRINCIPLED"][0]
+    if feel == "pace":
+        b.inputs["Base Color"].default_value = (0.030, 0.030, 0.032, 1)
+        b.inputs["Roughness"].default_value = 0.35
+    else:
+        b.inputs["Base Color"].default_value = (0.50, 0.495, 0.475, 1)
+        b.inputs["Roughness"].default_value = 0.45
+    return m
+
+
+def mat_core(name="V2_Core"):
+    """The foam core, one piece: the handle (attribute kq_dense 1) a shade denser."""
+    m = mat_foam(name)
+    nt = m.node_tree
+    b = nt.nodes["Principled BSDF"]
+    src = b.inputs["Base Color"].links[0].from_socket
+    at = _n(nt, "ShaderNodeAttribute")
+    at.attribute_name = "kq_dense"
+    mr = _n(nt, "ShaderNodeMapRange")
+    mr.inputs["To Min"].default_value = 1.0
+    mr.inputs["To Max"].default_value = E_DENSE
+    nt.links.new(at.outputs["Fac"], mr.inputs["Value"])
+    cmb = _n(nt, "ShaderNodeCombineColor")
+    for k in ("Red", "Green", "Blue"):
+        nt.links.new(mr.outputs["Result"], cmb.inputs[k])
+    mx = _n(nt, "ShaderNodeMix")
+    mx.data_type = "RGBA"
+    mx.blend_type = "MULTIPLY"
+    mx.inputs["Factor"].default_value = 1.0
+    nt.links.new(src, mx.inputs["A"])
+    nt.links.new(cmb.outputs["Color"], mx.inputs["B"])
+    nt.links.new(mx.outputs["Result"], b.inputs["Base Color"])
+    return m
+
+
+def ply_object(name, poly, zp, up, A, b0, ang, mat, rim_mat):
+    import bmesh
+    c0 = np.array(poly.centroid.coords[0])
+    a = math.radians(ang)
+    Rm = np.array([[math.cos(a), -math.sin(a)], [math.sin(a), math.cos(a)]])
+    bm = bmesh.new()
+    vmap = {}
+
+    def V(p):
+        k = (round(p[0], 7), round(p[1], 7))
+        if k not in vmap:
+            vmap[k] = bm.verts.new((p[0], p[1], zp))
+        return vmap[k]
+    for t in C._poly_tris(poly):
+        vs = [V(p) for p in t]
+        if len(set(vs)) == 3:
+            try:
+                bm.faces.new(vs)
+            except ValueError:
+                pass
+    bm.normal_update()
+    for f in bm.faces:
+        if (f.normal.z > 0) != up:
+            f.normal_flip()
+    uvl = bm.loops.layers.uv.new("UVMap")
+    for f in bm.faces:
+        for lp in f.loops:
+            p = np.array((lp.vert.co.x, lp.vert.co.y))
+            q = Rm @ (p - c0) + c0
+            lp[uvl].uv = tuple(A @ q + b0)
+    me = bpy.data.meshes.new(name)
+    bm.to_mesh(me)
+    bm.free()
+    ob = bpy.data.objects.new(name, me)
+    bpy.context.scene.collection.objects.link(ob)
+    me.materials.append(mat)
+    me.materials.append(rim_mat)
+    sd = ob.modifiers.new("ply", "SOLIDIFY")
+    sd.thickness = E_PLY
+    sd.offset = -1.0                     # inward from the skin plane (normals point out of the racket)
+    sd.use_rim = True
+    sd.material_offset_rim = 1
+    bv = ob.modifiers.new("edge", "BEVEL")
+    bv.width = E_BEVEL
+    bv.segments = 3
+    bv.limit_method = "ANGLE"
+    bv.angle_limit = math.radians(40.0)
+    return ob
+
+
 def run_explode(o, sc):
     feel = o["feel"]
     r, P = racket("KQ_F", feel)
     C.pose(r, (0.0, 0.0, HC), tilt_deg=90.0)
     bpy.context.view_layer.update()
     hf = k11_glow(r)
-    c, upv, across, nrm = KD.racket_frame(r)
     Mw = r.matrix_world
+    R_inv = Mw.inverted()
     zax = (Mw.to_3x3() @ Vector((0, 0, 1))).normalized()        # model +z: the front face's normal
-    T2 = C.T2 if hasattr(C, "T2") else C.ZT
+    zf = float(_model_xyz(P["face"], R_inv)[:, 2].max())
+    zb = float(_model_xyz(P["back"], R_inv)[:, 2].min())
+    print("explode: parts %s; face z %.4f back z %.4f" % (sorted(P), zf, zb), flush=True)
     stack = bpy.data.objects.new("V2_stack", None)
     bpy.context.scene.collection.objects.link(stack)
     stack.matrix_world = Mw.copy()
-    foam_m = mat_foam()
-    edge_m = mat_edge_glow()
-    # the core: the head's closed shell in foam, the bores keep their carbon lining; squeezed by the plies' depth
-    core_e = bpy.data.objects.new("V2_core", None)
-    bpy.context.scene.collection.objects.link(core_e)
-    core_e.parent = stack
-    kz = (T2 - 3 * E_PLY) / T2
-    core_e.matrix_basis = Matrix.Diagonal((1.0, 1.0, kz, 1.0))
+    # ---- the core: every visible carbon part of the finished racket, in foam, as one piece; the head squeezed so the
+    # plies close onto it (ramped out down the neck: the handle keeps its own section)
+    core_m = mat_core()
     core = []
-    for k_ in ("face", "back", "wall", "rim", "throat", "bridgewall", "holes"):
-        ks = [k_] if k_ in P else []
-        ks += [kk for kk in P if kk.startswith("thr") and kk != "throat" and k_ == "throat"]
-        for kk in ks:
-            cc = mesh_copy(P[kk], "V2_core_" + kk)
-            cc.parent = core_e
-            cc.matrix_parent_inverse = Matrix.Identity(4)
-            cc.matrix_basis = Matrix.Identity(4)
-            if kk != "holes":
-                set_mat(cc, foam_m)
-            core.append(cc)
-    # plies: copies of the face (front) and back skins, each drawn E_PLY thick inward from its closed place
-    fronts = [("twill", None), ("ud", 45.0), ("ud", 0.0)]        # outer -> inner
-    backs = [("twill", None), ("ud", -45.0), ("ud", 90.0)]       # outer -> inner
-    plies = []                                                   # (object, side +1/-1, rank from the core 1..3)
-    for side, spec, src in ((1, fronts, P["face"]), (-1, backs, P["back"])):
-        for i, (kind, ang) in enumerate(spec):
+    skip = ("capmark", "cap", "etchR", "etchL")
+    for k_, ob in P.items():
+        if ob.type != "MESH" or ob.hide_render or ob.get("kq_stub") or k_ in skip or not len(ob.data.vertices):
+            continue
+        cc = mesh_copy(ob, "V2_core_" + k_, data=True)
+        cc.parent = stack
+        cc.matrix_parent_inverse = Matrix.Identity(4)
+        Mp = R_inv @ ob.matrix_world
+        cc.matrix_basis = Mp
+        me = cc.data
+        n = len(me.vertices)
+        co = np.empty(n * 3)
+        me.vertices.foreach_get("co", co)
+        co = co.reshape(n, 3)
+        Mn = np.array(Mp)
+        mod = co @ Mn[:3, :3].T + Mn[:3, 3]
+        y = mod[:, 1]
+        t = np.clip((E_SQ_Y0 - y) / (E_SQ_Y0 - E_YEND), 0.0, 1.0)
+        t = t * t * (3 - 2 * t)
+        kz_top = (zf - 3 * E_PLY) / zf
+        kz_bot = (-zb - 3 * E_PLY) / -zb
+        kz = np.where(mod[:, 2] >= 0, kz_top, kz_bot)
+        mod[:, 2] *= kz + (1.0 - kz) * t
+        Mi = np.linalg.inv(Mn)
+        co = mod @ Mi[:3, :3].T + Mi[:3, 3]
+        me.vertices.foreach_set("co", co.ravel())
+        dz = np.clip((E_DENSE_Y0 - y) / (E_DENSE_Y0 - E_DENSE_Y1), 0.0, 1.0)
+        at = me.attributes.new("kq_dense", "FLOAT", "POINT")
+        at.data.foreach_set("value", (dz * dz * (3 - 2 * dz)).astype(np.float32))
+        me.update()
+        set_mat(cc, core_m)
+        core.append(cc)
+    # ---- plies: flat sheets on the face (front) and back planes, E_PLY thick inward, the weave turned per ply
+    poly = ply_outline(P, R_inv)
+    skin = P["back"]
+    counts = {}
+    for p_ in skin.data.polygons:
+        counts[p_.material_index] = counts.get(p_.material_index, 0) + 1
+    skin_m = skin.material_slots[max(counts, key=counts.get)].material
+    if feel == "pace":                          # a lacquered black ply mirrors the stage like chrome: satin prepreg
+        skin_m = prepreg(skin_m)
+    A, b0 = skin_uv_fit(skin, R_inv)
+    edge_m = mat_ply_edge(feel)
+    plies = []                                                   # (empty, side +1/-1, rank from the core 1..3, mesh)
+    for side, z0 in ((1, zf), (-1, zb)):
+        for i, ang in enumerate(E_ANGS):                         # outer -> inner
             pe = bpy.data.objects.new("V2_ply%+d_%d" % (side, i), None)
             bpy.context.scene.collection.objects.link(pe)
             pe.parent = stack
             pe.matrix_basis = Matrix.Identity(4)
-            pc = mesh_copy(src, "V2_plymesh%+d_%d" % (side, i), data=True)
+            pc = ply_object("V2_plymesh%+d_%d" % (side, i), poly, z0 - side * i * E_PLY, side > 0, A, b0,
+                            side * ang, skin_m, edge_m)
             pc.parent = pe
             pc.matrix_parent_inverse = Matrix.Identity(4)
-            pc.matrix_basis = Matrix.Translation(Vector((0, 0, -side * i * E_PLY)))
-            # keep the skin's slots (the face has several: weave, serial etch ...); a UD ply replaces every one
-            orig = [sl.material for sl in src.material_slots]
-            pc.data.materials.clear()
-            ud = None if kind == "twill" else mat_ud("V2_UD%+d_%d" % (side, i), ang)
-            for m_ in orig:      # the twill ply as prepreg: satin, no lacquer (the coat comes with the cure)
-                pc.data.materials.append(prepreg(m_) if ud is None else ud)
-            nslot = len(orig)
-            pc.data.materials.append(edge_m)
-            sd = pc.modifiers.new("ply", "SOLIDIFY")
-            sd.thickness = E_PLY
-            sd.offset = -1.0                 # inward from the skin on both sides (normals point out)
-            sd.use_rim = True
-            sd.material_offset_rim = nslot
-            for ii in range(len(pc.material_slots)):
-                pc.material_slots[ii].link = "DATA"
+            pc.matrix_basis = Matrix.Identity(4)
             plies.append((pe, side, 3 - i, pc))
-    # camera: 30 deg above, 35 deg turned (about the racket's long axis from the face normal), slow drift
+    # ---- camera: 30 deg above, 35 deg turned, a slow drift; still otherwise (one distance and shift for all frames)
     phone = o["fmt"] == "phone"
     margin = MARGIN_P if phone else MARGIN_D
     up = Vector((0, 0, 1))
@@ -1091,27 +1284,57 @@ def run_explode(o, sc):
             return 1.0 + 0.03 * math.sin(math.pi * (f - b) / (c_ - b))
         return 1.0 - ramp(f, c_, d_)
 
+    gap = [E_GAP]
+
     def place(s):
         for pe, side, rank, pc in plies:
-            pe.matrix_basis = Matrix.Translation(Vector((0, 0, side * rank * E_GAP * s)))
-    cam = studio.camera(tuple(c + nfront * 3), tuple(c), lens=LENS)
+            pe.matrix_basis = Matrix.Translation(Vector((0, 0, side * rank * gap[0] * s)))
+    cam = studio.camera(tuple(Mw.translation + nfront * 3), tuple(Mw.translation), lens=LENS)
     sc.camera = cam
-    place(1.03)
-    for ob in [r] + list(P.values()):
-        pass
-    bpy.context.view_layer.update()
-    allp = np.concatenate([pts_of([ob for k_, ob in P.items() if not ob.hide_render and k_ not in ("capmark",)]),
-                           pts_of([pc for _, _, _, pc in plies])])
-    aimc = Vector(((allp.min(0) + allp.max(0)) / 2).tolist())
-    # the camera follows the stack: fitted to every frame's extent (closed: the racket fills the frame; apart: the
-    # layers do), then smoothed (a moving max, then a moving mean, never closer than the frame's own fit)
+    shown = [ob for ob in P.values() if not ob.hide_render and not ob.get("kq_stub")]
+    closed = pts_of([ob for k_, ob in P.items() if not ob.hide_render and k_ not in ("capmark",)])
+    aimc = Vector(((closed.min(0) + closed.max(0)) / 2).tolist())
+    stack_objs = core + [pc for _, _, _, pc in plies]
+
+    def marg(s):          # apart, the stack may use more of the height (the camera looks down the diagonal it makes);
+        k = sstep(min(1.0, max(0.0, s)))       # portrait: more side air, so the stack spans about E_WFRAC of the width
+        if phone:
+            return (margin[0], margin[1] + (0.5 * (1.0 - E_WFRAC) - margin[1]) * k)
+        return (margin[0] + (E_MARG_Y - margin[0]) * k, margin[1])
+
+    def width_at(g):
+        gap[0] = g
+        place(1.0)
+        bpy.context.view_layer.update()
+        sp = pts_of(stack_objs)
+        fit(sc, cam, sp, aimc, cdir(36), up, marg(1.0))
+        return float(np.ptp(project(sc, cam, sp)[:, 0]))
+    # the gap: the stack E_WFRAC of the frame wide if the frame allows (portrait), else as wide as E_GAP_MAX gives
+    lo, hi = 0.01, E_GAP_MAX
+    if phone:                                   # portrait is width-bound at any gap: a fixed spacing
+        lo = E_GAP_PHONE
+    elif width_at(hi) <= E_WFRAC:
+        lo = hi
+    else:
+        for _ in range(16):
+            mid = 0.5 * (lo + hi)
+            if width_at(mid) < E_WFRAC:
+                lo = mid
+            else:
+                hi = mid
+    wf = width_at(lo)
+    print("explode: gap %.1f mm, stack %.0f%% of the frame wide at full separation" % (1000 * gap[0], 100 * wf),
+          flush=True)
+    # the camera follows the stack (as the preview): fitted to every frame's extent, then smoothed (a moving max,
+    # then a moving mean, never closer than the frame's own fit)
     base = pts_of([ob for k_, ob in P.items() if not ob.hide_render and k_ not in ("capmark",)])
     need, shs0 = [], []
     for f in range(NF):
-        place(sep(f))
+        s_ = sep(f)
+        place(s_)
         bpy.context.view_layer.update()
-        pf = np.concatenate([base, pts_of([pc for _, _, _, pc in plies])]) if sep(f) > 0 else base
-        d_, sh_ = fit(sc, cam, pf, aimc, cdir(f), up, margin)
+        pf = np.concatenate([base, pts_of(stack_objs)]) if s_ > 0 else base
+        d_, sh_ = fit(sc, cam, pf, aimc, cdir(f), up, marg(s_))
         need.append(d_)
         shs0.append(sh_)
     W_ = 5
@@ -1119,40 +1342,39 @@ def run_explode(o, sc):
     dist_f = [max(need[f], sum(mx_[max(0, f - W_):f + W_ + 1]) / len(mx_[max(0, f - W_):f + W_ + 1])) for f in range(NF)]
     shx = [sum(x[0] for x in shs0[max(0, f - W_):f + W_ + 1]) / len(shs0[max(0, f - W_):f + W_ + 1]) for f in range(NF)]
     shy = [sum(x[1] for x in shs0[max(0, f - W_):f + W_ + 1]) / len(shs0[max(0, f - W_):f + W_ + 1]) for f in range(NF)]
-    dist = dist_f[35]
-    # lights from the frame-35 camera, built on the finished racket; the stack shares its links
-    look(cam, aimc + cdir(35) * dist, aimc, up)
+    dist = dist_f[36]
+    shift = (shx[36], shy[36])
+    # lights from the hold's camera, built on the finished racket; the stack shares its links
+    look(cam, aimc + cdir(36) * dist, aimc, up)
+    cam.data.shift_x, cam.data.shift_y = shift
     bpy.context.view_layer.update()
     KD.world_field(sc)
     KD.lights([r], o)
     KD.grade_card([r], cam)
     finish_lights(sc)
     C.one_racket(verbose=False)
-    share_links(P["face"], core + [pc for _, _, _, pc in plies])
-    # the stack's own soft fill from just above the camera: the K11 key rakes from the crown side and every ply shades
-    # the next, so apart they would read only by their reflections; it lights what the camera sees and fades out as
-    # the layers close (the finished racket keeps K11's light exactly)
+    share_links(P["face"], stack_objs)
+    if os.environ.get("KQ_E_NOGRADE", "1") == "1":     # the Pace grade card is aimed off the face's mirror; moved toward
+        exclude_from("lg_grade", [pc for _, _, _, pc in plies])   # the camera, the plies would mirror it grey
+    # the stack's own soft fill from just above the camera (every ply shades the next); it fades as the layers close
     import k789_lib as KL7
-    fd = (cdir(35) + up * 0.35).normalized()
+    fd = (cdir(36) + up * 0.35).normalized()
     xf = studio.area_light("lg_xfill", tuple(aimc + fd * E_FILL_D), E_FILL_SIZE, E_FILL_S, color=KD.kelvin(6000.0),
                            target=tuple(aimc))
     xf.visible_camera = False
-    KL7.link_receivers(xf, core + [pc for _, _, _, pc in plies], "recv_xfill")
+    xf.visible_glossy = False                   # diffuse only: its reflection washed the near Pace plies grey
+    KL7.link_receivers(xf, stack_objs, "recv_xfill")
 
     def frame(f):
         s = sep(f)
         place(s)
         stacked = E_T[0] < f < E_T[3]
-        for k_, ob in P.items():
-            if k_ in ("neck", "capmark", "cap") or ob.get("kq_stub"):
-                continue
+        for ob in shown:
             ob.hide_render = stacked
-        for ob in core:
+        for ob in stack_objs:
             ob.hide_render = not stacked
-        for _, _, _, pc in plies:
-            pc.hide_render = not stacked
-        # the warm edge glow at the moments they part and meet
-        g = math.exp(-((f - (E_T[0] + 1)) / 2.2) ** 2) + math.exp(-((f - E_T[3]) / 2.6) ** 2)
+        # the soft warm edge glow as they meet (frames ~60 to 68)
+        g = math.exp(-((f - E_T[3]) / E_GLOW_W) ** 2)
         edge_m.node_tree.nodes["kq_edge"].inputs[1].default_value = E_GLOW * g
         set_strength(hf, "edge", 1.0 + 3.0 * g)
         xf.data.energy = E_FILL_S * sstep(min(1.0, s / 0.5))
