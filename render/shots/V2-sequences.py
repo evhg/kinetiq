@@ -84,6 +84,7 @@ SW_DIR = (0.42, 1.0)         # model-space direction the sweep coordinate grows 
 GLARE_T, GLARE_SIZE = 0.0, 8
 GLARE_K = 0.6                # the bands' bloom (their AOV through a fog glow) added at this gain
 DRY_ROUGH, DRY_SPEC = 0.62, 0.30
+DRY_SPEC_P = 0.10             # Pace: dry black 12K reads black with a satin sheen, not pale grey
 # timeline (frames)
 T_JOIN = 24.0
 T_FAB = (24.0, 44.0)
@@ -96,8 +97,11 @@ D_FIELD1 = 0.0405            # m: the final frame's width (K04 fw 40.5 mm)
 D_FIELD1_P = 0.030           # m: the phone's final width (portrait: the hole a little larger)
 D_FSTOP = 64.0
 D_BUMP1 = 0.3
+D_PRIM_K = 0.15             # the Pace back strips in the dive
 D_EXPO1 = -0.55            # the film darkens as the camera closes in: the glow carries the macro (K04-full)
 D_LFADE = {"lg_sheen": 0.0, "lg_streak": 0.0, "lg_fill": 0.3, "lg_cfill": 0.4, "lg_wall": 0.5, "lg_weave": 0.3}
+D_LFADE_P = {"lg_weave": 1.0}   # Pace keeps its weave card: the 12K must still read around the hole
+D_EXPO1_P = -0.2
 D_LFADE_U = 0.55             # fully faded by this much of the dive (log zoom)
 D_HOLE = (0.0, 0.834)        # shape units: second row, middle
 D_SHIFT1 = (-0.12, 0.0)      # K04's shift at the end (desktop)
@@ -465,12 +469,12 @@ def mat_foam(name="V2_Foam"):
     return m
 
 
-def matte_copy(m0, tag="dry"):
+def matte_copy(m0, tag="dry", spec=None):
     m = m0.copy()
     m.name = m0.name + "_" + tag
     nt = m.node_tree
     for b in [n for n in nt.nodes if n.type == "BSDF_PRINCIPLED"]:
-        for nm, v in (("Coat Weight", 0.0), ("Roughness", DRY_ROUGH), ("Specular IOR Level", DRY_SPEC)):
+        for nm, v in (("Coat Weight", 0.0), ("Roughness", DRY_ROUGH), ("Specular IOR Level", DRY_SPEC if spec is None else spec)):
             inp = b.inputs[nm]
             for l_ in list(inp.links):
                 nt.links.remove(l_)
@@ -776,7 +780,7 @@ def run_assemble(o, sc):
                 m0 = slot.material
                 if m0 is None:
                     continue
-                base = foam_m if role == "foam" else (matte_copy(m0) if role == "dry" else m0)
+                base = foam_m if role == "foam" else (matte_copy(m0, spec=DRY_SPEC_P if feel == "pace" else None) if role == "dry" else m0)
                 ck = (role, base.name)
                 if ck not in cache:
                     cache[ck] = wrap_mat(base, role, grp)
@@ -957,8 +961,19 @@ def run_dive(o, sc):
     KD.lights([r], o)
     KD.grade_card([r], cam)
     finish_lights(sc)
+    # Pace: the back strips mirror in the bores face-on (one racket: the bores take the face's lights) as white discs
+    for nm in ("lg_rimL", "lg_rimR"):
+        if nm in bpy.data.objects:
+            bpy.data.objects[nm].data.energy *= D_PRIM_K
+    if feel == "pace" and "holes" in P:
+        # ... and so does the grade card: the bore linings keep K11-dark's own links (no back strips, no grade card;
+        # its note: "their coat mirrored the strips as a grey film over the glow"). The face, rim, wall and neck stay
+        # one racket; one_racket() skips the bores (kq_stub) so it does not widen those two links onto them
+        P["holes"]["kq_stub"] = 1
     sh1 = (0.0, 0.0) if phone else D_SHIFT1
-    lfade = [(L_, L_.data.energy) for L_ in sc.objects if L_.type == "LIGHT" and L_.name in D_LFADE]
+    fade = dict(D_LFADE, **(D_LFADE_P if feel == "pace" else {}))
+    expo1 = D_EXPO1_P if feel == "pace" else D_EXPO1
+    lfade = [(L_, L_.data.energy) for L_ in sc.objects if L_.type == "LIGHT" and L_.name in fade]
 
     def frame(f):
         e = glide(f / 69.0)
@@ -982,9 +997,9 @@ def run_dive(o, sc):
         for n, s0 in bumps:
             n.inputs["Strength"].default_value = s0 * (1.0 + (D_BUMP1 - 1.0) * sstep(u))
         # the whole-racket strips mirror as white bands in the grazing macro: they fade as the camera closes in
-        sc.view_settings.exposure = D_EXPO1 * sstep(min(1.0, u / 0.8))
+        sc.view_settings.exposure = expo1 * sstep(min(1.0, u / 0.8))
         for L_, e0 in lfade:
-            L_.data.energy = e0 * (1.0 + (D_LFADE.get(L_.name, 1.0) - 1.0) * sstep(min(1.0, u / D_LFADE_U)))
+            L_.data.energy = e0 * (1.0 + (fade.get(L_.name, 1.0) - 1.0) * sstep(min(1.0, u / D_LFADE_U)))
     return frame
 
 
