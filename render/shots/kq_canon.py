@@ -1983,6 +1983,14 @@ ONE_RACKET_ASIS = tuple(u for u in os.environ.get("KQ_ONE_RACKET_ASIS", "").spli
 # racket parts (kq_part names) whose links stay as their shot authored them (same review: K07's Pace bores caught the
 # widened rim strips as silver beads; "exclude the bore surfaces from any new fill")
 ONE_RACKET_KEEP = tuple(u for u in os.environ.get("KQ_ONE_RACKET_KEEP", "").split(",") if u)
+# an entry "<feel>:<part>" keeps that part for that feel's rackets only (cloud 2026-11-13T22:00Z: "pace:wall" in K07, the
+# Pace wall back to its authored dark; the Command walls keep the union)
+
+
+def _keep(r, p):
+    k = p.get("kq_part")
+    feel = r.get("kq_feel", "command")
+    return any(u == k or u == "%s:%s" % (feel, k) for u in ONE_RACKET_KEEP)
 CARBON_PARTS = ("face", "back", "rim", "wall", "neck", "throat", "bridgewall", "holes", "etchR", "etchL")
 
 
@@ -2022,7 +2030,7 @@ def one_racket(scene=None, verbose=True):
             return not has_inc
 
         for r, ps_all in racks:
-            ps = [p for p in ps_all if p.get("kq_part") not in ONE_RACKET_KEEP]
+            ps = [p for p in ps_all if not _keep(r, p)]
             got = [recv(p) for p in ps]
             if any(o.name.startswith(u) for u in ONE_RACKET_UNION):
                 want = any(got)             # a light named here reaches the whole racket if it reached any part
