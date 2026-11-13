@@ -47,3 +47,8 @@
 --wc2_deg 22
 --hb_fade 3.5
 --hb_floor 0.15
+# one-racket (cloud REQUEST one-racket, 2026-11-13: "lift the K05 Naked handle with one soft whole-racket spot from
+# the handle end"): lw_card3, diffuse only, from beyond the butt on the camera side (-0.48, -0.12, 0.38 m, 34 deg),
+# Naked Command only; previews 15 / 30 / 50 W: 30 lifts the bare handle to the face's grey with a soft fade, 50 starts
+# to brighten the throat
+--wcard3 30

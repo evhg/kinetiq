@@ -1230,6 +1230,20 @@ def main():
                                     radius=float(o.get("wc2_r", 0.12)))
             cd2.visible_glossy = False
             link_to(cd2, head_recv, "card2_receivers")
+        card3_s = float(o.get("wcard3", 0.0)) if (not pace and C.ENV_NOGRIP) else 0.0
+        if card3_s > 0:
+            # one-racket (cloud REQUEST one-racket, 2026-11-13: "lift the K05 Naked handle with one soft whole-racket
+            # spot from the handle end, so it doesn't fall off to grey"): under the one-racket canon the head-only
+            # cards reach the whole racket but fall off along the bare handle. A third soft spot, diffuse only, from
+            # beyond the butt on the camera side, wide enough to fade gently over the throat; linked like the face
+            # (the one-racket pass then carries it to every carbon part). Naked Command only.
+            cd3 = studio.spot_light("lw_card3", (float(o.get("wc3_x", -0.48)), float(o.get("wc3_y", -0.12)),
+                                                 float(o.get("wc3_z", 0.38))),
+                                    card3_s, float(o.get("wc3_deg", 34.0)), blend=1.0, color=(1.0, 0.985, 0.97),
+                                    target=(float(o.get("wc3_tx", -0.22)), float(o.get("wc3_ty", 0.0)), T),
+                                    radius=float(o.get("wc3_r", 0.14)))
+            cd3.visible_glossy = False
+            link_to(cd3, head_recv, "card3_receivers")
         wall_s = float(o.get("wall", 0.0))
         if wall_s > 0:
             # v6 (fix 3): light the wall itself (canon). The 38 mm near wall (the -Y side, toward the camera) saw only
