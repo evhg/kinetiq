@@ -1012,5 +1012,35 @@
     }
    }
   }
+ },
+ "V2-explode-command-phone": {
+  "frames": 72,
+  "w": 1080,
+  "h": 1920,
+  "crop": {
+   "x": 24,
+   "y": 96,
+   "w": 1032,
+   "h": 1704
+  },
+  "widths": [
+   828
+  ],
+  "formats": {
+   "avif": {
+    "hash": "549d437fe3",
+    "quality": 50,
+    "bytes": {
+     "828": 1307581
+    }
+   },
+   "webp": {
+    "hash": "97385ba6d6",
+    "quality": 84,
+    "bytes": {
+     "828": 2836224
+    }
+   }
+  }
  }
 }
