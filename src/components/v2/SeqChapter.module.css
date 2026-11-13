@@ -156,4 +156,24 @@
     bottom: clamp(32px, 8svh, 96px);
     max-width: min(34rem, 44vw);
   }
+  /* Lower right (the exploded layers: the stack runs from lower left to upper right and closes in the centre, so the
+     lower right is the one corner it never reaches): the scrim from that corner. */
+  html[data-motion="on"] .chapter.right .copy {
+    left: auto;
+    right: clamp(24px, 4vw, 72px);
+    bottom: clamp(24px, 5svh, 64px);
+    max-width: none;
+  }
+  /* Two lines whatever the width ("Layer on layer, / one shell."), sized to the screen so the block never reaches the
+     racket's head; the steps no wider than the headline. */
+  html[data-motion="on"] .chapter.right .title {
+    font-size: clamp(2rem, 2.8vw, 4.5rem);
+    max-width: 9.5em;
+  }
+  html[data-motion="on"] .chapter.right .steps {
+    max-width: clamp(18rem, 26vw, 34rem);
+  }
+  html[data-motion="on"] .chapter.right .scrim {
+    background: radial-gradient(ellipse 60% 75% at 100% 100%, rgb(6 6 7 / 0.88) 0%, rgb(6 6 7 / 0.6) 45%, transparent 100%);
+  }
 }

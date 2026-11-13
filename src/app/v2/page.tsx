@@ -51,6 +51,7 @@ export default function V2() {
           steps={v2.explode.steps}
           alt={v2.explode.alt}
           fallback={{ id: "K13", phoneCrop: "portrait" }}
+          copyAt="right"
         />
         <SpaceGrade />
         <SeqChapter

@@ -29,6 +29,8 @@ type Props = {
   fallback: { id: string; crop?: string; phoneCrop?: string };
   /** Pinned scroll length in screens. */
   length?: number;
+  /** Where the words sit over the pinned frame: lower left (default), or lower right where the render crosses the lower left. */
+  copyAt?: "left" | "right";
 };
 
 /** One frame of an exported sequence, every width, as srcset (the file names Swivel downloads). */
@@ -69,7 +71,7 @@ function Poster({ name, frame, className }: { name: string; frame: number; class
  * picture of the sequence's first frame (Swivel draws over it from frame 1); with reduced motion, its last frame, the
  * finished state. Until the Mac's frames are exported, `fallback` shows instead and the steps simply read.
  */
-export function SeqChapter({ id, nextId, sequence, eyebrow, headline, steps, alt, fallback, length = 3 }: Props) {
+export function SeqChapter({ id, nextId, sequence, eyebrow, headline, steps, alt, fallback, length = 3, copyAt = "left" }: Props) {
   const swivel = useRef<SwivelHandle>(null);
   const { feel } = useFeel();
   const { motionOn } = useMotion();
@@ -87,7 +89,7 @@ export function SeqChapter({ id, nextId, sequence, eyebrow, headline, steps, alt
       nextId={nextId}
       labelledBy={titleId}
       length={length}
-      className={styles.chapter}
+      className={`${styles.chapter} ${copyAt === "right" ? styles.right : ""}`}
       flow={`.${styles.frame}`}
       flowStart="top 80%"
       flowEnd="bottom 35%"
