@@ -1964,8 +1964,8 @@ if __name__ == "__main__":
 # racket; also the one with grip has a weird inconsistent piece just above the overgrip". Canon rule "one racket, one
 # material, one light": (1) no face / neck light-linking: every light (lamp or emissive card) that reaches any carbon
 # part of a racket reaches all of it, so no brightness step can run along NECK_SPLIT_Y (the split stays a mesh boundary
-# only: parts are still separate objects for materials and measuring); (3) whole-frame renders only: no Cycles border
-# (KQ_BORDER_AUTO / patch_paste refused). Applied to the scene just before every render of the process: kq_canon wraps
+# only: parts are still separate objects for materials and measuring); (3) whole-frame renders only: no patched
+# stills (KQ_BORDER_AUTO / patch_paste refused; swivel border crops that hold the whole racket stay). Applied to the scene just before every render of the process: kq_canon wraps
 # bpy.ops.render.render (a render_pre handler runs after the render has read its settings; studio.py's border proxy
 # does the same). KQ_ONE_RACKET=0: before.
 ONE_RACKET = os.environ.get("KQ_ONE_RACKET", "1") == "1"
@@ -2061,9 +2061,8 @@ def one_racket(scene=None, verbose=True):
             ll.receiver_collection = None
             if verbose:
                 print("one-racket: %s (%s) emptied: unlinked, lights all" % (rc.name, o.name), flush=True)
-    if sc.render.use_border:
-        sc.render.use_border = False
-        print("one-racket: border off (whole-frame renders only)", flush=True)
+    # (3) whole frames: the patch path (KQ_BORDER_AUTO + patch_paste) is refused at import; a swivel's Cycles border
+    # crop stays (cloud: "swivel crops are fine only if the crop holds the whole racket"; seq_cropcheck checks that)
     if verbose:
         print("one-racket: %d racket(s), %d link set(s) widened" % (len(racks), fixed), flush=True)
     return fixed
