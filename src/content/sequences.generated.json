@@ -748,5 +748,35 @@
     }
    }
   }
+ },
+ "V2-assemble-command-phone": {
+  "frames": 72,
+  "w": 1080,
+  "h": 1920,
+  "crop": {
+   "x": 48,
+   "y": 24,
+   "w": 984,
+   "h": 1872
+  },
+  "widths": [
+   828
+  ],
+  "formats": {
+   "avif": {
+    "hash": "58baa96585",
+    "quality": 50,
+    "bytes": {
+     "828": 1302817
+    }
+   },
+   "webp": {
+    "hash": "07311896fc",
+    "quality": 84,
+    "bytes": {
+     "828": 2929640
+    }
+   }
+  }
  }
 }
