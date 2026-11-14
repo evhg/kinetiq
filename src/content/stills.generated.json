@@ -2248,5 +2248,245 @@
    1440
   ],
   "hash": "ca2254b5cb"
+ },
+ "E2E-C-full-ewide": {
+  "w": 5120,
+  "h": 2880,
+  "widths": [
+   1280,
+   1920,
+   2880
+  ],
+  "hash": "f7960bbba9"
+ },
+ "E2E-C-full-ephone": {
+  "w": 2160,
+  "h": 3840,
+  "widths": [
+   828,
+   1170,
+   1440
+  ],
+  "hash": "6619105852"
+ },
+ "E2E-C-full-pace-ewide": {
+  "w": 5120,
+  "h": 2880,
+  "widths": [
+   1280,
+   1920,
+   2880
+  ],
+  "hash": "c33dffcc91"
+ },
+ "E2E-C-full-pace-ephone": {
+  "w": 2160,
+  "h": 3840,
+  "widths": [
+   828,
+   1170,
+   1440
+  ],
+  "hash": "be45e88a66"
+ },
+ "E2E-C-rings-ewide": {
+  "w": 5120,
+  "h": 2880,
+  "widths": [
+   1280,
+   1920,
+   2880
+  ],
+  "hash": "29f05c54b3"
+ },
+ "E2E-C-rings-ephone": {
+  "w": 2160,
+  "h": 3840,
+  "widths": [
+   828,
+   1170,
+   1440
+  ],
+  "hash": "f6f1953c13"
+ },
+ "E2E-C-rings-pace-ewide": {
+  "w": 5120,
+  "h": 2880,
+  "widths": [
+   1280,
+   1920,
+   2880
+  ],
+  "hash": "ad2675ed9d"
+ },
+ "E2E-C-rings-pace-ephone": {
+  "w": 2160,
+  "h": 3840,
+  "widths": [
+   828,
+   1170,
+   1440
+  ],
+  "hash": "f890b82272"
+ },
+ "E2E-Cwide-full-ewide": {
+  "w": 5120,
+  "h": 2880,
+  "widths": [
+   1280,
+   1920,
+   2880
+  ],
+  "hash": "c1004bebe9"
+ },
+ "E2E-Cwide-full-ephone": {
+  "w": 2160,
+  "h": 3840,
+  "widths": [
+   828,
+   1170,
+   1440
+  ],
+  "hash": "8926b25caa"
+ },
+ "E2E-Cwide-full-pace-ewide": {
+  "w": 5120,
+  "h": 2880,
+  "widths": [
+   1280,
+   1920,
+   2880
+  ],
+  "hash": "a256920023"
+ },
+ "E2E-Cwide-full-pace-ephone": {
+  "w": 2160,
+  "h": 3840,
+  "widths": [
+   828,
+   1170,
+   1440
+  ],
+  "hash": "375855b3f2"
+ },
+ "E2E-Cwide-nogrip-full-ewide": {
+  "w": 5120,
+  "h": 2880,
+  "widths": [
+   1280,
+   1920,
+   2880
+  ],
+  "hash": "6fadef4d9b"
+ },
+ "E2E-Cwide-nogrip-full-ephone": {
+  "w": 2160,
+  "h": 3840,
+  "widths": [
+   828,
+   1170,
+   1440
+  ],
+  "hash": "0babaebae3"
+ },
+ "E2E-Cwide-nogrip-full-pace-ewide": {
+  "w": 5120,
+  "h": 2880,
+  "widths": [
+   1280,
+   1920,
+   2880
+  ],
+  "hash": "5646931968"
+ },
+ "E2E-Cwide-nogrip-full-pace-ephone": {
+  "w": 2160,
+  "h": 3840,
+  "widths": [
+   828,
+   1170,
+   1440
+  ],
+  "hash": "bcf38ea688"
+ },
+ "E2E-Cwide-nogrip-rings-ewide": {
+  "w": 5120,
+  "h": 2880,
+  "widths": [
+   1280,
+   1920,
+   2880
+  ],
+  "hash": "c1f7856116"
+ },
+ "E2E-Cwide-nogrip-rings-ephone": {
+  "w": 2160,
+  "h": 3840,
+  "widths": [
+   828,
+   1170,
+   1440
+  ],
+  "hash": "9724f1822f"
+ },
+ "E2E-Cwide-nogrip-rings-pace-ewide": {
+  "w": 5120,
+  "h": 2880,
+  "widths": [
+   1280,
+   1920,
+   2880
+  ],
+  "hash": "c11031644c"
+ },
+ "E2E-Cwide-nogrip-rings-pace-ephone": {
+  "w": 2160,
+  "h": 3840,
+  "widths": [
+   828,
+   1170,
+   1440
+  ],
+  "hash": "55f73a8ad7"
+ },
+ "E2E-Cwide-rings-ewide": {
+  "w": 5120,
+  "h": 2880,
+  "widths": [
+   1280,
+   1920,
+   2880
+  ],
+  "hash": "a2a508531e"
+ },
+ "E2E-Cwide-rings-ephone": {
+  "w": 2160,
+  "h": 3840,
+  "widths": [
+   828,
+   1170,
+   1440
+  ],
+  "hash": "c0eddb9635"
+ },
+ "E2E-Cwide-rings-pace-ewide": {
+  "w": 5120,
+  "h": 2880,
+  "widths": [
+   1280,
+   1920,
+   2880
+  ],
+  "hash": "005de078f6"
+ },
+ "E2E-Cwide-rings-pace-ephone": {
+  "w": 2160,
+  "h": 3840,
+  "widths": [
+   828,
+   1170,
+   1440
+  ],
+  "hash": "897ea26e8b"
  }
 }
