@@ -100,10 +100,10 @@ node scripts/stills.mjs "$T/m" "${allids[@]}" >> "$T/stills.log" 2>&1
 git add -A public/stills src/content/stills.generated.json src/content/sequences.generated.json
 bad=$(git diff --cached --name-only | grep -vE '^(public/stills/|src/content/(stills|sequences)\.generated\.json$)' || true)
 [ -z "$bad" ] || { log "REFUSED: paths outside the allowed: $bad"; exit 1; }
-git -c user.name=Claude -c user.email=noreply@anthropic.com commit -q -m "K01 in the one-racket canon (STATUS-mac one-racket:K01): the hero stills and its eight swivels, grip and Naked, both feels
+git -c user.name=Claude -c user.email=noreply@anthropic.com commit -q -m "K01 in the one-racket canon (STATUS-mac one-racket:K01): ${K01X_WHAT:-the hero stills and its eight swivels, grip and Naked, both feels}
 
 One material and the face's lights on every carbon part, whole-frame renders, as the approved one-racket batch; Naked
-Pace's handle card reaches the whole racket at 35 deg round the handle (one-racket.env). Swivels rebuilt from their
+Pace's handle card sits 35 deg round the handle and lights the handle only (one-racket.env).${K01X_NOTE:+ $K01X_NOTE} Swivels rebuilt from their
 region masters (render/seq_rebuild.py), desktop AVIF 58, phone AVIF 50, 36 frames; WebP 84. Frame 0 against its
 still (mean luma, desktop at 1920, phone at 1170): $(IFS=';'; echo "${summary[*]}").
 
@@ -118,5 +118,5 @@ git push -q --force-with-lease origin HEAD:refs/heads/mac/exports
 sha=$(git rev-parse --short HEAD)
 rm -rf "$T"
 seqs=$(for v in "${VS[@]}"; do printf 'K01-swivel-%s-desktop,K01-swivel-%s-phone,' "$v" "$v"; done | sed 's/,$//')
-cd "$KIT" && ./status_push.sh "$(date -u +%Y-%m-%dT%H:%M:%SZ) EXPORTED one-racket:K01 mac/exports@$sha $(IFS=,; echo "${allids[*]}"),$seqs (stills + swivels, grip and Naked, both feels; frame 0 vs still, mean luma: $(IFS=';'; echo "${summary[*]}")) M3Max-METAL" >/dev/null
+cd "$KIT" && ./status_push.sh "$(date -u +%Y-%m-%dT%H:%M:%SZ) EXPORTED one-racket:K01 mac/exports@$sha $(IFS=,; echo "${allids[*]}"),$seqs (${K01X_WHAT:-stills + swivels, grip and Naked, both feels}${K01X_NOTE:+; $K01X_NOTE}; frame 0 vs still, mean luma: $(IFS=';'; echo "${summary[*]}")) M3Max-METAL" >/dev/null
 log "EXPORTED K01 mac/exports@$sha"
