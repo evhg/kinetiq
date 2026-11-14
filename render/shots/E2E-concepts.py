@@ -80,7 +80,7 @@ FELT_C = (0.45, 0.95, 0.0)      # e2e-c (2026-11-14): a true optic yellow (the o
 # e2e-c (cloud REQUEST 2026-11-14T09:00Z, owner chose C for the landing page's 'Edge to edge.'): the one-racket canon re-render
 PHONE = 0.0              # 1: the 2160x3840 phone frame, reframed round the ball (its own render, not a crop of the wide)
 FW_CP, TX_CP = 0.17, 0.012   # phone close-up: the frame width at the target (m); the target this far toward the face
-FIT_PT, FIT_PB, FIT_PS = 0.07, 0.07, 0.05   # phone wide: air at the top, bottom, sides (fractions of the frame)
+FIT_PT, FIT_PB, FIT_PS = 0.07, 0.07, 0.07   # phone wide: air at the top, bottom, sides (fractions of the frame)
 EXPO_C, EXPO_P = 1.0, 1.0    # C: the studio image x this (Command, Pace): the face mean matched to K01-full
 BALL_EXPO = 1.6          # C: the ball's own exposure (AOV e2e_ball), apart from the racket's
 WB_C = (0.97, 1.0, 1.06)  # C: a white balance on the image (linear gains): the face's neutral grey as K01-full's (the K11
@@ -92,6 +92,15 @@ RING_K, RING_K_PACE = 2.2, 1.2   # the ring light's gain on the studio image (Co
 RING_A, RING_A_PACE = 0.3, 0.3   # the ring light on the albedo (Command, Pace)
 RING_TINT, RING_TINT_PACE = 0.55, 0.4   # how warm the ring light is (0 white .. 1 the full 2700 K colour)
 RING_P_PACE = 4.0        # Pace's rings a touch narrower (the black 12K: broad rings read as brown bands)
+# e2e-c REVIEW 2026-11-14T09:48Z on the PREVIEW
+RING_K_CH, RING_P_CH = 4.0, 4.0   # (1) Command close-up (VIEW_C 1, desktop and phone): its rings read as a shimmer in the
+                                  # magnified twill; stronger and a touch narrower so they read as clearly as in Cwide
+COMPRESS_C = 0.0032      # (2) the ball struck: its cap flattened 3.2 mm onto the face, and the whole ball squashed about
+SQUASH_Z, SQUASH_XY = 0.97, 1.015   # the contact (x SQUASH_Z along the face normal, x SQUASH_XY across): 5.1 mm, ~8 % of
+                         # its 65 mm in all (was a 6 mm cap on a round ball: seen from the camera's 38 deg it read as placed)
+BULGE_C = 0.0018         # m: the felt bulging round the patch (K17's 0.25 mm did not show)
+CSH, CSH_W = 0.55, 0.010  # the face's occlusion round the struck ball: x (1 - CSH e^(-(d - rp)/CSH_W)), d from the contact
+HEAD_FIT_W = 0.11        # (3) Cwide: the head (and the ball) framed to 70 % of the frame height, the handle runs out
 SEAM_CLEAR = 0.0012      # m: the felt's fibres kept this far off the seam's edge (11 Nov: 0.2 mm, the fibres blurred it)
 SEAM_COL = (0.80, 0.80, 0.78)   # the seam's rubber, a clean light grey
 
@@ -386,6 +395,7 @@ def frame_camera(sc, cam, pts, aim, dirn):
             # the whole racket and the ball in the portrait frame (the card crop is the whole frame here)
             bc = P + nrm * 0.027
             bp = [bc + v_ * 0.034 for v_ in (across, -across, up, -up, nrm)]
+            pts = [p_ for p_ in pts if (p_ - c).dot(up) > -0.165]   # (3) the head and the ball, as large as the width allows
             keep = (KD.CARD_X0, KD.CARD_W, KD.FIT_TOP, KD.FIT_BOT, KD.FIT_SIDE)
             KD.CARD_X0, KD.CARD_W, KD.FIT_TOP, KD.FIT_BOT, KD.FIT_SIDE = 0.0, 1.0, FIT_PT, FIT_PB, FIT_PS
             d = _orig_frame(sc, cam, list(pts) + bp, aim, dirn)
@@ -401,7 +411,16 @@ def frame_camera(sc, cam, pts, aim, dirn):
             cd.shift_y = (uv[:, 1].min() + uv[:, 1].max()) / 2 - (FIT_PB + (1 - FIT_PT - FIT_PB) / 2)
             bpy.context.view_layer.update()
         else:
-            d = _orig_frame(sc, cam, pts, aim, dirn)
+            # (3) the head and the ball framed to 1 - 2 HEAD_FIT_W of the height, centred; the handle runs out
+            bc = P + nrm * 0.027
+            bp = [bc + v_ * 0.034 for v_ in (across, -across, up, -up, nrm)]
+            head = [p_ for p_ in pts if (p_ - c).dot(up) > -0.165] + bp
+            keep = (KD.CARD_X0, KD.CARD_W, KD.FIT_TOP, KD.FIT_BOT, KD.FIT_SIDE)
+            KD.CARD_X0, KD.CARD_W, KD.FIT_TOP, KD.FIT_BOT, KD.FIT_SIDE = 0.0, 1.0, HEAD_FIT_W, HEAD_FIT_W, 0.05
+            lo = Vector((min(q.x for q in head), min(q.y for q in head), min(q.z for q in head)))
+            hi = Vector((max(q.x for q in head), max(q.y for q in head), max(q.z for q in head)))
+            d = _orig_frame(sc, cam, head, (lo + hi) / 2, dirn)
+            KD.CARD_X0, KD.CARD_W, KD.FIT_TOP, KD.FIT_BOT, KD.FIT_SIDE = keep
         add_ball(r, P, cam)
         return d
     if cpt == "a":
@@ -423,7 +442,8 @@ def add_ball(r, P, cam):
     K17 = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(K17)
     p = dict(K17.DEFAULTS)
-    p["COMPRESS"] = 0.006           # the instant of the strike: pressed harder than K17's slice
+    p["COMPRESS"] = COMPRESS_C      # the instant of the strike: pressed harder than K17's slice
+    p["BULGE"] = BULGE_C
     p["FELT"] = FELT_C
     p["FIB_COL"] = FELT_C
     p["SEAM_CLEAR"] = SEAM_CLEAR
@@ -432,6 +452,8 @@ def add_ball(r, P, cam):
     cam_local = Mw.inverted() @ cam.location
     centre = Vector((0.0, 0.0, p["BALL_R"] - p["COMPRESS"]))
     pivot, broot, bobs, _ = K17.build_ball(p, centre, cam_local, np.random.default_rng(11))
+    bpy.context.view_layer.update()
+    pivot.scale = (SQUASH_XY, SQUASH_XY, SQUASH_Z)   # about the contact point, in the face's axes
     bpy.context.view_layer.update()
     pivot.matrix_world = Mw @ pivot.matrix_world
     bpy.context.view_layer.update()
@@ -538,7 +560,9 @@ def build_comp(sc, src, o, out_stem):
         outs["mask"] = inside                      # the flat face (no holes, no ball): the face-mean check, not a master
         import math as _m
         ph = m("MULTIPLY", m("SUBTRACT", dd, RING_PH), 2.0 * _m.pi / RING_SP)
-        ring = m("POWER", m("ADD", m("MULTIPLY", m("COSINE", ph), 0.5), 0.5), RING_P_PACE if pc else RING_P)
+        ch = (not pc) and VIEW_C >= 0.5
+        ring = m("POWER", m("ADD", m("MULTIPLY", m("COSINE", ph), 0.5), 0.5),
+                 RING_P_PACE if pc else (RING_P_CH if ch else RING_P))
         k_ = m("MULTIPLY", m("MULTIPLY", ring, m("GREATER_THAN", dd, RING0)), inside)
         if RING_LIGHT >= 0.5:
             kv = KD.kelvin(FLOOD_K)
@@ -551,12 +575,21 @@ def build_comp(sc, src, o, out_stem):
                 tr.links.new(img, n.inputs[1])
                 n.inputs[2].default_value = (*tcol, 1)
                 return n.outputs["Image"]
-            on_img = mix("MULTIPLY", mix("MULTIPLY", tint(lit), k_), RING_K_PACE if pc else RING_K)
+            on_img = mix("MULTIPLY", mix("MULTIPLY", tint(lit), k_), RING_K_PACE if pc else (RING_K_CH if ch else RING_K))
             on_alb = mix("MULTIPLY", mix("MULTIPLY", tint(src["albedo"]), k_), (RING_A_PACE if pc else RING_A) * ex)
             outs["rings"] = mix("ADD", lit, mix("ADD", on_img, on_alb))
         else:
             fl = mix("MULTIPLY", den["flood"], RING_G_PACE if pc else RING_G)
             outs["rings"] = mix("ADD", lit, glow(mix("MULTIPLY", fl, k_)))
+        if CSH > 0:
+            # (2) a tight contact shadow on the face round the struck ball's patch (rp: the flattened patch's radius)
+            R_ = 0.0325
+            rp = _m.sqrt(max(R_ * R_ - (R_ - COMPRESS_C) ** 2, 0.0)) * SQUASH_XY
+            sh = m("MULTIPLY", m("MULTIPLY", m("EXPONENT", m("MULTIPLY", m("MAXIMUM", m("SUBTRACT", dd, rp), 0.0),
+                                                              -1.0 / CSH_W)), CSH), inside)
+            shade = m("SUBTRACT", 1.0, sh)
+            for k in ("base", "full", "rings"):
+                outs[k] = mix("MULTIPLY", outs[k], shade)
     if "flood" in den and cpt == "a":
         r, inside = rl.outputs["e2e_r"], rl.outputs["e2e_in"]
         # 10:45Z: a warm light ON the white twill: inside the light the studio image x a 2700 K tint (TINT_A) and
