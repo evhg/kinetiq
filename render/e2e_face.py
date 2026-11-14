@@ -28,6 +28,7 @@ def main():
         ok = ok and abs(m - t) <= 2.0
         msg += ", twin %.1f" % t
     print(msg)
+    print("mean=%.2f" % m, file=sys.stderr)
     sys.exit(0 if ok else 3)
 
 

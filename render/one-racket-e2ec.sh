@@ -21,20 +21,34 @@ export KQ_ONE_RACKET_UNION=lg_wall KQ_ONE_RACKET_ASIS=lg_streak,PaceHandle_ KQ_O
 . "$KIT/e2ec.env"   # EX_<frame>_<feel>: the exposures (C, Cwide, Cph, Cwph)
 MODE=${1:-final}
 log "E2EC-START $MODE device $KQ_DEVICE free $(free_mb) MB push $PUSH"
-# r1 <dir> <stem> <feel> <view 1|0> <phone 1|0> <naked 1|0> <w> <h> <spp>
+# r1 <dir> <stem> <feel> <view 1|0> <phone 1|0> <naked 1|0> <w> <h> <spp>: render; a grip frame is rendered again (up to
+# 3 tries) with its exposure corrected until its face is within 1 luma of K01 (the face mean drifts a little with the
+# resolution: 1280 -> 2560 cost Command ~3 luma); a Naked frame takes its grip twin's final exposure (EXF)
+declare -A EXF
 r1() {
   local dir=$1 stem=$2 feel=$3 view=$4 ph=$5 nk=$6 w=$7 h=$8 spp=$9
   local fr=C; [ "$view" = 0 ] && fr=Cwide; [ "$ph" = 1 ] && fr=${fr/C/Cph}; [ "$fr" = Cphwide ] && fr=Cwph
-  local ev=EX_${fr}_$feel var=EXPO_C; [ "$feel" = pace ] && var=EXPO_P
-  local envs=(env); [ "$nk" = 1 ] && envs=(env KQ_NOGRIP=1 KQ_NAKED_FLARE=0)
-  still "e2ec-$stem" "$dir/$stem-full.png" - -- "${envs[@]}" $PY shots/E2E-concepts.py --concept c --mode single \
-    --feel "$feel" --w "$w" --h "$h" --spp "$spp" --out "$dir/$stem" --eset "VIEW_C=$view,PHONE=$ph,$var=${!ev}"
-  need "$dir/$stem"-{rings,full,mask}.png || return 1
+  local ev=EX_${fr}_$feel var=EXPO_C tgt=137.4 sl=0.40; [ "$feel" = pace ] && { var=EXPO_P; tgt=44.0; sl=0.75; }
+  local e=${!ev} key="$fr-$feel-$w" try m envs=(env)
+  [ "$nk" = 1 ] && { envs=(env KQ_NOGRIP=1 KQ_NAKED_FLARE=0); [ -n "${EXF[$key]:-}" ] && e=${EXF[$key]}; }
+  for try in 1 2 3; do
+    still "e2ec-$stem" "$dir/$stem-full.png" - -- "${envs[@]}" $PY shots/E2E-concepts.py --concept c --mode single \
+      --feel "$feel" --w "$w" --h "$h" --spp "$spp" --out "$dir/$stem" --eset "VIEW_C=$view,PHONE=$ph,$var=$e"
+    need "$dir/$stem"-{rings,full,mask}.png || return 1
+    [ "$nk" = 1 ] && break
+    m=$($PY "$KIT/e2e_face.py" "$dir/$stem" "$feel" 2>&1 >/dev/null | sed -n 's/^mean=//p')
+    log "E2EC-EXPO $stem try $try exposure $e face $m"
+    awk -v m="$m" -v t="$tgt" 'BEGIN{exit !((m-t)^2 > 1.0)}' || break
+    [ $try = 3 ] && break
+    e=$(awk -v e="$e" -v m="$m" -v t="$tgt" -v s="$sl" 'BEGIN{printf "%.5f", e * exp(log(t/m)/s)}')
+    rm -f "$dir/$stem"-*.png "$dir/$stem.exr"
+  done
+  [ "$nk" = 1 ] || EXF[$key]=$e
 }
 # chk <dir> <stem> <feel> [twin stem]: the face against K01-full (and the grip twin)
 chk() {
   local dir=$1 stem=$2 feel=$3 r
-  r=$($PY "$KIT/e2e_face.py" "$dir/$stem" "$feel" ${4:+"$dir/$4"}) || { log "E2EC-FACE-FAIL $stem $r"; return 1; }
+  r=$($PY "$KIT/e2e_face.py" "$dir/$stem" "$feel" ${4:+"$dir/$4"} 2>/dev/null) || { log "E2EC-FACE-FAIL $stem $r"; return 1; }
   log "E2EC-FACE $stem $r"; FACES+=("$stem $r")
 }
 FACES=()
