@@ -539,16 +539,18 @@ function wrongFeelFiles(urls, feel) {
 
 // With the grip off (kq-grip=off), no still that has a grip-off twin may load its grip-on file, on any page: the server
 // sends /, /reserve and /reserved bare (src/proxy.ts) and <Still> picks the twin. A twin is named as <Still>'s bareId
-// names it, "-nogrip" after the K-number ("K11-single-full-pace-card" -> "K11-nogrip-single-full-pace-card"); a crop counts only
-// where its twin is exported.
-const nogripKey = (key) => key.replace(/^(K\d+[a-z]?)(?=-)/, "$1-nogrip");
+// names it, "-nogrip" after the K-number ("K11-single-full-pace-card" -> "K11-nogrip-single-full-pace-card"), or after the
+// shot name for the Edge to edge renders, which the section names explicitly ("E2E-Cwide-rings-ewide" ->
+// "E2E-Cwide-nogrip-rings-ewide"); a crop counts only where its twin is exported. An id outside both patterns has no twin.
+const nogripKey = (key) => key.replace(/^(K\d+[a-z]?|E2E-[A-Za-z]+)(?=-)/, "$1-nogrip");
 function gripOnFiles(urls) {
   const wrong = new Set();
   for (const u of urls) {
     const path = new URL(u).pathname;
     const m = path.match(/^\/stills\/(.+?)-\d+(?:\.[0-9a-f]{10})?\.(?:avif|webp)$/);
     if (!m || m[1].includes("-nogrip")) continue;
-    if (STILL_KEYS.has(m[1]) && STILL_KEYS.has(nogripKey(m[1]))) wrong.add(path);
+    const twin = nogripKey(m[1]);
+    if (twin !== m[1] && STILL_KEYS.has(m[1]) && STILL_KEYS.has(twin)) wrong.add(path);
   }
   return [...wrong];
 }
