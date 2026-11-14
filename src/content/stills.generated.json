@@ -2357,7 +2357,7 @@
    1920,
    2880
   ],
-  "hash": "a256920023"
+  "hash": "07b7454a83"
  },
  "E2E-Cwide-full-pace-ephone": {
   "w": 2160,
@@ -2367,7 +2367,7 @@
    1170,
    1440
   ],
-  "hash": "375855b3f2"
+  "hash": "2cc7e7f493"
  },
  "E2E-Cwide-nogrip-full-ewide": {
   "w": 5120,
@@ -2397,7 +2397,7 @@
    1920,
    2880
   ],
-  "hash": "5646931968"
+  "hash": "dad86dd801"
  },
  "E2E-Cwide-nogrip-full-pace-ephone": {
   "w": 2160,
@@ -2407,7 +2407,7 @@
    1170,
    1440
   ],
-  "hash": "bcf38ea688"
+  "hash": "00dfbde40f"
  },
  "E2E-Cwide-nogrip-rings-ewide": {
   "w": 5120,
@@ -2437,7 +2437,7 @@
    1920,
    2880
   ],
-  "hash": "c11031644c"
+  "hash": "8864cc9c17"
  },
  "E2E-Cwide-nogrip-rings-pace-ephone": {
   "w": 2160,
@@ -2447,7 +2447,7 @@
    1170,
    1440
   ],
-  "hash": "55f73a8ad7"
+  "hash": "30f765ab9f"
  },
  "E2E-Cwide-rings-ewide": {
   "w": 5120,
@@ -2477,7 +2477,7 @@
    1920,
    2880
   ],
-  "hash": "005de078f6"
+  "hash": "00cc895282"
  },
  "E2E-Cwide-rings-pace-ephone": {
   "w": 2160,
@@ -2487,6 +2487,6 @@
    1170,
    1440
   ],
-  "hash": "897ea26e8b"
+  "hash": "346a5a2add"
  }
 }
