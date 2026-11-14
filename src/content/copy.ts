@@ -92,9 +92,12 @@ export const sweetSpot = {
    */
   share: { nearly: "Nearly", unit: "%", label: "of the hitting surface is sweet\u00a0spot" },
   inset: { unit: "mm", label: "from the sweet\u00a0spot to the edge" },
-  /** K14: a raking-light macro of the face running out to the rim, in the K04 language (the landing drops K12). */
-  imageAlt: (n: SweetNumbers) =>
-    `A KINETIQ face up close in raking light: the carbon weave runs flat to within ${n.inset}\u00a0mm of the edge, where the rim begins to curve.`,
+  /**
+   * The image (owner, 2026-11-14, option C): a ball struck at the face's widest point, right at the edge, rings across
+   * the face, then the whole racket. It shows where the ball meets the face; it states no number and no new claim.
+   */
+  imageAlt:
+    "A padel ball meeting a KINETIQ racket at the widest point of its face, right at the edge, as soft rings of light spread across the face.",
   graphic: {
     /** G15's detail: the edge magnified, with the band between the light and the edge dimensioned. */
     detail: (n: SweetNumbers) => `${n.inset} mm`,

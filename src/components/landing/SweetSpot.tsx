@@ -1,7 +1,6 @@
 "use client";
 
-import { useRef } from "react";
-import { SweetSpotEdge } from "@/components/graphics/SweetSpotEdge";
+import { useRef, type CSSProperties } from "react";
 import { SweetSpotField, addSweetSpotReveal } from "@/components/graphics/SweetSpotField";
 import { Still, hasStill } from "@/components/media/Still";
 import { useMotion } from "@/components/motion/MotionProvider";
@@ -12,34 +11,56 @@ import { gsap, useGSAP } from "@/lib/gsap";
 import styles from "./SweetSpot.module.css";
 
 /**
- * K14 (a raking-light macro of the face running out to the rim, in the K04 language the owner feels) takes the
- * image's place once scripts/stills.mjs has exported it; until then G15, the drawing. The upright K12 racket is off the
- * landing (owner, 2026-10-28: "I dont like the edge to edge hero"); /reserve keeps K12-base.
+ * The image (owner, 2026-11-14: option C of the Edge to edge preview, "a ball at the very edge makes most sense"): a
+ * padel ball struck at the face's widest point, right at the edge, then soft rings across the face, then the camera
+ * pulls back to the whole racket. Three pixel-matched renders stacked (E2E-C-full, E2E-C-rings, E2E-Cwide-rings), each
+ * with its Pace twin; the whole racket also has its Naked twin (the Grip toggle). The drawing (G15) stands in until the
+ * renders are exported. It replaced K14, the raking-light macro, and its traced 1 mm line.
  */
-const K14 = hasStill("K14");
+const E2E = hasStill("E2E-C-full", "ewide") && hasStill("E2E-C-rings", "ewide") && hasStill("E2E-Cwide-rings", "ewide");
 
-/** Where the phone crop of K14 applies: below the pinned layout's 900 px, as the stacked layout's 4:5 frame. */
+/** The three layers, bottom to top; the top one is the final frame (reduced motion, the server render). */
+const LAYERS: { id: string; bare?: { id: string } | false; pos?: string }[] = [
+  { id: "E2E-C-full", bare: false, pos: "30% 50%" },
+  { id: "E2E-C-rings", bare: false, pos: "30% 50%" },
+  { id: "E2E-Cwide-rings", bare: { id: "E2E-Cwide-nogrip-rings" } },
+];
+
+/** Where the phone frames (2160 x 3840, reframed round the ball) apply: below the pinned layout's 900 px. */
 const PHONE = "(max-width: 899px)";
+const layer = (i: number) => `.${styles.layer}[data-layer="${i}"]`;
+
+/** The scrubbed sequence (0 to 1), pinned from 900 px and, below it, while the image crosses the screen. */
+function play(tl: gsap.core.Timeline) {
+  tl.fromTo([layer(0), layer(1)], { scale: 1.06 }, { scale: 1, duration: 0.4, ease: "power2.out", immediateRender: true }, 0)
+    // the rings come up over the face
+    .fromTo(layer(1), { opacity: 0 }, { opacity: 1, duration: 0.22, ease: "power1.inOut", immediateRender: true }, 0.12)
+    // then the camera pulls back: the close frame grows and goes, the whole racket settles in
+    .to([layer(0), layer(1)], { scale: 1.12, duration: 0.3, ease: "power1.in" }, 0.48)
+    .fromTo(layer(2), { opacity: 0, scale: 1.18 }, { opacity: 1, scale: 1, duration: 0.3, ease: "power2.out", immediateRender: true }, 0.5);
+}
+
+/** Runs once when the element's top reaches the middle of the screen. */
+function onceAtMiddle(el: Element, onEnter: () => void) {
+  gsap.timeline({ scrollTrigger: { trigger: el, start: "top 50%", once: true, onEnter } });
+}
 
 /** Already at or past a reveal's line when the page hydrates (a reload mid-page, a hash link): leave it be. */
 const past = (el: Element, pct: number) => el.getBoundingClientRect().top < (window.innerHeight * pct) / 100;
 
 /**
- * Sweet spot, the payoff (owner, 2026-10-28: a climactic rise), and since 2026-11-03 a pinned chapter (owner: "When
- * scrolling down sweet spot section the page doesn't pause and there is no animation?"). From 900 px, with motion: the
- * page holds on one screen while the face comes up out of the dark (K14 settles, 1.1 to 1), a soft band of warm light
- * sweeps across the weave from the sweet spot out to the rim (a colour-dodge layer, so it lights only the lit carbon
- * and never the studio beyond the edge), the amber 1 mm line draws along the rim where the flat face ends (traced from
- * the render, SweetSpotEdge), and the two numbers arrive in turn, "Nearly 99%" with the light, "1 mm" with the line.
- * The heading is on screen from the first frame. Below 900 px: the headline, the image (its line drawn as it enters),
- * then the words, rising on entry. Reduced motion and the server render: the final state, every word visible, the
- * line drawn. Its Skip link lands on Surface.
+ * Sweet spot, the payoff (owner, 2026-10-28: a climactic rise), a pinned chapter since 2026-11-03. From 900 px, with
+ * motion: the page holds on one screen while the ball meets the face at its edge, soft rings come up across the face,
+ * and the camera pulls back to the whole racket, the two numbers arriving in turn, "Nearly 99%" with the rings, "1 mm"
+ * with the whole racket. The heading is on screen from the first frame. Below 900 px: the headline, the image (the
+ * same sequence, played once as it comes into view), then the words, rising on entry. Reduced motion and the
+ * server render: the final frame and every word. Its Skip link lands on Surface.
  */
 export function SweetSpot() {
   const beat = useRef<HTMLDivElement>(null);
   const { motionOn } = useMotion();
 
-  // Below the pin (phones, tablets): no scrub; the image settles and its line draws as it enters, the words rise.
+  // Below the pin (phones, tablets): the sequence plays once as the image comes into view; the words rise.
   useGSAP(
     () => {
       const el = beat.current;
@@ -48,18 +69,18 @@ export function SweetSpot() {
       const mm = gsap.matchMedia();
       mm.add("(prefers-reduced-motion: no-preference) and (max-width: 899px)", () => {
         const media = q(`.${styles.media}`)[0];
-        if (media && !past(media, 80)) {
-          const tl = gsap.timeline({ scrollTrigger: { trigger: media, start: "top 80%", once: true } });
-          if (K14) {
-            tl.fromTo(q(`.${styles.still}`), { scale: 1.08 }, { scale: 1, duration: 1.6, ease: "power2.out", immediateRender: true }, 0).fromTo(
-              q("[data-sweet-line]"),
-              { strokeDasharray: 1, strokeDashoffset: -1 },
-              { strokeDashoffset: 0, duration: 1.1, ease: "power2.inOut", immediateRender: true },
-              0.4,
-            );
-          } else {
-            addSweetSpotReveal(tl, el, "fade", 0);
+        if (media && E2E) {
+          // Played once as the image comes into view, not scrubbed: a phone screen scrolls the 4:5 frame past in less
+          // than a screen, so a scrub would pull back to the whole racket only as it leaves.
+          if (!past(media, 50)) {
+            const tl = gsap.timeline({ paused: true });
+            play(tl);
+            tl.timeScale(0.32);
+            onceAtMiddle(media, () => tl.play());
           }
+        } else if (media && !past(media, 80)) {
+          const tl = gsap.timeline({ scrollTrigger: { trigger: media, start: "top 80%", once: true } });
+          addSweetSpotReveal(tl, el, "fade", 0);
         }
         for (const b of q("[data-rise]")) {
           if (past(b, 85)) continue;
@@ -77,49 +98,40 @@ export function SweetSpot() {
       nextId="surface"
       labelledBy="sweet-spot-eyebrow sweet-spot-title"
       className={`pin-layered ${styles.chapter}`}
-      length={1.4}
+      length={1.8}
       build={(tl) => {
         // Opacity only for the words, never visibility: the claim stays in the accessibility tree before it arrives.
         const shown = { opacity: 1, y: 0, immediateRender: true } as const;
-        if (K14) {
-          // The face comes up out of the dark as the frame settles.
-          tl.fromTo(`.${styles.frame}`, { scale: 1.1 }, { scale: 1, duration: 0.5, ease: "power2.out", immediateRender: true }, 0)
-            .fromTo(`.${styles.veil}`, { opacity: 0.62 }, { opacity: 0, duration: 0.3, ease: "power1.out", immediateRender: true }, 0)
-            // The light: a soft warm band crossing the weave from the sweet spot out past the rim (transform only).
-            .fromTo(`.${styles.light}`, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.06, immediateRender: true }, 0.1)
-            .fromTo(`.${styles.light}`, { yPercent: 210 }, { yPercent: -160, duration: 0.46, ease: "power1.inOut", immediateRender: true }, 0.1)
-            .to(`.${styles.light}`, { autoAlpha: 0, duration: 0.08 }, 0.5)
-            // The 1 mm line draws along the rim, where the flat face ends, from the lit side (the path's end, on the right)
-            // back toward the words, as the light reaches the edge.
-            .fromTo(`.${styles.edge}`, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.02, immediateRender: true }, 0.34)
-            .fromTo(
-              `.${styles.edge} [data-sweet-line]`,
-              { strokeDasharray: 1, strokeDashoffset: -1 },
-              { strokeDashoffset: 0, duration: 0.26, ease: "power1.inOut", immediateRender: true },
-              0.34,
-            );
-        } else {
-          if (beat.current) addSweetSpotReveal(tl, beat.current, "scrub", 0);
-        }
-        // The words: the lines first, then the numbers in turn, the share with the light, the border with the line.
-        tl.fromTo(`.${styles.body}`, { opacity: 0, y: 14 }, { ...shown, duration: 0.1 }, 0.16)
-          .fromTo(`.${styles.share}`, { opacity: 0, y: 14 }, { ...shown, duration: 0.1 }, 0.46)
-          .fromTo(`.${styles.inset}`, { opacity: 0, y: 14 }, { ...shown, duration: 0.1 }, 0.6)
+        if (E2E) play(tl);
+        else if (beat.current) addSweetSpotReveal(tl, beat.current, "scrub", 0);
+        // The words: the lines first, then the numbers in turn, the share with the rings, the border with the racket.
+        tl.fromTo(`.${styles.body}`, { opacity: 0, y: 14 }, { ...shown, duration: 0.1 }, 0.14)
+          .fromTo(`.${styles.share}`, { opacity: 0, y: 14 }, { ...shown, duration: 0.1 }, 0.3)
+          .fromTo(`.${styles.inset}`, { opacity: 0, y: 14 }, { ...shown, duration: 0.1 }, 0.68)
           // It holds while the stage is still pinned, then scrolls on into Surface.
-          .to({}, { duration: 0.3 }, 0.7);
+          .to({}, { duration: 0.2 }, 0.8);
       }}
     >
-      <div ref={beat} className={`beat ${styles.beat}`} data-media={K14 ? "still" : "graphic"}>
-        <div className={styles.media} aria-hidden={K14 ? undefined : true}>
-          {K14 ? (
+      <div ref={beat} className={`beat ${styles.beat}`} data-media={E2E ? "still" : "graphic"}>
+        <div className={styles.media} aria-hidden={E2E ? undefined : true}>
+          {E2E ? (
             <div className={styles.frame}>
-              <Still id="K14" phoneCrop="portrait" phoneMedia={PHONE} phoneSizes="(min-width: 700px) 560px, 100vw" alt={sweetSpot.imageAlt(SWEET_CLAIM)} className={styles.still} sizes="100vw" />
-              <div className={styles.veil} aria-hidden="true" />
-              <div className={styles.light} aria-hidden="true" />
-              <div className={styles.edge} aria-hidden="true">
-                <SweetSpotEdge crop="wide" className={styles.edgeWide} />
-                <SweetSpotEdge crop="portrait" className={styles.edgePortrait} />
-              </div>
+              {LAYERS.map((l, i) => (
+                <div key={l.id} className={styles.layer} data-layer={i} style={l.pos ? ({ "--pos": l.pos } as CSSProperties) : undefined}>
+                  <Still
+                    id={l.id}
+                    crop="ewide"
+                    phoneCrop="ephone"
+                    phoneMedia={PHONE}
+                    phoneSizes="(min-width: 700px) 560px, 100vw"
+                    sizes="100vw"
+                    bare={l.bare}
+                    // Only the final frame is described; the two under it are the same moment, closer in.
+                    alt={i === LAYERS.length - 1 ? sweetSpot.imageAlt : ""}
+                    className={styles.still}
+                  />
+                </div>
+              ))}
             </div>
           ) : (
             <SweetSpotField className={styles.graphic} />

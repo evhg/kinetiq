@@ -1,7 +1,7 @@
 /* Sweet spot, the payoff after the sealed core (owner, 2026-10-28), a pinned chapter since 2026-11-03 (SweetSpot.tsx).
    Stacked (phones, tablets, and reduced motion at any width): the headline, the image, the lines, the numbers; from
    900 px the macro runs full bleed across the top with the words under it. Pinned (900 px and up, with motion): one
-   screen, K14 covering the stage moved right and down so the rim arcs across its right half, the words in columns 1
+   screen, the image covering the stage moved right, the ball and the edge in its right half, the words in columns 1
    to 5 on the dark studio to its left. The floor is --stage at both ends, the sealed core's floor above and Surface's
    below, with lifts behind the image and the words (fill rule: never flat black). Check seams with a pixel probe. */
 .chapter {
@@ -40,7 +40,7 @@
 .graphic {
   width: 100%;
 }
-/* K14: the macro, its 4:5 portrait crop below 900 px, feathered into the floor at its top and foot (and at its sides
+/* The image: its 2160 x 3840 phone frames shown 4:5 below 900 px, feathered into the floor at its top and foot (and at its sides
    where the frame is narrower than the screen), so its backdrop never shows as a box. */
 .frame {
   position: relative;
@@ -62,70 +62,29 @@
     mask-composite: intersect;
   }
 }
-.still {
+.layer {
   position: absolute;
   inset: 0;
+}
+.still,
+.still img {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 .still img {
-  width: 100%;
-  height: 100%;
   object-fit: cover;
 }
-/* The dark the face comes up out of (pinned only: the timeline fades it from 0.62 to 0; at rest it is gone). */
-.veil {
+/* The renders sit on pure black: a lighten layer over them (inside the frame, so it acts on the images only) raises
+   that black to the stage's colour with a soft lift at the middle, so the frame never shows as a box and no screen
+   reads as flat black (the fill rule); every lit pixel is untouched. */
+.frame::after {
+  content: "";
   position: absolute;
   inset: 0;
-  background: var(--void);
-  opacity: 0;
+  background: radial-gradient(ellipse 62% 58% at 50% 54%, rgb(32 32 37), var(--stage) 92%);
+  mix-blend-mode: lighten;
   pointer-events: none;
-}
-/* The light: a soft warm band parallel to the rim (turned -23 degrees, the rim's mean slope across the frame), which
-   the timeline moves along the rim's normal, from inside the face out past the edge (transform only: GSAP's yPercent
-   acts in the turned frame, after the CSS rotate). Only a strip, 160% x 30% of the frame, so its layer stays small on
-   a 5K screen. Colour dodge brightens what is already lit in proportion, so the weave and the edge radius flare while
-   the near-black studio beyond the rim barely moves. Hidden at rest and with reduced motion. */
-.light {
-  position: absolute;
-  left: -30%;
-  top: 35%;
-  width: 160%;
-  height: 30%;
-  rotate: -23deg;
-  background: linear-gradient(
-    transparent,
-    rgb(92 84 74 / 0.35) 30%,
-    rgb(96 88 78) 50%,
-    rgb(92 84 74 / 0.35) 70%,
-    transparent
-  );
-  mix-blend-mode: color-dodge;
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-}
-/* The 1 mm line on the render (SweetSpotEdge): drawn in the crop's own pixel space and fitted like the image. The wide
-   tracing from 900 px, the portrait one below, as the still's own crops switch (Still phoneMedia). */
-.edge {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-.edge svg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-.edgeWide {
-  display: none;
-}
-@media (min-width: 900px) {
-  .edgeWide {
-    display: block;
-  }
-  .edgePortrait {
-    display: none;
-  }
 }
 .body {
   order: 2;
@@ -190,14 +149,14 @@
   .title {
     font-size: 2.75rem;
   }
-  /* K14 runs the full width of the phone */
+  /* the image runs the full width of the phone */
   .beat[data-media="still"] .media {
     width: 100vw;
     margin-inline: calc(var(--margin) * -1);
   }
 }
 
-/* Stacked from 900 px (reduced motion; the server render before the motion attribute is read): K14 full bleed across
+/* Stacked from 900 px (reduced motion; the server render before the motion attribute is read): the image full bleed across
    the top (16:9 at the screen's width, at most 72svh, feathered at both ends), the head and lines in columns 1 to 6,
    the numbers in 7 to 12, level with the lines; with G15, the words in columns 1 to 5 and the drawing on the right. */
 @media (min-width: 900px) {
@@ -218,6 +177,9 @@
     justify-self: stretch;
     width: auto;
     margin: 0 calc(var(--margin) * -1) clamp(32px, 3vw, 80px);
+  }
+  .still img {
+    object-position: var(--pos, 50% 50%);
   }
   .frame {
     width: 100%;
@@ -273,10 +235,10 @@
   }
 }
 
-/* Pinned (900 px and up, with motion): one screen. K14 covers the stage, moved right and down (translate 28% 14%) so the
-   rim arcs from the lower middle to the upper right and the dark studio opens on the left for the words; its frame
-   feathers into the stage at the left and the foot. The words in columns 1 to 5, centred in the screen below the
-   header: the head, the lines, then the numbers. Every size is capped by the height too, so 1536 x 730 holds it all. */
+/* Pinned (900 px and up, with motion): one screen. The image covers the stage, moved right (translate 24%) so the
+   ball and the edge sit in the right half and the dark studio opens on the left for the words; its frame feathers
+   into the stage at the left and the foot. The words in columns 1 to 5, centred in the screen below the header: the
+   head, the lines, then the numbers. Every size is capped by the height too, so 1536 x 730 holds it all. */
 @media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
   :global(html[data-motion="on"]) .chapter {
     background:
@@ -293,7 +255,7 @@
     inset: 0;
     z-index: -1;
     margin: 0;
-    transform: translate(28%, 14%);
+    transform: translate(24%, 0);
     -webkit-mask-image:
       linear-gradient(to right, transparent 2%, #000 30%),
       linear-gradient(transparent, #000 6%, #000 80%, transparent 96%);
@@ -337,12 +299,8 @@
   :global(html[data-motion="on"]) .value {
     font-size: min(clamp(3.5rem, 5.4vw, 9.5rem), 10.5svh);
   }
-  /* the light and the line start hidden; the timeline brings them in */
-  :global(html[data-motion="on"]) .edge {
-    visibility: hidden;
-  }
 }
-/* Pinned in a portrait window (the 12.9-inch iPad Pro, 1024 x 1366): the words across the top, K14 filling the lower
+/* Pinned in a portrait window (the 12.9-inch iPad Pro, 1024 x 1366): the words across the top, the image filling the lower
    part of the stage, feathered into it at its top. */
 @media (min-width: 900px) and (max-aspect-ratio: 5/4) and (prefers-reduced-motion: no-preference) {
   :global(html[data-motion="on"]) .beat {
