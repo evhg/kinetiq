@@ -30,6 +30,11 @@ for sh in C Cwide Cwide-nogrip; do
   done
 done
 ids=($(printf '%s\n' "${!DS[@]}" | sort))
+# E2ECX_IDS (comma list): export these ids alone (cloud REVIEW 10:52Z: the four Cwide Pace ids re-rendered)
+if [ -n "${E2ECX_IDS:-}" ]; then
+  IFS=, read -r -a ids <<< "$E2ECX_IDS"
+  for id in "${ids[@]}"; do [ -n "${DS[$id]:-}" ] || { log "unknown id $id"; exit 1; }; done
+fi
 for id in "${ids[@]}"; do
   for s in "${DS[$id]}" "${PS[$id]}"; do [ -f "$E/$s.png" ] || { log "missing $E/$s.png"; exit 1; }; done
 done
@@ -82,9 +87,9 @@ EOF
 git add -A public/stills src/content/stills.generated.json
 bad=$(git diff --cached --name-only | grep -vE '^(public/stills/|src/content/stills\.generated\.json$)' || true)
 [ -z "$bad" ] || { log "REFUSED: paths outside the allowed: $bad"; exit 1; }
-git -c user.name=Claude -c user.email=noreply@anthropic.com commit -q -m "E2E-C in the one-racket canon (STATUS-mac e2e-c): option C 'a ball at the very edge' for 'Edge to edge.'
+git -c user.name=Claude -c user.email=noreply@anthropic.com commit -q -m "E2E-C in the one-racket canon (STATUS-mac e2e-c): option C 'a ball at the very edge' for 'Edge to edge.'${E2ECX_SUBJ:-}
 
-${#ids[@]} ids (E2E-C-{rings,full}, E2E-Cwide-{rings,full}, E2E-Cwide-nogrip-{rings,full}, each + -pace), two crops
+${#ids[@]} ids ($(IFS=,; echo "${ids[*]}")), two crops
 each from its own master: ewide the 5120x2880 frame whole, ephone the 2160x3840 phone frame reframed round the ball
 (its own render). Widths as preview/edge-to-edge (ewide 1280/1920/2880, ephone 828/1170/1440), AVIF 74, WebP 86.
 stills.json not touched: each crop is {} on its own master. Sizes: $sz.

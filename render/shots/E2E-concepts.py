@@ -644,8 +644,18 @@ def build_comp(sc, src, o, out_stem):
     return written
 
 
+# Cwide Pace: K11's two glossy back strips (lg_rimL/R, the Pace silhouette) at P_RIM_S x P_RIM_K = 242; at this
+# camera's yaw (YAW_A 10, K11 Pace 40) the left wall mirrors the left strip head-on, a clipped pure-white line from the
+# crown to the throat (cloud review 2026-11-14T10:52Z). Scaled to a soft unclipped gloss no brighter than K11-full-pace's
+# wall (e2e_wall.py). Close-ups and Command untouched.
+P_RIM_K_CWP = 0.0015
+
+
 def main():
     eparse()
+    if EOPT.get("concept", "a") == "c" and VIEW_C < 0.5 and EOPT.get("feel") == "pace":
+        KD.P_RIM_K = P_RIM_K_CWP
+        print("e2e Cwide Pace: P_RIM_K", P_RIM_K_CWP)
     KD.build_rackets = build_rackets
     KD.build_comp = build_comp
     KD.frame_camera = frame_camera

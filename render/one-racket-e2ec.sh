@@ -11,15 +11,21 @@
 #   one-racket-e2ec.sh final     5120x2880 spp 160 (C, Cwide grip and Naked; Command and Pace) and the 2160x3840 phone
 #                                frames reframed round the ball (their own renders), masters to stills/E2E, one STATUS
 #                                line per group (C, Cwide, Cwide Naked)
+#   one-racket-e2ec.sh pacewall  cloud REVIEW 10:52Z on mac/exports@7915cf1e: the Cwide Pace stems again (grip and Naked,
+#                                5120 + phone), the left wall's clipped white line fixed (shots/E2E-concepts.py P_RIM_K_CWP),
+#                                each also checked by e2e_wall.py against K11-full-pace; one STATUS line (markers
+#                                "e2ecpw ...", the previous files to $F/pre-e2ecpw-20261114)
 # Resumable (markers "e2ec ..."); the 11 Nov files go to $F/pre-e2ec-20261114 once.
 . "$(cd "$(dirname "$0")" && pwd)/fw-lib.sh"
 R=e2e-c
 E=$F/e2e-c
+MODE=${1:-final}
+MK=e2ec
 OLDF=$F/pre-e2ec-20261114
+[ "$MODE" = pacewall ] && { MK=e2ecpw; OLDF=$F/pre-e2ecpw-20261114; }
 mkdir -p "$E" "$OLDF"
 export KQ_ONE_RACKET_UNION=lg_wall KQ_ONE_RACKET_ASIS=lg_streak,PaceHandle_ KQ_ONE_RACKET_KEEP=holes,throat,bridgewall
 . "$KIT/e2ec.env"   # EX_<frame>_<feel>: the exposures (C, Cwide, Cph, Cwph)
-MODE=${1:-final}
 log "E2EC-START $MODE device $KQ_DEVICE free $(free_mb) MB push $PUSH"
 # r1 <dir> <stem> <feel> <view 1|0> <phone 1|0> <naked 1|0> <w> <h> <spp>: render; a grip frame is rendered again (up to
 # 3 tries) with its exposure corrected until its face is within 1 luma of K01 (the face mean drifts a little with the
@@ -34,7 +40,7 @@ r1() {
   local e=${!ev} key="$fr-$feel-$w" try m envs=(env)
   [ "$nk" = 1 ] && { envs=(env KQ_NOGRIP=1 KQ_NAKED_FLARE=0); [ -n "${EXF[$key]:-}" ] && e=${EXF[$key]}; }
   for try in 1 2 3; do
-    still "e2ec-$stem" "$dir/$stem-full.png" - -- "${envs[@]}" $PY shots/E2E-concepts.py --concept c --mode single \
+    still "$MK-$stem" "$dir/$stem-full.png" - -- "${envs[@]}" $PY shots/E2E-concepts.py --concept c --mode single \
       --feel "$feel" --w "$w" --h "$h" --spp "$spp" --out "$dir/$stem" --eset "VIEW_C=$view,PHONE=$ph,$var=$e"
     need "$dir/$stem"-{rings,full,mask}.png || return 1
     m=$($PY "$KIT/e2e_face.py" "$dir/$stem" "$feel" 2>&1 >/dev/null | sed -n 's/^mean=//p')
@@ -50,6 +56,11 @@ r1() {
 chk() {
   local dir=$1 stem=$2 feel=$3 r
   r=$($PY "$KIT/e2e_face.py" "$dir/$stem" "$feel" ${4:+"$dir/$4"} 2>/dev/null) || { log "E2EC-FACE-FAIL $stem $r"; return 1; }
+  if [ "$MODE" = pacewall ]; then
+    local wr
+    wr=$($PY "$KIT/e2e_wall.py" "$dir/$stem" 2>/dev/null) || { log "E2EC-WALL-FAIL $stem $wr"; return 1; }
+    r="$r, $wr"
+  fi
   log "E2EC-FACE $stem $r"; FACES+=("$stem $r")
 }
 FACES=()
@@ -70,13 +81,13 @@ fi
 # finals: <group> <stems...>, each stem "<stem>:<feel>:<view>:<naked>" (+ its phone frame <stem-with -phone>)
 group() {
   local g=$1 what=$2; shift 2
-  done_mark "e2ec status $g" && return 0
+  done_mark "$MK status $g" && return 0
   local t0=$(date +%s) files=() s stem feel view nk ps twin
   for s in "$@"; do
     IFS=: read -r stem feel view nk <<< "$s"
     ps=${stem/-command/-phone-command}; ps=${ps/-pace/-phone-pace}
-    if ! done_mark "e2ec aside $stem"; then
-      local f; for f in "$E/$stem"* "$F/e2e/$stem"-*.png; do [ -e "$f" ] && mv "$f" "$OLDF"/; done; mark "e2ec aside $stem"
+    if ! done_mark "$MK aside $stem"; then
+      local f; for f in "$E/$stem"* "$E/$ps"* "$F/e2e/$stem"-*.png; do [ -e "$f" ] && mv "$f" "$OLDF"/; done; mark "$MK aside $stem"
     fi
     twin=; [ "$nk" = 1 ] && twin=${stem/-nogrip/}
     twp=; [ "$nk" = 1 ] && twp=${ps/-nogrip/}
@@ -86,11 +97,17 @@ group() {
   done
   local tt=$(( $(date +%s) - t0 ))
   [ "$PUSH" = 1 ] || return 0
-  masters "e2ec m $g" stills/E2E "E2E $g ($R), 5120x2880 + 2160x3840 phone" "${files[@]}"
-  done_mark "e2ec m $g" || return 1
+  masters "$MK m $g" stills/E2E "E2E $g ($R), 5120x2880 + 2160x3840 phone" "${files[@]}"
+  done_mark "$MK m $g" || return 1
   local list=$(for f in "${files[@]}"; do printf 'stills/E2E/%s,' "$(basename "$f")"; done | sed 's/,$//')
-  st "e2ec status $g" "$(date -u +%FT%TZ) $R:$g $list $(hm $tt) $DEVNAME $what; with the 09:48Z review folded in (replaces this group's earlier line): the Command close-up's rings stronger and a touch narrower (they read as clearly as in Cwide, the twill through them), the ball struck (its cap flattened onto the face and the whole ball squashed along the normal, ~8 % of its diameter in all, the felt bulging round the patch, the face darkened tight round it; no motion blur), Cwide framed to the head and ball (the head ~70 % of the frame height, ball and rim clear of the edge, the handle runs out), the phone wide frames the same way as large as their width allows, Pace close-up as previewed; 5120x2880 spp 160 and the 2160x3840 phone frame reframed round the ball (its own render, not a crop), rings and full from one render each; face mean against K01-full (Command 137.4 / Pace 44.0; Naked also against its grip twin, its exposure set to K01 the same way: the Naked model's black twill catches a little more sheen at the top of the head): $(IFS=';'; echo "${FACES[*]}"); shots/E2E-concepts.py; in the one-racket canon (K11's links of the approved batch, whole frames); render time this run"
+  st "$MK status $g" "$(date -u +%FT%TZ) $R:$g $list $(hm $tt) $DEVNAME $what; ${GNOTE:-}with the 09:48Z review folded in (replaces this group's earlier line): the Command close-up's rings stronger and a touch narrower (they read as clearly as in Cwide, the twill through them), the ball struck (its cap flattened onto the face and the whole ball squashed along the normal, ~8 % of its diameter in all, the felt bulging round the patch, the face darkened tight round it; no motion blur), Cwide framed to the head and ball (the head ~70 % of the frame height, ball and rim clear of the edge, the handle runs out), the phone wide frames the same way as large as their width allows, Pace close-up as previewed; 5120x2880 spp 160 and the 2160x3840 phone frame reframed round the ball (its own render, not a crop), rings and full from one render each; face mean against K01-full (Command 137.4 / Pace 44.0; Naked also against its grip twin, its exposure set to K01 the same way: the Naked model's black twill catches a little more sheen at the top of the head): $(IFS=';'; echo "${FACES[*]}"); shots/E2E-concepts.py; in the one-racket canon (K11's links of the approved batch, whole frames); render time this run"
 }
+if [ "$MODE" = pacewall ]; then
+  GNOTE="cloud REVIEW 10:52Z fixed (replaces the Cwide and Cwide-nogrip lines for Pace; Command as approved): the left wall's clipped pure-white line came from K11's two glossy back strips behind the Pace racket (lg_rimL/R, its silhouette light: P_RIM_S 1100 x P_RIM_K 0.22), which at this camera's yaw (10 deg; K11 Pace 40) the left wall mirrors head-on; KQ_ONE_RACKET_KEEP pace:wall changes nothing here (the wall's own links are as authored; the strips light it), so in Cwide Pace the strips are scaled to P_RIM_K 0.0015: the wall dark with a soft unclipped gloss along its edge, no brighter than K11-full-pace's (e2e_wall.py: per head row the wall band's peak, K11-full-pace median 150 / p90 193; a small crown highlight from the face's sheen strip stays, as in K11). Face, rings, ball and framing unchanged. As before: "
+  FACES=(); group Cwide-pace "C wide, Pace, grip and Naked" \
+    E2E-Cwide-pace:pace:0:0 E2E-Cwide-nogrip-pace:pace:0:1 || exit 1
+  log "E2EC-DONE pacewall"; exit 0
+fi
 FACES=(); group C "C close-up (the hero, 100 mm, 38 deg off the face normal), Command and Pace: the ball pressed onto the face at the head's widest point, its contact patch's centre 4 mm inside the outline on the flat face, overhanging the rim; optic-yellow felt, crisp seam; the rings soft warm light on the face, the weave through them" \
   E2E-C-command:command:1:0 E2E-C-pace:pace:1:0 || exit 1
 FACES=(); group Cwide "C wide (the K11 camera, the whole racket), grip, Command and Pace" \
