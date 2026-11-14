@@ -68,14 +68,32 @@ WALL_B = 0.5             # the line on the 38 mm wall, x (it bends over the radi
 VIEW_C = 1.0             # 1 hero (close, three-quarter), 0 wide (the whole racket)
 IMPACT_IN = 0.004        # m: the contact patch's centre inside the outline at the head's widest point
 EL_C, AZ_C, LENS_C, FW_C = 18.0, 38.0, 100.0, 0.30   # hero camera: deg above the face plane / from the face normal
-RING_SP, RING_P = 0.022, 8.0   # ring spacing (m) and sharpness (power of the raised cosine)
+RING_SP, RING_P = 0.022, 3.0   # ring spacing (m) and sharpness (power of the raised cosine; 11 Nov: 8, read as bands)
 RING_PH = 0.004          # m: ring phase
 RING0 = 0.028            # m: no rings inside this radius (the ball's own patch)
 RING_G = 8.0
 RING_G_PACE = 3.0        # C Pace: the rings on the black 12K (8 read as bold stripes)
 WALL_BP = 4.0            # B Pace: a glossy-only card at the crown wall's mirror direction (its black 12K read as a void)
-BALL_KEY = 30.0
-FELT_C = (0.80, 0.95, 0.06)     # C (10:45Z): a brighter padel-ball yellow (K17's read olive here)           # a soft key on the ball alone
+BALL_KEY = 30.0          # a soft key on the ball alone
+FELT_C = (0.45, 0.95, 0.0)      # e2e-c (2026-11-14): a true optic yellow (the official padel ball felt): K17's hue, brighter
+                                # (11 Nov's (0.80, 0.95, 0.06) read olive / cream under AgX)
+# e2e-c (cloud REQUEST 2026-11-14T09:00Z, owner chose C for the landing page's 'Edge to edge.'): the one-racket canon re-render
+PHONE = 0.0              # 1: the 2160x3840 phone frame, reframed round the ball (its own render, not a crop of the wide)
+FW_CP, TX_CP = 0.17, 0.012   # phone close-up: the frame width at the target (m); the target this far toward the face
+FIT_PT, FIT_PB, FIT_PS = 0.07, 0.07, 0.05   # phone wide: air at the top, bottom, sides (fractions of the frame)
+EXPO_C, EXPO_P = 1.0, 1.0    # C: the studio image x this (Command, Pace): the face mean matched to K01-full
+BALL_EXPO = 1.6          # C: the ball's own exposure (AOV e2e_ball), apart from the racket's
+WB_C = (0.97, 1.0, 1.06)  # C: a white balance on the image (linear gains): the face's neutral grey as K01-full's (the K11
+                          # studio read a little warm here: b/g 0.965 against K01's 0.99)
+RING_LIGHT = 1.0         # 1: the rings are soft warm light ON the face: the studio image x (1 + RING_K x ring) in a warm
+                         # tint plus a little warm light on the face's albedo, so the weave reads through them (11 Nov:
+                         # an additive emission, opaque copper bands); 0: the 11 Nov rings
+RING_K, RING_K_PACE = 2.2, 1.2   # the ring light's gain on the studio image (Command, Pace)
+RING_A, RING_A_PACE = 0.3, 0.3   # the ring light on the albedo (Command, Pace)
+RING_TINT, RING_TINT_PACE = 0.55, 0.4   # how warm the ring light is (0 white .. 1 the full 2700 K colour)
+RING_P_PACE = 4.0        # Pace's rings a touch narrower (the black 12K: broad rings read as brown bands)
+SEAM_CLEAR = 0.0012      # m: the felt's fibres kept this far off the seam's edge (11 Nov: 0.2 mm, the fibres blurred it)
+SEAM_COL = (0.80, 0.80, 0.78)   # the seam's rubber, a clean light grey
 
 EOPT = {}
 
@@ -298,7 +316,7 @@ def build_rackets(o):
             xi, yi = impact_point()
             for r in roots:
                 add_dist_aov(C.parts(r)["face"], xi, yi)
-            names.append("e2e_d")
+            names += ["e2e_d", "e2e_ball"]
         _aovs(names)
     elif cpt == "b":
         for r in roots:
@@ -355,14 +373,32 @@ def frame_camera(sc, cam, pts, aim, dirn):
             el, az = math.radians(EL_C), math.radians(AZ_C)
             v = (nrm * math.cos(az) + across * math.sin(az))
             v = (v * math.cos(el) + up * math.sin(el)).normalized()
-            d = FW_C * LENS_C / 36.0
-            T = P - across * 0.035
+            d = (FW_CP if PHONE >= 0.5 else FW_C) * LENS_C / 36.0
+            T = P - across * (TX_CP if PHONE >= 0.5 else 0.035)
             cam.data.lens = LENS_C
             cam.data.sensor_fit = "HORIZONTAL"
             cam.data.sensor_width = 36.0
             cam.data.shift_x = cam.data.shift_y = 0.0
             cam.location = T + v * d
             studio.aim(cam, T)
+            bpy.context.view_layer.update()
+        elif PHONE >= 0.5:
+            # the whole racket and the ball in the portrait frame (the card crop is the whole frame here)
+            bc = P + nrm * 0.027
+            bp = [bc + v_ * 0.034 for v_ in (across, -across, up, -up, nrm)]
+            keep = (KD.CARD_X0, KD.CARD_W, KD.FIT_TOP, KD.FIT_BOT, KD.FIT_SIDE)
+            KD.CARD_X0, KD.CARD_W, KD.FIT_TOP, KD.FIT_BOT, KD.FIT_SIDE = 0.0, 1.0, FIT_PT, FIT_PB, FIT_PS
+            d = _orig_frame(sc, cam, list(pts) + bp, aim, dirn)
+            KD.CARD_X0, KD.CARD_W, KD.FIT_TOP, KD.FIT_BOT, KD.FIT_SIDE = keep
+            # K11's shift assumes a landscape frame (shift in frame widths); in portrait the shift unit is the height
+            from bpy_extras.object_utils import world_to_camera_view as w2c
+            cd = cam.data
+            cd.shift_x = cd.shift_y = 0.0
+            bpy.context.view_layer.update()
+            uv = np.array([w2c(sc, cam, p_)[:2] for p_ in list(pts) + bp])
+            asp = sc.render.resolution_y / sc.render.resolution_x
+            cd.shift_x = ((uv[:, 0].min() + uv[:, 0].max()) / 2 - 0.5) / asp
+            cd.shift_y = (uv[:, 1].min() + uv[:, 1].max()) / 2 - (FIT_PB + (1 - FIT_PT - FIT_PB) / 2)
             bpy.context.view_layer.update()
         else:
             d = _orig_frame(sc, cam, pts, aim, dirn)
@@ -390,6 +426,8 @@ def add_ball(r, P, cam):
     p["COMPRESS"] = 0.006           # the instant of the strike: pressed harder than K17's slice
     p["FELT"] = FELT_C
     p["FIB_COL"] = FELT_C
+    p["SEAM_CLEAR"] = SEAM_CLEAR
+    p["SEAM_COL"] = SEAM_COL
     Mw = Matrix.Translation(P) @ r.matrix_world.to_3x3().normalized().to_4x4()
     cam_local = Mw.inverted() @ cam.location
     centre = Vector((0.0, 0.0, p["BALL_R"] - p["COMPRESS"]))
@@ -402,6 +440,16 @@ def add_ball(r, P, cam):
                            color=KD.kelvin(5600.0), target=tuple(P + nrm * 0.03))
     kl.lightgroup = "key"
     KL7.link_receivers(kl, bobs, "recv_ballkey")
+    # AOV e2e_ball = 1 on the ball (felt, seam, fibres): the comp gives it its own exposure (BALL_EXPO), so the racket's
+    # exposure (EXPO_C / EXPO_P, matched to K01) leaves the ball's optic yellow as it is
+    for ob in bobs:
+        for slot in ob.material_slots:
+            mt = slot.material
+            if mt is None or any(n.type == "OUTPUT_AOV" and n.aov_name == "e2e_ball" for n in mt.node_tree.nodes):
+                continue
+            a = mt.node_tree.nodes.new("ShaderNodeOutputAOV")
+            a.aov_name = "e2e_ball"
+            a.inputs["Value"].default_value = 1.0
     print("e2e ball at", tuple(round(x, 4) for x in P))
 
 
@@ -473,13 +521,42 @@ def build_comp(sc, src, o, out_stem):
             outs["s%d" % (k + 1)] = mix("ADD", lit, glow(mix("MULTIPLY", fl, k_)))
     if "flood" in den and cpt == "c":
         dd, inside = rl.outputs["e2e_d"], rl.outputs["e2e_in"]
-        lit = mix("ADD", mix("MULTIPLY", base, STUDIO_C), den["glow"])
-        fl = mix("MULTIPLY", den["flood"], RING_G_PACE if EOPT.get("feel") == "pace" else RING_G)
+        pc = EOPT.get("feel") == "pace"
+        ex = EXPO_P if pc else EXPO_C
+        # the exposure per pixel: ex on the racket and field, BALL_EXPO on the ball
+        ev = m("ADD", ex, m("MULTIPLY", rl.outputs["e2e_ball"], BALL_EXPO - ex))
+        def wb(img):
+            n = tr.nodes.new("CompositorNodeMixRGB")
+            n.blend_type = "MULTIPLY"
+            n.inputs["Fac"].default_value = 1.0
+            tr.links.new(img, n.inputs[1])
+            n.inputs[2].default_value = (*WB_C, 1)
+            return n.outputs["Image"]
+        lit = mix("MULTIPLY", wb(mix("ADD", mix("MULTIPLY", base, STUDIO_C), den["glow"])), ev)
+        outs["base"] = mix("MULTIPLY", wb(mix("MULTIPLY", base, STUDIO_C)), ev)
+        outs["full"] = lit
+        outs["mask"] = inside                      # the flat face (no holes, no ball): the face-mean check, not a master
         import math as _m
         ph = m("MULTIPLY", m("SUBTRACT", dd, RING_PH), 2.0 * _m.pi / RING_SP)
-        ring = m("POWER", m("ADD", m("MULTIPLY", m("COSINE", ph), 0.5), 0.5), RING_P)
+        ring = m("POWER", m("ADD", m("MULTIPLY", m("COSINE", ph), 0.5), 0.5), RING_P_PACE if pc else RING_P)
         k_ = m("MULTIPLY", m("MULTIPLY", ring, m("GREATER_THAN", dd, RING0)), inside)
-        outs["rings"] = mix("ADD", lit, glow(mix("MULTIPLY", fl, k_)))
+        if RING_LIGHT >= 0.5:
+            kv = KD.kelvin(FLOOD_K)
+            tcol = [1.0 - (RING_TINT_PACE if pc else RING_TINT) * (1.0 - x) for x in kv]
+
+            def tint(img):
+                n = tr.nodes.new("CompositorNodeMixRGB")
+                n.blend_type = "MULTIPLY"
+                n.inputs["Fac"].default_value = 1.0
+                tr.links.new(img, n.inputs[1])
+                n.inputs[2].default_value = (*tcol, 1)
+                return n.outputs["Image"]
+            on_img = mix("MULTIPLY", mix("MULTIPLY", tint(lit), k_), RING_K_PACE if pc else RING_K)
+            on_alb = mix("MULTIPLY", mix("MULTIPLY", tint(src["albedo"]), k_), (RING_A_PACE if pc else RING_A) * ex)
+            outs["rings"] = mix("ADD", lit, mix("ADD", on_img, on_alb))
+        else:
+            fl = mix("MULTIPLY", den["flood"], RING_G_PACE if pc else RING_G)
+            outs["rings"] = mix("ADD", lit, glow(mix("MULTIPLY", fl, k_)))
     if "flood" in den and cpt == "a":
         r, inside = rl.outputs["e2e_r"], rl.outputs["e2e_in"]
         # 10:45Z: a warm light ON the white twill: inside the light the studio image x a 2700 K tint (TINT_A) and

@@ -300,7 +300,7 @@ def build_ball(p, centre, cam_loc, rng):
     seam = bpy.data.objects.new("BallSeam", me)
     bpy.context.scene.collection.objects.link(seam)
     seam.parent = root
-    seam.data.materials.append(mat_seam())
+    seam.data.materials.append(mat_seam(p.get("SEAM_COL", (0.62, 0.62, 0.60))))
     # fibres
     hair = build_fibres(p, R, deform, zf, rp, sc_, centre, cam_loc, rng)
     hair.parent = root
@@ -322,7 +322,7 @@ def build_fibres(p, R, deform, zf, rp, seam_pts, centre, cam_loc, rng):
     for i0 in range(0, len(v), 20000):
         blk = v[i0:i0 + 20000]
         dd[i0:i0 + 20000] = np.sqrt(np.maximum(2.0 - 2.0 * (blk @ seam_pts.T).max(1), 0.0))  # chord to the seam
-    v = v[dd * R > p["SEAM_W"] * 0.5 + 0.0002][:n]
+    v = v[dd * R > p["SEAM_W"] * 0.5 + p.get("SEAM_CLEAR", 0.0002)][:n]   # SEAM_CLEAR: E2E-C (2026-11-14) a crisp seam
     n = len(v)
     print("fibres", n, flush=True)
     npt = 5
@@ -411,12 +411,12 @@ def mat_fibre(p):
     return m
 
 
-def mat_seam():
+def mat_seam(col=(0.62, 0.62, 0.60)):
     m = K.new_mat("Seam")
     nb = K.NB(m)
     out = nb.n.new("ShaderNodeOutputMaterial")
     b = nb.n.new("ShaderNodeBsdfPrincipled")
-    b.inputs["Base Color"].default_value = (0.62, 0.62, 0.60, 1)
+    b.inputs["Base Color"].default_value = (*col, 1)
     b.inputs["Roughness"].default_value = 0.55
     nb.l.new(b.outputs[0], out.inputs["Surface"])
     return m
