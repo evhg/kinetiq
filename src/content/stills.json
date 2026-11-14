@@ -1267,6 +1267,78 @@
           "q": 56
         }
       }
+    },
+    "E2E-C-full": {
+      "crops": {
+        "ewide": {},
+        "ephone": {}
+      }
+    },
+    "E2E-C-full-pace": {
+      "crops": {
+        "ewide": {},
+        "ephone": {}
+      }
+    },
+    "E2E-C-rings": {
+      "crops": {
+        "ewide": {},
+        "ephone": {}
+      }
+    },
+    "E2E-C-rings-pace": {
+      "crops": {
+        "ewide": {},
+        "ephone": {}
+      }
+    },
+    "E2E-Cwide-full": {
+      "crops": {
+        "ewide": {},
+        "ephone": {}
+      }
+    },
+    "E2E-Cwide-full-pace": {
+      "crops": {
+        "ewide": {},
+        "ephone": {}
+      }
+    },
+    "E2E-Cwide-rings": {
+      "crops": {
+        "ewide": {},
+        "ephone": {}
+      }
+    },
+    "E2E-Cwide-rings-pace": {
+      "crops": {
+        "ewide": {},
+        "ephone": {}
+      }
+    },
+    "E2E-Cwide-nogrip-full": {
+      "crops": {
+        "ewide": {},
+        "ephone": {}
+      }
+    },
+    "E2E-Cwide-nogrip-full-pace": {
+      "crops": {
+        "ewide": {},
+        "ephone": {}
+      }
+    },
+    "E2E-Cwide-nogrip-rings": {
+      "crops": {
+        "ewide": {},
+        "ephone": {}
+      }
+    },
+    "E2E-Cwide-nogrip-rings-pace": {
+      "crops": {
+        "ewide": {},
+        "ephone": {}
+      }
     }
   }
 }
