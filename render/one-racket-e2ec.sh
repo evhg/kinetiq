@@ -23,7 +23,9 @@ MODE=${1:-final}
 log "E2EC-START $MODE device $KQ_DEVICE free $(free_mb) MB push $PUSH"
 # r1 <dir> <stem> <feel> <view 1|0> <phone 1|0> <naked 1|0> <w> <h> <spp>: render; a grip frame is rendered again (up to
 # 3 tries) with its exposure corrected until its face is within 1 luma of K01 (the face mean drifts a little with the
-# resolution: 1280 -> 2560 cost Command ~3 luma); a Naked frame takes its grip twin's final exposure (EXF)
+# resolution: 1280 -> 2560 cost Command ~3 luma); a Naked frame starts from its grip twin's final exposure (EXF) and is
+# corrected the same way (the Naked model's 12K twill catches more sheen at the top of the head: Cwide Naked Pace read
+# 47.2 at its twin's exposure against 43.9), so it lands within 1 of K01 and within 2 of its twin
 declare -A EXF
 r1() {
   local dir=$1 stem=$2 feel=$3 view=$4 ph=$5 nk=$6 w=$7 h=$8 spp=$9
@@ -35,7 +37,6 @@ r1() {
     still "e2ec-$stem" "$dir/$stem-full.png" - -- "${envs[@]}" $PY shots/E2E-concepts.py --concept c --mode single \
       --feel "$feel" --w "$w" --h "$h" --spp "$spp" --out "$dir/$stem" --eset "VIEW_C=$view,PHONE=$ph,$var=$e"
     need "$dir/$stem"-{rings,full,mask}.png || return 1
-    [ "$nk" = 1 ] && break
     m=$($PY "$KIT/e2e_face.py" "$dir/$stem" "$feel" 2>&1 >/dev/null | sed -n 's/^mean=//p')
     log "E2EC-EXPO $stem try $try exposure $e face $m"
     awk -v m="$m" -v t="$tgt" 'BEGIN{exit !((m-t)^2 > 1.0)}' || break
@@ -88,7 +89,7 @@ group() {
   masters "e2ec m $g" stills/E2E "E2E $g ($R), 5120x2880 + 2160x3840 phone" "${files[@]}"
   done_mark "e2ec m $g" || return 1
   local list=$(for f in "${files[@]}"; do printf 'stills/E2E/%s,' "$(basename "$f")"; done | sed 's/,$//')
-  st "e2ec status $g" "$(date -u +%FT%TZ) $R:$g $list $(hm $tt) $DEVNAME $what; with the 09:48Z review folded in (replaces this group's earlier line): the Command close-up's rings stronger and a touch narrower (they read as clearly as in Cwide, the twill through them), the ball struck (its cap flattened onto the face and the whole ball squashed along the normal, ~8 % of its diameter in all, the felt bulging round the patch, the face darkened tight round it; no motion blur), Cwide framed to the head and ball (the head ~70 % of the frame height, ball and rim clear of the edge, the handle runs out), the phone wide frames the same way as large as their width allows, Pace close-up as previewed; 5120x2880 spp 160 and the 2160x3840 phone frame reframed round the ball (its own render, not a crop), rings and full from one render each; face mean against K01-full (Command 137.4 / Pace 44.0; Naked also against its grip twin): $(IFS=';'; echo "${FACES[*]}"); shots/E2E-concepts.py; in the one-racket canon (K11's links of the approved batch, whole frames); render time this run"
+  st "e2ec status $g" "$(date -u +%FT%TZ) $R:$g $list $(hm $tt) $DEVNAME $what; with the 09:48Z review folded in (replaces this group's earlier line): the Command close-up's rings stronger and a touch narrower (they read as clearly as in Cwide, the twill through them), the ball struck (its cap flattened onto the face and the whole ball squashed along the normal, ~8 % of its diameter in all, the felt bulging round the patch, the face darkened tight round it; no motion blur), Cwide framed to the head and ball (the head ~70 % of the frame height, ball and rim clear of the edge, the handle runs out), the phone wide frames the same way as large as their width allows, Pace close-up as previewed; 5120x2880 spp 160 and the 2160x3840 phone frame reframed round the ball (its own render, not a crop), rings and full from one render each; face mean against K01-full (Command 137.4 / Pace 44.0; Naked also against its grip twin, its exposure set to K01 the same way: the Naked model's black twill catches a little more sheen at the top of the head): $(IFS=';'; echo "${FACES[*]}"); shots/E2E-concepts.py; in the one-racket canon (K11's links of the approved batch, whole frames); render time this run"
 }
 FACES=(); group C "C close-up (the hero, 100 mm, 38 deg off the face normal), Command and Pace: the ball pressed onto the face at the head's widest point, its contact patch's centre 4 mm inside the outline on the flat face, overhanging the rim; optic-yellow felt, crisp seam; the rings soft warm light on the face, the weave through them" \
   E2E-C-command:command:1:0 E2E-C-pace:pace:1:0 || exit 1
