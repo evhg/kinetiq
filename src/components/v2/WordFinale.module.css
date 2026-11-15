@@ -1,0 +1,13 @@
+/* Effect 5 (WordFinale.tsx): the closing line, larger, lighting word by word. */
+.section {
+  min-height: max(100svh, 700px);
+}
+.word {
+  /* opacity only: the scrub moves nothing */
+  opacity: 1;
+}
+.after {
+  display: grid;
+  justify-items: center;
+  gap: clamp(14px, 1vw + 6px, 28px);
+}

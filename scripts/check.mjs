@@ -523,6 +523,8 @@ function wrongFeelFiles(urls, feel) {
     const m = path.match(/^\/stills\/(.+)-\d+(?:\.[0-9a-f]{10})?\.(?:avif|webp)$/);
     if (!m) continue;
     const key = m[1];
+    // /v2's feel switch (FeelWipe) shows K05 in both feels at once, by design.
+    if (pagePath === "/v2" && /^K05(?:-nogrip)?(?:-phone)?(?:-pace)?-(?:wide|portrait)$/.test(key)) continue;
     if (feel === "command") {
       if (/-pace(-|$)/.test(key) && STILL_KEYS.has(key)) wrong.add(path);
       continue;

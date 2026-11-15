@@ -38,7 +38,8 @@ const TURNS = hasSequence(SWIVEL);
  * 2026-10-23), and beat C (three proofs) is retired: its points are told by beat A, the sweet-spot section and Feel.
  * Since 2026-10-28 it opens the story, straight after the hero, and its Skip link lands on Aerospace-grade carbon.
  */
-export function Unibody() {
+/** `nextId`: where its Skip link lands (/v2 puts a chapter after it). */
+export function Unibody({ nextId = "aerospace-grade" }: { nextId?: string } = {}) {
   const beatA = useRef<HTMLDivElement>(null);
   const swivel = useRef<SwivelHandle>(null);
   const { motionOn } = useMotion();
@@ -69,7 +70,7 @@ export function Unibody() {
   return (
     <PinnedChapter
       id="unibody"
-      nextId="aerospace-grade"
+      nextId={nextId}
       labelledBy="unibody-title"
       className={`pin-layered ${styles.chapter}`}
       length={1.6}

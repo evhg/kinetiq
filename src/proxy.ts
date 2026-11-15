@@ -65,9 +65,9 @@ export function proxy(request: NextRequest) {
 }
 
 /** The pages with a variant per feel (app/feel/<feel>/), and where those live (no page of its own: a 404). Each also
- * has a bare variant (app/feel/bare/, app/feel/<feel>/bare/). */
+ * has a bare variant (app/feel/bare/, app/feel/<feel>/bare/). /v2, the second landing page, is served the same way. */
 const FEEL_ROOT = "/feel";
-const FEEL_PAGES = new Set(["/", "/reserve", "/reserved"]);
+const FEEL_PAGES = new Set(["/", "/reserve", "/reserved", "/v2"]);
 
 /**
  * /api/*, Next's own endpoints other than its static files (/_next/image and the like), and any path whose last
